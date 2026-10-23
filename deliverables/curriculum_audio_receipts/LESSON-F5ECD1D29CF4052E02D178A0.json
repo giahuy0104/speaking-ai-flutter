@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T10-B02\\C1315-L3-T10-B02-T05_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T10-B02-T05_EN",
+  "sourceText": "I'll ask for advice.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "I'll ask for advice.",
+      "generation_key": "9d3c029d6dbe5391"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-F5ECD1D29CF4052E02D178A0",
+  "text": "I'll ask for advice.",
+  "asset": "assets/audio/CURRICULUM/f5ecd1d29cf4052e02d178a0.en.v1.mp3",
+  "sha256": "1c84938e68c8e6e739fc99ad425a5e15ae7817794b0695fb16c94fac3a08de34",
+  "durationSeconds": 2.456961
+}

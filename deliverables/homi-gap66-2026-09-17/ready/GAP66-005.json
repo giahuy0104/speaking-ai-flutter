@@ -1,0 +1,28 @@
+{
+  "id": "GAP66-005",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bắt đầu Level 1. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "kz1gC7UYvk8pfegwLoZG",
+  "historyItemId": "R9yOQhrpG9Byj9xpvuG5",
+  "characterCost": "29",
+  "createdAt": "2026-09-17T14:24:10.649Z",
+  "sourceSha256": "49a2358036e550c8db5fbd4a0b51a0d16dd1471b19a1acce14cacfb27d42a29f",
+  "asset": "assets/audio/MAIN/GAP66/GAP66-005.vi.v1.mp3",
+  "finalSha256": "c287462b8a96ace50d2cb322bf71bbfaf6e1e3dba7afbd8bf1d52bb6d7e9dcb1",
+  "sourceDurationSeconds": 4.24,
+  "durationSeconds": 4.703107,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 76530
+}

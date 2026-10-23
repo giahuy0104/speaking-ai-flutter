@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T09-B01\\C1112-L3-T09-B01-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T09-B01-Q06",
+  "sourceText": "Bạn muốn nói 'Mình làm mất chìa khóa.' Hoàn thành câu: I... forgot my homework hay lost my key?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói 'Mình làm mất chìa khóa.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Mình làm mất chìa khóa.' Hoàn thành câu:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "I... forgot my homework",
+      "spoken_text": "I... forgot my homework",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "lost my key?",
+      "spoken_text": "lost my key?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-5A2B569EEE968ED6AC4CFB13",
+  "text": "Bạn muốn nói 'Mình làm mất chìa khóa.' Hoàn thành câu: I... forgot my homework hay lost my key?",
+  "asset": "assets/audio/CURRICULUM/5a2b569eee968ed6ac4cfb13.vi.v1.mp3",
+  "sha256": "1d94ada839b22e900c8c492e15308441cdcc5926f6db72a7c7b739ca9f00e534",
+  "durationSeconds": 9.249569
+}

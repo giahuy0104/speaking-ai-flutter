@@ -1,0 +1,83 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\1889d943fceb38d9d85907a7998b12ef217c36707dc243556702d8dedc6e71d6.tempo.mp3",
+      "signature": "1889d943fceb38d9d85907a7998b12ef217c36707dc243556702d8dedc6e71d6",
+      "request": {
+        "text": "Mình học lại bài",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "3d2375d09e42f0c6ef949b58ea6463ebaa417947d36474a8aa89203156f37f3f",
+      "requestId": "2Kf3OOkeDTH7UaYt6jz4",
+      "createdAt": "2026-09-15T23:22:34.285Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\4c1dccc54ee7de2f53e8c68f289abde869072f21de3d0ecb843ec9141979ee7e.tempo.mp3",
+      "signature": "4c1dccc54ee7de2f53e8c68f289abde869072f21de3d0ecb843ec9141979ee7e",
+      "request": {
+        "text": "My Turn",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "007d387628107278de1ca4d8f4da482f7a0c7b8990fa306f570a7ec87e1dfbc0",
+      "requestId": "yudrB4buN1GEIb6CLPbU",
+      "createdAt": "2026-09-15T23:25:55.988Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\f72caefaa52b9ec3d291f160d78b360185e13807d2eedb801f47a382b8e85780.tempo.mp3",
+      "signature": "f72caefaa52b9ec3d291f160d78b360185e13807d2eedb801f47a382b8e85780",
+      "request": {
+        "text": "nhé.",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "f8a90b46149d734b590160ab12314af597dc9eb203f9f411637ff57d12e7a8d6",
+      "requestId": "1gbfQaGo6f7yeN8SvxDC",
+      "createdAt": "2026-09-15T23:22:32.853Z"
+    }
+  ],
+  "id": "LESSON-1E2E538B1D834EFCBE26C93B",
+  "text": "Mình học lại bài My Turn nhé.",
+  "asset": "assets/audio/CURRICULUM/1e2e538b1d834efcbe26c93b.vi.v1.mp3",
+  "sha256": "8f52f7ef649523984c050bbcc4892dba8f3ab71ab194c6f02a02e9d1bf9c0f96",
+  "durationSeconds": 4.37737,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\45e32611fcf1d2545860a3128f3cfb8729dd357824d43d5a81589c7d8f2406e9.tempo.mp3",
+      "signature": "45e32611fcf1d2545860a3128f3cfb8729dd357824d43d5a81589c7d8f2406e9",
+      "request": {
+        "text": "Một ngày mới bắt đầu rồi!",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "2cec358878896503968a96ce3583a04c2269e9da66b503cd756b62cf19fefabc",
+      "requestId": "c0bIrHBtpBua9j3G1HkN",
+      "createdAt": "2026-09-15T23:17:08.695Z"
+    }
+  ],
+  "id": "LESSON-7D59818F641A1F69D6F9FE6A",
+  "text": "Một ngày mới bắt đầu rồi!",
+  "asset": "assets/audio/CURRICULUM/7d59818f641a1f69d6f9fe6a.vi.v1.mp3",
+  "sha256": "28d2a7f824d154507152c20a20302d0b7e1135a2b38db80ec2c2a827cc4ce49b",
+  "durationSeconds": 1.675714,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

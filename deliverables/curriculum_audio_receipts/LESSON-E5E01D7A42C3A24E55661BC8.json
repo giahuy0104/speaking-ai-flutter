@@ -1,0 +1,41 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\2b0a519643ae6654e35071f09215bb0f6bd0772fc90199d5cc3e5ccb0209a216.tempo.mp3",
+      "signature": "2b0a519643ae6654e35071f09215bb0f6bd0772fc90199d5cc3e5ccb0209a216",
+      "request": {
+        "text": "Mình cùng nói về lịch hằng ngày, cuối bài còn có bài hát nhé.",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "c6a549b63f757af84fdc96ae111e9d8e1c88afe51212be46aa28fd744b7a6674",
+      "requestId": "WcPV78ve5iFiXwahpcD0",
+      "createdAt": "2026-09-15T23:18:30.737Z"
+    }
+  ],
+  "id": "LESSON-E5E01D7A42C3A24E55661BC8",
+  "text": "Mình cùng nói về lịch hằng ngày, cuối bài còn có bài hát nhé.",
+  "asset": "assets/audio/CURRICULUM/e5e01d7a42c3a24e55661bc8.vi.v1.mp3",
+  "sha256": "313f2d57d0145d23abf76e472dc2f980b1cd954a1714a71fc0b3785f55a6cda4",
+  "durationSeconds": 3.727029,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

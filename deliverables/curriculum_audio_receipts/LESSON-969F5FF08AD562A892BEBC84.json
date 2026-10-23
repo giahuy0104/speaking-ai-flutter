@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T03-B02\\C1315-L1-T03-B02-T03_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-T03-B02-T03_EN",
+  "sourceText": "Because it's cheaper.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Because it's cheaper.",
+      "generation_key": "a60b4af8c067dc18"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-969F5FF08AD562A892BEBC84",
+  "text": "Because it's cheaper.",
+  "asset": "assets/audio/CURRICULUM/969f5ff08ad562a892bebc84.en.v1.mp3",
+  "sha256": "40dd459e9e582eceb189e7eff38eac2c220056fa5cf1e2d95e98610699d19037",
+  "durationSeconds": 1.899683
+}

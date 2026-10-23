@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T07-B01\\C67-L3-T07-B01-T02_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T07-B01-T02_EN",
+  "sourceText": "Pencil.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Pencil.",
+      "generation_key": "d19f47c231c1a0ce"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-3BF24D5AB14A1A278C9FFB04",
+  "text": "Pencil.",
+  "asset": "assets/audio/CURRICULUM/3bf24d5ab14a1a278c9ffb04.en.v1.mp3",
+  "sha256": "f30082d66638d4837c5304095b05b1c3a070762aebb5c568bf90fa53c86a261d",
+  "durationSeconds": 1.272744
+}

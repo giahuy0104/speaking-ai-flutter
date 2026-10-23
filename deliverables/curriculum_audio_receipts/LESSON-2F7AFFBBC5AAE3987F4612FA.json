@@ -1,0 +1,149 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\MP3\\dynamic\\TOPIC_INTRO\\TOPIC_INTRO_09.mp3",
+      "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\manifest.json",
+      "packAudioId": "TOPIC_INTRO__SELECTED_TOPIC_NO_09",
+      "sourceText": "Chủ đề 9.",
+      "modelId": "eleven_v3",
+      "profiles": {
+        "en": {
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75
+        },
+        "vi": {
+          "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+          "speed": 0.9
+        }
+      },
+      "speedMethod": "FFmpeg atempo applied after synthesis to each segment according to declared AUDIO_PLAN language, preserving pitch",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Chủ đề 9.",
+          "generation_key": "bbae0005742d9856"
+        }
+      ],
+      "sourceSha256": null,
+      "durationSeconds": 1.326735,
+      "sha256": "eff2c5f51de44a14597ebf64e16b8c0307e68499aeb91e000bc0d1db4d2cd303",
+      "bytes": 22195
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\428a19aff63c860bcb45c70f0accd12f5e5c2c1f4efe91d6760d914110c79786.tempo.mp3",
+      "signature": "428a19aff63c860bcb45c70f0accd12f5e5c2c1f4efe91d6760d914110c79786",
+      "request": {
+        "text": "Bài đầu tiên là",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "a1ea02a4dcb0df90eb9cae415778e8ac3acae5484b00002ba75e238e959b24c0",
+      "requestId": "SURgNpwPTAi5JeyjeOp7",
+      "createdAt": "2026-09-15T23:22:26.647Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\c76f03152ee28744ef4bad80db8dca4c85227dc1694a1de38bc5cbce1c81079f.tempo.mp3",
+      "signature": "c76f03152ee28744ef4bad80db8dca4c85227dc1694a1de38bc5cbce1c81079f",
+      "request": {
+        "text": "Place Words.",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "db4f523987eb38f8d66acfcc1b80696be206d2819bd81fdcded1ef4089f1727c",
+      "requestId": "6mZHh6ow6RyF6lGh2W28",
+      "createdAt": "2026-09-15T23:25:57.524Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\MP3\\C67-L3-T09\\C67-L3-T09-B01_MICRO_OBJECTIVE.mp3",
+      "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\manifest.json",
+      "packAudioId": "C67-L3-T09-B01",
+      "sourceText": "Mình cùng học các địa điểm quen thuộc nhé.",
+      "modelId": "eleven_v3",
+      "profiles": {
+        "en": {
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75
+        },
+        "vi": {
+          "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+          "speed": 0.9
+        }
+      },
+      "speedMethod": "VI speech atempo 0.9 after synthesis, preserving pitch; sound effects retain original timing",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Mình cùng học các địa điểm quen thuộc nhé.",
+          "generation_key": "252837817b758fab"
+        }
+      ],
+      "sourceSha256": null,
+      "durationSeconds": 2.487732,
+      "sha256": "366d6092af182c1eae7b2ff6c97dba0ea029c90be0cc39038033063726da324d",
+      "bytes": 41004
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\MP3\\static\\DETAIL_TRANSITION.mp3",
+      "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\manifest.json",
+      "packAudioId": "DETAIL_TRANSITION",
+      "sourceText": "Bắt đầu nhé.",
+      "modelId": "eleven_v3",
+      "profiles": {
+        "en": {
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75
+        },
+        "vi": {
+          "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+          "speed": 0.9
+        }
+      },
+      "speedMethod": "FFmpeg atempo applied after synthesis to each segment according to declared AUDIO_PLAN language, preserving pitch",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bắt đầu nhé.",
+          "generation_key": "629f2982441b8193"
+        }
+      ],
+      "sourceSha256": null,
+      "durationSeconds": 1.675034,
+      "sha256": "30121c6cc8eba7c99921818e9c60c4ff325dadc48ca444aec211b767b3f3f246",
+      "bytes": 28047
+    }
+  ],
+  "id": "LESSON-2F7AFFBBC5AAE3987F4612FA",
+  "text": "Chủ đề 9. Bài đầu tiên là Place Words. Mình cùng học các địa điểm quen thuộc nhé. Bắt đầu nhé.",
+  "asset": "assets/audio/CURRICULUM/2f7affbbc5aae3987f4612fa.vi.v1.mp3",
+  "sha256": "dd2f2412d6dc9ea103bc12fee555d56436f188e61c1e2ab247b2c35107b4cc8c",
+  "durationSeconds": 7.986961,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

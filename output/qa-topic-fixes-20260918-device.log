@@ -1,0 +1,76 @@
+09-18 01:11:03.082 14291 14291 I HfpAudioBridge: H20 HFP profile selected and connected
+09-18 01:11:07.742 14291 14291 I HfpAudioBridge: Starting HFP route generation=1
+09-18 01:11:08.873 14291 14291 I HfpAudioBridge: H20 HFP/SCO route confirmed: id=4035, name=H20, generation=1
+09-18 01:11:15.695 14291 14511 D AudioRecord: set(): 0xb400007770677b00, inputSource 7, sampleRate 16000, format 0x1, channelMask 0xc, frameCount 1280, notificationFrames 0, sessionId 0, transferType 0, flags 0, attributionSource AttributionSourceState{pid: -1, uid: 10796, packageName: com.innotrik.aispeaking, attributionTag: (null), token: , renouncedPermissions: [], next: []} uid -1, pid -1,isIsolated 0
+09-18 01:11:15.757 14291 14511 D AudioRecord: start(4145): 0xb400007770677b00, sync event 0 trigger session 0
+09-18 01:11:15.787 14291 14511 D AudioRecord: start(4146): return status 0
+09-18 01:11:18.596 14291 14511 D AudioRecord: stop(4146): 0xb400007770677b00, mActive:1
+09-18 01:11:18.683 14291 14511 D AudioRecord: stop(4146) done
+09-18 01:11:18.689 14291 14511 D AudioRecord: stop(4146): 0xb400007770677b00, mActive:0
+09-18 01:11:18.690 14291 14511 D AudioRecord: stop(4146): 0xb400007770677b00, mActive:0
+09-18 01:11:26.918 14291 14291 I HfpAudioBridge: Stopping HFP route generation=1 pending=false
+09-18 01:11:27.285 14291 14291 I HfpAudioBridge: Starting HFP route generation=3
+09-18 01:11:28.108 14291 14291 I HfpAudioBridge: H20 HFP/SCO route confirmed: id=4035, name=H20, generation=3
+09-18 01:11:28.216 14291 14581 D AudioRecord: set(): 0xb4000076d0a6b100, inputSource 7, sampleRate 16000, format 0x1, channelMask 0xc, frameCount 1280, notificationFrames 0, sessionId 0, transferType 0, flags 0, attributionSource AttributionSourceState{pid: -1, uid: 10796, packageName: com.innotrik.aispeaking, attributionTag: (null), token: , renouncedPermissions: [], next: []} uid -1, pid -1,isIsolated 0
+09-18 01:11:28.312 14291 14581 D AudioRecord: start(4153): 0xb4000076d0a6b100, sync event 0 trigger session 0
+09-18 01:11:28.344 14291 14581 D AudioRecord: start(4154): return status 0
+09-18 01:11:31.944 14291 14581 D AudioRecord: stop(4154): 0xb4000076d0a6b100, mActive:1
+09-18 01:11:32.019 14291 14581 D AudioRecord: stop(4154) done
+09-18 01:11:32.028 14291 14581 D AudioRecord: stop(4154): 0xb4000076d0a6b100, mActive:0
+09-18 01:11:32.028 14291 14581 D AudioRecord: stop(4154): 0xb4000076d0a6b100, mActive:0
+09-18 01:12:24.628 14291 14291 I HfpAudioBridge: Stopping HFP route generation=3 pending=false
+09-18 01:12:34.584 14291 14291 I HfpAudioBridge: Starting HFP route generation=5
+09-18 01:12:35.856 14291 14291 I HfpAudioBridge: H20 HFP/SCO route confirmed: id=4035, name=H20, generation=5
+09-18 01:12:42.788 14291 14813 D AudioRecord: set(): 0xb4000077669aec00, inputSource 7, sampleRate 16000, format 0x1, channelMask 0xc, frameCount 1280, notificationFrames 0, sessionId 0, transferType 0, flags 0, attributionSource AttributionSourceState{pid: -1, uid: 10796, packageName: com.innotrik.aispeaking, attributionTag: (null), token: , renouncedPermissions: [], next: []} uid -1, pid -1,isIsolated 0
+09-18 01:12:42.867 14291 14813 D AudioRecord: start(4172): 0xb4000077669aec00, sync event 0 trigger session 0
+09-18 01:12:42.910 14291 14813 D AudioRecord: start(4173): return status 0
+09-18 01:12:45.790 14291 14813 D AudioRecord: stop(4173): 0xb4000077669aec00, mActive:1
+09-18 01:12:45.862 14291 14813 D AudioRecord: stop(4173) done
+09-18 01:12:45.867 14291 14813 D AudioRecord: stop(4173): 0xb4000077669aec00, mActive:0
+09-18 01:12:45.868 14291 14813 D AudioRecord: stop(4173): 0xb4000077669aec00, mActive:0
+09-18 01:12:59.886 14291 14927 D AudioRecord: set(): 0xb400007770676c00, inputSource 7, sampleRate 16000, format 0x1, channelMask 0xc, frameCount 1280, notificationFrames 0, sessionId 0, transferType 0, flags 0, attributionSource AttributionSourceState{pid: -1, uid: 10796, packageName: com.innotrik.aispeaking, attributionTag: (null), token: , renouncedPermissions: [], next: []} uid -1, pid -1,isIsolated 0
+09-18 01:12:59.926 14291 14927 D AudioRecord: start(4183): 0xb400007770676c00, sync event 0 trigger session 0
+09-18 01:12:59.966 14291 14927 D AudioRecord: start(4184): return status 0
+09-18 01:13:06.363 14291 14927 D AudioRecord: stop(4184): 0xb400007770676c00, mActive:1
+09-18 01:13:06.435 14291 14927 D AudioRecord: stop(4184) done
+09-18 01:13:06.449 14291 14927 D AudioRecord: stop(4184): 0xb400007770676c00, mActive:0
+09-18 01:13:06.449 14291 14927 D AudioRecord: stop(4184): 0xb400007770676c00, mActive:0
+09-18 01:13:16.411 14291 14982 D AudioRecord: set(): 0xb4000076d0a6b600, inputSource 7, sampleRate 16000, format 0x1, channelMask 0xc, frameCount 1280, notificationFrames 0, sessionId 0, transferType 0, flags 0, attributionSource AttributionSourceState{pid: -1, uid: 10796, packageName: com.innotrik.aispeaking, attributionTag: (null), token: , renouncedPermissions: [], next: []} uid -1, pid -1,isIsolated 0
+09-18 01:13:16.475 14291 14982 D AudioRecord: start(4191): 0xb4000076d0a6b600, sync event 0 trigger session 0
+09-18 01:13:16.517 14291 14982 D AudioRecord: start(4192): return status 0
+09-18 01:13:22.994 14291 14982 D AudioRecord: stop(4192): 0xb4000076d0a6b600, mActive:1
+09-18 01:13:23.067 14291 14982 D AudioRecord: stop(4192) done
+09-18 01:13:23.077 14291 14982 D AudioRecord: stop(4192): 0xb4000076d0a6b600, mActive:0
+09-18 01:13:23.078 14291 14982 D AudioRecord: stop(4192): 0xb4000076d0a6b600, mActive:0
+09-18 01:13:38.691 14291 15051 D AudioRecord: set(): 0xb40000776e18dd00, inputSource 7, sampleRate 16000, format 0x1, channelMask 0xc, frameCount 1280, notificationFrames 0, sessionId 0, transferType 0, flags 0, attributionSource AttributionSourceState{pid: -1, uid: 10796, packageName: com.innotrik.aispeaking, attributionTag: (null), token: , renouncedPermissions: [], next: []} uid -1, pid -1,isIsolated 0
+09-18 01:13:38.760 14291 15051 D AudioRecord: start(4201): 0xb40000776e18dd00, sync event 0 trigger session 0
+09-18 01:13:38.807 14291 15051 D AudioRecord: start(4202): return status 0
+09-18 01:13:41.531 14291 15051 D AudioRecord: stop(4202): 0xb40000776e18dd00, mActive:1
+09-18 01:13:41.599 14291 15051 D AudioRecord: stop(4202) done
+09-18 01:13:41.612 14291 15051 D AudioRecord: stop(4202): 0xb40000776e18dd00, mActive:0
+09-18 01:13:41.612 14291 15051 D AudioRecord: stop(4202): 0xb40000776e18dd00, mActive:0
+09-18 01:13:53.378 14291 15158 D AudioRecord: set(): 0xb40000776b4e8f00, inputSource 7, sampleRate 16000, format 0x1, channelMask 0xc, frameCount 1280, notificationFrames 0, sessionId 0, transferType 0, flags 0, attributionSource AttributionSourceState{pid: -1, uid: 10796, packageName: com.innotrik.aispeaking, attributionTag: (null), token: , renouncedPermissions: [], next: []} uid -1, pid -1,isIsolated 0
+09-18 01:13:53.445 14291 15158 D AudioRecord: start(4211): 0xb40000776b4e8f00, sync event 0 trigger session 0
+09-18 01:13:53.483 14291 15158 D AudioRecord: start(4212): return status 0
+09-18 01:13:59.808 14291 15158 D AudioRecord: stop(4212): 0xb40000776b4e8f00, mActive:1
+09-18 01:13:59.871 14291 15158 D AudioRecord: stop(4212) done
+09-18 01:13:59.885 14291 15158 D AudioRecord: stop(4212): 0xb40000776b4e8f00, mActive:0
+09-18 01:13:59.885 14291 15158 D AudioRecord: stop(4212): 0xb40000776b4e8f00, mActive:0
+09-18 01:14:09.757 14291 15230 D AudioRecord: set(): 0xb4000076d412cc00, inputSource 7, sampleRate 16000, format 0x1, channelMask 0xc, frameCount 1280, notificationFrames 0, sessionId 0, transferType 0, flags 0, attributionSource AttributionSourceState{pid: -1, uid: 10796, packageName: com.innotrik.aispeaking, attributionTag: (null), token: , renouncedPermissions: [], next: []} uid -1, pid -1,isIsolated 0
+09-18 01:14:09.825 14291 15230 D AudioRecord: start(4219): 0xb4000076d412cc00, sync event 0 trigger session 0
+09-18 01:14:09.864 14291 15230 D AudioRecord: start(4220): return status 0
+09-18 01:14:14.819 14291 15230 D AudioRecord: stop(4220): 0xb4000076d412cc00, mActive:1
+09-18 01:14:14.878 14291 15230 D AudioRecord: stop(4220) done
+09-18 01:14:14.890 14291 15230 D AudioRecord: stop(4220): 0xb4000076d412cc00, mActive:0
+09-18 01:14:14.890 14291 15230 D AudioRecord: stop(4220): 0xb4000076d412cc00, mActive:0
+09-18 01:14:23.196 14291 14291 I HfpAudioBridge: Stopping HFP route generation=5 pending=false
+09-18 01:14:23.545 14291 14291 I HfpAudioBridge: Starting HFP route generation=7
+09-18 01:14:26.418 14291 14291 I HfpAudioBridge: H20 HFP/SCO route confirmed: id=4035, name=H20, generation=7
+09-18 01:14:26.544 14291 15273 D AudioRecord: set(): 0xb400007770676c00, inputSource 7, sampleRate 16000, format 0x1, channelMask 0xc, frameCount 1280, notificationFrames 0, sessionId 0, transferType 0, flags 0, attributionSource AttributionSourceState{pid: -1, uid: 10796, packageName: com.innotrik.aispeaking, attributionTag: (null), token: , renouncedPermissions: [], next: []} uid -1, pid -1,isIsolated 0
+09-18 01:14:26.613 14291 15273 D AudioRecord: start(4226): 0xb400007770676c00, sync event 0 trigger session 0
+09-18 01:14:26.657 14291 15273 D AudioRecord: start(4227): return status 0
+09-18 01:14:29.621 14291 15273 D AudioRecord: stop(4227): 0xb400007770676c00, mActive:1
+09-18 01:14:29.679 14291 15273 D AudioRecord: stop(4227) done
+09-18 01:14:29.697 14291 15273 D AudioRecord: stop(4227): 0xb400007770676c00, mActive:0
+09-18 01:14:29.698 14291 15273 D AudioRecord: stop(4227): 0xb400007770676c00, mActive:0
+09-18 01:14:37.521 14291 14291 I HfpAudioBridge: Stopping HFP route generation=7 pending=false

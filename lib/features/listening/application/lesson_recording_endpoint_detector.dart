@@ -1,0 +1,297 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
+
+import '../../../core/audio/adaptive_voice_activity_detector.dart';
+
+enum LessonRecordingEndpointReason { silence, maximumDuration }
+
+/// Stops one listening-lesson recording after the child has finished speaking.
+///
+/// Audio stays local while this detector observes volume only. The completed
+/// recording is still scored once, after the recorder has been stopped. A hard
+/// maximum keeps the previous six-second answer window as a safety boundary.
+class LessonRecordingEndpointDetector {
+  LessonRecordingEndpointDetector({
+    this.silenceDuration = const Duration(milliseconds: 700),
+    this.maximumDuration = const Duration(seconds: 6),
+    AdaptiveVoiceActivityDetector? voiceActivityDetector,
+    DateTime Function()? now,
+  }) : _voiceActivityDetector =
+           voiceActivityDetector ??
+           AdaptiveVoiceActivityDetector(
+             calibrationDuration: const Duration(milliseconds: 150),
+             minimumSpeechDuration: const Duration(milliseconds: 120),
+             minimumSpeechVariationDb: 2,
+             startMarginDb: 7,
+             stopMarginDb: 4,
+             // Android noise tails around -61 to -56 dBFS should allow the
+             // silence timer to run. Keep start at least 3 dB above stop so
+             // the VAD's hysteresis does not lower the -55 dBFS stop floor.
+             minimumStartThresholdDbfs: _usesAndroidCapture
+                 ? -52
+                 : (_usesSensitiveMobileCapture ? -60 : -46),
+             minimumStopThresholdDbfs: _usesAndroidCapture
+                 ? -55
+                 : (_usesSensitiveMobileCapture ? -64 : -50),
+           ),
+       _now = now ?? DateTime.now;
+
+  final Duration silenceDuration;
+  final Duration maximumDuration;
+  final AdaptiveVoiceActivityDetector _voiceActivityDetector;
+  final DateTime Function() _now;
+  final bool _recoverQuietCapture = _usesSensitiveMobileCapture;
+
+  static bool get _usesAndroidCapture =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+
+  static bool get _usesSensitiveMobileCapture =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS);
+
+  StreamSubscription<double>? _amplitudeSubscription;
+  Timer? _silenceTimer;
+  Timer? _maximumTimer;
+  DateTime? _signalStartedAt;
+  void Function(LessonRecordingEndpointReason reason)? _onEndpoint;
+  bool _speechDetected = false;
+  bool _levelHeardSpeech = false;
+  bool _endpointSent = false;
+  int _generation = 0;
+  int _levelSamples = 0;
+  double _peakDbfs = -160;
+  double _lastDbfs = -160;
+  DateTime? _sustainedVoiceStartedAt;
+  DateTime? _earlyVoiceStartedAt;
+  DateTime? _earlyVoiceLastHeardAt;
+  double? _earlyVoiceMinimum;
+  double? _earlyVoiceMaximum;
+  int _earlyVoiceSamples = 0;
+  bool _earlyVoiceFinished = false;
+
+  /// HFP AGC can flatten a short child's utterance enough that the adaptive
+  /// detector sees almost no dB variation. A clearly elevated signal sustained
+  /// for this window is still speech, while being well below the detector's
+  /// steady-noise promotion window.
+  static const Duration _flatSpeechConfirmation = Duration(milliseconds: 270);
+
+  /// Longest fade from an opening burst to its 10 dB drop.
+  static const Duration _earlyVoiceFade = Duration(milliseconds: 500);
+
+  /// Android reports -160 dBFS until its input stream delivers audio.
+  static const double _noSignalDbfs = -100;
+
+  bool get speechDetected => _speechDetected;
+
+  void start({
+    required Stream<double>? amplitudeDbfs,
+    required void Function(LessonRecordingEndpointReason reason) onEndpoint,
+  }) {
+    cancel();
+    final generation = ++_generation;
+    _voiceActivityDetector.reset();
+    _signalStartedAt = null;
+    _onEndpoint = onEndpoint;
+    _speechDetected = false;
+    _levelHeardSpeech = false;
+    _endpointSent = false;
+    _levelSamples = 0;
+    _peakDbfs = -160;
+    _lastDbfs = -160;
+    _sustainedVoiceStartedAt = null;
+    _earlyVoiceStartedAt = null;
+    _earlyVoiceMinimum = null;
+    _earlyVoiceMaximum = null;
+    _earlyVoiceSamples = 0;
+    _earlyVoiceFinished = false;
+
+    if (amplitudeDbfs != null) {
+      _amplitudeSubscription = amplitudeDbfs.listen(
+        (dbfs) => _handleAmplitude(dbfs, generation),
+        // A device that cannot report amplitude still uses the six-second cap.
+        onError: (Object _) {},
+      );
+    }
+    _maximumTimer = Timer(
+      maximumDuration,
+      () => _finish(generation, LessonRecordingEndpointReason.maximumDuration),
+    );
+  }
+
+  void cancel() {
+    _generation += 1;
+    _endpointSent = true;
+    _onEndpoint = null;
+    _sustainedVoiceStartedAt = null;
+    _silenceTimer?.cancel();
+    _silenceTimer = null;
+    _maximumTimer?.cancel();
+    _maximumTimer = null;
+    final subscription = _amplitudeSubscription;
+    _amplitudeSubscription = null;
+    if (subscription != null) unawaited(subscription.cancel());
+  }
+
+  /// A live ASR transcript is stronger evidence than the volume threshold.
+  /// Without a level signal that has heard the child, each partial refreshes
+  /// the quiet window. Once the level has heard them, it alone times the
+  /// window: Android partials land ~0.75-1.2 s after the words they carry, so
+  /// restarting on them ended the answer that much later.
+  void confirmSpeech() {
+    if (_endpointSent) return;
+    _voiceActivityDetector.confirmSpeech();
+    _speechDetected = true;
+    _sustainedVoiceStartedAt = null;
+    if (_levelHeardSpeech) return;
+    _silenceTimer?.cancel();
+    _silenceTimer = null;
+    _scheduleSilenceEndpoint(_generation);
+  }
+
+  void _handleAmplitude(double dbfs, int generation) {
+    if (generation != _generation || _endpointSent) return;
+    if (!dbfs.isFinite) return;
+    // Calibrating on the empty start-up reads pins the ambient floor at its
+    // minimum, and room noise then reads as speech for the whole turn.
+    if (_signalStartedAt == null && dbfs <= _noSignalDbfs) return;
+    final startedAt = _signalStartedAt ??= _now();
+    _levelSamples += 1;
+    _lastDbfs = dbfs;
+    if (dbfs > _peakDbfs) _peakDbfs = dbfs;
+    final activity = _voiceActivityDetector.addSample(
+      dbfs,
+      elapsed: _now().difference(startedAt),
+    );
+    if (activity.speechStarted) _speechDetected = true;
+    if (_recoverQuietCapture && !_speechDetected) {
+      _recoverSpeechDuringCalibration(dbfs);
+    }
+
+    if (!_speechDetected && !activity.isCalibrating) {
+      if (dbfs >= activity.startThresholdDbfs) {
+        final elevatedAt = _sustainedVoiceStartedAt ??= _now();
+        if (_now().difference(elevatedAt) >= _flatSpeechConfirmation) {
+          _voiceActivityDetector.confirmSpeech();
+          _speechDetected = true;
+          _sustainedVoiceStartedAt = null;
+        }
+      } else {
+        _sustainedVoiceStartedAt = null;
+      }
+    }
+
+    if (activity.voiceActive ||
+        (_speechDetected && dbfs >= activity.stopThresholdDbfs)) {
+      _levelHeardSpeech = true;
+      _silenceTimer?.cancel();
+      _silenceTimer = null;
+      return;
+    }
+    if (!_speechDetected || activity.isCalibrating || _silenceTimer != null) {
+      return;
+    }
+    _scheduleSilenceEndpoint(generation);
+  }
+
+  /// A child can begin with the very first microphone samples. In that case
+  /// calibration learns the child's voice as the ambient floor and never
+  /// reports speech. Recover only a sustained opening burst followed by a
+  /// clear level drop; a single impact or continuous fan noise does not qualify.
+  void _recoverSpeechDuringCalibration(double dbfs) {
+    if (_earlyVoiceFinished) return;
+    final startedAt = _signalStartedAt;
+    if (startedAt == null) return;
+    final now = _now();
+    if (_earlyVoiceStartedAt == null) {
+      if (now.difference(startedAt) > const Duration(milliseconds: 300)) {
+        _earlyVoiceFinished = true;
+        return;
+      }
+      if (dbfs < -60) return;
+      _earlyVoiceStartedAt = now;
+      _earlyVoiceLastHeardAt = now;
+      _earlyVoiceMinimum = dbfs;
+      _earlyVoiceMaximum = dbfs;
+      _earlyVoiceSamples = 1;
+      return;
+    }
+
+    final minimum = _earlyVoiceMinimum!;
+    final maximum = _earlyVoiceMaximum!;
+    // The drop has to end the burst itself; a later sag is the room.
+    if (dbfs > minimum - 5) {
+      _earlyVoiceLastHeardAt = now;
+    } else if (now.difference(_earlyVoiceLastHeardAt!) > _earlyVoiceFade) {
+      _earlyVoiceFinished = true;
+      return;
+    }
+    if (dbfs <= minimum - 10) {
+      _earlyVoiceFinished = true;
+      final duration = now.difference(_earlyVoiceStartedAt!);
+      final sustained =
+          _earlyVoiceSamples >= 3 &&
+          duration >= const Duration(milliseconds: 180);
+      final speechLike =
+          maximum - minimum >= 2 || duration >= _flatSpeechConfirmation;
+      if (sustained && speechLike) {
+        _voiceActivityDetector.confirmSpeech();
+        _speechDetected = true;
+      }
+      return;
+    }
+    // Anchor the comparison to the opening calibration window. Following every
+    // lower sample lets a gradually fading syllable drag the reference all the
+    // way into silence, so the required 10 dB drop would never be observed.
+    if (_earlyVoiceSamples < 3 && dbfs < minimum) {
+      _earlyVoiceMinimum = dbfs;
+    }
+    if (dbfs > maximum) _earlyVoiceMaximum = dbfs;
+    _earlyVoiceSamples += 1;
+  }
+
+  void _scheduleSilenceEndpoint(int generation) {
+    _silenceTimer = Timer(
+      silenceDuration,
+      () => _finish(generation, LessonRecordingEndpointReason.silence),
+    );
+  }
+
+  void _finish(int generation, LessonRecordingEndpointReason reason) {
+    if (generation != _generation || _endpointSent) return;
+    _endpointSent = true;
+    _silenceTimer?.cancel();
+    _silenceTimer = null;
+    _maximumTimer?.cancel();
+    _maximumTimer = null;
+    final subscription = _amplitudeSubscription;
+    _amplitudeSubscription = null;
+    if (subscription != null) unawaited(subscription.cancel());
+    final callback = _onEndpoint;
+    _onEndpoint = null;
+    _sustainedVoiceStartedAt = null;
+    final signalStartedAt = _signalStartedAt;
+    // One line per take, so a tester's logcat shows what the level detector
+    // saw when a take ran to the cap or ended early.
+    debugPrint(
+      jsonEncode(<String, Object?>{
+        'event': 'lesson_take_endpoint',
+        'reason': reason.name,
+        'speechDetected': _speechDetected,
+        'levelHeardSpeech': _levelHeardSpeech,
+        'levelSamples': _levelSamples,
+        'signalMs': signalStartedAt == null
+            ? null
+            : _now().difference(signalStartedAt).inMilliseconds,
+        'peakDbfs': _peakDbfs,
+        'lastDbfs': _lastDbfs,
+        'noiseFloorDbfs': _voiceActivityDetector.noiseFloorDbfs,
+        'startThresholdDbfs': _voiceActivityDetector.startThresholdDbfs,
+        'stopThresholdDbfs': _voiceActivityDetector.stopThresholdDbfs,
+      }),
+    );
+    callback?.call(reason);
+  }
+}

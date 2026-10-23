@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L1-T02-B01\\C810-L1-T02-B01-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L1-T02-B01-Q05",
+  "sourceText": "Môn Âm nhạc: Music hay Math?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Môn Âm nhạc:",
+      "spoken_text": "Môn Âm nhạc:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Music",
+      "spoken_text": "Music",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Math?",
+      "spoken_text": "Math?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-D9AE5D7D88434E0A221382F2",
+  "text": "Môn Âm nhạc: Music hay Math?",
+  "asset": "assets/audio/CURRICULUM/d9ae5d7d88434e0a221382f2.vi.v1.mp3",
+  "sha256": "7f8b9cd250f66499d02fc0a85dbc281371b7b7ab2c98ad8df32269092cb4c3c6",
+  "durationSeconds": 3.710771
+}

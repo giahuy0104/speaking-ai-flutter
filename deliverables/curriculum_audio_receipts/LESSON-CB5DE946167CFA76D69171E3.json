@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T04-B01\\C1112-L2-T04-B01-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T04-B01-Q05",
+  "sourceText": "Đi bộ: Walk hay Bus?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Đi bộ:",
+      "spoken_text": "Đi bộ:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Walk",
+      "spoken_text": "Walk",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Bus?",
+      "spoken_text": "Bus?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-CB5DE946167CFA76D69171E3",
+  "text": "Đi bộ: Walk hay Bus?",
+  "asset": "assets/audio/CURRICULUM/cb5de946167cfa76d69171e3.vi.v1.mp3",
+  "sha256": "303fc0df1d97a11f7a2863a763b121d0262a8045bec85336c9dcff1409b14219",
+  "durationSeconds": 3.439977
+}

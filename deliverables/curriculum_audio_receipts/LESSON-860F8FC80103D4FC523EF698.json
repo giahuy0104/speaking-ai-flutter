@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L2-T06-B02\\C35-L2-T06-B02-Q02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L2-T06-B02-Q02",
+  "sourceText": "Nhắm mắt lại: Touch your nose hay Close your eyes?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Nhắm mắt lại:",
+      "spoken_text": "Nhắm mắt lại:",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "text": "Touch your nose",
+      "spoken_text": "Touch your nose",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "text": "Close your eyes?",
+      "spoken_text": "Close your eyes?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-860F8FC80103D4FC523EF698",
+  "text": "Nhắm mắt lại: Touch your nose hay Close your eyes?",
+  "asset": "assets/audio/CURRICULUM/860f8fc80103d4fc523ef698.vi.v1.mp3",
+  "sha256": "f3887a2095da3acf249a4db468cd2aa3753bbbb6d3fba6c4d494dc0d16f1cb6b",
+  "durationSeconds": 5.742971
+}

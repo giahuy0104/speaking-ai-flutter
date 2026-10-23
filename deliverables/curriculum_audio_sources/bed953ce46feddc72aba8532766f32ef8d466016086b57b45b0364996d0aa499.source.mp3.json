@@ -1,0 +1,20 @@
+{
+  "signature": "bed953ce46feddc72aba8532766f32ef8d466016086b57b45b0364996d0aa499",
+  "request": {
+    "text": "Colors on Things",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "e0f364fafaa90840fa52ed0bfb30397d39a99b2a7ae1efe9d0da010244f20d8e",
+  "requestId": "rQxcc5lVY91di1OsxURj",
+  "createdAt": "2026-09-15T23:25:27.722Z"
+}

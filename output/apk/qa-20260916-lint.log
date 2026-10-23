@@ -1,0 +1,684 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.1.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :gradle
+WARNING: Unsupported Kotlin plugin version.
+The `embedded-kotlin` and `kotlin-dsl` plugins rely on features of Kotlin `2.2.0` that might work differently than in the requested version `2.2.20`.
+
+> Task :gradle:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle:compileKotlin UP-TO-DATE
+> Task :gradle:compileJava NO-SOURCE
+> Task :gradle:compileGroovy NO-SOURCE
+> Task :gradle:pluginDescriptors UP-TO-DATE
+> Task :gradle:processResources UP-TO-DATE
+> Task :gradle:classes UP-TO-DATE
+> Task :gradle:jar UP-TO-DATE
+
+> Configure project :app
+WARNING: The option setting 'android.builtInKotlin=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: The option setting 'android.newDsl=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+w: [33m[1mDeprecated 'org.jetbrains.kotlin.android' plugin usage[0m[0m
+The 'org.jetbrains.kotlin.android' plugin in project ':app' is no longer required for Kotlin support since AGP 9.0.
+[32m[1mSolution:[0m[0m
+[32m[3mRemove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.[0m[0m
+[36mSee [0m[34mhttps://kotl.in/gradle/agp-built-in-kotlin[0m[36m for more details.[0m
+
+
+> Configure project :audio_session
+w: [33m[1mDeprecated 'org.jetbrains.kotlin.android' plugin usage[0m[0m
+The 'org.jetbrains.kotlin.android' plugin in project ':audio_session' is no longer required for Kotlin support since AGP 9.0.
+[32m[1mSolution:[0m[0m
+[32m[3mRemove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.[0m[0m
+[36mSee [0m[34mhttps://kotl.in/gradle/agp-built-in-kotlin[0m[36m for more details.[0m
+
+
+> Configure project :connectivity_plus
+w: [33m[1mDeprecated 'org.jetbrains.kotlin.android' plugin usage[0m[0m
+The 'org.jetbrains.kotlin.android' plugin in project ':connectivity_plus' is no longer required for Kotlin support since AGP 9.0.
+[32m[1mSolution:[0m[0m
+[32m[3mRemove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.[0m[0m
+[36mSee [0m[34mhttps://kotl.in/gradle/agp-built-in-kotlin[0m[36m for more details.[0m
+
+
+> Configure project :flutter_plugin_android_lifecycle
+w: [33m[1mDeprecated 'org.jetbrains.kotlin.android' plugin usage[0m[0m
+The 'org.jetbrains.kotlin.android' plugin in project ':flutter_plugin_android_lifecycle' is no longer required for Kotlin support since AGP 9.0.
+[32m[1mSolution:[0m[0m
+[32m[3mRemove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.[0m[0m
+[36mSee [0m[34mhttps://kotl.in/gradle/agp-built-in-kotlin[0m[36m for more details.[0m
+
+
+> Configure project :google_mlkit_commons
+w: [33m[1mDeprecated 'org.jetbrains.kotlin.android' plugin usage[0m[0m
+The 'org.jetbrains.kotlin.android' plugin in project ':google_mlkit_commons' is no longer required for Kotlin support since AGP 9.0.
+[32m[1mSolution:[0m[0m
+[32m[3mRemove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.[0m[0m
+[36mSee [0m[34mhttps://kotl.in/gradle/agp-built-in-kotlin[0m[36m for more details.[0m
+
+
+> Configure project :google_mlkit_translation
+w: [33m[1mDeprecated 'org.jetbrains.kotlin.android' plugin usage[0m[0m
+The 'org.jetbrains.kotlin.android' plugin in project ':google_mlkit_translation' is no longer required for Kotlin support since AGP 9.0.
+[32m[1mSolution:[0m[0m
+[32m[3mRemove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.[0m[0m
+[36mSee [0m[34mhttps://kotl.in/gradle/agp-built-in-kotlin[0m[36m for more details.[0m
+
+
+> Configure project :jni
+w: [33m[1mDeprecated 'org.jetbrains.kotlin.android' plugin usage[0m[0m
+The 'org.jetbrains.kotlin.android' plugin in project ':jni' is no longer required for Kotlin support since AGP 9.0.
+[32m[1mSolution:[0m[0m
+[32m[3mRemove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.[0m[0m
+[36mSee [0m[34mhttps://kotl.in/gradle/agp-built-in-kotlin[0m[36m for more details.[0m
+
+
+> Configure project :jni_flutter
+w: [33m[1mDeprecated 'org.jetbrains.kotlin.android' plugin usage[0m[0m
+The 'org.jetbrains.kotlin.android' plugin in project ':jni_flutter' is no longer required for Kotlin support since AGP 9.0.
+[32m[1mSolution:[0m[0m
+[32m[3mRemove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.[0m[0m
+[36mSee [0m[34mhttps://kotl.in/gradle/agp-built-in-kotlin[0m[36m for more details.[0m
+
+
+> Configure project :just_audio
+w: [33m[1mDeprecated 'org.jetbrains.kotlin.android' plugin usage[0m[0m
+The 'org.jetbrains.kotlin.android' plugin in project ':just_audio' is no longer required for Kotlin support since AGP 9.0.
+[32m[1mSolution:[0m[0m
+[32m[3mRemove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.[0m[0m
+[36mSee [0m[34mhttps://kotl.in/gradle/agp-built-in-kotlin[0m[36m for more details.[0m
+
+
+> Configure project :local_auth_android
+w: [33m[1mDeprecated 'org.jetbrains.kotlin.android' plugin usage[0m[0m
+The 'org.jetbrains.kotlin.android' plugin in project ':local_auth_android' is no longer required for Kotlin support since AGP 9.0.
+[32m[1mSolution:[0m[0m
+[32m[3mRemove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.[0m[0m
+[36mSee [0m[34mhttps://kotl.in/gradle/agp-built-in-kotlin[0m[36m for more details.[0m
+
+
+> Configure project :package_info_plus
+w: [33m[1mDeprecated 'org.jetbrains.kotlin.android' plugin usage[0m[0m
+The 'org.jetbrains.kotlin.android' plugin in project ':package_info_plus' is no longer required for Kotlin support since AGP 9.0.
+[32m[1mSolution:[0m[0m
+[32m[3mRemove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.[0m[0m
+[36mSee [0m[34mhttps://kotl.in/gradle/agp-built-in-kotlin[0m[36m for more details.[0m
+
+
+> Configure project :record_android
+w: [33m[1mDeprecated 'org.jetbrains.kotlin.android' plugin usage[0m[0m
+The 'org.jetbrains.kotlin.android' plugin in project ':record_android' is no longer required for Kotlin support since AGP 9.0.
+[32m[1mSolution:[0m[0m
+[32m[3mRemove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.[0m[0m
+[36mSee [0m[34mhttps://kotl.in/gradle/agp-built-in-kotlin[0m[36m for more details.[0m
+
+
+> Configure project :shared_preferences_android
+w: [33m[1mDeprecated 'org.jetbrains.kotlin.android' plugin usage[0m[0m
+The 'org.jetbrains.kotlin.android' plugin in project ':shared_preferences_android' is no longer required for Kotlin support since AGP 9.0.
+[32m[1mSolution:[0m[0m
+[32m[3mRemove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.[0m[0m
+[36mSee [0m[34mhttps://kotl.in/gradle/agp-built-in-kotlin[0m[36m for more details.[0m
+
+
+> Configure project :url_launcher_android
+w: [33m[1mDeprecated 'org.jetbrains.kotlin.android' plugin usage[0m[0m
+The 'org.jetbrains.kotlin.android' plugin in project ':url_launcher_android' is no longer required for Kotlin support since AGP 9.0.
+[32m[1mSolution:[0m[0m
+[32m[3mRemove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.[0m[0m
+[36mSee [0m[34mhttps://kotl.in/gradle/agp-built-in-kotlin[0m[36m for more details.[0m
+
+
+> Task :app:buildKotlinToolingMetadata UP-TO-DATE
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:cleanMergeReleaseAssets
+> Task :app:compileFlutterBuildRelease
+> Task :app:generateReleaseAssets UP-TO-DATE
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preReleaseBuild UP-TO-DATE
+> Task :audio_session:generateReleaseAssets UP-TO-DATE
+> Task :audio_session:preBuild UP-TO-DATE
+> Task :audio_session:preReleaseBuild UP-TO-DATE
+> Task :audio_session:mergeReleaseAssets UP-TO-DATE
+> Task :connectivity_plus:generateReleaseAssets UP-TO-DATE
+> Task :connectivity_plus:preBuild UP-TO-DATE
+> Task :connectivity_plus:preReleaseBuild UP-TO-DATE
+> Task :connectivity_plus:mergeReleaseAssets UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:generateReleaseAssets UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:preBuild UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:preReleaseBuild UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:mergeReleaseAssets UP-TO-DATE
+> Task :google_mlkit_commons:generateReleaseAssets UP-TO-DATE
+> Task :google_mlkit_commons:preBuild UP-TO-DATE
+> Task :google_mlkit_commons:preReleaseBuild UP-TO-DATE
+> Task :google_mlkit_commons:mergeReleaseAssets UP-TO-DATE
+> Task :google_mlkit_translation:generateReleaseAssets UP-TO-DATE
+> Task :google_mlkit_translation:preBuild UP-TO-DATE
+> Task :google_mlkit_translation:preReleaseBuild UP-TO-DATE
+> Task :google_mlkit_translation:mergeReleaseAssets UP-TO-DATE
+> Task :jni:generateReleaseAssets UP-TO-DATE
+> Task :jni:preBuild UP-TO-DATE
+> Task :jni:preReleaseBuild UP-TO-DATE
+> Task :jni:mergeReleaseAssets UP-TO-DATE
+> Task :jni_flutter:generateReleaseAssets UP-TO-DATE
+> Task :jni_flutter:preBuild UP-TO-DATE
+> Task :jni_flutter:preReleaseBuild UP-TO-DATE
+> Task :jni_flutter:mergeReleaseAssets UP-TO-DATE
+> Task :just_audio:generateReleaseAssets UP-TO-DATE
+> Task :just_audio:preBuild UP-TO-DATE
+> Task :just_audio:preReleaseBuild UP-TO-DATE
+> Task :just_audio:mergeReleaseAssets UP-TO-DATE
+> Task :local_auth_android:generateReleaseAssets UP-TO-DATE
+> Task :local_auth_android:preBuild UP-TO-DATE
+> Task :local_auth_android:preReleaseBuild UP-TO-DATE
+> Task :local_auth_android:mergeReleaseAssets UP-TO-DATE
+> Task :package_info_plus:generateReleaseAssets UP-TO-DATE
+> Task :package_info_plus:preBuild UP-TO-DATE
+> Task :package_info_plus:preReleaseBuild UP-TO-DATE
+> Task :package_info_plus:mergeReleaseAssets UP-TO-DATE
+> Task :record_android:generateReleaseAssets UP-TO-DATE
+> Task :record_android:preBuild UP-TO-DATE
+> Task :record_android:preReleaseBuild UP-TO-DATE
+> Task :record_android:mergeReleaseAssets UP-TO-DATE
+> Task :shared_preferences_android:generateReleaseAssets UP-TO-DATE
+> Task :shared_preferences_android:preBuild UP-TO-DATE
+> Task :shared_preferences_android:preReleaseBuild UP-TO-DATE
+> Task :shared_preferences_android:mergeReleaseAssets UP-TO-DATE
+> Task :url_launcher_android:generateReleaseAssets UP-TO-DATE
+> Task :url_launcher_android:preBuild UP-TO-DATE
+> Task :url_launcher_android:preReleaseBuild UP-TO-DATE
+> Task :url_launcher_android:mergeReleaseAssets UP-TO-DATE
+> Task :app:mergeReleaseAssets
+> Task :app:copyFlutterAssetsRelease
+> Task :app:generateReleaseResources UP-TO-DATE
+> Task :app:packageReleaseResources UP-TO-DATE
+> Task :audio_session:processReleaseNavigationResources UP-TO-DATE
+> Task :connectivity_plus:processReleaseNavigationResources UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:processReleaseNavigationResources UP-TO-DATE
+> Task :google_mlkit_commons:processReleaseNavigationResources UP-TO-DATE
+> Task :google_mlkit_translation:processReleaseNavigationResources UP-TO-DATE
+> Task :jni:processReleaseNavigationResources UP-TO-DATE
+> Task :jni_flutter:processReleaseNavigationResources UP-TO-DATE
+> Task :just_audio:processReleaseNavigationResources UP-TO-DATE
+> Task :local_auth_android:processReleaseNavigationResources UP-TO-DATE
+> Task :package_info_plus:processReleaseNavigationResources UP-TO-DATE
+> Task :record_android:processReleaseNavigationResources UP-TO-DATE
+> Task :shared_preferences_android:processReleaseNavigationResources UP-TO-DATE
+> Task :url_launcher_android:processReleaseNavigationResources UP-TO-DATE
+> Task :app:processReleaseNavigationResources UP-TO-DATE
+> Task :app:parseReleaseLocalResources UP-TO-DATE
+> Task :app:generateReleaseRFile UP-TO-DATE
+> Task :audio_session:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :audio_session:generateReleaseResources UP-TO-DATE
+> Task :audio_session:packageReleaseResources UP-TO-DATE
+> Task :audio_session:parseReleaseLocalResources UP-TO-DATE
+> Task :audio_session:generateReleaseRFile UP-TO-DATE
+> Task :audio_session:compileReleaseKotlin UP-TO-DATE
+> Task :audio_session:javaPreCompileRelease UP-TO-DATE
+> Task :audio_session:compileReleaseJavaWithJavac NO-SOURCE
+> Task :audio_session:bundleLibCompileToJarRelease UP-TO-DATE
+> Task :connectivity_plus:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :connectivity_plus:generateReleaseResources UP-TO-DATE
+> Task :connectivity_plus:packageReleaseResources UP-TO-DATE
+> Task :connectivity_plus:parseReleaseLocalResources UP-TO-DATE
+> Task :connectivity_plus:generateReleaseRFile UP-TO-DATE
+> Task :connectivity_plus:compileReleaseKotlin NO-SOURCE
+> Task :connectivity_plus:javaPreCompileRelease UP-TO-DATE
+> Task :connectivity_plus:compileReleaseJavaWithJavac
+> Task :connectivity_plus:bundleLibCompileToJarRelease UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :flutter_plugin_android_lifecycle:generateReleaseResources UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:packageReleaseResources UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:parseReleaseLocalResources UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:generateReleaseRFile UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:compileReleaseKotlin NO-SOURCE
+> Task :flutter_plugin_android_lifecycle:javaPreCompileRelease UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:compileReleaseJavaWithJavac
+> Task :flutter_plugin_android_lifecycle:bundleLibCompileToJarRelease UP-TO-DATE
+> Task :google_mlkit_commons:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :google_mlkit_commons:generateReleaseResources UP-TO-DATE
+> Task :google_mlkit_commons:packageReleaseResources UP-TO-DATE
+> Task :google_mlkit_commons:parseReleaseLocalResources UP-TO-DATE
+> Task :google_mlkit_commons:generateReleaseRFile UP-TO-DATE
+> Task :google_mlkit_commons:compileReleaseKotlin UP-TO-DATE
+> Task :google_mlkit_commons:javaPreCompileRelease UP-TO-DATE
+> Task :google_mlkit_commons:compileReleaseJavaWithJavac NO-SOURCE
+> Task :google_mlkit_commons:bundleLibCompileToJarRelease UP-TO-DATE
+> Task :google_mlkit_translation:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :google_mlkit_translation:generateReleaseResources UP-TO-DATE
+> Task :google_mlkit_translation:packageReleaseResources UP-TO-DATE
+> Task :google_mlkit_translation:parseReleaseLocalResources UP-TO-DATE
+> Task :google_mlkit_translation:generateReleaseRFile UP-TO-DATE
+> Task :google_mlkit_translation:compileReleaseKotlin UP-TO-DATE
+> Task :google_mlkit_translation:javaPreCompileRelease UP-TO-DATE
+> Task :google_mlkit_translation:compileReleaseJavaWithJavac NO-SOURCE
+> Task :google_mlkit_translation:bundleLibCompileToJarRelease UP-TO-DATE
+> Task :jni:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :jni:generateReleaseResources UP-TO-DATE
+> Task :jni:packageReleaseResources UP-TO-DATE
+> Task :jni:parseReleaseLocalResources UP-TO-DATE
+> Task :jni:generateReleaseRFile UP-TO-DATE
+> Task :jni:compileReleaseKotlin NO-SOURCE
+> Task :jni:javaPreCompileRelease UP-TO-DATE
+> Task :jni:compileReleaseJavaWithJavac
+> Task :jni:bundleLibCompileToJarRelease UP-TO-DATE
+> Task :jni_flutter:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :jni_flutter:generateReleaseResources UP-TO-DATE
+> Task :jni_flutter:packageReleaseResources UP-TO-DATE
+> Task :jni_flutter:parseReleaseLocalResources UP-TO-DATE
+> Task :jni_flutter:generateReleaseRFile UP-TO-DATE
+> Task :jni_flutter:compileReleaseKotlin NO-SOURCE
+> Task :jni_flutter:javaPreCompileRelease UP-TO-DATE
+> Task :jni_flutter:compileReleaseJavaWithJavac
+> Task :jni_flutter:bundleLibCompileToJarRelease UP-TO-DATE
+> Task :just_audio:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :just_audio:generateReleaseResources UP-TO-DATE
+> Task :just_audio:packageReleaseResources UP-TO-DATE
+> Task :just_audio:parseReleaseLocalResources UP-TO-DATE
+> Task :just_audio:generateReleaseRFile UP-TO-DATE
+> Task :just_audio:compileReleaseKotlin NO-SOURCE
+> Task :just_audio:javaPreCompileRelease UP-TO-DATE
+> Task :just_audio:compileReleaseJavaWithJavac
+> Task :just_audio:bundleLibCompileToJarRelease UP-TO-DATE
+> Task :local_auth_android:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :local_auth_android:generateReleaseResources UP-TO-DATE
+> Task :local_auth_android:packageReleaseResources UP-TO-DATE
+> Task :local_auth_android:parseReleaseLocalResources UP-TO-DATE
+> Task :local_auth_android:generateReleaseRFile UP-TO-DATE
+> Task :local_auth_android:compileReleaseKotlin UP-TO-DATE
+> Task :local_auth_android:javaPreCompileRelease UP-TO-DATE
+> Task :local_auth_android:compileReleaseJavaWithJavac
+> Task :local_auth_android:bundleLibCompileToJarRelease UP-TO-DATE
+> Task :package_info_plus:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :package_info_plus:generateReleaseResources UP-TO-DATE
+> Task :package_info_plus:packageReleaseResources UP-TO-DATE
+> Task :package_info_plus:parseReleaseLocalResources UP-TO-DATE
+> Task :package_info_plus:generateReleaseRFile UP-TO-DATE
+> Task :package_info_plus:compileReleaseKotlin UP-TO-DATE
+> Task :package_info_plus:javaPreCompileRelease UP-TO-DATE
+> Task :package_info_plus:compileReleaseJavaWithJavac NO-SOURCE
+> Task :package_info_plus:bundleLibCompileToJarRelease UP-TO-DATE
+> Task :record_android:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :record_android:generateReleaseResources UP-TO-DATE
+> Task :record_android:packageReleaseResources UP-TO-DATE
+> Task :record_android:parseReleaseLocalResources UP-TO-DATE
+> Task :record_android:generateReleaseRFile UP-TO-DATE
+> Task :record_android:compileReleaseKotlin UP-TO-DATE
+> Task :record_android:javaPreCompileRelease UP-TO-DATE
+> Task :record_android:compileReleaseJavaWithJavac NO-SOURCE
+> Task :record_android:bundleLibCompileToJarRelease UP-TO-DATE
+> Task :shared_preferences_android:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :shared_preferences_android:generateReleaseResources UP-TO-DATE
+> Task :shared_preferences_android:packageReleaseResources UP-TO-DATE
+> Task :shared_preferences_android:parseReleaseLocalResources UP-TO-DATE
+> Task :shared_preferences_android:generateReleaseRFile UP-TO-DATE
+> Task :shared_preferences_android:compileReleaseKotlin UP-TO-DATE
+> Task :shared_preferences_android:javaPreCompileRelease UP-TO-DATE
+> Task :shared_preferences_android:compileReleaseJavaWithJavac NO-SOURCE
+> Task :shared_preferences_android:bundleLibCompileToJarRelease UP-TO-DATE
+> Task :url_launcher_android:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :url_launcher_android:generateReleaseBuildConfig UP-TO-DATE
+> Task :url_launcher_android:generateReleaseResources UP-TO-DATE
+> Task :url_launcher_android:packageReleaseResources UP-TO-DATE
+> Task :url_launcher_android:parseReleaseLocalResources UP-TO-DATE
+> Task :url_launcher_android:generateReleaseRFile UP-TO-DATE
+> Task :url_launcher_android:compileReleaseKotlin UP-TO-DATE
+> Task :url_launcher_android:javaPreCompileRelease UP-TO-DATE
+> Task :url_launcher_android:compileReleaseJavaWithJavac
+> Task :url_launcher_android:bundleLibCompileToJarRelease UP-TO-DATE
+
+> Task :app:compileReleaseKotlin
+w: file:///D:/Documents/ai-speaking-flutter-app/android/app/src/main/kotlin/com/innotrik/aispeaking/BackgroundLearningService.kt:368:37 'constructor(p0: Int, p1: CharSequence!, p2: PendingIntent?): Notification.Action.Builder' is deprecated. Deprecated in Java.
+w: file:///D:/Documents/ai-speaking-flutter-app/android/app/src/main/kotlin/com/innotrik/aispeaking/HomiCompanionDeviceManager.kt:99:30 This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///D:/Documents/ai-speaking-flutter-app/android/app/src/main/kotlin/com/innotrik/aispeaking/HomiCompanionDeviceService.kt:13:18 This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///D:/Documents/ai-speaking-flutter-app/android/app/src/main/kotlin/com/innotrik/aispeaking/HomiCompanionDeviceService.kt:20:18 This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///D:/Documents/ai-speaking-flutter-app/android/app/src/main/kotlin/com/innotrik/aispeaking/VoicePromptBridge.kt:182:32 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+
+> Task :app:javaPreCompileRelease UP-TO-DATE
+> Task :app:compileReleaseJavaWithJavac
+> Task :app:extractProguardFiles UP-TO-DATE
+> Task :app:extractDeepLinksRelease UP-TO-DATE
+> Task :audio_session:extractDeepLinksRelease UP-TO-DATE
+> Task :audio_session:processReleaseManifest UP-TO-DATE
+> Task :connectivity_plus:extractDeepLinksRelease UP-TO-DATE
+> Task :connectivity_plus:processReleaseManifest UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:extractDeepLinksRelease UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:processReleaseManifest UP-TO-DATE
+> Task :google_mlkit_commons:extractDeepLinksRelease UP-TO-DATE
+> Task :google_mlkit_commons:processReleaseManifest UP-TO-DATE
+> Task :google_mlkit_translation:extractDeepLinksRelease UP-TO-DATE
+> Task :google_mlkit_translation:processReleaseManifest UP-TO-DATE
+> Task :jni:extractDeepLinksRelease UP-TO-DATE
+> Task :jni:processReleaseManifest UP-TO-DATE
+> Task :jni_flutter:extractDeepLinksRelease UP-TO-DATE
+> Task :jni_flutter:processReleaseManifest UP-TO-DATE
+> Task :just_audio:extractDeepLinksRelease UP-TO-DATE
+> Task :just_audio:processReleaseManifest UP-TO-DATE
+> Task :local_auth_android:extractDeepLinksRelease UP-TO-DATE
+> Task :local_auth_android:processReleaseManifest UP-TO-DATE
+> Task :package_info_plus:extractDeepLinksRelease UP-TO-DATE
+> Task :package_info_plus:processReleaseManifest UP-TO-DATE
+> Task :record_android:extractDeepLinksRelease UP-TO-DATE
+> Task :record_android:processReleaseManifest UP-TO-DATE
+> Task :shared_preferences_android:extractDeepLinksRelease UP-TO-DATE
+> Task :shared_preferences_android:processReleaseManifest UP-TO-DATE
+> Task :url_launcher_android:extractDeepLinksRelease UP-TO-DATE
+> Task :url_launcher_android:processReleaseManifest UP-TO-DATE
+> Task :app:processReleaseMainManifest UP-TO-DATE
+> Task :app:outputReleaseAppLinkSettings UP-TO-DATE
+> Task :audio_session:bundleLibRuntimeToJarRelease UP-TO-DATE
+> Task :audio_session:processReleaseJavaRes UP-TO-DATE
+> Task :audio_session:createFullJarRelease UP-TO-DATE
+> Task :audio_session:extractProguardFiles UP-TO-DATE
+> Task :audio_session:generateReleaseLintModel UP-TO-DATE
+> Task :audio_session:prepareLintJarForPublish UP-TO-DATE
+> Task :connectivity_plus:bundleLibRuntimeToJarRelease UP-TO-DATE
+> Task :connectivity_plus:processReleaseJavaRes NO-SOURCE
+> Task :connectivity_plus:createFullJarRelease UP-TO-DATE
+> Task :connectivity_plus:extractProguardFiles UP-TO-DATE
+> Task :connectivity_plus:generateReleaseLintModel UP-TO-DATE
+> Task :connectivity_plus:prepareLintJarForPublish UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:bundleLibRuntimeToJarRelease UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:processReleaseJavaRes NO-SOURCE
+> Task :flutter_plugin_android_lifecycle:createFullJarRelease UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:extractProguardFiles UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:generateReleaseLintModel UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:prepareLintJarForPublish UP-TO-DATE
+> Task :google_mlkit_commons:bundleLibRuntimeToJarRelease UP-TO-DATE
+> Task :google_mlkit_commons:processReleaseJavaRes UP-TO-DATE
+> Task :google_mlkit_commons:createFullJarRelease UP-TO-DATE
+> Task :google_mlkit_commons:extractProguardFiles UP-TO-DATE
+> Task :google_mlkit_commons:generateReleaseLintModel UP-TO-DATE
+> Task :google_mlkit_commons:prepareLintJarForPublish UP-TO-DATE
+> Task :google_mlkit_translation:bundleLibRuntimeToJarRelease UP-TO-DATE
+> Task :google_mlkit_translation:processReleaseJavaRes UP-TO-DATE
+> Task :google_mlkit_translation:createFullJarRelease UP-TO-DATE
+> Task :google_mlkit_translation:extractProguardFiles UP-TO-DATE
+> Task :google_mlkit_translation:generateReleaseLintModel UP-TO-DATE
+> Task :google_mlkit_translation:prepareLintJarForPublish UP-TO-DATE
+> Task :jni:bundleLibRuntimeToJarRelease UP-TO-DATE
+> Task :jni:processReleaseJavaRes NO-SOURCE
+> Task :jni:createFullJarRelease UP-TO-DATE
+> Task :jni:extractProguardFiles UP-TO-DATE
+> Task :jni:generateReleaseLintModel UP-TO-DATE
+> Task :jni:prepareLintJarForPublish UP-TO-DATE
+> Task :jni_flutter:bundleLibRuntimeToJarRelease UP-TO-DATE
+> Task :jni_flutter:processReleaseJavaRes NO-SOURCE
+> Task :jni_flutter:createFullJarRelease UP-TO-DATE
+> Task :jni_flutter:extractProguardFiles UP-TO-DATE
+> Task :jni_flutter:generateReleaseLintModel UP-TO-DATE
+> Task :jni_flutter:prepareLintJarForPublish UP-TO-DATE
+> Task :just_audio:bundleLibRuntimeToJarRelease UP-TO-DATE
+> Task :just_audio:processReleaseJavaRes NO-SOURCE
+> Task :just_audio:createFullJarRelease UP-TO-DATE
+> Task :just_audio:extractProguardFiles UP-TO-DATE
+> Task :just_audio:generateReleaseLintModel UP-TO-DATE
+> Task :just_audio:prepareLintJarForPublish UP-TO-DATE
+> Task :local_auth_android:bundleLibRuntimeToJarRelease UP-TO-DATE
+> Task :local_auth_android:processReleaseJavaRes UP-TO-DATE
+> Task :local_auth_android:createFullJarRelease UP-TO-DATE
+> Task :local_auth_android:extractProguardFiles UP-TO-DATE
+> Task :local_auth_android:generateReleaseLintModel UP-TO-DATE
+> Task :local_auth_android:prepareLintJarForPublish UP-TO-DATE
+> Task :package_info_plus:bundleLibRuntimeToJarRelease UP-TO-DATE
+> Task :package_info_plus:processReleaseJavaRes UP-TO-DATE
+> Task :package_info_plus:createFullJarRelease UP-TO-DATE
+> Task :package_info_plus:extractProguardFiles UP-TO-DATE
+> Task :package_info_plus:generateReleaseLintModel UP-TO-DATE
+> Task :package_info_plus:prepareLintJarForPublish UP-TO-DATE
+> Task :record_android:bundleLibRuntimeToJarRelease UP-TO-DATE
+> Task :record_android:processReleaseJavaRes UP-TO-DATE
+> Task :record_android:createFullJarRelease UP-TO-DATE
+> Task :record_android:extractProguardFiles UP-TO-DATE
+> Task :record_android:generateReleaseLintModel UP-TO-DATE
+> Task :record_android:prepareLintJarForPublish UP-TO-DATE
+> Task :shared_preferences_android:bundleLibRuntimeToJarRelease UP-TO-DATE
+> Task :shared_preferences_android:processReleaseJavaRes UP-TO-DATE
+> Task :shared_preferences_android:createFullJarRelease UP-TO-DATE
+> Task :shared_preferences_android:extractProguardFiles UP-TO-DATE
+> Task :shared_preferences_android:generateReleaseLintModel UP-TO-DATE
+> Task :shared_preferences_android:prepareLintJarForPublish UP-TO-DATE
+> Task :url_launcher_android:bundleLibRuntimeToJarRelease UP-TO-DATE
+> Task :url_launcher_android:processReleaseJavaRes UP-TO-DATE
+> Task :url_launcher_android:createFullJarRelease UP-TO-DATE
+> Task :url_launcher_android:extractProguardFiles UP-TO-DATE
+> Task :url_launcher_android:generateReleaseLintModel UP-TO-DATE
+> Task :url_launcher_android:prepareLintJarForPublish UP-TO-DATE
+> Task :app:generateReleaseLintReportModel
+> Task :audio_session:writeReleaseAarMetadata UP-TO-DATE
+> Task :just_audio:checkReleaseAarMetadata UP-TO-DATE
+> Task :just_audio:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :just_audio:mergeReleaseNativeLibs NO-SOURCE
+> Task :just_audio:stripReleaseDebugSymbols NO-SOURCE
+> Task :just_audio:copyReleaseJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :just_audio:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :just_audio:extractReleaseAnnotations UP-TO-DATE
+> Task :just_audio:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :just_audio:mergeReleaseConsumerProguardFiles UP-TO-DATE
+> Task :just_audio:prepareReleaseArtProfile UP-TO-DATE
+> Task :just_audio:mergeReleaseJavaResource UP-TO-DATE
+> Task :just_audio:syncReleaseLibJars UP-TO-DATE
+> Task :just_audio:writeReleaseAarMetadata UP-TO-DATE
+> Task :just_audio:bundleReleaseLocalLintAar UP-TO-DATE
+> Task :audio_session:checkReleaseAarMetadata UP-TO-DATE
+> Task :audio_session:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :audio_session:mergeReleaseNativeLibs NO-SOURCE
+> Task :audio_session:stripReleaseDebugSymbols NO-SOURCE
+> Task :audio_session:copyReleaseJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :audio_session:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :audio_session:extractReleaseAnnotations UP-TO-DATE
+> Task :audio_session:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :audio_session:mergeReleaseConsumerProguardFiles UP-TO-DATE
+> Task :audio_session:prepareReleaseArtProfile UP-TO-DATE
+> Task :audio_session:mergeReleaseJavaResource UP-TO-DATE
+> Task :audio_session:syncReleaseLibJars UP-TO-DATE
+> Task :audio_session:bundleReleaseLocalLintAar UP-TO-DATE
+> Task :connectivity_plus:checkReleaseAarMetadata UP-TO-DATE
+> Task :connectivity_plus:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :connectivity_plus:mergeReleaseNativeLibs NO-SOURCE
+> Task :connectivity_plus:stripReleaseDebugSymbols NO-SOURCE
+> Task :connectivity_plus:copyReleaseJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :connectivity_plus:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :connectivity_plus:extractReleaseAnnotations UP-TO-DATE
+> Task :connectivity_plus:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :connectivity_plus:mergeReleaseConsumerProguardFiles UP-TO-DATE
+> Task :connectivity_plus:prepareReleaseArtProfile UP-TO-DATE
+> Task :connectivity_plus:mergeReleaseJavaResource UP-TO-DATE
+> Task :connectivity_plus:syncReleaseLibJars UP-TO-DATE
+> Task :connectivity_plus:writeReleaseAarMetadata UP-TO-DATE
+> Task :connectivity_plus:bundleReleaseLocalLintAar UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:writeReleaseAarMetadata UP-TO-DATE
+> Task :local_auth_android:checkReleaseAarMetadata UP-TO-DATE
+> Task :local_auth_android:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :local_auth_android:mergeReleaseNativeLibs NO-SOURCE
+> Task :local_auth_android:stripReleaseDebugSymbols NO-SOURCE
+> Task :local_auth_android:copyReleaseJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :local_auth_android:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :local_auth_android:extractReleaseAnnotations UP-TO-DATE
+> Task :local_auth_android:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :local_auth_android:mergeReleaseConsumerProguardFiles UP-TO-DATE
+> Task :local_auth_android:prepareReleaseArtProfile UP-TO-DATE
+> Task :local_auth_android:mergeReleaseJavaResource UP-TO-DATE
+> Task :local_auth_android:syncReleaseLibJars UP-TO-DATE
+> Task :local_auth_android:writeReleaseAarMetadata UP-TO-DATE
+> Task :local_auth_android:bundleReleaseLocalLintAar UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:checkReleaseAarMetadata UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:mergeReleaseNativeLibs NO-SOURCE
+> Task :flutter_plugin_android_lifecycle:stripReleaseDebugSymbols NO-SOURCE
+> Task :flutter_plugin_android_lifecycle:copyReleaseJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:extractReleaseAnnotations UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:mergeReleaseConsumerProguardFiles UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:prepareReleaseArtProfile UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:mergeReleaseJavaResource UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:syncReleaseLibJars UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:bundleReleaseLocalLintAar UP-TO-DATE
+> Task :google_mlkit_commons:writeReleaseAarMetadata UP-TO-DATE
+> Task :google_mlkit_translation:checkReleaseAarMetadata UP-TO-DATE
+> Task :google_mlkit_translation:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :google_mlkit_translation:mergeReleaseNativeLibs NO-SOURCE
+> Task :google_mlkit_translation:stripReleaseDebugSymbols NO-SOURCE
+> Task :google_mlkit_translation:copyReleaseJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :google_mlkit_translation:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :google_mlkit_translation:extractReleaseAnnotations UP-TO-DATE
+> Task :google_mlkit_translation:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :google_mlkit_translation:mergeReleaseConsumerProguardFiles UP-TO-DATE
+> Task :google_mlkit_translation:prepareReleaseArtProfile UP-TO-DATE
+> Task :google_mlkit_translation:mergeReleaseJavaResource UP-TO-DATE
+> Task :google_mlkit_translation:syncReleaseLibJars UP-TO-DATE
+> Task :google_mlkit_translation:writeReleaseAarMetadata UP-TO-DATE
+> Task :google_mlkit_translation:bundleReleaseLocalLintAar UP-TO-DATE
+> Task :google_mlkit_commons:checkReleaseAarMetadata UP-TO-DATE
+> Task :google_mlkit_commons:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :google_mlkit_commons:mergeReleaseNativeLibs NO-SOURCE
+> Task :google_mlkit_commons:stripReleaseDebugSymbols NO-SOURCE
+> Task :google_mlkit_commons:copyReleaseJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :google_mlkit_commons:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :google_mlkit_commons:extractReleaseAnnotations UP-TO-DATE
+> Task :google_mlkit_commons:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :google_mlkit_commons:mergeReleaseConsumerProguardFiles UP-TO-DATE
+> Task :google_mlkit_commons:prepareReleaseArtProfile UP-TO-DATE
+> Task :google_mlkit_commons:mergeReleaseJavaResource UP-TO-DATE
+> Task :google_mlkit_commons:syncReleaseLibJars UP-TO-DATE
+> Task :google_mlkit_commons:bundleReleaseLocalLintAar UP-TO-DATE
+> Task :jni:writeReleaseAarMetadata UP-TO-DATE
+> Task :jni_flutter:checkReleaseAarMetadata UP-TO-DATE
+> Task :jni_flutter:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :jni_flutter:mergeReleaseNativeLibs NO-SOURCE
+> Task :jni_flutter:stripReleaseDebugSymbols NO-SOURCE
+> Task :jni_flutter:copyReleaseJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :jni_flutter:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :jni_flutter:extractReleaseAnnotations UP-TO-DATE
+> Task :jni_flutter:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :jni_flutter:mergeReleaseConsumerProguardFiles UP-TO-DATE
+> Task :jni_flutter:prepareReleaseArtProfile UP-TO-DATE
+> Task :jni_flutter:mergeReleaseJavaResource UP-TO-DATE
+> Task :jni_flutter:syncReleaseLibJars UP-TO-DATE
+> Task :jni_flutter:writeReleaseAarMetadata UP-TO-DATE
+> Task :jni_flutter:bundleReleaseLocalLintAar UP-TO-DATE
+> Task :jni:checkReleaseAarMetadata UP-TO-DATE
+
+> Task :jni:configureCMakeRelWithDebInfo[arm64-v8a]
+[CXX5304] This version only understands SDK XML versions up to 3 but an SDK XML file of version 4 was encountered. This can happen if you use versions of Android Studio and the command-line tools that were released at different times.
+[CXX5304] This version only understands SDK XML versions up to 3 but an SDK XML file of version 4 was encountered. This can happen if you use versions of Android Studio and the command-line tools that were released at different times.
+
+> Task :jni:buildCMakeRelWithDebInfo[arm64-v8a]
+> Task :jni:configureCMakeRelWithDebInfo[armeabi-v7a]
+> Task :jni:buildCMakeRelWithDebInfo[armeabi-v7a]
+> Task :jni:configureCMakeRelWithDebInfo[x86]
+> Task :jni:buildCMakeRelWithDebInfo[x86]
+> Task :jni:configureCMakeRelWithDebInfo[x86_64]
+> Task :jni:buildCMakeRelWithDebInfo[x86_64]
+> Task :jni:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :jni:mergeReleaseNativeLibs UP-TO-DATE
+> Task :jni:stripReleaseDebugSymbols UP-TO-DATE
+> Task :jni:copyReleaseJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :jni:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :jni:extractReleaseAnnotations UP-TO-DATE
+> Task :jni:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :jni:mergeReleaseConsumerProguardFiles UP-TO-DATE
+> Task :jni:prepareReleaseArtProfile UP-TO-DATE
+> Task :jni:mergeReleaseJavaResource UP-TO-DATE
+> Task :jni:syncReleaseLibJars UP-TO-DATE
+> Task :jni:bundleReleaseLocalLintAar UP-TO-DATE
+> Task :package_info_plus:checkReleaseAarMetadata UP-TO-DATE
+> Task :package_info_plus:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :package_info_plus:mergeReleaseNativeLibs NO-SOURCE
+> Task :package_info_plus:stripReleaseDebugSymbols NO-SOURCE
+> Task :package_info_plus:copyReleaseJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :package_info_plus:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :package_info_plus:extractReleaseAnnotations UP-TO-DATE
+> Task :package_info_plus:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :package_info_plus:mergeReleaseConsumerProguardFiles UP-TO-DATE
+> Task :package_info_plus:prepareReleaseArtProfile UP-TO-DATE
+> Task :package_info_plus:mergeReleaseJavaResource UP-TO-DATE
+> Task :package_info_plus:syncReleaseLibJars UP-TO-DATE
+> Task :package_info_plus:writeReleaseAarMetadata UP-TO-DATE
+> Task :package_info_plus:bundleReleaseLocalLintAar UP-TO-DATE
+> Task :record_android:checkReleaseAarMetadata UP-TO-DATE
+> Task :record_android:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :record_android:mergeReleaseNativeLibs NO-SOURCE
+> Task :record_android:stripReleaseDebugSymbols NO-SOURCE
+> Task :record_android:copyReleaseJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :record_android:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :record_android:extractReleaseAnnotations UP-TO-DATE
+> Task :record_android:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :record_android:mergeReleaseConsumerProguardFiles UP-TO-DATE
+> Task :record_android:prepareReleaseArtProfile UP-TO-DATE
+> Task :record_android:mergeReleaseJavaResource UP-TO-DATE
+> Task :record_android:syncReleaseLibJars UP-TO-DATE
+> Task :record_android:writeReleaseAarMetadata UP-TO-DATE
+> Task :record_android:bundleReleaseLocalLintAar UP-TO-DATE
+> Task :shared_preferences_android:checkReleaseAarMetadata UP-TO-DATE
+> Task :shared_preferences_android:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :shared_preferences_android:mergeReleaseNativeLibs NO-SOURCE
+> Task :shared_preferences_android:stripReleaseDebugSymbols NO-SOURCE
+> Task :shared_preferences_android:copyReleaseJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :shared_preferences_android:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :shared_preferences_android:extractReleaseAnnotations UP-TO-DATE
+> Task :shared_preferences_android:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :shared_preferences_android:mergeReleaseConsumerProguardFiles UP-TO-DATE
+> Task :shared_preferences_android:prepareReleaseArtProfile UP-TO-DATE
+> Task :shared_preferences_android:mergeReleaseJavaResource UP-TO-DATE
+> Task :shared_preferences_android:syncReleaseLibJars UP-TO-DATE
+> Task :shared_preferences_android:writeReleaseAarMetadata UP-TO-DATE
+> Task :shared_preferences_android:bundleReleaseLocalLintAar UP-TO-DATE
+> Task :url_launcher_android:checkReleaseAarMetadata UP-TO-DATE
+> Task :url_launcher_android:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :url_launcher_android:mergeReleaseNativeLibs NO-SOURCE
+> Task :url_launcher_android:stripReleaseDebugSymbols NO-SOURCE
+> Task :url_launcher_android:copyReleaseJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :url_launcher_android:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :url_launcher_android:extractReleaseAnnotations UP-TO-DATE
+> Task :url_launcher_android:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :url_launcher_android:mergeReleaseConsumerProguardFiles UP-TO-DATE
+> Task :url_launcher_android:prepareReleaseArtProfile UP-TO-DATE
+> Task :url_launcher_android:mergeReleaseJavaResource UP-TO-DATE
+> Task :url_launcher_android:syncReleaseLibJars UP-TO-DATE
+> Task :url_launcher_android:writeReleaseAarMetadata UP-TO-DATE
+> Task :url_launcher_android:bundleReleaseLocalLintAar UP-TO-DATE
+> Task :audio_session:lintAnalyzeRelease UP-TO-DATE
+> Task :audio_session:writeReleaseLintModelMetadata UP-TO-DATE
+> Task :connectivity_plus:lintAnalyzeRelease UP-TO-DATE
+> Task :connectivity_plus:writeReleaseLintModelMetadata UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:lintAnalyzeRelease UP-TO-DATE
+> Task :flutter_plugin_android_lifecycle:writeReleaseLintModelMetadata UP-TO-DATE
+> Task :google_mlkit_commons:lintAnalyzeRelease UP-TO-DATE
+> Task :google_mlkit_commons:writeReleaseLintModelMetadata UP-TO-DATE
+> Task :google_mlkit_translation:lintAnalyzeRelease UP-TO-DATE
+> Task :google_mlkit_translation:writeReleaseLintModelMetadata UP-TO-DATE
+> Task :jni:lintAnalyzeRelease UP-TO-DATE
+> Task :jni:writeReleaseLintModelMetadata UP-TO-DATE
+> Task :jni_flutter:lintAnalyzeRelease UP-TO-DATE
+> Task :jni_flutter:writeReleaseLintModelMetadata UP-TO-DATE
+> Task :just_audio:lintAnalyzeRelease UP-TO-DATE
+> Task :just_audio:writeReleaseLintModelMetadata UP-TO-DATE
+> Task :local_auth_android:lintAnalyzeRelease UP-TO-DATE
+> Task :local_auth_android:writeReleaseLintModelMetadata UP-TO-DATE
+> Task :package_info_plus:lintAnalyzeRelease UP-TO-DATE
+> Task :package_info_plus:writeReleaseLintModelMetadata UP-TO-DATE
+> Task :record_android:lintAnalyzeRelease UP-TO-DATE
+> Task :record_android:writeReleaseLintModelMetadata UP-TO-DATE
+> Task :shared_preferences_android:lintAnalyzeRelease UP-TO-DATE
+> Task :shared_preferences_android:writeReleaseLintModelMetadata UP-TO-DATE
+> Task :url_launcher_android:lintAnalyzeRelease UP-TO-DATE
+> Task :url_launcher_android:writeReleaseLintModelMetadata UP-TO-DATE
+> Task :app:lintAnalyzeRelease
+> Task :app:lintReportRelease UP-TO-DATE
+> Task :app:lintRelease
+
+[Incubating] Problems report is available at: file:///D:/Documents/ai-speaking-flutter-app/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.1.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 3m 14s
+436 actionable tasks: 24 executed, 412 up-to-date

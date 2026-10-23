@@ -1,0 +1,20 @@
+{
+  "signature": "2ea5deae67b68dc7bca80fe299d425577ecf3794b36724c8fa2fa7bac74f34cb",
+  "request": {
+    "text": "Animal Words",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "f9bbf794af0e3b81425fd6b55fb5d9c23bfadbbc795d17fb2d52a3bceb5b05f6",
+  "requestId": "byTFbye2grqOHJtFDf4i",
+  "createdAt": "2026-09-15T23:25:09.423Z"
+}

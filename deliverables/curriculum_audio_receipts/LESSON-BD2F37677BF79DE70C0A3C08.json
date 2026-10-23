@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T09-B01\\C810-L3-T09-B01-T04_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T09-B01-T04_VI",
+  "sourceText": "Đã làm mất bút chì.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Đã làm mất bút chì.",
+      "generation_key": "489beb5cc839ef42"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-BD2F37677BF79DE70C0A3C08",
+  "text": "Đã làm mất bút chì.",
+  "asset": "assets/audio/CURRICULUM/bd2f37677bf79de70c0a3c08.vi.v1.mp3",
+  "sha256": "07eb4debf4a135cefa1e15b3649c0b3bef9fe2f8344f4041c4b89d5017e6db8c",
+  "durationSeconds": 1.791134
+}

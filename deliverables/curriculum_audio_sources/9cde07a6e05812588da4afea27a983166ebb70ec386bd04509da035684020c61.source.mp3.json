@@ -1,0 +1,20 @@
+{
+  "signature": "9cde07a6e05812588da4afea27a983166ebb70ec386bd04509da035684020c61",
+  "request": {
+    "text": "Family Words",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "511f9d3a467c685f94d8d0dbb9e8b0311e8cdff3e15c593d7a3b813c99203869",
+  "requestId": "d9ytVb996TDkodWj6FSo",
+  "createdAt": "2026-09-15T23:24:11.261Z"
+}

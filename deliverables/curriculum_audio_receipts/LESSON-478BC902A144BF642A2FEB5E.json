@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T08-B01\\C1315-L3-T08-B01-Q01_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T08-B01-Q01",
+  "sourceText": "Thực đơn: Menu hay Drink?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Thực đơn:",
+      "spoken_text": "Thực đơn:",
+      "input_index": 0
+    },
+    {
+      "language": "en",
+      "text": "Menu",
+      "spoken_text": "Menu",
+      "input_index": 1
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 2
+    },
+    {
+      "language": "en",
+      "text": "Drink?",
+      "spoken_text": "Drink?",
+      "input_index": 3
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-478BC902A144BF642A2FEB5E",
+  "text": "Thực đơn: Menu hay Drink?",
+  "asset": "assets/audio/CURRICULUM/478bc902a144bf642a2feb5e.vi.v1.mp3",
+  "sha256": "8f0222a359ca09591bd070e0302a1834edcce5c86afe8cc485a6025e203f92c4",
+  "durationSeconds": 3.322857
+}

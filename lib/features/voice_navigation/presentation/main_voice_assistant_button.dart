@@ -3,14 +3,15 @@ import 'dart:async';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-import '../../conversation/presentation/conversation_controller.dart';
+import '../../../core/audio/main_assistant_audio_state.dart';
+import '../application/main_button_activation_policy.dart';
 import '../application/main_speaking_session_controller.dart';
 import '../application/voice_navigation_controller.dart';
 
 class MainVoiceAssistantButton extends StatelessWidget {
   const MainVoiceAssistantButton({
     required this.voiceController,
-    required this.conversationController,
+    required this.audioState,
     required this.speakingSessionController,
     required this.isActivationPending,
     required this.onPressed,
@@ -20,7 +21,7 @@ class MainVoiceAssistantButton extends StatelessWidget {
   });
 
   final VoiceNavigationController voiceController;
-  final ConversationController conversationController;
+  final MainAssistantAudioState audioState;
   final MainSpeakingSessionController speakingSessionController;
   final bool isActivationPending;
   final Future<void> Function() onPressed;
@@ -32,25 +33,28 @@ class MainVoiceAssistantButton extends StatelessWidget {
     return AnimatedBuilder(
       animation: Listenable.merge(<Listenable>[
         voiceController,
-        conversationController,
+        audioState,
         speakingSessionController,
       ]),
       builder: (context, _) {
         final speakingState = speakingSessionController.state;
         final isSpeakingMode = speakingSessionController.isActive;
-        final isAssistantBusy = voiceController.isMainButtonSessionActive;
         final canActivate =
-            !isActivationPending &&
-            !isSpeakingMode &&
-            !conversationController.isBusy &&
-            !conversationController.isPlaybackPlaying &&
-            !isAssistantBusy;
+            MainButtonActivationPolicy.canStart(
+              isActivationPending: isActivationPending,
+              isMainButtonSessionActive:
+                  voiceController.isMainButtonSessionActive,
+            ) &&
+            (isSpeakingMode ||
+                (!audioState.isBusy && !audioState.isPlaybackPlaying));
+        final microphoneError = voiceController.lastErrorMessage;
+        final commandError = voiceController.hasUnhandledLearningCommandError;
         final label = isSpeakingMode
             ? switch (speakingState) {
                 MainSpeakingSessionState.ready => 'Đang chuẩn bị...',
                 MainSpeakingSessionState.recording => 'Đang nghe...',
                 MainSpeakingSessionState.processing =>
-                  conversationController.isPreparingMicrophone
+                  audioState.isPreparingMicrophone
                       ? 'Đang chuẩn bị...'
                       : 'Đang dịch...',
                 MainSpeakingSessionState.playing => 'Đang phát...',
@@ -58,11 +62,23 @@ class MainVoiceAssistantButton extends StatelessWidget {
               }
             : voiceController.isMainButtonSessionActive &&
                   voiceController.isAcknowledgingWakeWord
-            ? 'Bi cô đang nói...'
+            ? 'HOMI đang nói...'
             : voiceController.isMainButtonSessionActive &&
-                  (voiceController.isAwaitingCommand ||
-                      voiceController.isListening)
+                  voiceController.isListening
             ? 'Đang nghe...'
+            : voiceController.isMainButtonSessionActive &&
+                  microphoneError != null
+            ? commandError
+                  ? 'Lệnh chưa xong'
+                  : 'Đang thử lại mic...'
+            : voiceController.isMainButtonSessionActive &&
+                  (voiceController.isStarting ||
+                      voiceController.isAwaitingCommand)
+            ? 'Đang chuẩn bị mic...'
+            : microphoneError != null
+            ? commandError
+                  ? 'Lệnh chưa xong'
+                  : 'Thử lại mic'
             : 'Main';
         final icon = isSpeakingMode
             ? switch (speakingState) {
@@ -73,21 +89,37 @@ class MainVoiceAssistantButton extends StatelessWidget {
                 MainSpeakingSessionState.inactive => Icons.auto_awesome_rounded,
               }
             : voiceController.isMainButtonSessionActive &&
-                  voiceController.isAwaitingCommand
+                  voiceController.isListening
             ? Icons.hearing_rounded
+            : voiceController.isMainButtonSessionActive &&
+                  microphoneError != null
+            ? Icons.sync_problem_rounded
+            : voiceController.isMainButtonSessionActive &&
+                  (voiceController.isStarting ||
+                      voiceController.isAwaitingCommand)
+            ? Icons.mic_none_rounded
             : voiceController.isMainButtonSessionActive &&
                   voiceController.isAcknowledgingWakeWord
             ? Icons.campaign_rounded
+            : microphoneError != null
+            ? Icons.error_outline_rounded
             : Icons.auto_awesome_rounded;
+        final microphoneStatus = microphoneError == null
+            ? '${voiceController.activeInputLabel}: $label'
+            : '$microphoneError Bấm Main để thử lại.';
 
         return Semantics(
           button: true,
           label: canActivate
-              ? 'Main, gọi Bi cô để chọn tính năng'
-              : isSpeakingMode
-              ? '$label, ứng dụng sẽ tự động chuyển sang lượt tiếp theo'
-              : '$label, vui lòng chờ',
+              ? isSpeakingMode
+                    ? 'Main, dừng phiên dịch và mở HOMI'
+                    : microphoneError == null
+                    ? 'Main, gọi HOMI để chọn tính năng'
+                    : microphoneStatus
+              : '$microphoneStatus Vui lòng chờ.',
           child: RawGestureDetector(
+            // STOP remains available while the short-press FAB is disabled.
+            behavior: HitTestBehavior.opaque,
             gestures: <Type, GestureRecognizerFactory>{
               LongPressGestureRecognizer:
                   GestureRecognizerFactoryWithHandlers<
@@ -105,12 +137,18 @@ class MainVoiceAssistantButton extends StatelessWidget {
                     },
                   ),
             },
-            child: FloatingActionButton.extended(
-              key: const Key('main-voice-assistant-button'),
-              heroTag: 'main-voice-assistant-button',
-              onPressed: canActivate ? () => unawaited(onPressed()) : null,
-              icon: Icon(icon),
-              label: Text(label),
+            child: Tooltip(
+              message: microphoneStatus,
+              // The FAB's default tooltip claims LONG after 500 ms, before
+              // MAIN's 1.5-second STOP gesture can win the gesture arena.
+              triggerMode: TooltipTriggerMode.manual,
+              child: FloatingActionButton.extended(
+                key: const Key('main-voice-assistant-button'),
+                heroTag: 'main-voice-assistant-button',
+                onPressed: canActivate ? () => unawaited(onPressed()) : null,
+                icon: Icon(icon),
+                label: Text(label),
+              ),
             ),
           ),
         );

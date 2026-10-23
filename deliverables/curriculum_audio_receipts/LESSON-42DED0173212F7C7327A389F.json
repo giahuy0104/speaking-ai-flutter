@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T01-B02\\C35-L1-T01-B02-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-T01-B02-Q07",
+  "sourceText": "Nữ hoàng: Queen hay Rabbit?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Nữ hoàng:",
+      "spoken_text": "Nữ hoàng:",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "Queen",
+      "spoken_text": "Queen",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Rabbit?",
+      "spoken_text": "Rabbit?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-42DED0173212F7C7327A389F",
+  "text": "Nữ hoàng: Queen hay Rabbit?",
+  "asset": "assets/audio/CURRICULUM/42ded0173212f7c7327a389f.vi.v1.mp3",
+  "sha256": "b6a4e2616598935db02dd042f88ec2816ab650fa659baffc610997867f716ffe",
+  "durationSeconds": 3.993537
+}

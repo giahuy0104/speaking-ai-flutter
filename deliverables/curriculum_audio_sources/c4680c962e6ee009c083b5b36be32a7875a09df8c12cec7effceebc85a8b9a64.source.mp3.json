@@ -1,0 +1,20 @@
+{
+  "signature": "c4680c962e6ee009c083b5b36be32a7875a09df8c12cec7effceebc85a8b9a64",
+  "request": {
+    "text": "What Color?",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "59f81d8cf93e3c24e923267e82ce28218ff2317e73b6fa7990e8cd494aa5e8f9",
+  "requestId": "EgNyaHu1NbFCB2WApr5V",
+  "createdAt": "2026-09-15T23:23:35.546Z"
+}

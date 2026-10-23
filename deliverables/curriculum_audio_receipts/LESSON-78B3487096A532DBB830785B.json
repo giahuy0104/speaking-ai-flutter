@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T04\\C67-L2-M03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-M03",
+  "sourceText": "Chuối: Bananas hay Noodles?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Chuối:",
+      "text": "Chuối:",
+      "spoken_text": "Chuối:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "source_text": "Bananas",
+      "text": "Bananas",
+      "spoken_text": "Bananas",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "source_text": "Noodles?",
+      "text": "Noodles?",
+      "spoken_text": "Noodles?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": "9c4f759d901a4ff3c0721bb42a19194830f73ddee2227f92f4d74a9f96a8ea24",
+  "id": "LESSON-78B3487096A532DBB830785B",
+  "text": "Chuối: Bananas hay Noodles?",
+  "asset": "assets/audio/CURRICULUM/78b3487096a532dbb830785b.vi.v1.mp3",
+  "sha256": "9c4f759d901a4ff3c0721bb42a19194830f73ddee2227f92f4d74a9f96a8ea24",
+  "durationSeconds": 3.552154
+}

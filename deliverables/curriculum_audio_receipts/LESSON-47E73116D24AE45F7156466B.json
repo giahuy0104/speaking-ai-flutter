@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L2-T05\\C35-L2-M06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L2-M06",
+  "sourceText": "Bạn muốn nói 'Đó là con chim.' Hoàn thành câu: It's a... bird hay cow?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn muốn nói 'Đó là con chim.' Hoàn thành câu:",
+      "text": "Bạn muốn nói 'Đó là con chim.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Đó là con chim.' Hoàn thành câu:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "source_text": "It's a... bird",
+      "text": "It's a... bird",
+      "spoken_text": "It's a... bird",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "source_text": "cow?",
+      "text": "cow?",
+      "spoken_text": "cow?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": "ec0f68aeab643aa1ea66630743b3cd9f858b248441641d028519b7aff608efa0",
+  "id": "LESSON-47E73116D24AE45F7156466B",
+  "text": "Bạn muốn nói 'Đó là con chim.' Hoàn thành câu: It's a... bird hay cow?",
+  "asset": "assets/audio/CURRICULUM/47e73116d24ae45f7156466b.vi.v1.mp3",
+  "sha256": "ec0f68aeab643aa1ea66630743b3cd9f858b248441641d028519b7aff608efa0",
+  "durationSeconds": 7.764626
+}

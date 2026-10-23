@@ -1,0 +1,20 @@
+{
+  "signature": "bf7e195461603850e32a1fd5bdca60daac8c237356f9a84c816a4a74ac0e9732",
+  "request": {
+    "text": "hay",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+    "speed": 0.9
+  },
+  "sha256": "587b62310066af72f7481443c9fccef371a1ad2d8d537d3d1e9b16ebd3efc8b4",
+  "requestId": "Y8EyPPYGalhB5eNl9yAL",
+  "createdAt": "2026-09-15T23:15:44.925Z"
+}

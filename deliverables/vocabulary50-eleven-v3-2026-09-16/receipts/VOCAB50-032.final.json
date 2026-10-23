@@ -1,0 +1,22 @@
+{
+  "number": 32,
+  "id": "VOCAB50-032",
+  "text": "HOMI chưa nghe rõ. Bạn nói lại nhé.",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current",
+  "file": "audio/VOCAB50-032.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "c7abfe3456dd1a71602ac52d915de9337776b2fe2ba2358b2bb22aa282e19e68",
+  "bytes": 42257,
+  "sourceDurationSeconds": 2.32,
+  "durationSeconds": 2.561655,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "J9chJfRcfoYEjQe3oq1p",
+  "characterCost": "19",
+  "createdAt": "2026-09-16T03:20:59.104Z"
+}

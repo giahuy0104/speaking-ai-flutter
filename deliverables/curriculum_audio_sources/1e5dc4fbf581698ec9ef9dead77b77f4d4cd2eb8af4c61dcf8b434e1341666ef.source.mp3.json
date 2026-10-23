@@ -1,0 +1,20 @@
+{
+  "signature": "1e5dc4fbf581698ec9ef9dead77b77f4d4cd2eb8af4c61dcf8b434e1341666ef",
+  "request": {
+    "text": "School Words",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "59c5b6862abc3f8278f06cefdade63beea807e54ac844d174fec9184aae45830",
+  "requestId": "YkhgEbPxURr7c515iHEt",
+  "createdAt": "2026-09-15T23:25:42.246Z"
+}

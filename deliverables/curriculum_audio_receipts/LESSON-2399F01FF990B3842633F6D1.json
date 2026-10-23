@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\MP3\\ROLEPLAY_04\\ROLEPLAY_04_TURN_01_HOMI_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "ROLEPLAY_04_TURN_01_VI",
+  "sourceText": "Bạn ổn không?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75, VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn ổn không?",
+      "generation_key": "83807893b6fac841"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-2399F01FF990B3842633F6D1",
+  "text": "Bạn ổn không?",
+  "asset": "assets/audio/CURRICULUM/2399f01ff990b3842633f6d1.vi.v1.mp3",
+  "sha256": "9cd54d8b6faa0629e3268af19d969291ad5dec51e470a01bfa4edb1e9f329f8a",
+  "durationSeconds": 1.428435
+}

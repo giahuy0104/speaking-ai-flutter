@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L1-T02-B01\\C810-L1-T02-B01-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L1-T02-B01-Q07",
+  "sourceText": "Bạn cần nói \"Môn tiếng Anh\". English hay Art?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn cần nói \"Môn tiếng Anh\".",
+      "spoken_text": "Bạn cần nói \"Môn tiếng Anh\".",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "English",
+      "spoken_text": "English",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Art?",
+      "spoken_text": "Art?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-6F7BB3F86CFBC2FCBE34574A",
+  "text": "Bạn cần nói \"Môn tiếng Anh\". English hay Art?",
+  "asset": "assets/audio/CURRICULUM/6f7bb3f86cfbc2fcbe34574a.vi.v1.mp3",
+  "sha256": "2096f776ac683cb829d1e92ce5e6e0fbf1be412a1b309190d90c1ca3a800a2de",
+  "durationSeconds": 5.010068
+}

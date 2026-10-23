@@ -1,0 +1,563 @@
+00:00 +0: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/display_language_test.dart
+00:00 +0: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/display_language_test.dart: language setting changes display text only and hides backend URL
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: exactly one matching candidate
+  Actual: _TextWidgetFinder:<Found 0 widgets with text "请说越南语": []>
+   Which: means none were found but one was expected
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/display_language_test.dart:37:7)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/display_language_test.dart line 37
+The test description was:
+  language setting changes display text only and hides backend URL
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:01 +0 -1: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/display_language_test.dart: language setting changes display text only and hides backend URL [E]
+  Test failed. See exception logs above.
+  The test description was: language setting changes display text only and hides backend URL
+  
+00:01 +0 -1: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: opens vocabulary, returns to communication, and opens topics
+00:03 +1 -1: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: opens vocabulary, returns to communication, and opens topics
+00:03 +2 -1: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: opens vocabulary, returns to communication, and opens topics
+00:03 +3 -1: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: opens vocabulary, returns to communication, and opens topics
+Pending timers:
+Timer (duration: 0:00:02.000000, periodic: false), created:
+#0      new FakeTimer._ (package:fake_async/fake_async.dart:342:62)
+#1      FakeAsync._createTimer (package:fake_async/fake_async.dart:260:29)
+#2      FakeAsync.run.<anonymous closure> (package:fake_async/fake_async.dart:185:15)
+#6      _VocabularyHomeScreenState._leavePlaybackForOtherContent (package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabulary_home_screen.dart:1911:27)
+#7      _VocabularyHomeScreenState._attachNavigationController.<anonymous closure> (package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabulary_home_screen.dart:313:35)
+#8      VocabularyHomeNavigationController.leaveForOtherContent (package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabulary_home_screen.dart:58:34)
+#9      _HomeLearningShellState._showConversation (package:ai_speaking_flutter_app/features/home/presentation/home_learning_shell.dart:877:49)
+#10     _InkResponseState.handleTap (package:flutter/src/material/ink_well.dart:1224:21)
+#11     GestureRecognizer.invokeCallback (package:flutter/src/gestures/recognizer.dart:345:24)
+#12     TapGestureRecognizer.handleTapUp (package:flutter/src/gestures/tap.dart:758:11)
+#13     BaseTapGestureRecognizer._checkUp (package:flutter/src/gestures/tap.dart:383:5)
+#14     BaseTapGestureRecognizer.acceptGesture (package:flutter/src/gestures/tap.dart:353:7)
+#15     GestureArenaManager.sweep (package:flutter/src/gestures/arena.dart:173:27)
+#16     GestureBinding.handleEvent (package:flutter/src/gestures/binding.dart:532:20)
+#17     GestureBinding.dispatchEvent (package:flutter/src/gestures/binding.dart:498:22)
+#18     RendererBinding.dispatchEvent (package:flutter/src/rendering/binding.dart:473:11)
+#19     GestureBinding._handlePointerEventImmediately (package:flutter/src/gestures/binding.dart:437:7)
+#20     GestureBinding.handlePointerEvent (package:flutter/src/gestures/binding.dart:394:5)
+#21     TestWidgetsFlutterBinding.handlePointerEventForSource.<anonymous closure> (package:flutter_test/src/binding.dart:1570:42)
+#22     TestWidgetsFlutterBinding.withPointerEventSource (package:flutter_test/src/binding.dart:1580:11)
+#23     TestWidgetsFlutterBinding.handlePointerEventForSource (package:flutter_test/src/binding.dart:1570:5)
+#24     WidgetTester.sendEventToBinding.<anonymous closure> (package:flutter_test/src/widget_tester.dart:869:15)
+#27     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#28     WidgetTester.sendEventToBinding (package:flutter_test/src/widget_tester.dart:868:27)
+#29     TestGesture.up.<anonymous closure> (package:flutter_test/src/test_pointer.dart:587:26)
+#32     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#33     TestGesture.up (package:flutter_test/src/test_pointer.dart:580:27)
+#34     WidgetController.tapAt.<anonymous closure> (package:flutter_test/src/controller.dart:1155:21)
+<asynchronous suspension>
+#35     TestAsyncUtils.guard.<anonymous closure> (package:flutter_test/src/test_async_utils.dart:130:27)
+<asynchronous suspension>
+#36     main.<anonymous closure> (file:///D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart:90:5)
+<asynchronous suspension>
+#37     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#38     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 8 frames from dart:async and package:stack_trace)
+
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown running a test:
+A Timer is still pending even after the widget tree was disposed.
+'package:flutter_test/src/binding.dart':
+Failed assertion: line 2542 pos 12: '!timersPending'
+
+When the exception was thrown, this was the stack:
+#2      AutomatedTestWidgetsFlutterBinding._verifyInvariants (package:flutter_test/src/binding.dart:2542:12)
+#3      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1973:7)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from class _AssertionError and package:stack_trace)
+
+The test description was:
+  opens vocabulary, returns to communication, and opens topics
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:03 +3 -2: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/golden_conversation_screen_test.dart: idle screen keeps the compact hero above the fold
+00:03 +3 -2: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: opens vocabulary, returns to communication, and opens topics [E]
+  Test failed. See exception logs above.
+  The test description was: opens vocabulary, returns to communication, and opens topics
+  
+Warning: At least one test in this suite creates an HttpClient. When running a test suite that uses
+TestWidgetsFlutterBinding, all HTTP requests will return status code 400, and no network request
+will actually be made. Any test expecting a real network connection and status code will fail.
+To test code that needs an HttpClient, provide your own HttpClient implementation to the code under
+test, so that your test can consistently provide a testable response to the code under test.
+00:04 +4 -2: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/golden_conversation_screen_test.dart: idle screen keeps the compact hero above the fold
+00:04 +4 -2: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/vocabulary/vocabulary_home_screen_test.dart: leaving the vocabulary tab stops active collection audio
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: exactly one matching candidate
+  Actual: _KeyWidgetFinder:<Found 0 widgets with key [<'vocabulary-family-card'>]: []>
+   Which: means none were found but one was expected
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/vocabulary/vocabulary_home_screen_test.dart:142:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/vocabulary/vocabulary_home_screen_test.dart line 142
+The test description was:
+  leaving the vocabulary tab stops active collection audio
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:04 +4 -3: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/golden_conversation_screen_test.dart: idle screen keeps the compact hero above the fold
+00:04 +4 -3: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/vocabulary/vocabulary_home_screen_test.dart: leaving the vocabulary tab stops active collection audio [E]
+  Test failed. See exception logs above.
+  The test description was: leaving the vocabulary tab stops active collection audio
+  
+00:04 +4 -3: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: system Back closes vocabulary detail before leaving the tab
+Pending timers:
+Timer (duration: 0:00:02.000000, periodic: false), created:
+#0      new FakeTimer._ (package:fake_async/fake_async.dart:342:62)
+#1      FakeAsync._createTimer (package:fake_async/fake_async.dart:260:29)
+#2      FakeAsync.run.<anonymous closure> (package:fake_async/fake_async.dart:185:15)
+#6      _VocabularyHomeScreenState._leavePlaybackForOtherContent (package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabulary_home_screen.dart:1911:27)
+#7      _VocabularyHomeScreenState._handleNavigationBack (package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabulary_home_screen.dart:322:15)
+#8      VocabularyHomeNavigationController.handleBack (package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabulary_home_screen.dart:55:57)
+#9      _HomeLearningShellState._handleVocabularyBack (package:ai_speaking_flutter_app/features/home/presentation/home_learning_shell.dart:889:47)
+#10     _HomeLearningShellState.build.<anonymous closure>.<anonymous closure> (package:ai_speaking_flutter_app/features/home/presentation/home_learning_shell.dart:375:27)
+#11     PopScope._callPopInvoked (package:flutter/src/widgets/pop_scope.dart:146:30)
+#12     _PopScopeState.onPopInvokedWithResult (package:flutter/src/widgets/pop_scope.dart:181:12)
+#13     ModalRoute.onPopInvokedWithResult (package:flutter/src/widgets/routes.dart:2047:16)
+#14     NavigatorState.maybePop (package:flutter/src/widgets/navigator.dart:5576:25)
+<asynchronous suspension>
+#15     WidgetsBinding.handlePopRoute (package:flutter/src/widgets/binding.dart:1116:13)
+<asynchronous suspension>
+#16     main.<anonymous closure> (file:///D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart:121:5)
+<asynchronous suspension>
+#17     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#18     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 4 frames from dart:async and package:stack_trace)
+
+Timer (duration: 0:00:02.000000, periodic: false), created:
+#0      new FakeTimer._ (package:fake_async/fake_async.dart:342:62)
+#1      FakeAsync._createTimer (package:fake_async/fake_async.dart:260:29)
+#2      FakeAsync.run.<anonymous closure> (package:fake_async/fake_async.dart:185:15)
+#6      _VocabularyHomeScreenState._leavePlaybackForOtherContent (package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabulary_home_screen.dart:1911:27)
+#7      _VocabularyHomeScreenState._attachNavigationController.<anonymous closure> (package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabulary_home_screen.dart:313:35)
+#8      VocabularyHomeNavigationController.leaveForOtherContent (package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabulary_home_screen.dart:58:34)
+#9      _HomeLearningShellState._showConversation (package:ai_speaking_flutter_app/features/home/presentation/home_learning_shell.dart:877:49)
+#10     _HomeLearningShellState._handleVocabularyBack (package:ai_speaking_flutter_app/features/home/presentation/home_learning_shell.dart:890:18)
+<asynchronous suspension>
+(elided 3 frames from dart:async)
+
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown running a test:
+A Timer is still pending even after the widget tree was disposed.
+'package:flutter_test/src/binding.dart':
+Failed assertion: line 2542 pos 12: '!timersPending'
+
+When the exception was thrown, this was the stack:
+#2      AutomatedTestWidgetsFlutterBinding._verifyInvariants (package:flutter_test/src/binding.dart:2542:12)
+#3      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1973:7)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from class _AssertionError and package:stack_trace)
+
+The test description was:
+  system Back closes vocabulary detail before leaving the tab
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:04 +4 -4: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/golden_conversation_screen_test.dart: idle screen keeps the compact hero above the fold
+00:04 +4 -4: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: system Back closes vocabulary detail before leaving the tab [E]
+  Test failed. See exception logs above.
+  The test description was: system Back closes vocabulary detail before leaving the tab
+  
+00:04 +4 -4: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/golden_conversation_screen_test.dart: idle screen keeps the compact hero above the fold
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown while running async test code:
+Golden "goldens/conversation-idle-compact-450x1025.png": Pixel test failed, 15.54%, 71668px diff
+detected.
+Failure feedback can be found at
+/D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/failures
+
+When the exception was thrown, this was the stack:
+#0      LocalFileComparator.compare (package:flutter_test/src/_goldens_io.dart:108:5)
+<asynchronous suspension>
+#1      MatchesGoldenFile.matchAsync.<anonymous closure> (package:flutter_test/src/_matchers_io.dart:124:32)
+<asynchronous suspension>
+<asynchronous suspension>
+#3      _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:153:17)
+<asynchronous suspension>
+<asynchronous suspension>
+#5      expectLater.<anonymous closure> (package:flutter_test/src/widget_tester.dart:508:19)
+<asynchronous suspension>
+#6      main.<anonymous closure> (file:///D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/golden_conversation_screen_test.dart:46:5)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from dart:async and package:stack_trace)
+
+The exception was caught asynchronously.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:04 +4 -5: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/vocabulary/vocabulary_practice_golden_test.dart: parent-added journey uses the welcoming HOMI
+00:04 +4 -5: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/golden_conversation_screen_test.dart: idle screen keeps the compact hero above the fold [E]
+  Test failed. See exception logs above.
+  The test description was: idle screen keeps the compact hero above the fold
+  
+00:04 +5 -5: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/vocabulary/vocabulary_practice_golden_test.dart: parent-added journey uses the welcoming HOMI
+00:04 +6 -5: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/vocabulary/vocabulary_practice_golden_test.dart: parent-added journey uses the welcoming HOMI
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown while running async test code:
+Golden "goldens/vocabulary-family-homi-390x844.png": Pixel test failed, 2.34%, 7717px diff detected.
+Failure feedback can be found at
+/D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/vocabulary/failures
+
+When the exception was thrown, this was the stack:
+#0      LocalFileComparator.compare (package:flutter_test/src/_goldens_io.dart:108:5)
+<asynchronous suspension>
+#1      MatchesGoldenFile.matchAsync.<anonymous closure> (package:flutter_test/src/_matchers_io.dart:124:32)
+<asynchronous suspension>
+<asynchronous suspension>
+#3      _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:153:17)
+<asynchronous suspension>
+<asynchronous suspension>
+#5      expectLater.<anonymous closure> (package:flutter_test/src/widget_tester.dart:508:19)
+<asynchronous suspension>
+#6      main.<anonymous closure> (file:///D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/vocabulary/vocabulary_practice_golden_test.dart:89:5)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from dart:async and package:stack_trace)
+
+The exception was caught asynchronously.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:04 +6 -6: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/vocabulary/vocabulary_home_screen_test.dart: opens the three vocabulary journeys from the redesigned home
+00:04 +6 -6: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/vocabulary/vocabulary_practice_golden_test.dart: parent-added journey uses the welcoming HOMI [E]
+  Test failed. See exception logs above.
+  The test description was: parent-added journey uses the welcoming HOMI
+  
+00:05 +7 -6: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/golden_conversation_screen_test.dart: recording screen matches the selected mobile direction
+00:05 +8 -6: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: Android opens settings directly when no gate is injected
+00:05 +9 -6: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_golden_test.dart: add vocabulary dialog matches image three
+00:05 +10 -6: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_golden_test.dart: add vocabulary dialog matches image three
+00:06 +10 -6: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/vocabulary/vocabulary_practice_golden_test.dart: stars journey uses the singing HOMI
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown while running async test code:
+Golden "goldens/vocabulary-stars-homi-390x844.png": Pixel test failed, 34.37%, 113139px diff
+detected.
+Failure feedback can be found at
+/D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/vocabulary/failures
+
+When the exception was thrown, this was the stack:
+#0      LocalFileComparator.compare (package:flutter_test/src/_goldens_io.dart:108:5)
+<asynchronous suspension>
+#1      MatchesGoldenFile.matchAsync.<anonymous closure> (package:flutter_test/src/_matchers_io.dart:124:32)
+<asynchronous suspension>
+<asynchronous suspension>
+#3      _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:153:17)
+<asynchronous suspension>
+<asynchronous suspension>
+#5      expectLater.<anonymous closure> (package:flutter_test/src/widget_tester.dart:508:19)
+<asynchronous suspension>
+#6      main.<anonymous closure> (file:///D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/vocabulary/vocabulary_practice_golden_test.dart:98:5)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from dart:async and package:stack_trace)
+
+The exception was caught asynchronously.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:06 +10 -7: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_golden_test.dart: add vocabulary dialog matches image three
+00:06 +10 -7: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/vocabulary/vocabulary_practice_golden_test.dart: stars journey uses the singing HOMI [E]
+  Test failed. See exception logs above.
+  The test description was: stars journey uses the singing HOMI
+  
+00:06 +10 -7: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_golden_test.dart: add vocabulary dialog matches image three
+00:06 +11 -7: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_golden_test.dart: add vocabulary dialog matches image three
+00:06 +11 -7: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/golden_conversation_screen_test.dart: processing screen uses the waveform instead of a spinner
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown while running async test code:
+Golden "goldens/conversation-processing-waveform-390x844.png": Pixel test failed, 0.26%, 872px diff
+detected.
+Failure feedback can be found at
+/D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/failures
+
+When the exception was thrown, this was the stack:
+#0      LocalFileComparator.compare (package:flutter_test/src/_goldens_io.dart:108:5)
+<asynchronous suspension>
+#1      MatchesGoldenFile.matchAsync.<anonymous closure> (package:flutter_test/src/_matchers_io.dart:124:32)
+<asynchronous suspension>
+<asynchronous suspension>
+#3      _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:153:17)
+<asynchronous suspension>
+<asynchronous suspension>
+#5      expectLater.<anonymous closure> (package:flutter_test/src/widget_tester.dart:508:19)
+<asynchronous suspension>
+#6      main.<anonymous closure> (file:///D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/golden_conversation_screen_test.dart:131:5)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from dart:async and package:stack_trace)
+
+The exception was caught asynchronously.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:06 +11 -8: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_golden_test.dart: add vocabulary dialog matches image three
+00:06 +11 -8: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/golden_conversation_screen_test.dart: processing screen uses the waveform instead of a spinner [E]
+  Test failed. See exception logs above.
+  The test description was: processing screen uses the waveform instead of a spinner
+  
+00:06 +12 -8: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_golden_test.dart: add vocabulary dialog matches image three
+00:06 +13 -8: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: Android changes the listening age group without device authentication
+00:07 +14 -8: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: Android changes the listening age group without device authentication
+00:07 +15 -8: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: Android changes the listening age group without device authentication
+00:07 +16 -8: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/golden_conversation_screen_test.dart: ready result screen keeps the scenic communication layout
+00:07 +17 -8: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/golden_conversation_screen_test.dart: ready result screen keeps the scenic communication layout
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown while running async test code:
+Golden "goldens/conversation-ready-shortcut-450x1025.png": Pixel test failed, 0.42%, 1956px diff
+detected.
+Failure feedback can be found at
+/D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/failures
+
+When the exception was thrown, this was the stack:
+#0      LocalFileComparator.compare (package:flutter_test/src/_goldens_io.dart:108:5)
+<asynchronous suspension>
+#1      MatchesGoldenFile.matchAsync.<anonymous closure> (package:flutter_test/src/_matchers_io.dart:124:32)
+<asynchronous suspension>
+<asynchronous suspension>
+#3      _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:153:17)
+<asynchronous suspension>
+<asynchronous suspension>
+#5      expectLater.<anonymous closure> (package:flutter_test/src/widget_tester.dart:508:19)
+<asynchronous suspension>
+#6      main.<anonymous closure> (file:///D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/golden_conversation_screen_test.dart:170:5)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from dart:async and package:stack_trace)
+
+The exception was caught asynchronously.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:07 +17 -9: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:07 +17 -9: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/golden_conversation_screen_test.dart: ready result screen keeps the scenic communication layout [E]
+  Test failed. See exception logs above.
+  The test description was: ready result screen keeps the scenic communication layout
+  
+00:08 +18 -9: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown while running async test code:
+Golden "goldens/dark-home-topics-390x844.png": Pixel test failed, 5.22%, 17168px diff detected.
+Failure feedback can be found at
+/D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/failures
+
+When the exception was thrown, this was the stack:
+#0      LocalFileComparator.compare (package:flutter_test/src/_goldens_io.dart:108:5)
+<asynchronous suspension>
+#1      MatchesGoldenFile.matchAsync.<anonymous closure> (package:flutter_test/src/_matchers_io.dart:124:32)
+<asynchronous suspension>
+<asynchronous suspension>
+#3      _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:153:17)
+<asynchronous suspension>
+<asynchronous suspension>
+#5      expectLater.<anonymous closure> (package:flutter_test/src/widget_tester.dart:508:19)
+<asynchronous suspension>
+#6      main.<anonymous closure> (file:///D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_golden_test.dart:113:5)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from dart:async and package:stack_trace)
+
+The exception was caught asynchronously.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:08 +18 -10: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: iOS keeps header, side navigation, and hardware MAIN flow
+00:08 +18 -10: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition [E]
+  Test failed. See exception logs above.
+  The test description was: dark home keeps the approved option two composition
+  
+00:09 +19 -10: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: iOS keeps header, side navigation, and hardware MAIN flow
+Pending timers:
+Timer (duration: 0:00:02.000000, periodic: false), created:
+#0      new FakeTimer._ (package:fake_async/fake_async.dart:342:62)
+#1      FakeAsync._createTimer (package:fake_async/fake_async.dart:260:29)
+#2      FakeAsync.run.<anonymous closure> (package:fake_async/fake_async.dart:185:15)
+#6      _VocabularyHomeScreenState._leavePlaybackForOtherContent (package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabulary_home_screen.dart:1911:27)
+#7      _VocabularyHomeScreenState._attachNavigationController.<anonymous closure> (package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabulary_home_screen.dart:313:35)
+#8      VocabularyHomeNavigationController.leaveForOtherContent (package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabulary_home_screen.dart:58:34)
+#9      _HomeLearningShellState._showConversation (package:ai_speaking_flutter_app/features/home/presentation/home_learning_shell.dart:877:49)
+#10     _InkResponseState.handleTap (package:flutter/src/material/ink_well.dart:1224:21)
+#11     GestureRecognizer.invokeCallback (package:flutter/src/gestures/recognizer.dart:345:24)
+#12     TapGestureRecognizer.handleTapUp (package:flutter/src/gestures/tap.dart:758:11)
+#13     BaseTapGestureRecognizer._checkUp (package:flutter/src/gestures/tap.dart:383:5)
+#14     BaseTapGestureRecognizer.acceptGesture (package:flutter/src/gestures/tap.dart:353:7)
+#15     GestureArenaManager.sweep (package:flutter/src/gestures/arena.dart:173:27)
+#16     GestureBinding.handleEvent (package:flutter/src/gestures/binding.dart:532:20)
+#17     GestureBinding.dispatchEvent (package:flutter/src/gestures/binding.dart:498:22)
+#18     RendererBinding.dispatchEvent (package:flutter/src/rendering/binding.dart:473:11)
+#19     GestureBinding._handlePointerEventImmediately (package:flutter/src/gestures/binding.dart:437:7)
+#20     GestureBinding.handlePointerEvent (package:flutter/src/gestures/binding.dart:394:5)
+#21     TestWidgetsFlutterBinding.handlePointerEventForSource.<anonymous closure> (package:flutter_test/src/binding.dart:1570:42)
+#22     TestWidgetsFlutterBinding.withPointerEventSource (package:flutter_test/src/binding.dart:1580:11)
+#23     TestWidgetsFlutterBinding.handlePointerEventForSource (package:flutter_test/src/binding.dart:1570:5)
+#24     WidgetTester.sendEventToBinding.<anonymous closure> (package:flutter_test/src/widget_tester.dart:869:15)
+#27     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#28     WidgetTester.sendEventToBinding (package:flutter_test/src/widget_tester.dart:868:27)
+#29     TestGesture.up.<anonymous closure> (package:flutter_test/src/test_pointer.dart:587:26)
+#32     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#33     TestGesture.up (package:flutter_test/src/test_pointer.dart:580:27)
+#34     WidgetController.tapAt.<anonymous closure> (package:flutter_test/src/controller.dart:1155:21)
+<asynchronous suspension>
+#35     TestAsyncUtils.guard.<anonymous closure> (package:flutter_test/src/test_async_utils.dart:130:27)
+<asynchronous suspension>
+#36     main.<anonymous closure> (file:///D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart:339:5)
+<asynchronous suspension>
+#37     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#38     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 8 frames from dart:async and package:stack_trace)
+
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown running a test:
+A Timer is still pending even after the widget tree was disposed.
+'package:flutter_test/src/binding.dart':
+Failed assertion: line 2542 pos 12: '!timersPending'
+
+When the exception was thrown, this was the stack:
+#2      AutomatedTestWidgetsFlutterBinding._verifyInvariants (package:flutter_test/src/binding.dart:2542:12)
+#3      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1973:7)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from class _AssertionError and package:stack_trace)
+
+The test description was:
+  iOS keeps header, side navigation, and hardware MAIN flow
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:09 +19 -11: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/golden_conversation_screen_test.dart: topic listening screen matches the selected mobile direction
+00:09 +19 -11: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: iOS keeps header, side navigation, and hardware MAIN flow [E]
+  Test failed. See exception logs above.
+  The test description was: iOS keeps header, side navigation, and hardware MAIN flow
+  
+00:09 +20 -11: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/golden_conversation_screen_test.dart: topic listening screen matches the selected mobile direction
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown while running async test code:
+Golden "goldens/topic-listening-426x923.png": Pixel test failed, 6.75%, 26550px diff detected.
+Failure feedback can be found at
+/D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/failures
+
+When the exception was thrown, this was the stack:
+#0      LocalFileComparator.compare (package:flutter_test/src/_goldens_io.dart:108:5)
+<asynchronous suspension>
+#1      MatchesGoldenFile.matchAsync.<anonymous closure> (package:flutter_test/src/_matchers_io.dart:124:32)
+<asynchronous suspension>
+<asynchronous suspension>
+#3      _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:153:17)
+<asynchronous suspension>
+<asynchronous suspension>
+#5      expectLater.<anonymous closure> (package:flutter_test/src/widget_tester.dart:508:19)
+<asynchronous suspension>
+#6      main.<anonymous closure> (file:///D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/golden_conversation_screen_test.dart:213:5)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from dart:async and package:stack_trace)
+
+The exception was caught asynchronously.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:09 +20 -12: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: opens vocabulary from a recognized voice command
+00:09 +20 -12: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/golden_conversation_screen_test.dart: topic listening screen matches the selected mobile direction [E]
+  Test failed. See exception logs above.
+  The test description was: topic listening screen matches the selected mobile direction
+  
+Warning: At least one test in this suite creates an HttpClient. When running a test suite that uses
+TestWidgetsFlutterBinding, all HTTP requests will return status code 400, and no network request
+will actually be made. Any test expecting a real network connection and status code will fail.
+To test code that needs an HttpClient, provide your own HttpClient implementation to the code under
+test, so that your test can consistently provide a testable response to the code under test.
+00:09 +21 -12: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: opens vocabulary from a recognized voice command
+00:09 +22 -12: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: opens vocabulary from a recognized voice command
+00:10 +23 -12: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: opens vocabulary from a recognized voice command
+00:10 +24 -12: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/vocabulary/vocabulary_home_screen_test.dart: announces the child voice at the start of every Star block
+00:10 +25 -12: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: starts continuous voice navigation on Android
+00:10 +26 -12: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps a newly added parent entry silent until it has been learned
+00:10 +27 -12: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps a newly added parent entry silent until it has been learned
+00:10 +28 -12: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps a newly added parent entry silent until it has been learned
+00:10 +29 -12: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps a newly added parent entry silent until it has been learned
+00:10 +30 -12: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: promotes a companion-restored Android session when the app is visible
+00:10 +31 -12: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/vocabulary/vocabulary_home_screen_test.dart: MAIN vocabulary commands open Review and Stars journeys
+00:10 +32 -12: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/vocabulary/vocabulary_home_screen_test.dart: MAIN vocabulary commands open Review and Stars journeys
+00:10 +33 -12: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: iOS restores an active lesson checkpoint only after returning foreground
+00:10 +33 -12: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/vocabulary/vocabulary_home_screen_test.dart: MAIN vocabulary prompt failure is handled and can retry
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: exactly one matching candidate
+  Actual: _TypeWidgetFinder:<Found 0 widgets with type "SnackBar": []>
+   Which: means none were found but one was expected
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/vocabulary/vocabulary_home_screen_test.dart:1155:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/vocabulary/vocabulary_home_screen_test.dart line 1155
+The test description was:
+  MAIN vocabulary prompt failure is handled and can retry
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:10 +33 -13: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: iOS restores an active lesson checkpoint only after returning foreground
+00:10 +33 -13: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/vocabulary/vocabulary_home_screen_test.dart: MAIN vocabulary prompt failure is handled and can retry [E]
+  Test failed. See exception logs above.
+  The test description was: MAIN vocabulary prompt failure is handled and can retry
+  
+00:11 +34 -13: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: iOS restores an active lesson checkpoint only after returning foreground
+00:11 +35 -13: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: Main flow uses the saved age and topic owner to open the first lesson
+00:11 +36 -13: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: Main speaking choice hands off to the automatic speaking session
+00:11 +37 -13: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: translation choice enters continuous translation directly
+00:11 +38 -13: D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: leaving listening waits for the continuous translation microphone handoff
+00:12 +39 -13: Some tests failed.
+
+Failing tests:
+  D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/display_language_test.dart: language setting changes display text only and hides backend URL
+  D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+  D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: iOS keeps header, side navigation, and hardware MAIN flow
+  D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/output/qa-baseline-20260918/test/features/home/home_learning_shell_test.dart: opens vocabulary, returns to communication, and opens topics
+  ... and 9 more

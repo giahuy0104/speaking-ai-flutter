@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L1-T01-B01\\C810-L1-T01-B01-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L1-T01-B01-Q08",
+  "sourceText": "Bạn cần nói \"Tám giờ\". After school hay Eight o'clock?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn cần nói \"Tám giờ\".",
+      "spoken_text": "Bạn cần nói \"Tám giờ\".",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "After school",
+      "spoken_text": "After school",
+      "input_index": 43
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "Eight o'clock?",
+      "spoken_text": "Eight o'clock?",
+      "input_index": 45
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-380513B55B07B8E23BEDFC3D",
+  "text": "Bạn cần nói \"Tám giờ\". After school hay Eight o'clock?",
+  "asset": "assets/audio/CURRICULUM/380513b55b07b8e23bedfc3d.vi.v1.mp3",
+  "sha256": "5c3b60aafcf476c48aadb6ad56fccd8a17404a1b93e23c0a9942f18d00c91407",
+  "durationSeconds": 5.67839
+}

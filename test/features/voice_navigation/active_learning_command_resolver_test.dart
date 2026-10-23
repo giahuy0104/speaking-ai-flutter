@@ -1,5 +1,6 @@
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/active_learning_command_resolver.dart';
+import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/controlled_speech_lexicon.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -15,7 +16,6 @@ void main() {
       'Học lại từ đầu': ActiveLearningCommand.restart,
       'Luyện lại từ đầu': ActiveLearningCommand.restart,
       'Cho con học bài tiếp theo': ActiveLearningCommand.nextLesson,
-      'Bài trước': ActiveLearningCommand.previousLesson,
       'Tạm dừng': ActiveLearningCommand.stop,
       'Tiếp tục': ActiveLearningCommand.resume,
     };
@@ -24,8 +24,37 @@ void main() {
     }
   });
 
+  test('Intro accepts only its own local controls', () {
+    for (final entry in <String, ActiveLearningCommand>{
+      'Nghe lại': ActiveLearningCommand.replayCurrent,
+      'Tiếp tục': ActiveLearningCommand.resume,
+      'Dừng lại': ActiveLearningCommand.stop,
+    }.entries) {
+      expect(
+        resolver.resolve(entry.key, node: ActiveLearningVoiceNode.intro),
+        entry.value,
+        reason: entry.key,
+      );
+    }
+    for (final text in ['Câu trước', 'Câu sau', 'Bài tiếp theo']) {
+      expect(
+        resolver.resolve(text, node: ActiveLearningVoiceNode.intro),
+        isNull,
+        reason: text,
+      );
+    }
+  });
+
   test('does not treat lesson content as a control command', () {
     expect(resolver.resolve('Monday Tuesday off we go'), isNull);
     expect(resolver.resolve('Con thích học tiếng Anh'), isNull);
+  });
+
+  test('maps skip to next item only inside Vocabulary', () {
+    expect(
+      resolver.resolve('Bỏ qua', state: ControlledSpeechState.vocabulary),
+      ActiveLearningCommand.nextItem,
+    );
+    expect(resolver.resolve('Bỏ qua'), isNull);
   });
 }

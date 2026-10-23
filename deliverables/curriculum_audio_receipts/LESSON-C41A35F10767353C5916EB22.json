@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T06-B02\\C67-L2-T06-B02-Q01_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-T06-B02-Q01",
+  "sourceText": "Rửa tay: Wash your hands hay Brush your teeth?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Rửa tay:",
+      "spoken_text": "Rửa tay:",
+      "input_index": 0
+    },
+    {
+      "language": "en",
+      "text": "Wash your hands",
+      "spoken_text": "Wash your hands",
+      "input_index": 1
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 2
+    },
+    {
+      "language": "en",
+      "text": "Brush your teeth?",
+      "spoken_text": "Brush your teeth?",
+      "input_index": 3
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-C41A35F10767353C5916EB22",
+  "text": "Rửa tay: Wash your hands hay Brush your teeth?",
+  "asset": "assets/audio/CURRICULUM/c41a35f10767353c5916eb22.vi.v1.mp3",
+  "sha256": "f78f51b18f44eea7dbea62fc130e826d3987f25fbd9298a8ca4a54cc094a0afa",
+  "durationSeconds": 5.31675
+}

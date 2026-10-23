@@ -1,0 +1,28 @@
+{
+  "id": "GAP66-019",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình chưa hiểu. Bạn chọn một trong các lựa chọn trên màn hình nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "fqkCVxVsJm5LxHC0PQxl",
+  "historyItemId": "k5AWx6PaMEpfjHI4H8xI",
+  "characterCost": "36",
+  "createdAt": "2026-09-17T14:24:55.877Z",
+  "sourceSha256": "d72fdf89d2c8d253f5ad8ffd40dc29be4ffa105342c0069e9ec215acca02f585",
+  "asset": "assets/audio/MAIN/GAP66/GAP66-019.vi.v1.mp3",
+  "finalSha256": "b7522adcb19bc76ebe4d562a4905e087ed467be70ce9f8e4e095463374c9c23d",
+  "sourceDurationSeconds": 3.6,
+  "durationSeconds": 3.980726,
+  "speed": 0.9,
+  "speedMethod": "ffmpeg-atempo",
+  "bytes": 64827
+}

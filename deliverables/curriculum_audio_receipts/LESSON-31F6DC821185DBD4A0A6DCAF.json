@@ -1,0 +1,57 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T07-B02\\C1315-L3-T07-B02-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T07-B02-Q07",
+  "sourceText": "HOMI nói: What time does it leave? At five thirty hay Platform three?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "HOMI nói:",
+      "spoken_text": "HOMI nói:",
+      "input_index": 37
+    },
+    {
+      "language": "en",
+      "text": "What time does it leave?",
+      "spoken_text": "What time does it leave?",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "At five thirty",
+      "spoken_text": "At five thirty",
+      "input_index": 39
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 40
+    },
+    {
+      "language": "en",
+      "text": "Platform three?",
+      "spoken_text": "Platform three?",
+      "input_index": 41
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-31F6DC821185DBD4A0A6DCAF",
+  "text": "HOMI nói: What time does it leave? At five thirty hay Platform three?",
+  "asset": "assets/audio/CURRICULUM/31f6dc821185dbd4a0a6dcaf.vi.v1.mp3",
+  "sha256": "e0946e8b0ad84e951ae6cc2f49dbd60aa1209e12ecc9e841ef9c440c2888a6c0",
+  "durationSeconds": 6.821519
+}

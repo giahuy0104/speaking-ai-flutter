@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T04-B02\\C1112-L2-T04-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T04-B02-Q05",
+  "sourceText": "Mình đi bộ đến trường: I walk to school hay I take the bus?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình đi bộ đến trường:",
+      "spoken_text": "Mình đi bộ đến trường:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "I walk to school",
+      "spoken_text": "I walk to school",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "I take the bus?",
+      "spoken_text": "I take the bus?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-FCC2B30656593BBC2FC86DB6",
+  "text": "Mình đi bộ đến trường: I walk to school hay I take the bus?",
+  "asset": "assets/audio/CURRICULUM/fcc2b30656593bbc2fc86db6.vi.v1.mp3",
+  "sha256": "f6013150523a2b8fed26a7046e0fe5ca9e353ba31af7f2f24de911a0de3085d0",
+  "durationSeconds": 5.943039
+}

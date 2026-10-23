@@ -1,0 +1,20 @@
+{
+  "signature": "428a19aff63c860bcb45c70f0accd12f5e5c2c1f4efe91d6760d914110c79786",
+  "request": {
+    "text": "Bài đầu tiên là",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+    "speed": 0.9
+  },
+  "sha256": "a1ea02a4dcb0df90eb9cae415778e8ac3acae5484b00002ba75e238e959b24c0",
+  "requestId": "SURgNpwPTAi5JeyjeOp7",
+  "createdAt": "2026-09-15T23:22:26.647Z"
+}

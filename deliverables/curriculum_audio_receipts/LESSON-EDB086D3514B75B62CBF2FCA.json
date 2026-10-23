@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T05-B01\\C1315-L2-T05-B01-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T05-B01-Q04",
+  "sourceText": "Bạn muốn diễn đạt \"Mình cần ngủ thêm\". I need more sleep hay I'm tired?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn diễn đạt \"Mình cần ngủ thêm\".",
+      "spoken_text": "Bạn muốn diễn đạt \"Mình cần ngủ thêm\".",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "I need more sleep",
+      "spoken_text": "I need more sleep",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "I'm tired?",
+      "spoken_text": "I'm tired?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-EDB086D3514B75B62CBF2FCA",
+  "text": "Bạn muốn diễn đạt \"Mình cần ngủ thêm\". I need more sleep hay I'm tired?",
+  "asset": "assets/audio/CURRICULUM/edb086d3514b75b62cbf2fca.vi.v1.mp3",
+  "sha256": "a36976648a1ced0007e9023154a9871cb3ac6e56102b4b579d3ae972bf27fffa",
+  "durationSeconds": 6.664694
+}

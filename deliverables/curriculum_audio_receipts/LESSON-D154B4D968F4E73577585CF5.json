@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T10-B01\\C35-L3-T10-B01-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T10-B01-Q08",
+  "sourceText": "Bạn muốn nói \"Ăn\". Bath hay Eat?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói \"Ăn\".",
+      "spoken_text": "Bạn muốn nói \"Ăn\".",
+      "input_index": 41
+    },
+    {
+      "language": "en",
+      "text": "Bath",
+      "spoken_text": "Bath",
+      "input_index": 42
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 43
+    },
+    {
+      "language": "en",
+      "text": "Eat?",
+      "spoken_text": "Eat?",
+      "input_index": 44
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-D154B4D968F4E73577585CF5",
+  "text": "Bạn muốn nói \"Ăn\". Bath hay Eat?",
+  "asset": "assets/audio/CURRICULUM/d154b4d968f4e73577585cf5.vi.v1.mp3",
+  "sha256": "f6e50f9e43fde82c005a89caa9c1d52b7e9aec05e30bd49a5ecc10391c1d5e98",
+  "durationSeconds": 4.576168
+}

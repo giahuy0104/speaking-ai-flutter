@@ -1,0 +1,20 @@
+{
+  "signature": "e144e7011715c88ac34c83e548d87b4ca38bacab50ff335f82455b30ff6f7c1f",
+  "request": {
+    "text": "Animal Abilities.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "93732f4100c5897542536eb6c6fd29a0659fd25d95b928ec1b2639b1718e5403",
+  "requestId": "uxRAaA9BQge8sOtixE6A",
+  "createdAt": "2026-09-15T23:25:11.897Z"
+}

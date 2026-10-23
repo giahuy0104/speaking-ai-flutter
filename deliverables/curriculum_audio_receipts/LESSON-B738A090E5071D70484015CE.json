@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T04-B02\\C67-L2-T04-B02-T04_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-T04-B02-T04_VI",
+  "sourceText": "Có, mình thích.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Có, mình thích.",
+      "generation_key": "a6ea18c63146dd60"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-B738A090E5071D70484015CE",
+  "text": "Có, mình thích.",
+  "asset": "assets/audio/CURRICULUM/b738a090e5071d70484015ce.vi.v1.mp3",
+  "sha256": "a1c7b255bba9454959888fdd40b5904f6c5e4bd949c299dc01898a2f292f7291",
+  "durationSeconds": 1.412063
+}

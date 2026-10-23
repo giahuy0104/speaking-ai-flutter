@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T10-B02\\C810-L3-T10-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T10-B02-Q04",
+  "sourceText": "Đi taxi: Go by car hay Take a taxi?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Đi taxi:",
+      "spoken_text": "Đi taxi:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Go by car",
+      "spoken_text": "Go by car",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Take a taxi?",
+      "spoken_text": "Take a taxi?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-B46CDD57179807BB542C1B87",
+  "text": "Đi taxi: Go by car hay Take a taxi?",
+  "asset": "assets/audio/CURRICULUM/b46cdd57179807bb542c1b87.vi.v1.mp3",
+  "sha256": "db0a75b613c918fd9cd1a5ff56a3d8fba4713329fe1f715c3ddd9501498fe97f",
+  "durationSeconds": 5.029728
+}

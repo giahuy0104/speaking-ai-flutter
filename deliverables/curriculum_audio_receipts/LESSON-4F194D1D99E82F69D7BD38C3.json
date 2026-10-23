@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T08-B02\\C35-L3-T08-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T08-B02-Q04",
+  "sourceText": "Chị/em gái của mình: My family hay My sister?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Chị/em gái của mình:",
+      "spoken_text": "Chị hoặc em gái của mình:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "My family",
+      "spoken_text": "My family",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "My sister?",
+      "spoken_text": "My sister?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-4F194D1D99E82F69D7BD38C3",
+  "text": "Chị/em gái của mình: My family hay My sister?",
+  "asset": "assets/audio/CURRICULUM/4f194d1d99e82f69d7bd38c3.vi.v1.mp3",
+  "sha256": "c34d36095f72f17c4352f2b5a0efa18b01f4c3cf69b9bbdb761bac4d03e1f187",
+  "durationSeconds": 5.31356
+}

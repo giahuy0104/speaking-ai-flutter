@@ -1,0 +1,33 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T01-B02\\C67-L1-T01-B02-Q02_CHOICE_2_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T01-B02-Q02",
+  "sourceText": "Lamp.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Lamp.",
+      "spoken_text": "Lamp.",
+      "input_index": 11
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-6269BE8177E27ED8DF1837BB",
+  "text": "Lamp.",
+  "asset": "assets/audio/CURRICULUM/6269be8177e27ed8df1837bb.en.v1.mp3",
+  "sha256": "f773c4a198542e4e9d7a45e4cb334a6d322d7c7b5b6a0cd572f9bc9b6a8c3317",
+  "durationSeconds": 1.069433
+}

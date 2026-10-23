@@ -1,0 +1,20 @@
+{
+  "id": "AI-034",
+  "signature": "f0f15fcd82451374ece5546ffa1921a0865935f601f17f7138a60969af889883",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Phần luyện lại chưa có từ nào.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:07:33.125Z",
+  "requestId": "C2SfIxsVoNLlA1FoI7DZ",
+  "characterCost": "16",
+  "sourceSha256": "1fd6ffc8311204ca0eb61089cabf2b2691abe83ba540cec76069528a9b75c970"
+}

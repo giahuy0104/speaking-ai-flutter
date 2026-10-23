@@ -1,0 +1,4 @@
+00:00 +0: loading D:/Code/HuaMei/App_noi/flutter/20_17th9_v2/speaking-ai-flutter/tool/audit_homi_utterances_test.dart
+00:00 +0: enumerate real domain outputs without playing or generating audio
+HOMI domain audit: 313 contexts, 71774 transitions, 672 grouped outputs.
+02:52 +1: All tests passed!

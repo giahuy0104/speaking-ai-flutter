@@ -1,0 +1,20 @@
+{
+  "signature": "22237ea4ddccbfcea8dd983dce84783b805a08ef76fc2574cd52452b07e7d9da",
+  "request": {
+    "text": "Food, Please.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "a4dc5be0892125297eb24c2fee6d22dfa733ce527291a26e7699fb88e010a41d",
+  "requestId": "3umsWHrbOTcqwp2CK4qd",
+  "createdAt": "2026-09-15T23:24:04.437Z"
+}

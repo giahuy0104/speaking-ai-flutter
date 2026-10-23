@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T05-B02\\C67-L2-T05-B02-T02_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-T05-B02-T02_VI",
+  "sourceText": "Quả bóng tròn.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Quả bóng tròn.",
+      "generation_key": "2c7eba05a07d6533"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-55D8A8DA1B73EAAB65FB60BF",
+  "text": "Quả bóng tròn.",
+  "asset": "assets/audio/CURRICULUM/55d8a8da1b73eaab65fb60bf.vi.v1.mp3",
+  "sha256": "dab052c8047d76de83399a05674d3e29d8f84f3c7b2432641532bbd717791926",
+  "durationSeconds": 1.326735
+}

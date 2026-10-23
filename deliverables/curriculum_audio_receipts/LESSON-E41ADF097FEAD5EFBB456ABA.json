@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T10-B02\\C1315-L3-T10-B02-T04_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T10-B02-T04_EN",
+  "sourceText": "I'll join a class.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "I'll join a class.",
+      "generation_key": "cfff161f8cd6e43d"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-E41ADF097FEAD5EFBB456ABA",
+  "text": "I'll join a class.",
+  "asset": "assets/audio/CURRICULUM/e41adf097fead5efbb456aba.en.v1.mp3",
+  "sha256": "2fd07bd93ab46dd82fb6ca12c0ca5143192e23a8c3e239f9083c2c60e14e516b",
+  "durationSeconds": 2.355374
+}

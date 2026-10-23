@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T07-B01\\C67-L3-T07-B01-Q02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T07-B01-Q02",
+  "sourceText": "Bút chì: Desk hay Pencil?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bút chì:",
+      "spoken_text": "Bút chì:",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "text": "Desk",
+      "spoken_text": "Desk",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "text": "Pencil?",
+      "spoken_text": "Pencil?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-86A0284CF890418083E3E4D1",
+  "text": "Bút chì: Desk hay Pencil?",
+  "asset": "assets/audio/CURRICULUM/86a0284cf890418083e3e4d1.vi.v1.mp3",
+  "sha256": "b87cff6ac902ce2e3cda4af8ef0da403b7d9c88d1e36f0b570d83ec9afbf8a72",
+  "durationSeconds": 3.520612
+}

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T06-B01\\C1112-L2-T06-B01-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T06-B01-Q06",
+  "sourceText": "Bạn muốn diễn đạt \"Mật khẩu\". Message hay Password?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn diễn đạt \"Mật khẩu\".",
+      "spoken_text": "Bạn muốn diễn đạt \"Mật khẩu\".",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Message",
+      "spoken_text": "Message",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "Password?",
+      "spoken_text": "Password?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-0519A7F76EA8C78329EC433C",
+  "text": "Bạn muốn diễn đạt \"Mật khẩu\". Message hay Password?",
+  "asset": "assets/audio/CURRICULUM/0519a7f76ea8c78329ec433c.vi.v1.mp3",
+  "sha256": "2d792dc044d0c39e03a472a3f18eb1dcc2518e49b1292d597e78a72085923108",
+  "durationSeconds": 5.060068
+}

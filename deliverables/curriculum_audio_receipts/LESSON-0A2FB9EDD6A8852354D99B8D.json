@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T04-B02\\C810-L2-T04-B02-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T04-B02-Q06",
+  "sourceText": "Bạn muốn nói 'Rẽ trái.' Hoàn thành câu: Turn... right hay left?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói 'Rẽ trái.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Rẽ trái.' Hoàn thành câu:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Turn... right",
+      "spoken_text": "Turn... right",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "left?",
+      "spoken_text": "left?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-0A2FB9EDD6A8852354D99B8D",
+  "text": "Bạn muốn nói 'Rẽ trái.' Hoàn thành câu: Turn... right hay left?",
+  "asset": "assets/audio/CURRICULUM/0a2fb9edd6a8852354d99b8d.vi.v1.mp3",
+  "sha256": "b0fba92b17e198df713ce006e52cae2782874c1c8d234c2d81ffff9f7647b783",
+  "durationSeconds": 7.919388
+}

@@ -1,0 +1,1251 @@
+{
+  "date": "2026-09-17",
+  "scope": "local working tree; code/catalog audit, not device/acoustic verification",
+  "groups": 5,
+  "topics": 50,
+  "lessons": 109,
+  "coreOccurrences": 1202,
+  "challengeOccurrences": 601,
+  "recognitionVariantsNotCountedAsOutput": 727,
+  "domainScenarios": 313,
+  "domainTransitions": 71774,
+  "reachedStages": {
+    "current": [
+      "activeLearning",
+      "chooseAfterTranslationStop",
+      "chooseAlternativeAfterLearning",
+      "chooseCourseRelearnLevel",
+      "chooseFeature",
+      "chooseOtherLearning",
+      "chooseTopicAfterCompletion",
+      "confirmReplayTopic",
+      "idle"
+    ],
+    "compatibility": [
+      "chooseLesson",
+      "confirmReplayLesson",
+      "confirmReplayTopic",
+      "idle"
+    ]
+  },
+  "audioFiles": 2866,
+  "audioIntegrityFailures": [],
+  "directLinks": 1311,
+  "directLinkFailures": [],
+  "currentUniqueTextLocale": 2109,
+  "currentReady": 2043,
+  "currentMissing": [
+    {
+      "text": "Bạn chọn một trong các lựa chọn trên màn hình nhé.",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "core: begin",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Bạn muốn nghe lại, học câu tiếp theo, học câu trước hay dừng lại?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "core: begin",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Bạn muốn nghe lại, nghe câu trước hay dừng lại?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "today: begin",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Bạn muốn nghe lại, nghe câu trước, câu tiếp theo hay dừng lại?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "parent: begin",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Bắt đầu Level 1. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "age=3 level=1 completed=[] announce=true: begin",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Bắt đầu Level 2. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "age=3 level=2 completed=[] announce=true: begin",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Bắt đầu Level 3. Có 4 Chủ đề. Bạn chọn Chủ đề số mấy?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "age=3 level=3 completed=[] announce=true: begin",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Chủ đề 1 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 1?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "age=3 level=1 completed=[1, 2, 3] announce=false: 1 [chooseTopicAfterCompletion]",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Chủ đề 10 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 10?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "age=3 level=3 completed=[7, 8, 9, 10] announce=false: 10 [chooseTopicAfterCompletion]",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Chủ đề 2 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 2?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "age=3 level=1 completed=[1, 2, 3] announce=false: 2 [chooseTopicAfterCompletion]",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Chủ đề 3 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 3?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "age=3 level=1 completed=[1, 2, 3] announce=false: 3 [chooseTopicAfterCompletion]",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Chủ đề 4 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 4?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "age=3 level=2 completed=[4, 5, 6] announce=false: 4 [chooseTopicAfterCompletion]",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Chủ đề 5 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 5?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "age=3 level=2 completed=[4, 5, 6] announce=false: 5 [chooseTopicAfterCompletion]",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Chủ đề 6 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 6?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "age=3 level=2 completed=[4, 5, 6] announce=false: 6 [chooseTopicAfterCompletion]",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Chủ đề 7 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 7?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "age=3 level=3 completed=[7, 8, 9, 10] announce=false: 7 [chooseTopicAfterCompletion]",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Chủ đề 8 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 8?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "age=3 level=3 completed=[7, 8, 9, 10] announce=false: 8 [chooseTopicAfterCompletion]",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Chủ đề 9 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 9?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "age=3 level=3 completed=[7, 8, 9, 10] announce=false: 9 [chooseTopicAfterCompletion]",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu.",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "challenge: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn chọn một trong các lựa chọn trên màn hình nhé.",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "core: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn chưa có Ngôi sao nào. Bạn muốn học phần Ba mẹ đã thêm hay Luyện lại?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "starAlternatives: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn còn một Chủ đề chưa học. Bạn muốn học tiếp hay học lại?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "core: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Level số mấy?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "course relearn age=3: xyz [chooseCourseRelearnLevel]",
+          "evidence": "executed_domain_function"
+        },
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "core: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn đã nghe hết Ngôi sao rồi. Bạn muốn học nội dung khác hay học lại?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "listEnd: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn đã nghe hết rồi. Bạn muốn học nội dung khác hay học lại?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "listEnd: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn muốn bắt đầu Level 2 hay dừng lại?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "core: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn muốn bắt đầu Level 3 hay dừng lại?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "core: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 1?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "core: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 10?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "core: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 2?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "core: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 3?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "core: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 4?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "core: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 5?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "core: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 6?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "core: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 7?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "core: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 8?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "core: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 9?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "core: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn muốn dịch sang tiếng Anh hay học bộ từ vựng?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "active listeningLesson: không → xyz [chooseAlternativeAfterLearning]",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn muốn học Bài 2 hay học lại Bài 1?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "core: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn muốn học Bài 3 hay học lại Bài 2?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "core: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn muốn học Ngôi sao hay Luyện lại?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "parentAlternatives: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn muốn học nội dung khác hay học lại?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "todayEnd: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn muốn học nội dung khác hay học tiếp?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "blockEnd: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn muốn học phần Ba mẹ đã thêm hay Luyện lại?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "starAlternatives: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn muốn học phần Ba mẹ đã thêm hay Ngôi sao?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "reviewAlternatives: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Luyện lại?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "vocabularyMenu: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn muốn nghe lại, học câu tiếp theo, học câu trước hay dừng lại?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "core: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn muốn nghe lại, học câu tiếp theo, học câu trước, hay dừng lại?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "active listeningLesson: xyz [activeLearning]",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn muốn nghe lại, nghe câu trước hay dừng lại?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "today: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn muốn nghe lại, nghe câu trước, câu tiếp theo hay dừng lại?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "parent: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Bạn muốn tiếp tục dịch, học Chủ đề hay Bộ từ vựng?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "other learning: xyz [chooseOtherLearning]",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Chủ đề 1 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 1?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "age=3 level=1 completed=[1, 2, 3] announce=false: 1 → xyz [confirmReplayTopic]",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Chủ đề 10 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 10?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "age=3 level=3 completed=[7, 8, 9, 10] announce=false: 10 → xyz [confirmReplayTopic]",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Chủ đề 2 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 2?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "age=3 level=1 completed=[1, 2, 3] announce=false: 2 → xyz [confirmReplayTopic]",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Chủ đề 3 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 3?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "age=3 level=1 completed=[1, 2, 3] announce=false: 3 → xyz [confirmReplayTopic]",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Chủ đề 4 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 4?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "age=3 level=2 completed=[4, 5, 6] announce=false: 4 → xyz [confirmReplayTopic]",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Chủ đề 5 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 5?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "age=3 level=2 completed=[4, 5, 6] announce=false: 5 → xyz [confirmReplayTopic]",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Chủ đề 6 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 6?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "age=3 level=2 completed=[4, 5, 6] announce=false: 6 → xyz [confirmReplayTopic]",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Chủ đề 7 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 7?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "age=3 level=3 completed=[7, 8, 9, 10] announce=false: 7 → xyz [confirmReplayTopic]",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Chủ đề 8 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 8?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "age=3 level=3 completed=[7, 8, 9, 10] announce=false: 8 → xyz [confirmReplayTopic]",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Chủ đề 9 bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề 9?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "age=3 level=3 completed=[7, 8, 9, 10] announce=false: 9 → xyz [confirmReplayTopic]",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Chưa có nội dung ở phần này. Bạn muốn học Ngôi sao hay Luyện lại?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "parentAlternatives: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "age=3 level=1 completed=[] announce=false: xyz [chooseTopicAfterCompletion]",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Có 4 Chủ đề. Bạn chọn Chủ đề số mấy?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "age=3 level=3 completed=[] announce=false: xyz [chooseTopicAfterCompletion]",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. HOMI đây. Bạn muốn dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "main_flow",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "main age=null: xyz [chooseFeature]",
+          "evidence": "executed_domain_function"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Không có nội dung cần luyện lại. Bạn muốn học phần Ba mẹ đã thêm hay Ngôi sao?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "reviewAlternatives: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    },
+    {
+      "text": "Mình chưa hiểu. Mình đã luyện xong rồi. Bạn muốn học phần Ba mẹ đã thêm hay Ngôi sao?",
+      "locale": "vi-VN",
+      "audioStatus": "missing_exact_audio",
+      "evidence": [
+        {
+          "scope": "current",
+          "family": "active_screen_main_context",
+          "source": "lib/features/voice_navigation/application/main_voice_assistant_flow.dart",
+          "route": "asset_first_then_device_tts",
+          "exampleContext": "reviewAlternatives: xyz attempt=0",
+          "evidence": "executed_domain_with_source_verified_screen_context"
+        }
+      ]
+    }
+  ],
+  "byScope": {
+    "current": {
+      "unique": 2109,
+      "missing": 66
+    },
+    "catalog_only": {
+      "unique": 607,
+      "missing": 0
+    },
+    "audio_catalog_only": {
+      "unique": 533,
+      "missing": 0
+    },
+    "conditional": {
+      "unique": 221,
+      "missing": 0
+    },
+    "compatibility": {
+      "unique": 467,
+      "missing": 456
+    },
+    "not_spoken_handled_reply": {
+      "unique": 2,
+      "missing": 0
+    }
+  },
+  "byCurrentFamily": {
+    "active_screen_main_context": {
+      "unique": 71,
+      "missing": 37
+    },
+    "age_feedback": {
+      "unique": 25,
+      "missing": 0
+    },
+    "challenge_answer_en": {
+      "unique": 532,
+      "missing": 0
+    },
+    "challenge_question": {
+      "unique": 589,
+      "missing": 0
+    },
+    "completion": {
+      "unique": 16,
+      "missing": 0
+    },
+    "conversation_unclear": {
+      "unique": 1,
+      "missing": 0
+    },
+    "core_en": {
+      "unique": 548,
+      "missing": 0
+    },
+    "core_speak_cue": {
+      "unique": 5,
+      "missing": 0
+    },
+    "core_vi": {
+      "unique": 528,
+      "missing": 0
+    },
+    "invalid_curriculum": {
+      "unique": 1,
+      "missing": 0
+    },
+    "lesson_intro_clip": {
+      "unique": 69,
+      "missing": 0
+    },
+    "lesson_locked": {
+      "unique": 2,
+      "missing": 0
+    },
+    "lesson_milestone": {
+      "unique": 3,
+      "missing": 0
+    },
+    "lesson_relearn": {
+      "unique": 106,
+      "missing": 0
+    },
+    "level_locked": {
+      "unique": 2,
+      "missing": 0
+    },
+    "level_milestone": {
+      "unique": 2,
+      "missing": 0
+    },
+    "literal_speech_call": {
+      "unique": 8,
+      "missing": 0
+    },
+    "local_guide": {
+      "unique": 2,
+      "missing": 0
+    },
+    "main_flow": {
+      "unique": 52,
+      "missing": 30
+    },
+    "main_silence": {
+      "unique": 2,
+      "missing": 0
+    },
+    "master_navigation_contract": {
+      "unique": 7,
+      "missing": 0
+    },
+    "microphone_error": {
+      "unique": 1,
+      "missing": 0
+    },
+    "module_reply": {
+      "unique": 8,
+      "missing": 0
+    },
+    "remaining_stars": {
+      "unique": 16,
+      "missing": 0
+    },
+    "song_start": {
+      "unique": 5,
+      "missing": 0
+    },
+    "topic_milestone": {
+      "unique": 10,
+      "missing": 0
+    },
+    "topic_replay": {
+      "unique": 10,
+      "missing": 0
+    },
+    "topic_resume": {
+      "unique": 10,
+      "missing": 0
+    },
+    "translation_control": {
+      "unique": 2,
+      "missing": 0
+    },
+    "translation_silence": {
+      "unique": 2,
+      "missing": 0
+    },
+    "vocabulary_guidance": {
+      "unique": 22,
+      "missing": 0
+    },
+    "wake_word": {
+      "unique": 1,
+      "missing": 0
+    }
+  },
+  "legacyAudioFiles": 217,
+  "legacyCodeOverrides": [],
+  "songLinks": [
+    {
+      "lesson": "c35-l1-t02-b02",
+      "title": "Count with Me",
+      "uri": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549515/homi/audio/A-6-7/SONGS/A067_T05_SONG01_FULL_EN.mp3",
+      "scope": "current_music_not_tts",
+      "exists": false,
+      "bundled": false,
+      "transcriptVerified": false
+    },
+    {
+      "lesson": "c35-l3-t09-b02",
+      "title": "What Should I Wear?",
+      "uri": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549515/homi/audio/A-6-7/SONGS/A067_T08_SONG01_FULL_EN.mp3",
+      "scope": "current_music_not_tts",
+      "exists": false,
+      "bundled": false,
+      "transcriptVerified": false
+    },
+    {
+      "lesson": "c35-l3-t10-b02",
+      "title": "My Happy Day",
+      "uri": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549515/homi/audio/A-6-7/SONGS/A067_T07_SONG01_FULL_EN.mp3",
+      "scope": "current_music_not_tts",
+      "exists": false,
+      "bundled": false,
+      "transcriptVerified": false
+    },
+    {
+      "lesson": "c67-l3-t08-b01",
+      "title": "Let's Play Together",
+      "uri": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549521/homi/audio/A-8-10/SONGS/A0810_T04_SONG01_FULL_EN.mp3",
+      "scope": "current_music_not_tts",
+      "exists": false,
+      "bundled": false,
+      "transcriptVerified": false
+    },
+    {
+      "lesson": "c810-l1-t01-b02",
+      "title": "My Busy Day",
+      "uri": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1789549521/homi/audio/A-8-10/SONGS/A0810_T03_SONG01_FULL_EN.mp3",
+      "scope": "current_music_not_tts",
+      "exists": false,
+      "bundled": false,
+      "transcriptVerified": false
+    }
+  ],
+  "limitations": [
+    "Branch audit uses concrete domain execution plus manually traced UI templates, not formal exhaustive reachability.",
+    "Current text counts deduplicate exact text + requested locale; families/scopes overlap and must not be summed.",
+    "No microphone, physical MAIN, BLE, real phone playback or listening/transcription of MP3 contents was performed.",
+    "Metadata/checksum verifies file identity, not whether acoustic speech is correct.",
+    "User vocabulary, translations and server audio are unbounded; no device store or production backend was read.",
+    "Recognition variants and child command corpus are input data, not automatically outgoing speech.",
+    "Legacy raw MP3 cue transcripts are not available in the current data; these are listed separately, not invented."
+  ]
+}

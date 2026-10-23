@@ -1,0 +1,20 @@
+{
+  "signature": "5ab238dad8b8a083b632fe4c2bf4f4a37a789d970c9eb3d9acdd2b15629b6d28",
+  "request": {
+    "text": "Bài này bạn còn 8 Ngôi sao chưa chinh phục. Mình cùng thử nhé!",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+    "speed": 0.9
+  },
+  "sha256": "1f0490d5046a00e4c0f90c937a2e1e545d2c0886fc37ad125f740dd9ee855a51",
+  "requestId": "xsAGKy6kPVpJWv2EJ7F6",
+  "createdAt": "2026-09-15T23:22:56.983Z"
+}

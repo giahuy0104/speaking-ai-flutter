@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L2-T04-B02\\C35-L2-T04-B02-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L2-T04-B02-Q03",
+  "sourceText": "Nó là hình tam giác: It's a triangle hay It's a star?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Nó là hình tam giác:",
+      "spoken_text": "Nó là hình tam giác:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "It's a triangle",
+      "spoken_text": "It's a triangle",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "It's a star?",
+      "spoken_text": "It's a star?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-6E55377A5770798E630BB7FC",
+  "text": "Nó là hình tam giác: It's a triangle hay It's a star?",
+  "asset": "assets/audio/CURRICULUM/6e55377a5770798e630bb7fc.vi.v1.mp3",
+  "sha256": "34e1b1147f6e7a939f8553b842bc44387956a1390eaedcd6d52232af4201bd04",
+  "durationSeconds": 5.317823
+}

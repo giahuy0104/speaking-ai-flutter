@@ -1,0 +1,83 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\780c79fa7d134cddd60c6b33d43816640b61c0f58c0a517327c14a923f2a8296.tempo.mp3",
+      "signature": "780c79fa7d134cddd60c6b33d43816640b61c0f58c0a517327c14a923f2a8296",
+      "request": {
+        "text": "Mình học tiếp bài",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "9b2c46c9688d32e84a5e8ecac31cc57558533040684155ec5d982e7d74ae20c8",
+      "requestId": "n139BUZ8jDXSls7lra7j",
+      "createdAt": "2026-09-15T23:22:30.166Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\e845147af6558bfcf2e5ed7d1a69b5ba50e3ae01893c43dca8870ca588f6c9fe.tempo.mp3",
+      "signature": "e845147af6558bfcf2e5ed7d1a69b5ba50e3ae01893c43dca8870ca588f6c9fe",
+      "request": {
+        "text": "Numbers in Life",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "20bb303622a98b7945290d322825c7c2aba905686fec1f9316cc41c9d178fb69",
+      "requestId": "JNuV1xFqzzryZgLZF7BY",
+      "createdAt": "2026-09-15T23:25:05.534Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\f72caefaa52b9ec3d291f160d78b360185e13807d2eedb801f47a382b8e85780.tempo.mp3",
+      "signature": "f72caefaa52b9ec3d291f160d78b360185e13807d2eedb801f47a382b8e85780",
+      "request": {
+        "text": "nhé.",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "f8a90b46149d734b590160ab12314af597dc9eb203f9f411637ff57d12e7a8d6",
+      "requestId": "1gbfQaGo6f7yeN8SvxDC",
+      "createdAt": "2026-09-15T23:22:32.853Z"
+    }
+  ],
+  "id": "LESSON-E970444722DA684C412A8D03",
+  "text": "Mình học tiếp bài Numbers in Life nhé.",
+  "asset": "assets/audio/CURRICULUM/e970444722da684c412a8d03.vi.v1.mp3",
+  "sha256": "b2fcb1d0f8a27c9bc79351b927bd0ecf65e63bc57ed3300bb900d7b828ae0714",
+  "durationSeconds": 4.133628,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

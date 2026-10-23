@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T09-B02\\C1112-L3-T09-B02-Q02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T09-B02-Q02",
+  "sourceText": "Cho mình mượn sạc nhé: Please call my Dad hay A charger, please?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Cho mình mượn sạc nhé:",
+      "spoken_text": "Cho mình mượn sạc nhé:",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "text": "Please call my Dad",
+      "spoken_text": "Please call my Dad",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "text": "A charger, please?",
+      "spoken_text": "A charger, please?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-7A5520091E4BA8CCA21D326A",
+  "text": "Cho mình mượn sạc nhé: Please call my Dad hay A charger, please?",
+  "asset": "assets/audio/CURRICULUM/7a5520091e4ba8cca21d326a.vi.v1.mp3",
+  "sha256": "3c4ccb3a5a0d1564bd3451c0a086d18809d39b1291c189cb7e919cd3166c6062",
+  "durationSeconds": 5.553673
+}

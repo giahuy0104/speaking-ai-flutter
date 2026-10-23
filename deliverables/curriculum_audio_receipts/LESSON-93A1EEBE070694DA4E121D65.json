@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T09-B01\\C35-L3-T09-B01-T03_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T09-B01-T03_EN",
+  "sourceText": "Hot.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Hot.",
+      "generation_key": "f1aa8465341762de"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-93A1EEBE070694DA4E121D65",
+  "text": "Hot.",
+  "asset": "assets/audio/CURRICULUM/93a1eebe070694da4e121d65.en.v1.mp3",
+  "sha256": "e99a2b2e502ec3e5e83c686308b4808f035172eef774a9fd323d2127513f8b1d",
+  "durationSeconds": 1.380136
+}

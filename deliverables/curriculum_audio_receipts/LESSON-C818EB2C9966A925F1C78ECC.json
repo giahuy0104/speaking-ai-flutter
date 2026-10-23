@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L1-T01-B01\\C1112-L1-T01-B01-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L1-T01-B01-Q05",
+  "sourceText": "Nghỉ ngơi: Relax hay Do homework?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Nghỉ ngơi:",
+      "spoken_text": "Nghỉ ngơi:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Relax",
+      "spoken_text": "Relax",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Do homework?",
+      "spoken_text": "Do homework?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-C818EB2C9966A925F1C78ECC",
+  "text": "Nghỉ ngơi: Relax hay Do homework?",
+  "asset": "assets/audio/CURRICULUM/c818eb2c9966a925f1c78ecc.vi.v1.mp3",
+  "sha256": "24bf18f8314e2b21f554946de09151576249f5f46cbc1649c5da33633727f8c0",
+  "durationSeconds": 4.264603
+}

@@ -1,0 +1,20 @@
+{
+  "signature": "962d9d28f0d25dcfddb3a62102390e195db4c82847ffc3b020b5e31e54ed4cdf",
+  "request": {
+    "text": "Polite Replies",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "3c97e1445492c9df323973689e859303793b5b76a2835553b9e27c866136ff9b",
+  "requestId": "XAsbfo7rwBvkZl2uXdzO",
+  "createdAt": "2026-09-15T23:28:37.268Z"
+}

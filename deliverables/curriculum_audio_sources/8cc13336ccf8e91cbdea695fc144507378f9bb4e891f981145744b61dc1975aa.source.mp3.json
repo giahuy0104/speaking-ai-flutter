@@ -1,0 +1,20 @@
+{
+  "signature": "8cc13336ccf8e91cbdea695fc144507378f9bb4e891f981145744b61dc1975aa",
+  "request": {
+    "text": "Color Words",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "2dc8a6e5c67bc53725c7bc3fbc77a6742a6c12c36ce1b3dd2adb140bcb6f8c2f",
+  "requestId": "vXlCSi4DeI32reZefsYW",
+  "createdAt": "2026-09-15T23:23:32.082Z"
+}

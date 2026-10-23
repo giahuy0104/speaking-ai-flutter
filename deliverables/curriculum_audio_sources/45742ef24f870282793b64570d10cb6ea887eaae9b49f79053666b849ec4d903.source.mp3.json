@@ -1,0 +1,20 @@
+{
+  "signature": "45742ef24f870282793b64570d10cb6ea887eaae9b49f79053666b849ec4d903",
+  "request": {
+    "text": "Ask for Info",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "99d6c6d648645759f9de803f8ae9f530a06de8494bb45ee077af8dac65c1103b",
+  "requestId": "w7yQDdiL9NaMazi3HDud",
+  "createdAt": "2026-09-15T23:30:40.036Z"
+}

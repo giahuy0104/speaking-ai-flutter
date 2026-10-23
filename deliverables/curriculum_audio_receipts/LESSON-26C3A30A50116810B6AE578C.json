@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T07-B01\\C67-L3-T07-B01-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T07-B01-Q05",
+  "sourceText": "Bàn tay: Hand hay Book?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bàn tay:",
+      "spoken_text": "Bàn tay:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Hand",
+      "spoken_text": "Hand",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Book?",
+      "spoken_text": "Book?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-26C3A30A50116810B6AE578C",
+  "text": "Bàn tay: Hand hay Book?",
+  "asset": "assets/audio/CURRICULUM/26c3a30a50116810b6ae578c.vi.v1.mp3",
+  "sha256": "05cd8681c62186fc9fe4d5b09b22cccf5059cd4b640c3f41cfa24218da3da7ee",
+  "durationSeconds": 3.504127
+}

@@ -1,0 +1,120 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\4b03caedecda613d41429c2bb36f56bfc0c7d509d2690b40e42e4b31074666ca.tempo.mp3",
+      "signature": "4b03caedecda613d41429c2bb36f56bfc0c7d509d2690b40e42e4b31074666ca",
+      "request": {
+        "text": "Bài này là",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "b09bd957c83cdba18684aba7c42c99530590f6859509d82049803f9e3c55436b",
+      "requestId": "NJm0jgo8lJZBsqbTOryf",
+      "createdAt": "2026-09-15T23:23:00.670Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\04376e9f5870acb9d732137c6719610f5220f129e7b833a70eda6a1921d4c927.tempo.mp3",
+      "signature": "04376e9f5870acb9d732137c6719610f5220f129e7b833a70eda6a1921d4c927",
+      "request": {
+        "text": "Device Uses.",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "74381eced507c9a3602cb07f77b3c5062de564994dc01850a2196488b3bd9f34",
+      "requestId": "2KxaK0xlpqhMCYaJIqCI",
+      "createdAt": "2026-09-15T23:26:56.912Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\MP3\\C810-L2-T06\\C810-L2-T06-B01_MICRO_OBJECTIVE.mp3",
+      "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\manifest.json",
+      "packAudioId": "C810-L2-T06-B01",
+      "sourceText": "Mình cùng luyện thiết bị và cách sử dụng nhé.",
+      "modelId": "eleven_v3",
+      "profiles": {
+        "en": {
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75
+        },
+        "vi": {
+          "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+          "speed": 0.9
+        }
+      },
+      "speedMethod": "VI speech atempo 0.9 after synthesis, preserving pitch; sound effects retain original timing",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Mình cùng luyện thiết bị và cách sử dụng nhé.",
+          "generation_key": "77375fe8635525cc"
+        }
+      ],
+      "sourceSha256": null,
+      "durationSeconds": 2.660726,
+      "sha256": "5675f528eb6c7fec3334409f8ead34c3b61d24c6b50b233cb9a1257cf37dbcbd",
+      "bytes": 43511
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\MP3\\static\\DETAIL_TRANSITION.mp3",
+      "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\manifest.json",
+      "packAudioId": "DETAIL_TRANSITION",
+      "sourceText": "Bắt đầu nhé.",
+      "modelId": "eleven_v3",
+      "profiles": {
+        "en": {
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75
+        },
+        "vi": {
+          "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+          "speed": 0.9
+        }
+      },
+      "speedMethod": "FFmpeg atempo applied after synthesis to each segment according to declared AUDIO_PLAN language, preserving pitch",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bắt đầu nhé.",
+          "generation_key": "629f2982441b8193"
+        }
+      ],
+      "sourceSha256": null,
+      "durationSeconds": 1.675034,
+      "sha256": "30121c6cc8eba7c99921818e9c60c4ff325dadc48ca444aec211b767b3f3f246",
+      "bytes": 28047
+    }
+  ],
+  "id": "LESSON-7F575ED8EFE2AB3E9DDCC660",
+  "text": "Bài này là Device Uses. Mình cùng luyện thiết bị và cách sử dụng nhé. Bắt đầu nhé.",
+  "asset": "assets/audio/CURRICULUM/7f575ed8efe2ab3e9ddcc660.vi.v1.mp3",
+  "sha256": "00bff2ab0f133fb90323789564e26a611b6d6bb3c63c08df438f665f0881f840",
+  "durationSeconds": 6.515034,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

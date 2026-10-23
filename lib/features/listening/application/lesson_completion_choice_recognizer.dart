@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 
 import '../../../config/app_config.dart';
 import '../../../core/network/multipart_audio_file.dart';
+import 'lesson_audio_format.dart';
 import 'lesson_media_service.dart';
 
 enum LessonCompletionChoice { restartLesson, nextLesson }
@@ -33,6 +34,9 @@ class LessonCompletionChoiceResolver {
         _contains(value, 'hoc bai tiep') ||
         _contains(value, 'bai ke tiep') ||
         _contains(value, 'tiep theo') ||
+        _contains(value, 'di tiep') ||
+        _contains(value, 'tiep tuc') ||
+        _contains(value, 'hoc tiep') ||
         _contains(value, 'next lesson') ||
         _contains(value, 'next one')) {
       return LessonCompletionChoice.nextLesson;
@@ -87,11 +91,11 @@ class BackendLessonCompletionChoiceRecognizer
       return await _transcribe(recording);
     } on TimeoutException {
       throw const LessonCompletionRecognitionException(
-        'Chưa kết nối được máy chủ. Con thử lại nhé.',
+        'Chưa kết nối được máy chủ. Bạn thử lại nhé.',
       );
     } on http.ClientException {
       throw const LessonCompletionRecognitionException(
-        'Chưa kết nối được máy chủ. Con thử lại nhé.',
+        'Chưa kết nối được máy chủ. Bạn thử lại nhé.',
       );
     }
   }
@@ -139,20 +143,28 @@ class BackendLessonCompletionChoiceRecognizer
       throw LessonCompletionRecognitionException(
         message is String && message.trim().isNotEmpty
             ? message
-            : 'Chưa nhận ra lựa chọn của con.',
+            : 'Chưa nhận ra lựa chọn của bạn.',
       );
     }
     if (decoded == null) {
       throw const LessonCompletionRecognitionException(
-        'Máy chủ chưa xử lý được câu trả lời. Con thử lại nhé.',
+        'Máy chủ chưa xử lý được câu trả lời. Bạn thử lại nhé.',
       );
     }
-    final transcript = decoded is Map<String, dynamic>
+    // Translation fallback can return both the original Vietnamese and English.
+    // Resolve the original command first instead of silently changing languages.
+    final sourceTranscript = decoded is Map<String, dynamic>
+        ? decoded['sourceText'] ?? decoded['vietnameseText']
+        : null;
+    final transcript =
+        sourceTranscript is String && sourceTranscript.trim().isNotEmpty
+        ? sourceTranscript
+        : decoded is Map<String, dynamic>
         ? decoded[transcriptField]
         : null;
     if (transcript is! String || transcript.trim().isEmpty) {
       throw const LessonCompletionRecognitionException(
-        'Chưa nhận ra lựa chọn của con.',
+        'Chưa nhận ra lựa chọn của bạn.',
       );
     }
     return transcript.trim();
@@ -164,7 +176,7 @@ class BackendLessonCompletionChoiceRecognizer
     required Uint8List? webBytes,
     String? sourceLanguage,
   }) async {
-    final extension = recordingPath.startsWith('blob:') ? 'webm' : 'm4a';
+    final extension = lessonAudioExtensionForPath(recordingPath);
     final request = http.MultipartRequest('POST', _config.resolve(route));
     if (sourceLanguage != null) {
       request.fields['sourceLanguage'] = sourceLanguage;

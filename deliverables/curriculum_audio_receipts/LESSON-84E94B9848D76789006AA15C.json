@@ -1,0 +1,83 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\780c79fa7d134cddd60c6b33d43816640b61c0f58c0a517327c14a923f2a8296.tempo.mp3",
+      "signature": "780c79fa7d134cddd60c6b33d43816640b61c0f58c0a517327c14a923f2a8296",
+      "request": {
+        "text": "Mình học tiếp bài",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "9b2c46c9688d32e84a5e8ecac31cc57558533040684155ec5d982e7d74ae20c8",
+      "requestId": "n139BUZ8jDXSls7lra7j",
+      "createdAt": "2026-09-15T23:22:30.166Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\2ea5deae67b68dc7bca80fe299d425577ecf3794b36724c8fa2fa7bac74f34cb.tempo.mp3",
+      "signature": "2ea5deae67b68dc7bca80fe299d425577ecf3794b36724c8fa2fa7bac74f34cb",
+      "request": {
+        "text": "Animal Words",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "f9bbf794af0e3b81425fd6b55fb5d9c23bfadbbc795d17fb2d52a3bceb5b05f6",
+      "requestId": "byTFbye2grqOHJtFDf4i",
+      "createdAt": "2026-09-15T23:25:09.423Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\f72caefaa52b9ec3d291f160d78b360185e13807d2eedb801f47a382b8e85780.tempo.mp3",
+      "signature": "f72caefaa52b9ec3d291f160d78b360185e13807d2eedb801f47a382b8e85780",
+      "request": {
+        "text": "nhé.",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "f8a90b46149d734b590160ab12314af597dc9eb203f9f411637ff57d12e7a8d6",
+      "requestId": "1gbfQaGo6f7yeN8SvxDC",
+      "createdAt": "2026-09-15T23:22:32.853Z"
+    }
+  ],
+  "id": "LESSON-84E94B9848D76789006AA15C",
+  "text": "Mình học tiếp bài Animal Words nhé.",
+  "asset": "assets/audio/CURRICULUM/84e94b9848d76789006aa15c.vi.v1.mp3",
+  "sha256": "029fc811e104aa794263cb58e0b9bddb4a8a68b3a9b8e8faf2980d91ad8b5e16",
+  "durationSeconds": 4.125782,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

@@ -31,6 +31,32 @@ void main() {
     workerAsrPilotBaseUri: Uri.parse('https://worker.example'),
   );
 
+  test(
+    'does not create a persistent client id until backend work starts',
+    () async {
+      var providerCalls = 0;
+      final repository = NextConversationRepository(
+        config: config,
+        clientIdProvider: () async {
+          providerCalls += 1;
+          return 'android_test_device';
+        },
+        client: MockClient((request) async {
+          return http.Response(
+            jsonEncode(<String, dynamic>{'conversations': <dynamic>[]}),
+            200,
+            headers: const <String, String>{'content-type': 'application/json'},
+          );
+        }),
+      );
+
+      expect(providerCalls, 0);
+      await repository.fetchHistory();
+      expect(providerCalls, 1);
+      await repository.dispose();
+    },
+  );
+
   test('requests a non-blocking all-context warm-up on app startup', () async {
     final client = MockClient((request) async {
       expect(request.method, 'POST');
@@ -99,6 +125,69 @@ void main() {
     );
     await repository.dispose();
   });
+
+  test(
+    'sends each selected language and skips English-only previews',
+    () async {
+      for (final language in TranslationOutputLanguage.values.where(
+        (language) => language != TranslationOutputLanguage.english,
+      )) {
+        var requests = 0;
+        final repository = NextConversationRepository(
+          config: config,
+          clientIdProvider: clientIdProvider,
+          client: MockClient((request) async {
+            requests++;
+            expect(request.url.path, '/api/conversation');
+            final body = jsonDecode(request.body) as Map<String, dynamic>;
+            expect(body['targetLanguage'], language.apiValue);
+            return http.Response(
+              jsonEncode(<String, dynamic>{
+                'conversationId': 'conv_${language.apiValue}',
+                'sessionId': 'sess_${language.apiValue}',
+                'context': 'home',
+                'vietnameseText': 'Con muốn uống nước.',
+                'englishText': '',
+                'targetLanguage': language.apiValue,
+                'translatedText': 'translation_${language.apiValue}',
+                'audioUrl': 'https://res.cloudinary.com/example/audio.mp3',
+              }),
+              200,
+              headers: const <String, String>{
+                'content-type': 'application/json',
+              },
+            );
+          }),
+        );
+        repository.setTranslationTarget(language);
+        expect(
+          await repository.previewStreamingText(
+            sourceText: 'Con muốn uống nước.',
+            context: PracticeContext.home,
+            childAge: 6,
+          ),
+          isNull,
+        );
+        final result = await repository.processStreamingText(
+          capture: const StreamingSpeechCapture(
+            sourceText: 'Con muốn uống nước.',
+            duration: Duration(seconds: 2),
+            inputLabel: 'Mic điện thoại',
+            confidence: null,
+            firstResultMs: 300,
+            finalAfterStopMs: 100,
+            asrMode: 'android_streaming',
+          ),
+          context: PracticeContext.home,
+          childAge: 6,
+          vadSilenceMs: 700,
+        );
+        expect(result.displayedTranslation, 'translation_${language.apiValue}');
+        expect(requests, 1);
+        await repository.dispose();
+      }
+    },
+  );
 
   test('rejects legacy Realtime locally without an HTTP request', () async {
     var requestCount = 0;
@@ -198,6 +287,185 @@ void main() {
     },
   );
 
+  for (final retryCase in <({int status, String code})>[
+    (status: 425, code: 'TOO_EARLY'),
+    (status: 429, code: 'RATE_LIMITED'),
+    (status: 409, code: 'RATE_LIMITED'),
+  ]) {
+    test(
+      'retries streaming text after ${retryCase.status} ${retryCase.code} with the same payload',
+      () async {
+        var requestCount = 0;
+        final requestBodies = <String>[];
+        final repository = NextConversationRepository(
+          config: config,
+          clientIdProvider: clientIdProvider,
+          client: MockClient((request) async {
+            requestCount += 1;
+            requestBodies.add(request.body);
+            if (requestCount == 1) {
+              return http.Response(
+                jsonEncode(<String, dynamic>{
+                  'error': <String, dynamic>{
+                    'code': retryCase.code,
+                    'message': 'Backend đang bận.',
+                  },
+                }),
+                retryCase.status,
+                headers: const <String, String>{
+                  'content-type': 'application/json; charset=utf-8',
+                  'retry-after': '0',
+                },
+              );
+            }
+            return http.Response(
+              jsonEncode(<String, dynamic>{
+                'conversationId': 'conv_retry',
+                'sessionId': 'sess_retry',
+                'context': 'home',
+                'vietnameseText': 'Hôm nay trời đẹp quá',
+                'englishText': 'The weather is beautiful today.',
+                'audioUrl': '/generated-audio/retry.mp3',
+                'processingMode': 'llm',
+                'textSource': 'llm',
+                'audioSource': 'cache',
+                'asrMode': 'android_streaming',
+                'latency': <String, dynamic>{},
+              }),
+              200,
+              headers: const <String, String>{
+                'content-type': 'application/json',
+              },
+            );
+          }),
+        );
+
+        final result = await repository.processStreamingText(
+          capture: const StreamingSpeechCapture(
+            sourceText: 'Hôm nay trời đẹp quá',
+            duration: Duration(seconds: 2),
+            inputLabel: 'Apple Speech',
+            confidence: 0.9,
+            firstResultMs: 200,
+            finalAfterStopMs: 50,
+          ),
+          context: PracticeContext.home,
+          childAge: 6,
+          vadSilenceMs: 700,
+        );
+
+        expect(result.conversationId, 'conv_retry');
+        expect(requestCount, 2);
+        expect(requestBodies, hasLength(2));
+        expect(requestBodies[1], requestBodies[0]);
+        await repository.dispose();
+      },
+    );
+  }
+
+  test('does not retry an unrelated 409 response', () async {
+    var requestCount = 0;
+    final repository = NextConversationRepository(
+      config: config,
+      clientIdProvider: clientIdProvider,
+      client: MockClient((request) async {
+        requestCount += 1;
+        return http.Response(
+          jsonEncode(<String, dynamic>{
+            'error': <String, dynamic>{
+              'code': 'AUDIO_CHUNK_CONFLICT',
+              'message': 'Conflict.',
+            },
+          }),
+          409,
+        );
+      }),
+    );
+
+    await expectLater(
+      repository.processStreamingText(
+        capture: const StreamingSpeechCapture(
+          sourceText: 'Xin chào',
+          duration: Duration(seconds: 1),
+          inputLabel: 'Apple Speech',
+          confidence: 0.9,
+          firstResultMs: 100,
+          finalAfterStopMs: 20,
+        ),
+        context: PracticeContext.home,
+        childAge: 6,
+        vadSilenceMs: 700,
+      ),
+      throwsA(isA<ConversationApiException>()),
+    );
+    expect(requestCount, 1);
+    await repository.dispose();
+  });
+
+  for (final status in <int>[500, 503]) {
+    test('does not retry streaming text after HTTP $status', () async {
+      var requestCount = 0;
+      final repository = NextConversationRepository(
+        config: config,
+        clientIdProvider: clientIdProvider,
+        client: MockClient((request) async {
+          requestCount += 1;
+          return http.Response('{}', status);
+        }),
+      );
+
+      await expectLater(
+        repository.processStreamingText(
+          capture: const StreamingSpeechCapture(
+            sourceText: 'Xin chào',
+            duration: Duration(seconds: 1),
+            inputLabel: 'Apple Speech',
+            confidence: 0.9,
+            firstResultMs: 100,
+            finalAfterStopMs: 20,
+          ),
+          context: PracticeContext.home,
+          childAge: 6,
+          vadSilenceMs: 700,
+        ),
+        throwsA(isA<ConversationApiException>()),
+      );
+      expect(requestCount, 1);
+      await repository.dispose();
+    });
+  }
+
+  test('does not retry streaming text after a transport failure', () async {
+    var requestCount = 0;
+    final repository = NextConversationRepository(
+      config: config,
+      clientIdProvider: clientIdProvider,
+      client: MockClient((request) async {
+        requestCount += 1;
+        throw http.ClientException('Connection reset.', request.url);
+      }),
+    );
+
+    await expectLater(
+      repository.processStreamingText(
+        capture: const StreamingSpeechCapture(
+          sourceText: 'Xin chào',
+          duration: Duration(seconds: 1),
+          inputLabel: 'Apple Speech',
+          confidence: 0.9,
+          firstResultMs: 100,
+          finalAfterStopMs: 20,
+        ),
+        context: PracticeContext.home,
+        childAge: 6,
+        vadSilenceMs: 700,
+      ),
+      throwsA(isA<http.ClientException>()),
+    );
+    expect(requestCount, 1);
+    await repository.dispose();
+  });
+
   test('uploads a short recorded utterance directly in one request', () async {
     var requestCount = 0;
     final repository = NextConversationRepository(
@@ -211,6 +479,8 @@ void main() {
         expect(body, contains('name="clientId"'));
         expect(body, contains('android_test_device'));
         expect(body, contains('name="audio"; filename="utterance.wav"'));
+        expect(body, contains('name="targetLanguage"'));
+        expect(body, contains('\r\nfr\r\n'));
         expect(body, contains('direct_multipart'));
         expect(body, contains('"clientVadApplied":false'));
         return http.Response(
@@ -219,7 +489,9 @@ void main() {
             'sessionId': 'sess_direct',
             'context': 'home',
             'vietnameseText': 'Con muốn uống nước.',
-            'englishText': 'I want to drink water.',
+            'englishText': '',
+            'targetLanguage': 'fr',
+            'translatedText': 'Je voudrais boire de l’eau.',
             'audioUrl': '/api/audio/stream?text=water',
             'processingMode': 'ai',
             'textSource': 'cloudflare',
@@ -237,6 +509,7 @@ void main() {
         );
       }),
     );
+    repository.setTranslationTarget(TranslationOutputLanguage.french);
 
     final result = await repository.processAudio(
       capture: AudioCapture(
@@ -255,6 +528,7 @@ void main() {
 
     expect(requestCount, 1);
     expect(result.conversationId, 'conv_direct');
+    expect(result.displayedTranslation, 'Je voudrais boire de l’eau.');
     await repository.dispose();
   });
 
@@ -351,6 +625,7 @@ void main() {
             final body = jsonDecode(request.body) as Map<String, dynamic>;
             final benchmark = body['benchmark'] as Map<String, dynamic>;
             expect(body['mimeType'], 'audio/wav');
+            expect(body['targetLanguage'], 'ja');
             expect(benchmark['clientVadApplied'], isTrue);
             expect(benchmark['batchTransport'], 'streamed_pcm16_chunks');
             expect(benchmark['audioChunkCount'], 2);
@@ -379,7 +654,9 @@ void main() {
                 'sessionId': 'sess_batch',
                 'context': 'home',
                 'vietnameseText': 'Con muốn uống nước',
-                'englishText': 'Can I have some water, please?',
+                'englishText': '',
+                'targetLanguage': 'ja',
+                'translatedText': 'お水をください。',
                 'audioUrl': '/generated-audio/water.mp3',
                 'processingMode': 'rule',
                 'textSource': 'phrase_rule',
@@ -402,6 +679,7 @@ void main() {
         }),
       );
 
+      repository.setTranslationTarget(TranslationOutputLanguage.japanese);
       final upload = await repository.startBatchChunkUpload();
       upload.addAudioChunk(Uint8List(8000));
       upload.addAudioChunk(Uint8List(8000));
@@ -435,6 +713,7 @@ void main() {
       expect(uploadedSequences, <int>[0]);
       expect(finalized, isTrue);
       expect(result.asrMode, 'batch_chunks');
+      expect(result.displayedTranslation, 'お水をください。');
       await repository.dispose();
     },
   );
@@ -2510,6 +2789,7 @@ void main() {
                 'promotedToRule': false,
                 'learningStatus': 'observing',
                 'learningUseCount': 2,
+                'hasUserAudio': true,
                 'processingMode': 'rule',
                 'textSource': 'phrase_rule',
                 'audioSource': 'cache',
@@ -2541,6 +2821,37 @@ void main() {
     expect(items.single.latency.timeToFirstAudioMs, 1400);
     expect(items.single.learningStatus, 'observing');
     expect(items.single.learningUseCount, 2);
+    expect(items.single.hasUserAudio, true);
+    await repository.dispose();
+  });
+
+  test('requests a short-lived authenticated user-audio URL', () async {
+    final repository = NextConversationRepository(
+      config: config,
+      clientIdProvider: clientIdProvider,
+      client: MockClient((request) async {
+        expect(request.method, 'GET');
+        expect(request.url.path, '/api/conversations/conv_audio_1/user-audio');
+        expect(request.url.queryParameters['clientId'], 'android_test_device');
+        return http.Response(
+          jsonEncode(<String, dynamic>{
+            'conversationId': 'conv_audio_1',
+            'audioUrl':
+                'https://api.cloudinary.com/v1_1/demo/video/download?signed=1',
+            'expiresInSeconds': 60,
+          }),
+          200,
+          headers: const <String, String>{'content-type': 'application/json'},
+        );
+      }),
+    );
+
+    final audioUri = await repository.fetchUserAudioPlaybackUri('conv_audio_1');
+
+    expect(
+      audioUri,
+      Uri.parse('https://api.cloudinary.com/v1_1/demo/video/download?signed=1'),
+    );
     await repository.dispose();
   });
 
@@ -2553,6 +2864,7 @@ void main() {
         expect(request.url.path, '/api/history');
         expect(request.url.queryParameters['conversationId'], 'conv_delete');
         expect(request.url.queryParameters['clientId'], 'android_test_device');
+        expect(request.url.queryParameters['deleteRelatedData'], 'true');
         return http.Response(
           jsonEncode(<String, dynamic>{'deleted': true}),
           200,

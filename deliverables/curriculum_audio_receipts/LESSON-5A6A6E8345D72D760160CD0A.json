@@ -1,0 +1,98 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\4b03caedecda613d41429c2bb36f56bfc0c7d509d2690b40e42e4b31074666ca.tempo.mp3",
+      "signature": "4b03caedecda613d41429c2bb36f56bfc0c7d509d2690b40e42e4b31074666ca",
+      "request": {
+        "text": "Bài này là",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "b09bd957c83cdba18684aba7c42c99530590f6859509d82049803f9e3c55436b",
+      "requestId": "NJm0jgo8lJZBsqbTOryf",
+      "createdAt": "2026-09-15T23:23:00.670Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\c938543651ac2bfbae311afe203457b61aaf5f639f4430457891edb6914159fc.tempo.mp3",
+      "signature": "c938543651ac2bfbae311afe203457b61aaf5f639f4430457891edb6914159fc",
+      "request": {
+        "text": "Count With Me.",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "4f0ec7e7ad3412b966a8a9d750b35a1f01c11940aae53f6f01cc45f94f1cbfc0",
+      "requestId": "zAxQOdgcysTKTJBPbcq1",
+      "createdAt": "2026-09-15T23:23:19.870Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\assets\\audio\\CURRICULUM\\89c9b6d37348fd2c867aff32.vi.v1.mp3",
+      "sourceKind": "verified-pack-clip",
+      "text": "Nghe thật kỹ nhé.",
+      "language": "vi",
+      "sha256": "1f3c14d79594f2f921429afe3f7d71686f2c125e84d39f8b8bb256768536d004"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\MP3\\static\\DETAIL_TRANSITION.mp3",
+      "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\manifest.json",
+      "packAudioId": "DETAIL_TRANSITION",
+      "sourceText": "Bắt đầu nhé.",
+      "modelId": "eleven_v3",
+      "profiles": {
+        "en": {
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75
+        },
+        "vi": {
+          "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+          "speed": 0.9
+        }
+      },
+      "speedMethod": "FFmpeg atempo applied after synthesis to each segment according to declared AUDIO_PLAN language, preserving pitch",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bắt đầu nhé.",
+          "generation_key": "629f2982441b8193"
+        }
+      ],
+      "sourceSha256": null,
+      "durationSeconds": 1.675034,
+      "sha256": "30121c6cc8eba7c99921818e9c60c4ff325dadc48ca444aec211b767b3f3f246",
+      "bytes": 28047
+    }
+  ],
+  "id": "LESSON-5A6A6E8345D72D760160CD0A",
+  "text": "Bài này là Count With Me. Nghe thật kỹ nhé. Bắt đầu nhé.",
+  "asset": "assets/audio/CURRICULUM/5a6a6e8345d72d760160cd0a.vi.v1.mp3",
+  "sha256": "7a68f285d3cef17bfc0bcd36de726a9c80b5247dd7c753bb4d8389c4c9ec18df",
+  "durationSeconds": 5.016576,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

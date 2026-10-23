@@ -1,0 +1,127 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\MP3\\dynamic\\TOPIC_INTRO\\TOPIC_INTRO_05.mp3",
+      "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\manifest.json",
+      "packAudioId": "TOPIC_INTRO__SELECTED_TOPIC_NO_05",
+      "sourceText": "Chủ đề 5.",
+      "modelId": "eleven_v3",
+      "profiles": {
+        "en": {
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75
+        },
+        "vi": {
+          "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+          "speed": 0.9
+        }
+      },
+      "speedMethod": "FFmpeg atempo applied after synthesis to each segment according to declared AUDIO_PLAN language, preserving pitch",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Chủ đề 5.",
+          "generation_key": "c82a73b9e19e0fab"
+        }
+      ],
+      "sourceSha256": null,
+      "durationSeconds": 1.964127,
+      "sha256": "92e689f73c67de6415e10471bafbe1e991ebbb74a647faf5466ec5758d495061",
+      "bytes": 32644
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\428a19aff63c860bcb45c70f0accd12f5e5c2c1f4efe91d6760d914110c79786.tempo.mp3",
+      "signature": "428a19aff63c860bcb45c70f0accd12f5e5c2c1f4efe91d6760d914110c79786",
+      "request": {
+        "text": "Bài đầu tiên là",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "a1ea02a4dcb0df90eb9cae415778e8ac3acae5484b00002ba75e238e959b24c0",
+      "requestId": "SURgNpwPTAi5JeyjeOp7",
+      "createdAt": "2026-09-15T23:22:26.647Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\3fcaa66f4d13bfadea06674dd80a642297727f4a41acbf7ca183f204a7c0e6d6.tempo.mp3",
+      "signature": "3fcaa66f4d13bfadea06674dd80a642297727f4a41acbf7ca183f204a7c0e6d6",
+      "request": {
+        "text": "Animal Names.",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "0755359cdd4b46438e214013dae64f68118805b0ac75d93b85ec187388d896bd",
+      "requestId": "iFh673sNjTxdBLXdcmqj",
+      "createdAt": "2026-09-15T23:23:44.169Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\assets\\audio\\CURRICULUM\\d4c565fb80e2842e566b224f.vi.v1.mp3",
+      "sourceKind": "verified-pack-clip",
+      "text": "Bạn đoán xem con gì?",
+      "language": "vi",
+      "sha256": "20227a011e08ec4b6ff7cc68399240ac54e5e6e312473605df03ac2c2a3f9cee"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\MP3\\static\\DETAIL_TRANSITION.mp3",
+      "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\manifest.json",
+      "packAudioId": "DETAIL_TRANSITION",
+      "sourceText": "Bắt đầu nhé.",
+      "modelId": "eleven_v3",
+      "profiles": {
+        "en": {
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75
+        },
+        "vi": {
+          "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+          "speed": 0.9
+        }
+      },
+      "speedMethod": "FFmpeg atempo applied after synthesis to each segment according to declared AUDIO_PLAN language, preserving pitch",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bắt đầu nhé.",
+          "generation_key": "629f2982441b8193"
+        }
+      ],
+      "sourceSha256": null,
+      "durationSeconds": 1.675034,
+      "sha256": "30121c6cc8eba7c99921818e9c60c4ff325dadc48ca444aec211b767b3f3f246",
+      "bytes": 28047
+    }
+  ],
+  "id": "LESSON-14A7FBBE766D9C78C36B180C",
+  "text": "Chủ đề 5. Bài đầu tiên là Animal Names. Bạn đoán xem con gì? Bắt đầu nhé.",
+  "asset": "assets/audio/CURRICULUM/14a7fbbe766d9c78c36b180c.vi.v1.mp3",
+  "sha256": "ca5f6c6daf76e19ad36c6a110c4de199d84ce1c8d53ca67ca601abd41ae91871",
+  "durationSeconds": 7.822222,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

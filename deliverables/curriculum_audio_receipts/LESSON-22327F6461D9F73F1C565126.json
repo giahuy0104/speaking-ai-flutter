@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T07-B01\\C67-L3-T07-B01-T01_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T07-B01-T01_EN",
+  "sourceText": "Book.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Book.",
+      "generation_key": "757665319aadd060"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-22327F6461D9F73F1C565126",
+  "text": "Book.",
+  "asset": "assets/audio/CURRICULUM/22327f6461d9f73f1c565126.en.v1.mp3",
+  "sha256": "dc1a9f28b95b31558707b243e43531dd973cce07ca03b4abfec2be851e7ed92e",
+  "durationSeconds": 1.272744
+}

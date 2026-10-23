@@ -1,25 +1,44 @@
 import 'dart:async';
 
+import '../../../core/device/device_connection_coordinator.dart';
+import '../../../core/audio/audio_diagnostics.dart';
+import '../../../core/audio/voice_prompt_service.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
+import '../../../app/homi_bottom_navigation.dart';
+import '../../../app/homi_connection_presentation.dart';
 import '../../../config/app_config.dart';
 import '../../../l10n/display_language.dart';
+import '../../../core/navigation/app_navigator.dart';
+import '../../../core/navigation/app_page_transitions.dart';
+import '../../../presentation/navigation/view_bindings.dart';
+import '../../../core/navigation/view_arguments/topic_listening_arguments.dart';
+import '../../../core/device/active_learning_module.dart';
+import '../../../core/platform/background_learning_session.dart';
+import '../../../core/platform/platform_access_policy.dart';
 import '../../conversation/presentation/conversation_controller.dart';
 import '../../conversation/presentation/conversation_screen.dart';
 import '../../listening/application/listening_voice_navigation_target.dart';
+import '../../listening/data/active_listening_session_store.dart';
+import '../../listening/data/listening_progress_store.dart';
 import '../../listening/domain/listening_content.dart';
-import '../../listening/presentation/listening_route_names.dart';
-import '../../listening/presentation/topic_listening_screen.dart';
+import '../../listening/application/lesson_media_service.dart';
 import '../../onboarding/application/onboarding_progress_store.dart';
 import '../../onboarding/presentation/user_onboarding_tour.dart';
-import '../../settings/presentation/history_sheet.dart';
-import '../../settings/presentation/settings_sheet.dart';
+import '../../../core/privacy/parental_gate.dart';
+import '../../settings/application/parent_media_settings.dart';
+import '../../vocabulary/data/minhqnd_dictionary_provider.dart';
+import '../../vocabulary/application/vocabulary_audio_service.dart';
 import '../../vocabulary/domain/vocabulary_entry.dart';
 import '../../vocabulary/presentation/vocabulary_home_screen.dart';
 import '../../voice_navigation/application/voice_navigation_controller.dart';
 import '../../voice_navigation/application/voice_navigation_intent_resolver.dart';
+import '../../voice_navigation/application/main_speaking_session_controller.dart';
+import '../application/authored_vocabulary_suggestion_provider.dart';
+import '../application/background_learning_coordinator.dart';
 import 'home_mode_rail.dart';
 
 class HomeLearningShell extends StatefulWidget {
@@ -27,26 +46,77 @@ class HomeLearningShell extends StatefulWidget {
     required this.controller,
     required this.config,
     this.voiceNavigationController,
+    this.speakingSessionController,
     this.themeMode = ThemeMode.system,
     this.onThemeModeChanged,
     this.onChildAgeChanged,
+    this.onActiveLearningExitCommitted,
     this.onMainSpeakingModeStarted,
+    this.onScreenMainPressed,
+    this.ensureDeviceConnected,
+    this.sessionActive = false,
+    this.isStoppingSession = false,
+    this.onStopSession,
+    this.connectionCoordinator,
+    this.isDeviceConnectionReady,
+    this.onVocabularyVoiceChoiceRequested,
+    this.vocabularySuggestionProvider,
+    this.vocabularyAudioService,
+    this.vocabularyMediaService,
+    this.vocabularyVoicePromptService,
     this.onModalVisibilityChanged,
+    this.privacyConsentGranted = false,
+    this.voiceAccessEnabled = true,
+    this.onRequestVoiceAccess,
+    this.onManagePrivacyConsent,
+    this.onRevokePrivacyConsent,
     this.onboardingStore,
     this.listeningContentFuture,
+    this.listeningProgressStore = const ListeningProgressStore(),
+    this.parentAccessGate,
+    this.backgroundLearningSession,
+    this.parentMediaSettingsStore =
+        const SharedPreferencesParentMediaSettingsStore(),
     super.key,
   });
 
   final ConversationController controller;
   final AppConfig config;
+  final DeviceConnectionCoordinator? connectionCoordinator;
   final VoiceNavigationController? voiceNavigationController;
+  final MainSpeakingSessionController? speakingSessionController;
   final ThemeMode themeMode;
   final ValueChanged<ThemeMode>? onThemeModeChanged;
   final ValueChanged<int>? onChildAgeChanged;
-  final VoidCallback? onMainSpeakingModeStarted;
+  final VoidCallback? onActiveLearningExitCommitted;
+  final Future<void> Function()? onMainSpeakingModeStarted;
+  final Future<void> Function()? onScreenMainPressed;
+  final Future<bool> Function()? ensureDeviceConnected;
+  final bool sessionActive;
+  final bool isStoppingSession;
+  final Future<void> Function()? onStopSession;
+  final bool Function()? isDeviceConnectionReady;
+  final Future<void> Function({
+    String? noSpeechRetryPrompt,
+    String? noSpeechExitPrompt,
+  })?
+  onVocabularyVoiceChoiceRequested;
+  final VocabularySuggestionProvider? vocabularySuggestionProvider;
+  final VocabularyContentAudioService? vocabularyAudioService;
+  final LessonMediaService? vocabularyMediaService;
+  final VoicePromptService? vocabularyVoicePromptService;
   final ValueChanged<bool>? onModalVisibilityChanged;
+  final bool privacyConsentGranted;
+  final bool voiceAccessEnabled;
+  final VoidCallback? onRequestVoiceAccess;
+  final VoidCallback? onManagePrivacyConsent;
+  final Future<void> Function()? onRevokePrivacyConsent;
   final OnboardingProgressStore? onboardingStore;
   final Future<ListeningContentCatalog>? listeningContentFuture;
+  final ListeningProgressStore listeningProgressStore;
+  final Future<bool> Function(BuildContext context)? parentAccessGate;
+  final BackgroundLearningSessionControl? backgroundLearningSession;
+  final ParentMediaSettingsStore parentMediaSettingsStore;
 
   @override
   State<HomeLearningShell> createState() => _HomeLearningShellState();
@@ -55,16 +125,39 @@ class HomeLearningShell extends StatefulWidget {
 class _HomeLearningShellState extends State<HomeLearningShell>
     with WidgetsBindingObserver {
   late final PageController _pageController;
+  late final AuthoredVocabularySuggestionProvider
+  _authoredVocabularySuggestionProvider;
+  late final MinhqndDictionaryProvider _vocabularyDictionaryProvider;
   int _page = 0;
+  // Controller values the shell last rendered; see
+  // _onConversationControllerChanged.
+  DisplayLanguage? _builtDisplayLanguage;
+  HomiConnectionPresentation? _builtHomiStatus;
+  int? _builtChildAge;
+  int _requestedPage = 0;
+  int _pageNavigationGeneration = 0;
   bool _openingTopics = false;
+  Completer<void>? _preparedTopicVoiceGate;
+  Route<void>? _preparedTopicRoute;
+  ActiveListeningSessionCheckpoint? _pausedListeningCheckpoint;
   Completer<void>? _topicRouteClosedCompleter;
   bool _tutorialActive = false;
   int _tutorialStep = 0;
   Timer? _voiceNavigationRestartTimer;
-  late AppLifecycleState _appLifecycleState;
   bool _voiceNavigationPausedForOverlay = false;
   bool _voiceNavigationHelpShown = false;
   int? _activeVoiceTopicIndex;
+  late final BackgroundLearningCoordinator _backgroundLearningCoordinator;
+  late final BackgroundLearningSessionControl _backgroundLearningSession;
+  final VocabularyActivationController _vocabularyActivationController =
+      VocabularyActivationController();
+  bool _stopMediaWhenBackgrounded = defaultStopMediaWhenBackgrounded();
+  Future<void>? _backgroundMediaStopOperation;
+  final VocabularyHomeNavigationController _vocabularyNavigationController =
+      VocabularyHomeNavigationController();
+  int _lifecycleDecisionGeneration = 0;
+
+  bool get _isIos => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
 
   final GlobalKey _speakActionKey = GlobalKey(
     debugLabel: 'onboarding-speak-action',
@@ -87,21 +180,58 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _appLifecycleState =
-        WidgetsBinding.instance.lifecycleState ?? AppLifecycleState.resumed;
     _pageController = PageController();
+    _authoredVocabularySuggestionProvider =
+        AuthoredVocabularySuggestionProvider(
+          loadCatalog: () =>
+              widget.listeningContentFuture ??
+              AssetListeningContentRepository().load(),
+        );
+    _vocabularyDictionaryProvider = MinhqndDictionaryProvider();
+    _backgroundLearningSession =
+        widget.backgroundLearningSession ??
+        MethodChannelBackgroundLearningSession();
+    _backgroundLearningCoordinator = BackgroundLearningCoordinator(
+      session: _backgroundLearningSession,
+      initialLifecycleState:
+          WidgetsBinding.instance.lifecycleState ?? AppLifecycleState.resumed,
+      onDirective: _applyBackgroundLearningDirective,
+    );
+    unawaited(_loadParentMediaSettings());
     _attachVoiceNavigationHandler();
     widget.controller.addListener(_onConversationControllerChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(
+        _backgroundLearningCoordinator.initialize(
+          voiceAccessEnabled: widget.voiceAccessEnabled,
+        ),
+      );
+      unawaited(_restoreActiveListeningCheckpoint());
       _scheduleVoiceNavigationListening(
         delay: const Duration(milliseconds: 450),
       );
     });
-    if (widget.onboardingStore != null) {
+    if (widget.onboardingStore != null &&
+        defaultTargetPlatform != TargetPlatform.android) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         unawaited(_showTutorialOnFirstUse());
       });
     }
+  }
+
+  Future<void> _restoreActiveListeningCheckpoint() async {
+    final checkpoint = await _backgroundLearningCoordinator
+        .takeListeningCheckpoint(voiceAccessEnabled: widget.voiceAccessEnabled);
+    if (!mounted || checkpoint == null || _openingTopics) return;
+    await _openTopicListening(
+      initialVoiceTarget: ListeningVoiceNavigationTarget(
+        recognizedText: 'resume active listening session',
+        openLesson: true,
+        topicNumber: checkpoint.topicNumber,
+        lessonNumber: checkpoint.lessonNumber,
+        childAge: checkpoint.childAge,
+      ),
+    );
   }
 
   @override
@@ -114,6 +244,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     if (oldWidget.voiceNavigationController !=
         widget.voiceNavigationController) {
       oldWidget.voiceNavigationController?.setIntentHandler(null);
+      oldWidget.voiceNavigationController?.setIntentResultHandler(null);
       unawaited(oldWidget.voiceNavigationController?.pause());
       _attachVoiceNavigationHandler();
     }
@@ -129,23 +260,176 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         unawaited(widget.voiceNavigationController?.pause());
       }
     }
+    if (oldWidget.voiceAccessEnabled != widget.voiceAccessEnabled) {
+      if (widget.voiceAccessEnabled) {
+        unawaited(_backgroundLearningCoordinator.updateVoiceAccess(true));
+        unawaited(_restoreActiveListeningCheckpoint());
+      } else {
+        unawaited(_backgroundLearningCoordinator.updateVoiceAccess(false));
+        unawaited(widget.voiceNavigationController?.pause());
+      }
+    }
   }
 
   @override
   void dispose() {
+    _releasePreparedTopicVoiceGate();
     WidgetsBinding.instance.removeObserver(this);
     _voiceNavigationRestartTimer?.cancel();
     widget.controller.removeListener(_onConversationControllerChanged);
     widget.voiceNavigationController?.setIntentHandler(null);
+    widget.voiceNavigationController?.setIntentResultHandler(null);
     unawaited(widget.voiceNavigationController?.pause());
+    _backgroundLearningCoordinator.dispose();
+    _vocabularyActivationController.dispose();
+    _vocabularyDictionaryProvider.dispose();
     _pageController.dispose();
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    _appLifecycleState = state;
+    final generation = ++_lifecycleDecisionGeneration;
+    unawaited(_handleAppLifecycleState(state, generation));
+  }
+
+  Future<void> _handleAppLifecycleState(
+    AppLifecycleState state,
+    int generation,
+  ) async {
+    final directive = _backgroundLearningCoordinator.handleLifecycle(
+      state,
+      voiceAccessEnabled: widget.voiceAccessEnabled,
+      explicitMainSessionActive:
+          widget.voiceNavigationController?.isMainButtonSessionActive ?? false,
+    );
+    if (shouldStopMediaForLifecycle(
+      state: state,
+      enabled: _stopMediaWhenBackgrounded,
+    )) {
+      final screenInteractive = await _readAndroidScreenInteractive();
+      if (!mounted || generation != _lifecycleDecisionGeneration) {
+        return;
+      }
+      if (screenInteractive == false) {
+        // Locking the phone is an intended H20 learning mode. Keep the active
+        // lesson/translation and its SCO route; only the always-on foreground
+        // wake loop follows the coordinator's normal Android policy.
+        _applyBackgroundLearningDirective(directive);
+        return;
+      }
+      _applyBackgroundLearningDirective(
+        BackgroundLearningDirective.pauseVoiceNavigation,
+      );
+      unawaited(_stopMediaForBackgroundOnce());
+      return;
+    }
+    _applyBackgroundLearningDirective(directive);
     if (state == AppLifecycleState.resumed) {
+      // A spoken command can change the logical page while the app is not
+      // drawing frames. Reconcile the PageView as soon as it becomes visible
+      // again so the assistant state and the screen cannot remain out of sync.
+      if (_usesNativePageSynchronization) {
+        unawaited(_moveToRequestedPage(animate: false));
+      }
+      final activeRegistry = ActiveLearningModuleScope.read(context);
+      if (_stopMediaWhenBackgrounded &&
+          activeRegistry?.hasActiveModule == true) {
+        unawaited(_backgroundLearningCoordinator.setActiveLearning(true));
+      }
+      unawaited(_restoreActiveListeningCheckpoint());
+    }
+  }
+
+  Future<bool?> _readAndroidScreenInteractive() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+      return null;
+    }
+    final session = _backgroundLearningSession;
+    if (session is! DeviceScreenStateBackgroundSessionControl) {
+      return null;
+    }
+    return (session as DeviceScreenStateBackgroundSessionControl)
+        .isScreenInteractive();
+  }
+
+  Future<void> _loadParentMediaSettings() async {
+    final enabled = await widget.parentMediaSettingsStore
+        .readStopMediaWhenBackgrounded();
+    if (!mounted || enabled == _stopMediaWhenBackgrounded) return;
+    setState(() => _stopMediaWhenBackgrounded = enabled);
+  }
+
+  void _setStopMediaWhenBackgrounded(bool enabled) {
+    if (enabled == _stopMediaWhenBackgrounded) return;
+    setState(() => _stopMediaWhenBackgrounded = enabled);
+    unawaited(
+      widget.parentMediaSettingsStore
+          .writeStopMediaWhenBackgrounded(enabled)
+          .catchError((Object error) {
+            debugPrint('Cannot persist parent media setting: $error');
+          }),
+    );
+  }
+
+  Future<void> _stopMediaForBackground() async {
+    _voiceNavigationRestartTimer?.cancel();
+    final registry = ActiveLearningModuleScope.read(context);
+    await _runBackgroundStopStep(
+      'active learning',
+      () => registry?.pauseForMainAssistant(),
+    );
+    await _runBackgroundStopStep(
+      'voice navigation',
+      () => widget.voiceNavigationController?.pause(stopPrompt: true),
+    );
+    await _runBackgroundStopStep(
+      'MAIN conversation',
+      widget.controller.cancelCurrentMainAction,
+    );
+    await _runBackgroundStopStep(
+      'speaking session',
+      () async => widget.speakingSessionController?.exit(),
+    );
+    await _runBackgroundStopStep(
+      'background service',
+      () => _backgroundLearningCoordinator.setActiveLearning(false),
+    );
+  }
+
+  Future<void> _runBackgroundStopStep(
+    String label,
+    Future<void>? Function() action,
+  ) async {
+    try {
+      await action();
+    } catch (error) {
+      debugPrint('Cannot stop $label while HOMI is backgrounded: $error');
+    }
+  }
+
+  Future<void> _stopMediaForBackgroundOnce() async {
+    final currentOperation = _backgroundMediaStopOperation;
+    if (currentOperation != null) {
+      await currentOperation;
+      return;
+    }
+    final operation = _stopMediaForBackground();
+    _backgroundMediaStopOperation = operation;
+    try {
+      await operation;
+    } finally {
+      if (identical(_backgroundMediaStopOperation, operation)) {
+        _backgroundMediaStopOperation = null;
+      }
+    }
+  }
+
+  void _applyBackgroundLearningDirective(
+    BackgroundLearningDirective directive,
+  ) {
+    if (!mounted) return;
+    if (directive == BackgroundLearningDirective.keepVoiceNavigation) {
       _scheduleVoiceNavigationListening();
       return;
     }
@@ -155,42 +439,86 @@ class _HomeLearningShellState extends State<HomeLearningShell>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: widget.controller,
-      builder: (context, _) {
-        return DisplayLanguageScope(
-          language: widget.controller.displayLanguage,
-          child: PopScope<void>(
-            canPop: _page == 0,
-            onPopInvokedWithResult: (didPop, _) {
-              if (!didPop && _page == 1) {
-                _showConversation();
-              }
-            },
-            child: Stack(
-              children: <Widget>[
-                PageView(
-                  key: const Key('home-learning-page-view'),
-                  controller: _pageController,
-                  physics: const NeverScrollableScrollPhysics(),
-                  onPageChanged: (page) => setState(() => _page = page),
-                  children: <Widget>[
-                    ConversationScreen(
+    _builtDisplayLanguage = widget.controller.displayLanguage;
+    _builtHomiStatus = HomiConnectionPresentation.from(
+      widget.controller.h20ConnectionState(),
+      isReady: widget.controller.isH20Ready,
+    );
+    _builtChildAge = widget.controller.childAge;
+    final screenSize = MediaQuery.sizeOf(context);
+    final safeTop = MediaQuery.paddingOf(context).top;
+    final railTop = (screenSize.height * 0.195)
+        .clamp(safeTop + 132, screenSize.height - 238)
+        .toDouble();
+    return DisplayLanguageScope(
+      language: widget.controller.displayLanguage,
+      child: PopScope<void>(
+        canPop: _page == 0,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop && _page == 1) {
+            unawaited(_handleVocabularyBack());
+          }
+        },
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          extendBody: !_isIos,
+          body: Stack(
+            children: <Widget>[
+              PageView(
+                key: const Key('home-learning-page-view'),
+                controller: _pageController,
+                // Keep logical indices and mounted state; vocabulary enters
+                // from the left, matching the shortcut on Home's left edge.
+                reverse: true,
+                physics: const NeverScrollableScrollPhysics(),
+                // Keep the adjacent vocabulary state mounted so a spoken
+                // navigation command can activate its non-visual workflow
+                // while Android has stopped drawing frames for screen lock.
+                allowImplicitScrolling: true,
+                onPageChanged: _handlePageChanged,
+                children: <Widget>[
+                  HeroMode(
+                    enabled: _page == 0,
+                    child: ConversationScreen(
                       controller: widget.controller,
-                      config: widget.config,
-                      themeMode: widget.themeMode,
-                      onThemeModeChanged: widget.onThemeModeChanged,
-                      onChildAgeChanged: widget.onChildAgeChanged,
-                      onStartTutorial: _startTutorial,
+                      ensureDeviceConnected: widget.ensureDeviceConnected,
+                      isDeviceConnectionReady: widget.isDeviceConnectionReady,
+                      sessionActive: widget.sessionActive,
+                      isStoppingSession: widget.isStoppingSession,
+                      onStopSession: widget.onStopSession,
                       speakActionKey: _speakActionKey,
                       resultPanelKey: _resultPanelKey,
                       historyButtonKey: _historyButtonKey,
                       settingsButtonKey: _settingsButtonKey,
-                      onModalVisibilityChanged: widget.onModalVisibilityChanged,
+                      onOpenHistory: _showHistory,
+                      onOpenSettings: _showSettings,
                     ),
-                    VocabularyHomeScreen(
-                      isReady: widget.controller.isInputAvailable,
+                  ),
+                  HeroMode(
+                    enabled: _page == 1,
+                    child: VocabularyHomeScreen(
+                      isReady: widget.controller.isH20Ready,
+                      connectionState: widget.controller.h20ConnectionState(),
+                      ensureDeviceConnected: widget.ensureDeviceConnected,
+                      isDeviceConnectionReady: widget.isDeviceConnectionReady,
                       isActive: _page == 1,
+                      navigationController: _vocabularyNavigationController,
+                      activationController: _vocabularyActivationController,
+                      childAge: widget.controller.childAge,
+                      audioDependencies: widget.controller,
+                      vocabularyAudioService: widget.vocabularyAudioService,
+                      mediaService: widget.vocabularyMediaService,
+                      voicePromptService: widget.vocabularyVoicePromptService,
+                      autoStartToday: true,
+                      onRequestVoiceChoice:
+                          widget.onVocabularyVoiceChoiceRequested,
+                      suggestionProvider:
+                          widget.vocabularySuggestionProvider ??
+                          _authoredVocabularySuggestionProvider.call,
+                      curriculumDuplicateChecker:
+                          _authoredVocabularySuggestionProvider
+                              .containsInCurriculum,
+                      dictionaryProvider: _vocabularyDictionaryProvider,
                       translator: (input) async {
                         final translation = await widget.controller
                             .translateVocabulary(input);
@@ -203,75 +531,105 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                       onHistory: _showHistory,
                       onSettings: _showSettings,
                     ),
-                  ],
-                ),
-                Align(
-                  alignment: const Alignment(-1, -0.20),
+                  ),
+                ],
+              ),
+              if (_page == 0) ...<Widget>[
+                PositionedDirectional(
+                  top: railTop,
+                  start: 0,
                   child: KeyedSubtree(
                     key: _vocabularyTabKey,
                     child: HomeModeRail(
                       key: const Key('vocabulary-edge-tab'),
                       edge: HomeRailEdge.left,
-                      label: _page == 0
-                          ? context.tr('Từ vựng', '词汇')
-                          : context.tr('Giao tiếp', '沟通'),
-                      icon: _page == 0
-                          ? Icons.chat_bubble_rounded
-                          : Icons.mic_rounded,
-                      color: AppColors.indigo,
-                      onPressed: _page == 0
-                          ? _showVocabulary
-                          : _showConversation,
+                      label: context.tr('Từ vựng', '词汇'),
+                      icon: Icons.menu_book_outlined,
+                      color: AppColors.primaryNavy,
+                      onPressed: _showVocabulary,
                     ),
                   ),
                 ),
-                Align(
-                  alignment: const Alignment(1, -0.05),
+                PositionedDirectional(
+                  top: railTop,
+                  end: 0,
                   child: KeyedSubtree(
                     key: _topicTabKey,
                     child: HomeModeRail(
                       key: const Key('topic-listening-edge-tab'),
                       edge: HomeRailEdge.right,
                       label: context.tr('Chủ đề', '主题'),
-                      icon: Icons.headphones_rounded,
-                      color: const Color(0xFF7443D8),
+                      icon: Icons.grid_view_outlined,
+                      color: AppColors.primaryNavy,
                       onPressed: _openTopicListening,
                     ),
                   ),
                 ),
-                if (_tutorialActive)
-                  Positioned.fill(
-                    child: UserOnboardingTour(
-                      steps: _tutorialSteps,
-                      currentIndex: _tutorialStep,
-                      onPrevious: _tutorialStep == 0
-                          ? null
-                          : _previousTutorialStep,
-                      onNext: _nextTutorialStep,
-                      onSkip: _skipTutorial,
-                    ),
-                  ),
               ],
-            ),
+              if (_tutorialActive)
+                Positioned.fill(
+                  child: UserOnboardingTour(
+                    steps: _tutorialSteps,
+                    currentIndex: _tutorialStep,
+                    onPrevious: _tutorialStep == 0
+                        ? null
+                        : _previousTutorialStep,
+                    onNext: _nextTutorialStep,
+                    onSkip: _skipTutorial,
+                  ),
+                ),
+            ],
           ),
-        );
-      },
+          bottomNavigationBar: _isIos
+              ? HomiBottomNavigation(
+                  selectedIndex: _page == 0 ? 0 : 3,
+                  onConversation: _showConversation,
+                  onTopics: _openTopicListening,
+                  onMain: widget.onScreenMainPressed == null
+                      ? null
+                      : () => unawaited(widget.onScreenMainPressed!()),
+                  onVocabulary: _showVocabulary,
+                  onHistory: _showHistory,
+                  conversationKey: const Key('home-conversation-tab'),
+                  topicsKey: const Key('home-topics-tab'),
+                  mainKey: const Key('home-main-button'),
+                  vocabularyKey: const Key('home-vocabulary-tab'),
+                  historyKey: const Key('home-history-tab'),
+                )
+              : null,
+        ),
+      ),
     );
   }
 
   Duration get _motionDuration => MediaQuery.disableAnimationsOf(context)
       ? Duration.zero
-      : const Duration(milliseconds: 420);
+      : const Duration(milliseconds: 220);
+
+  bool get _usesNativePageSynchronization =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS);
 
   void _attachVoiceNavigationHandler() {
+    final iosResultHandler =
+        !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
     widget.voiceNavigationController?.setIntentHandler(
-      widget.config.enableVoiceNavigation ? _handleVoiceNavigationIntent : null,
+      widget.config.enableVoiceNavigation && !iosResultHandler
+          ? _handleVoiceNavigationIntent
+          : null,
+    );
+    widget.voiceNavigationController?.setIntentResultHandler(
+      widget.config.enableVoiceNavigation && iosResultHandler
+          ? _handleVoiceNavigationIntentResult
+          : null,
     );
   }
 
   bool get _continuousVoiceNavigationEnabled =>
       widget.config.enableVoiceNavigation &&
       widget.config.autoStartVoiceNavigation &&
+      widget.voiceAccessEnabled &&
       widget.voiceNavigationController != null &&
       !kIsWeb &&
       defaultTargetPlatform == TargetPlatform.android;
@@ -279,17 +637,49 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   bool get _canStartVoiceNavigationListening =>
       mounted &&
       _continuousVoiceNavigationEnabled &&
-      _appLifecycleState == AppLifecycleState.resumed &&
+      (_backgroundLearningCoordinator.isForeground ||
+          _backgroundLearningCoordinator.canKeepMainListeningInBackground(
+            voiceAccessEnabled: widget.voiceAccessEnabled,
+            explicitMainSessionActive:
+                widget.voiceNavigationController?.isMainButtonSessionActive ??
+                false,
+          )) &&
       !_voiceNavigationPausedForOverlay &&
+      !_vocabularyActivationController.isActive &&
       !_tutorialActive &&
+      !(widget.speakingSessionController?.isActive ?? false) &&
       !widget.controller.isBusy &&
       !widget.controller.isPlaybackPlaying &&
       widget.controller.isInputAvailable;
 
   void _onConversationControllerChanged() {
-    if (!_continuousVoiceNavigationEnabled ||
-        widget.controller.isBusy ||
-        widget.controller.isPlaybackPlaying) {
+    // The controller notifies on every phase and microphone-level change.
+    // Rebuild the shell (and the vocabulary page it hosts) only when a value
+    // the shell itself renders has changed, so a tab transition is not
+    // competing with a rebuild per audio sample.
+    if (widget.controller.displayLanguage != _builtDisplayLanguage ||
+        HomiConnectionPresentation.from(
+              widget.controller.h20ConnectionState(),
+              isReady: widget.controller.isH20Ready,
+            ) !=
+            _builtHomiStatus ||
+        widget.controller.childAge != _builtChildAge) {
+      setState(() {});
+    }
+    // This listener owns Android's optional, always-on wake-word session only.
+    // iOS uses the same VoiceNavigationController for an explicit MAIN turn.
+    // Pausing when continuous navigation is disabled therefore cancelled an
+    // iOS MAIN turn whenever BLE/HFP diagnostics notified the conversation
+    // controller -- often only a few milliseconds after beginMainTurn().
+    if (!_continuousVoiceNavigationEnabled) {
+      _voiceNavigationRestartTimer?.cancel();
+      return;
+    }
+    if (widget.speakingSessionController?.isActive ?? false) {
+      _voiceNavigationRestartTimer?.cancel();
+      return;
+    }
+    if (widget.controller.isBusy || widget.controller.isPlaybackPlaying) {
       _voiceNavigationRestartTimer?.cancel();
       unawaited(widget.voiceNavigationController?.pause());
       return;
@@ -318,8 +708,8 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       _voiceNavigationHelpShown = true;
       _showVoiceNavigationMessage(
         widget.controller.displayLanguage == DisplayLanguage.simplifiedChinese
-            ? '请先说：“Hey Pico”，听到回应后再说想打开的功能。'
-            : 'Hãy nói “Hey Pico”. Khi Pipo trả lời, con hãy nói chức năng muốn mở.',
+            ? '请先说：“Hey HOMI”，听到回应后再说想打开的功能。'
+            : 'Hãy nói “Hey HOMI”. Khi HOMI trả lời, bạn hãy nói chức năng muốn mở.',
       );
     }
     widget.voiceNavigationController?.startContinuous();
@@ -345,9 +735,157 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     await _executeVoiceNavigation(intent);
   }
 
-  Future<void> _executeVoiceNavigation(VoiceNavigationIntent intent) async {
+  Future<bool> _handleVoiceNavigationIntentResult(
+    VoiceNavigationIntent intent,
+  ) async {
+    if (!mounted || _tutorialActive) {
+      if (mounted) {
+        _showVoiceNavigationMessage('Hãy kết thúc hướng dẫn rồi thử lại nhé.');
+      }
+      return false;
+    }
+    try {
+      final installed = await _executeVoiceNavigation(intent);
+      if (!installed && mounted) {
+        _showVoiceNavigationMessage(
+          'Chưa mở được nội dung. Bạn hãy thử lại hoặc chạm vào mục muốn học.',
+        );
+      }
+      return installed;
+    } catch (error) {
+      if (mounted) {
+        _showVoiceNavigationMessage(
+          'Chưa mở được nội dung. Bạn hãy thử lại hoặc chạm vào mục muốn học.',
+        );
+      }
+      rethrow;
+    }
+  }
+
+  Future<bool> _executeVoiceNavigation(VoiceNavigationIntent intent) async {
+    AudioDiagnostics.event('screen.navigation.request', {
+      'destination': intent.destination.name,
+      'prepareOnly': intent.prepareOnly,
+      'page': _page,
+      'requestedPage': _requestedPage,
+      'lifecycle': WidgetsBinding.instance.lifecycleState?.name,
+      'activeKind': ActiveLearningModuleScope.read(context)?.activeKind?.name,
+      'hasReviewPractice': _vocabularyNavigationController.hasReviewPractice,
+    });
+    if (intent.vocabularyTarget != null &&
+        !_vocabularyNavigationController.isAttached) {
+      return false;
+    }
+    if (_isIos && intent.prepareOnly) {
+      if (intent.destination != VoiceNavigationDestination.conversation &&
+          intent.destination != VoiceNavigationDestination.topics) {
+        return false;
+      }
+      final activeModule = ActiveLearningModuleScope.read(context);
+      if (activeModule?.controller is ActiveLearningNavigationCheckpoint) {
+        return true;
+      }
+      if (intent.destination == VoiceNavigationDestination.conversation) {
+        if (_page != 1) return true;
+        if (!await _vocabularyNavigationController.leaveForOtherContent()) {
+          _showVoiceNavigationMessage(
+            'Âm thanh Từ vựng chưa dừng hẳn. Hãy thử chuyển lại sau một chút.',
+          );
+          return false;
+        }
+        if (!mounted) return false;
+        final pageGeneration = _pageNavigationGeneration;
+        if (!await _requestHomePage(0)) {
+          if (mounted && _pageNavigationGeneration == pageGeneration + 1) {
+            await _requestHomePage(1, animate: false);
+          }
+          return false;
+        }
+        widget.onActiveLearningExitCommitted?.call();
+        return true;
+      }
+    } else if (_isIos &&
+        intent.destination == VoiceNavigationDestination.topics &&
+        _preparedTopicVoiceGate != null) {
+      final preparedRoute = _preparedTopicRoute;
+      _releasePreparedTopicVoiceGate();
+      return mounted && _openingTopics && preparedRoute?.isActive == true;
+    }
     final useChinese =
         widget.controller.displayLanguage == DisplayLanguage.simplifiedChinese;
+    final activeModule = ActiveLearningModuleScope.read(context);
+    final activeKind = activeModule?.activeKind;
+    final leavesActiveModule = switch ((activeKind, intent.destination)) {
+      (
+        ActiveLearningModuleKind.listeningLesson,
+        VoiceNavigationDestination.topics,
+      ) =>
+        false,
+      (
+        ActiveLearningModuleKind.vocabulary,
+        VoiceNavigationDestination.vocabulary,
+      ) =>
+        false,
+      (null, _) => false,
+      _ => true,
+    };
+    final deferVocabularyExitCommit =
+        leavesActiveModule &&
+        activeKind == ActiveLearningModuleKind.vocabulary &&
+        intent.destination == VoiceNavigationDestination.conversation;
+    final iosVocabularyPracticeTransfer =
+        _isIos &&
+        leavesActiveModule &&
+        activeModule?.controller is ActiveLearningNavigationCheckpoint &&
+        (intent.destination == VoiceNavigationDestination.conversation ||
+            intent.destination == VoiceNavigationDestination.topics);
+    final iosReviewTranslationTransfer =
+        iosVocabularyPracticeTransfer &&
+        intent.destination == VoiceNavigationDestination.conversation &&
+        _vocabularyNavigationController.hasReviewPractice;
+    if (iosVocabularyPracticeTransfer) {
+      final checkpoint =
+          activeModule!.controller! as ActiveLearningNavigationCheckpoint;
+      AudioDiagnostics.event('screen.navigation.checkpoint.request');
+      final preserved = await checkpoint.preserveForNavigation();
+      AudioDiagnostics.event('screen.navigation.checkpoint.completed', {
+        'preserved': preserved,
+        'sameOwner': identical(activeModule.controller, checkpoint),
+      });
+      if (!preserved) {
+        _showVoiceNavigationMessage(
+          'Chưa lưu được vị trí học. Bạn hãy thử chuyển lại.',
+        );
+        return false;
+      }
+      if (!mounted || !identical(activeModule.controller, checkpoint)) {
+        return false;
+      }
+    }
+    if (leavesActiveModule &&
+        activeKind == ActiveLearningModuleKind.vocabulary &&
+        !iosVocabularyPracticeTransfer &&
+        _isIos) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
+    if (leavesActiveModule &&
+        activeKind == ActiveLearningModuleKind.listeningLesson) {
+      // A listening route is popped during a committed module transfer. Keep
+      // its durable lesson pointer in memory before the route cleanup clears
+      // the recovery store; sentence/activity progress remains in the regular
+      // listening progress store. Returning to Chủ đề can therefore rebuild
+      // the exact unfinished unit instead of opening the catalog root.
+      _pausedListeningCheckpoint = await const ActiveListeningSessionStore()
+          .read();
+    }
+    if (leavesActiveModule &&
+        !deferVocabularyExitCommit &&
+        !iosVocabularyPracticeTransfer) {
+      // MAIN already paused the source owner, which persisted its exact item
+      // checkpoint. A committed module transfer must only clear automatic
+      // resume ownership; it must not complete, skip, or reset that source.
+      widget.onActiveLearningExitCommitted?.call();
+    }
     final destinationLabel = intent.openLesson
         ? useChinese
               ? '第 ${intent.lessonNumber ?? 1} 课'
@@ -364,9 +902,15 @@ class _HomeLearningShellState extends State<HomeLearningShell>
               useChinese ? '设置' : 'Cài đặt',
           };
     if (intent.destination != VoiceNavigationDestination.topics) {
+      if (_openingTopics && !leavesActiveModule) {
+        // This is a committed feature change, not a temporary MAIN pause.
+        // Clear the old module's resume ownership before its route starts
+        // closing so no listener can wake that lesson during the transition.
+        widget.onActiveLearningExitCommitted?.call();
+      }
       await _closeTopicListeningIfNeeded();
       if (!mounted) {
-        return;
+        return false;
       }
     }
     _showVoiceNavigationMessage(
@@ -377,33 +921,186 @@ class _HomeLearningShellState extends State<HomeLearningShell>
 
     switch (intent.destination) {
       case VoiceNavigationDestination.conversation:
-        _showConversation();
+        if (!await _showConversationAndWait(
+          animate: !iosVocabularyPracticeTransfer,
+          deferNavigationExitToPracticeClose: iosReviewTranslationTransfer,
+        )) {
+          return false;
+        }
+        if (!mounted) return false;
+        if (iosReviewTranslationTransfer) {
+          final pageGeneration = _pageNavigationGeneration;
+          AudioDiagnostics.event('screen.review.close.request');
+          final closed = await _vocabularyNavigationController
+              .closeReviewPracticeForTranslation();
+          AudioDiagnostics.event('screen.review.close.completed', {
+            'closed': closed,
+          });
+          if (!closed) {
+            if (mounted &&
+                _pageNavigationGeneration == pageGeneration &&
+                _requestedPage == 0 &&
+                _page == 0) {
+              _vocabularyActivationController.activate(autoStartToday: false);
+              await _requestHomePage(1, animate: false);
+            }
+            return false;
+          }
+        } else if (iosVocabularyPracticeTransfer) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        }
+        if (!mounted) return false;
+        if (deferVocabularyExitCommit) {
+          widget.onActiveLearningExitCommitted?.call();
+        }
         if (intent.enterMainSpeakingMode) {
-          widget.onMainSpeakingModeStarted?.call();
+          AudioDiagnostics.event('screen.translation.start.request');
+          await widget.onMainSpeakingModeStarted?.call();
+          AudioDiagnostics.event('screen.translation.start.completed');
         }
       case VoiceNavigationDestination.vocabulary:
-        _showVocabulary();
+        // A Chủ đề route opened from the vocabulary tab sits above a
+        // vocabulary page that never stopped being active, so showing that
+        // page again starts nothing and HOMI would stay silent.
+        final vocabularyWasActive = _vocabularyActivationController.isActive;
+        await _showVocabularyAndWait(
+          autoStartToday: intent.vocabularyTarget == null,
+        );
+        final vocabularyTarget = intent.vocabularyTarget;
+        if (_isIos &&
+            (!mounted ||
+                _page != 1 ||
+                _requestedPage != 1 ||
+                (vocabularyTarget != null &&
+                    !_vocabularyNavigationController.isAttached))) {
+          return false;
+        }
+        if (vocabularyTarget != null) {
+          if (_isIos) {
+            final navigationGeneration = _pageNavigationGeneration;
+            unawaited(
+              _vocabularyNavigationController
+                  .openVoiceTarget(vocabularyTarget)
+                  .catchError((Object error) {
+                    if (mounted &&
+                        navigationGeneration == _pageNavigationGeneration &&
+                        _page == 1) {
+                      _showVoiceNavigationMessage(
+                        'Chưa mở được nội dung. Bạn hãy thử lại hoặc chạm vào mục muốn học.',
+                      );
+                    }
+                  }),
+            );
+          } else {
+            await _vocabularyNavigationController.openVoiceTarget(
+              vocabularyTarget,
+            );
+          }
+        } else if (activeKind == ActiveLearningModuleKind.listeningLesson ||
+            vocabularyWasActive) {
+          // The root asks its menu and then opens a choice microphone, which
+          // pauses the voice controller. That pause drains the recognizer
+          // finish this handler runs inside, so awaiting the menu here would
+          // hold the microphone for the whole two-second drain.
+          unawaited(_vocabularyNavigationController.openVoiceRoot());
+        }
       case VoiceNavigationDestination.topics:
+        Route<void>? installedTopicRoute;
+        final pausedCheckpoint =
+            intent.topicNumber == null && !intent.openLesson
+            ? _pausedListeningCheckpoint
+            : null;
+        if (pausedCheckpoint != null) {
+          _pausedListeningCheckpoint = null;
+        }
+        final opensTopicSelection =
+            intent.topicNumber == null &&
+            !intent.openLesson &&
+            pausedCheckpoint == null;
         final fallbackTopicIndex = _activeVoiceTopicIndex;
         final target = ListeningVoiceNavigationTarget(
           recognizedText: intent.recognizedText,
-          openLesson: intent.openLesson,
-          topicNumber: intent.topicNumber,
-          lessonNumber: intent.lessonNumber,
-          childAge: intent.childAge,
+          openLesson: intent.openLesson || pausedCheckpoint != null,
+          topicNumber: intent.topicNumber ?? pausedCheckpoint?.topicNumber,
+          lessonNumber: intent.lessonNumber ?? pausedCheckpoint?.lessonNumber,
+          childAge: intent.childAge ?? pausedCheckpoint?.childAge,
+          relearnTopic: intent.relearnTopic,
+          relearnLesson: intent.relearnLesson,
           fallbackTopicIndex: fallbackTopicIndex,
         );
         if (_openingTopics) {
           await _closeTopicListeningIfNeeded();
         }
         if (mounted) {
-          unawaited(_openTopicListening(initialVoiceTarget: target));
+          final topicVoiceGate = _isIos && intent.prepareOnly
+              ? Completer<void>()
+              : null;
+          if (topicVoiceGate != null) {
+            _preparedTopicVoiceGate = topicVoiceGate;
+          }
+          final routePushed = Completer<bool>();
+          unawaited(
+            _openTopicListening(
+              initialVoiceTarget: opensTopicSelection ? null : target,
+              initialVoiceActivationGate: topicVoiceGate?.future,
+              routePushed: routePushed,
+              onRouteCreated: _isIos
+                  ? (route) {
+                      installedTopicRoute = route;
+                      if (topicVoiceGate != null) _preparedTopicRoute = route;
+                    }
+                  : null,
+            ),
+          );
+          // Navigator.push returns only when the user eventually leaves the
+          // route. Wait until the route is installed, then release MAIN's
+          // native turn before the destination starts its own audio on a frame.
+          // Waiting for the painted frame here can deadlock a suspended UI.
+          final installed = await routePushed.future.timeout(
+            const Duration(seconds: 2),
+            onTimeout: () =>
+                kIsWeb || defaultTargetPlatform != TargetPlatform.iOS,
+          );
+          if (!installed || !mounted) {
+            _releasePreparedTopicVoiceGate(topicVoiceGate);
+            return false;
+          }
+          if (_isIos && _page == 1) {
+            final pageGeneration = _pageNavigationGeneration;
+            if (!await _requestHomePage(0, animate: false)) {
+              if (!mounted) {
+                _releasePreparedTopicVoiceGate(topicVoiceGate);
+                return false;
+              }
+              final route = installedTopicRoute;
+              if (route != null && route.isActive) {
+                Navigator.of(
+                  context,
+                ).popUntil((candidate) => identical(candidate, route));
+                Navigator.of(context).removeRoute(route);
+              }
+              if (_pageNavigationGeneration == pageGeneration + 1) {
+                await _requestHomePage(1, animate: false);
+              }
+              _releasePreparedTopicVoiceGate(topicVoiceGate);
+              return false;
+            }
+          }
+          if (iosVocabularyPracticeTransfer) {
+            final route = installedTopicRoute;
+            if (!mounted || route == null || !route.isActive) return false;
+            Navigator.of(context).removeRouteBelow(route);
+            widget.onActiveLearningExitCommitted?.call();
+          }
+        } else {
+          return false;
         }
       case VoiceNavigationDestination.history:
         _showHistory();
       case VoiceNavigationDestination.settings:
         _showSettings();
     }
+    return true;
   }
 
   Future<void> _closeTopicListeningIfNeeded() async {
@@ -415,6 +1112,16 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     if (closed != null) {
       await closed;
     }
+  }
+
+  void _releasePreparedTopicVoiceGate([Completer<void>? expected]) {
+    final gate = _preparedTopicVoiceGate;
+    if (gate == null || (expected != null && !identical(expected, gate))) {
+      return;
+    }
+    _preparedTopicVoiceGate = null;
+    _preparedTopicRoute = null;
+    if (!gate.isCompleted) gate.complete();
   }
 
   void _showVoiceNavigationMessage(String message) {
@@ -431,20 +1138,11 @@ class _HomeLearningShellState extends State<HomeLearningShell>
 
   List<UserOnboardingStep> get _tutorialSteps => <UserOnboardingStep>[
     UserOnboardingStep(
-      kind: UserOnboardingStepKind.welcome,
-      title: context.tr('Chào mừng đến với INNOTRIK', '欢迎使用 INNOTRIK'),
-      description: context.tr(
-        'Mình sẽ chỉ cho bạn những khu vực quan trọng để bắt đầu học thật dễ dàng.',
-        '接下来带你快速认识几个重要功能，轻松开始学习。',
-      ),
-      icon: Icons.waving_hand_rounded,
-    ),
-    UserOnboardingStep(
       kind: UserOnboardingStepKind.spotlight,
       title: context.tr('Bắt đầu nói', '开始说话'),
       description: context.tr(
-        'Chạm nút micro, nói một câu tiếng Việt và INNOTRIK sẽ giúp chuyển sang tiếng Anh.',
-        '点击麦克风，说一句越南语，INNOTRIK 会帮你转换成英语。',
+        'Chạm nút micro, nói một câu tiếng Việt và HOMI sẽ giúp chuyển sang tiếng Anh.',
+        '点击麦克风，说一句越南语，HOMI 会帮你转换成英语。',
       ),
       icon: Icons.mic_rounded,
       targetKey: _speakActionKey,
@@ -613,25 +1311,183 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   }
 
   void _showVocabulary() {
-    _pageController.animateToPage(
-      1,
-      duration: _motionDuration,
-      curve: Curves.easeOutCubic,
-    );
+    unawaited(_showVocabularyAndWait());
+  }
+
+  Future<void> _showVocabularyAndWait({bool autoStartToday = true}) async {
+    AudioDiagnostics.event('screen.vocabulary.activate');
+    if (AudioDiagnostics.enabled) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          AudioDiagnostics.event('screen.vocabulary.activation_frame');
+        }
+      });
+    }
+    _vocabularyActivationController.activate(autoStartToday: autoStartToday);
+    await _requestHomePage(1);
   }
 
   void _showConversation() {
-    _pageController.animateToPage(
-      0,
+    // A tap commits the visible page change immediately. Only a voice transfer
+    // that opens another microphone must wait for vocabulary audio to settle.
+    unawaited(_showConversationAndWait(requireStoppedAudio: false));
+  }
+
+  Future<bool> _showConversationAndWait({
+    bool requireStoppedAudio = true,
+    bool animate = true,
+    bool deferNavigationExitToPracticeClose = false,
+  }) async {
+    if (_page == 1) {
+      // A slow native stop can outlive the vocabulary cleanup's two-second
+      // bound. Keep the old page and do not open translation's microphone in
+      // that case; the user can retry after the audio route settles.
+      AudioDiagnostics.event('screen.vocabulary.cleanup.request', {
+        'requireStoppedAudio': requireStoppedAudio,
+      });
+      final cleanup = _vocabularyNavigationController.leaveForOtherContent();
+      final settled = requireStoppedAudio ? await cleanup : true;
+      AudioDiagnostics.event('screen.vocabulary.cleanup.completed', {
+        'settled': settled,
+      });
+      if (!requireStoppedAudio) unawaited(cleanup);
+      if (!mounted) return false;
+      if (!settled) {
+        _showVoiceNavigationMessage(
+          'Âm thanh Từ vựng chưa dừng hẳn. Hãy thử chuyển lại sau một chút.',
+        );
+        return false;
+      }
+      final closedPractice = deferNavigationExitToPracticeClose
+          ? false
+          : await _vocabularyNavigationController
+                .closePracticeForOtherContent();
+      if (!mounted) return false;
+      _vocabularyActivationController.deactivate();
+      if (!closedPractice && !deferNavigationExitToPracticeClose) {
+        ActiveLearningModuleScope.notifyNavigationExit(context);
+      }
+      unawaited(widget.voiceNavigationController?.pause());
+    }
+    // An opaque practice route mutes the shell's tickers. Waiting for a page
+    // animation underneath it would prevent us from ever closing that route.
+    return _requestHomePage(0, animate: animate);
+  }
+
+  Future<bool> _requestHomePage(int page, {bool animate = true}) async {
+    _requestedPage = page;
+    final generation = ++_pageNavigationGeneration;
+    AudioDiagnostics.event('screen.page.request', {
+      'page': page,
+      'generation': generation,
+      'animate': animate,
+      'lifecycle': WidgetsBinding.instance.lifecycleState?.name,
+    });
+    if (_page != page && mounted) {
+      setState(() => _page = page);
+    }
+    await _moveToRequestedPage(
+      animate:
+          animate &&
+          WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed,
+      generation: generation,
+    );
+    AudioDiagnostics.event('screen.page.completed', {
+      'page': _page,
+      'requestedPage': _requestedPage,
+      'generation': generation,
+      'currentGeneration': _pageNavigationGeneration,
+      'mounted': mounted,
+      'visiblePage': mounted && _pageController.hasClients
+          ? _pageController.page
+          : null,
+    });
+    if (!mounted ||
+        generation != _pageNavigationGeneration ||
+        _requestedPage != page ||
+        _page != page) {
+      return false;
+    }
+    if (!_isIos) return true;
+    final visiblePage = _pageController.hasClients
+        ? _pageController.page
+        : null;
+    return visiblePage != null && (visiblePage - page).abs() < 0.001;
+  }
+
+  Future<void> _moveToRequestedPage({
+    required bool animate,
+    int? generation,
+  }) async {
+    final requestGeneration = generation ?? ++_pageNavigationGeneration;
+    final targetPage = _requestedPage;
+    if (!_pageController.hasClients) {
+      if (!_usesNativePageSynchronization) return;
+      await WidgetsBinding.instance.endOfFrame;
+    }
+    if (!mounted ||
+        requestGeneration != _pageNavigationGeneration ||
+        !_pageController.hasClients ||
+        targetPage != _requestedPage) {
+      return;
+    }
+    final currentPage = _pageController.page;
+    if (currentPage != null && (currentPage - targetPage).abs() < 0.001) {
+      return;
+    }
+    if (!animate ||
+        WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
+      _pageController.jumpToPage(targetPage);
+      return;
+    }
+    final transition = _pageController.animateToPage(
+      targetPage,
       duration: _motionDuration,
       curve: Curves.easeOutCubic,
     );
+    if (!_usesNativePageSynchronization) {
+      unawaited(transition);
+      return;
+    }
+    await transition;
+    if (mounted &&
+        requestGeneration == _pageNavigationGeneration &&
+        targetPage == _requestedPage) {
+      // Scroll completion can run before the last frame is painted. MAIN must
+      // wait for that frame so the visible microphone UI belongs to the new
+      // page before recording begins.
+      WidgetsBinding.instance.scheduleFrame();
+      await WidgetsBinding.instance.endOfFrame;
+    }
+  }
+
+  Future<void> _handleVocabularyBack() async {
+    if (await _vocabularyNavigationController.handleBack()) return;
+    if (mounted) _showConversation();
+  }
+
+  void _handlePageChanged(int page) {
+    if (page == 1) {
+      _vocabularyActivationController.activate();
+    } else {
+      _vocabularyActivationController.deactivate();
+      _scheduleVoiceNavigationListening();
+    }
+    if (mounted && _page != page) {
+      setState(() => _page = page);
+    }
   }
 
   Future<void> _openTopicListening({
     ListeningVoiceNavigationTarget? initialVoiceTarget,
+    Future<void>? initialVoiceActivationGate,
+    Completer<bool>? routePushed,
+    void Function(Route<void> route)? onRouteCreated,
   }) async {
     if (_openingTopics) {
+      if (routePushed != null && !routePushed.isCompleted) {
+        routePushed.complete(false);
+      }
       return;
     }
     _openingTopics = true;
@@ -639,52 +1495,124 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     _topicRouteClosedCompleter = routeClosedCompleter;
     try {
       if (!mounted) {
+        if (routePushed != null && !routePushed.isCompleted) {
+          routePushed.complete(false);
+        }
         return;
       }
+      unawaited(
+        _backgroundLearningCoordinator.ensureStarted(
+          voiceAccessEnabled: widget.voiceAccessEnabled,
+        ),
+      );
+      unawaited(_backgroundLearningCoordinator.setActiveLearning(true));
       final routeDuration = MediaQuery.disableAnimationsOf(context)
           ? Duration.zero
           : const Duration(milliseconds: 260);
-      await Navigator.of(context).push<void>(
-        PageRouteBuilder<void>(
-          settings: const RouteSettings(name: ListeningRouteNames.topicCatalog),
-          transitionDuration: routeDuration,
-          reverseTransitionDuration: routeDuration,
-          pageBuilder: (_, _, _) => TopicListeningScreen(
+      Route<void>? topicRoute;
+      final routeClosed = AppNavigator.of(context).push<void>(
+        context,
+        AppRoute<TopicListeningArguments>(
+          name: AppRouteNames.topicCatalog,
+          arguments: TopicListeningArguments(
             language: widget.controller.displayLanguage,
             childAge: widget.controller.childAge,
+            initialVoiceTarget: initialVoiceTarget,
+          ),
+          bindings: () => TopicListeningBindings(
             controller: widget.controller,
+            ensureDeviceConnected: widget.ensureDeviceConnected,
+            onMainPressed: widget.onScreenMainPressed,
+            onVocabularyRequested: _showVocabulary,
+            initialVoiceActivationGate: initialVoiceActivationGate,
             onVoiceNavigationPause: () =>
                 _pauseVoiceNavigation('listening_media_opened'),
             onVoiceNavigationResume: _resumeVoiceNavigation,
-            initialVoiceTarget: initialVoiceTarget,
             onTopicSelected: (index) => _activeVoiceTopicIndex = index,
-            onTopicSelectionAfterCompletion:
-                ({required childAge, required completedTopicNumbers}) async {
+            onChildAgeChanged: widget.onChildAgeChanged,
+            iosTopicRecognitionFailureRevision: widget
+                .voiceNavigationController
+                ?.iosTopicRecognitionFailureRevision,
+            onRequestParentAccess: _requestTopicAgeAccess,
+            onCommunicationRequested: widget.controller.clearPresentationResult,
+            onLessonSelectionRequested:
+                ({
+                  required childAge,
+                  required topicNumber,
+                  required topicContent,
+                  required completedLessonNumbers,
+                }) async {
                   await widget.voiceNavigationController
-                      ?.activateTopicSelectionAfterCompletion(
+                      ?.activateLessonSelectionForTopic(
                         childAge: childAge,
-                        completedTopicNumbers: completedTopicNumbers,
+                        topicNumber: topicNumber,
+                        topicContent: topicContent,
+                        completedLessonNumbers: completedLessonNumbers,
                       );
                 },
+            onTopicSelectionRequested:
+                ({
+                  required childAge,
+                  required topicNumbers,
+                  required completedTopicNumbers,
+                  required courseCompleted,
+                }) async {
+                  return await widget.voiceNavigationController
+                          ?.activateTopicSelection(
+                            childAge: childAge,
+                            topicNumbers: topicNumbers,
+                            completedTopicNumbers: completedTopicNumbers,
+                            courseCompleted: courseCompleted,
+                          ) ??
+                      false;
+                },
             contentFuture: widget.listeningContentFuture,
+            progressStore: widget.listeningProgressStore,
           ),
-          transitionsBuilder: (_, animation, secondaryAnimation, child) {
-            final curved = CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOutCubic,
-              reverseCurve: Curves.easeInCubic,
-            );
-            return SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0.08, 0),
-                end: Offset.zero,
-              ).animate(curved),
-              child: FadeTransition(opacity: curved, child: child),
-            );
-          },
         ),
+        onRouteCreated: (route) {
+          topicRoute = route;
+          onRouteCreated?.call(route);
+        },
+        foregroundTransitionDuration: routeDuration,
+        foregroundReverseTransitionDuration: routeDuration,
+        foregroundTransitionsBuilder: slidePageFromRight,
       );
+      if (routePushed != null && !routePushed.isCompleted) {
+        routePushed.complete(true);
+      }
+      if (!kIsWeb && !_isIos && _page == 1) {
+        // The catalog leaves the vocabulary page active underneath, which
+        // then keeps MAIN: a fresh press re-asks its menu under the catalog
+        // and "Bộ từ vựng" never navigates back. Park the shell on the
+        // Conversation page once the catalog covers it; an earlier jump
+        // flashes Conversation through the push transition.
+        unawaited(_parkShellUnderTopics(topicRoute, routeDuration));
+      }
+      await routeClosed;
+    } catch (error) {
+      final routeWasInstalled = routePushed?.isCompleted ?? false;
+      if (routePushed != null && !routePushed.isCompleted) {
+        routePushed.complete(false);
+      }
+      if (routePushed == null ||
+          routeWasInstalled ||
+          kIsWeb ||
+          defaultTargetPlatform != TargetPlatform.iOS) {
+        rethrow;
+      }
     } finally {
+      if (initialVoiceActivationGate != null &&
+          identical(
+            _preparedTopicVoiceGate?.future,
+            initialVoiceActivationGate,
+          )) {
+        _releasePreparedTopicVoiceGate();
+      }
+      if (routePushed != null && !routePushed.isCompleted) {
+        routePushed.complete(false);
+      }
+      await _backgroundLearningCoordinator.clearListeningCheckpoint();
       _openingTopics = false;
       _activeVoiceTopicIndex = null;
       if (identical(_topicRouteClosedCompleter, routeClosedCompleter)) {
@@ -693,31 +1621,93 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       if (!routeClosedCompleter.isCompleted) {
         routeClosedCompleter.complete();
       }
+      unawaited(_backgroundLearningCoordinator.setActiveLearning(false));
       if (mounted) {
         _resumeVoiceNavigation();
       }
     }
   }
 
-  void _showSettings() {
-    unawaited(_pauseVoiceNavigation('settings_opened'));
-    unawaited(_openSettingsSheet());
+  Future<void> _parkShellUnderTopics(
+    Route<void>? route,
+    Duration transition,
+  ) async {
+    final animation = route is TransitionRoute<void> ? route.animation : null;
+    if (animation != null && transition > Duration.zero) {
+      // The push transition only runs from the catalog's first frame; until
+      // then the controller already reads as completed. Wait for that run.
+      final covered = Completer<void>();
+      var running = animation.status == AnimationStatus.forward;
+      void onStatus(AnimationStatus status) {
+        if (status == AnimationStatus.forward) {
+          running = true;
+        } else if (status == AnimationStatus.dismissed ||
+            (running && status == AnimationStatus.completed)) {
+          animation.removeStatusListener(onStatus);
+          covered.complete();
+        }
+      }
+
+      animation.addStatusListener(onStatus);
+      await covered.future;
+    }
+    if (!mounted || _page != 1 || route?.isActive != true) return;
+    // The opaque catalog mutes the shell's tickers, so an animated page
+    // change would never finish; jump instead.
+    await _requestHomePage(0, animate: false);
   }
 
-  Future<void> _openSettingsSheet() async {
+  void _showSettings() {
+    unawaited(_openParentSettings());
+  }
+
+  Future<void> _openParentSettings() async {
+    if (!await _requestSettingsAccess()) {
+      return;
+    }
+    await _pauseVoiceNavigation('settings_opened');
+    await _openSettingsPage();
+  }
+
+  Future<bool> _requestSettingsAccess() {
+    final gate = widget.parentAccessGate;
+    if (gate != null) {
+      return gate(context);
+    }
+    if (PlatformAccessPolicy.bypassesSettingsAuthentication(
+      isWeb: kIsWeb,
+      platform: defaultTargetPlatform,
+    )) {
+      return Future<bool>.value(true);
+    }
+    return showParentalGate(context);
+  }
+
+  Future<void> _openSettingsPage() async {
+    await widget.controller.markParentDiagnosticsOpened();
+    if (!mounted) return;
     widget.onModalVisibilityChanged?.call(true);
     try {
-      await showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        useSafeArea: true,
-        showDragHandle: true,
-        builder: (_) => SettingsSheet(
-          controller: widget.controller,
-          themeMode: widget.themeMode,
-          onThemeModeChanged: widget.onThemeModeChanged,
-          onChildAgeChanged: widget.onChildAgeChanged,
-          onStartTutorial: _startTutorial,
+      await AppNavigator.of(context).pushPage<void>(
+        context,
+        AppRoute<void>(
+          name: AppRouteNames.settings,
+          arguments: null,
+          bindings: () => SettingsBindings(
+            controller: widget.controller,
+            connectionCoordinator: widget.connectionCoordinator,
+            themeMode: widget.themeMode,
+            onThemeModeChanged: widget.onThemeModeChanged,
+            onChildAgeChanged: widget.onChildAgeChanged,
+            config: widget.config,
+            privacyConsentGranted: widget.privacyConsentGranted,
+            voiceAccessEnabled: widget.voiceAccessEnabled,
+            onRequestVoiceAccess: widget.onRequestVoiceAccess,
+            onManagePrivacyConsent: widget.onManagePrivacyConsent,
+            onRevokePrivacyConsent: widget.onRevokePrivacyConsent,
+            stopMediaWhenBackgrounded: _stopMediaWhenBackgrounded,
+            onStopMediaWhenBackgroundedChanged: _setStopMediaWhenBackgrounded,
+          ),
         ),
       );
     } finally {
@@ -729,19 +1719,46 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   }
 
   void _showHistory() {
-    unawaited(_pauseVoiceNavigation('history_opened'));
-    unawaited(_openHistorySheet());
+    unawaited(_openParentHistory());
+  }
+
+  Future<void> _openParentHistory() async {
+    if (!await _requestParentAccess()) {
+      return;
+    }
+    await _pauseVoiceNavigation('history_opened');
+    await _openHistorySheet();
+  }
+
+  Future<bool> _requestParentAccess() {
+    final gate = widget.parentAccessGate;
+    return gate == null ? showParentalGate(context) : gate(context);
+  }
+
+  Future<bool> _requestTopicAgeAccess() {
+    final gate = widget.parentAccessGate;
+    if (gate != null) {
+      return gate(context);
+    }
+    if (PlatformAccessPolicy.bypassesTopicAgeAuthentication(
+      isWeb: kIsWeb,
+      platform: defaultTargetPlatform,
+    )) {
+      return Future<bool>.value(true);
+    }
+    return showParentalGate(context);
   }
 
   Future<void> _openHistorySheet() async {
     widget.onModalVisibilityChanged?.call(true);
     try {
-      await showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        useSafeArea: true,
-        showDragHandle: true,
-        builder: (_) => HistorySheet(controller: widget.controller),
+      await AppNavigator.of(context).showSheet<void>(
+        context,
+        AppRoute<void>(
+          name: AppRouteNames.history,
+          arguments: null,
+          bindings: () => HistoryBindings(controller: widget.controller),
+        ),
       );
     } finally {
       widget.onModalVisibilityChanged?.call(false);

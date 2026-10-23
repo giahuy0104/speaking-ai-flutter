@@ -13,6 +13,26 @@ enum PracticeContext {
   final String label;
 }
 
+enum TranslationOutputLanguage {
+  english('en', 'Tiếng Anh', 'en-US'),
+  chinese('zh', 'Tiếng Trung', 'zh-CN'),
+  japanese('ja', 'Tiếng Nhật', 'ja-JP'),
+  korean('ko', 'Tiếng Hàn', 'ko-KR'),
+  french('fr', 'Tiếng Pháp', 'fr-FR');
+
+  const TranslationOutputLanguage(this.apiValue, this.label, this.speechLocale);
+
+  final String apiValue;
+  final String label;
+  final String speechLocale;
+
+  static TranslationOutputLanguage fromCode(Object? code) =>
+      TranslationOutputLanguage.values.firstWhere(
+        (language) => language.apiValue == code,
+        orElse: () => TranslationOutputLanguage.english,
+      );
+}
+
 enum AsrMode {
   androidStreaming('android_streaming', 'Chế độ tiêu chuẩn'),
   hfpStreaming('hfp_streaming', 'HFP streaming'),
@@ -134,12 +154,18 @@ class ConversationPreview {
     required this.englishText,
     required this.textSource,
     required this.audioUri,
+    this.audioSha256,
+    this.audioDurationSeconds,
+    this.dynamicAudioKey,
   });
 
   final String sourceText;
   final String englishText;
   final String textSource;
   final Uri? audioUri;
+  final String? audioSha256;
+  final double? audioDurationSeconds;
+  final String? dynamicAudioKey;
 }
 
 class ConversationResult {
@@ -149,6 +175,8 @@ class ConversationResult {
     required this.context,
     required this.vietnameseText,
     required this.englishText,
+    this.outputLanguage = TranslationOutputLanguage.english,
+    this.translatedText,
     required this.audioUri,
     required this.processingMode,
     required this.textSource,
@@ -156,6 +184,9 @@ class ConversationResult {
     required this.asrMode,
     required this.latency,
     this.learning,
+    this.audioSha256,
+    this.audioDurationSeconds,
+    this.dynamicAudioKey,
   });
 
   factory ConversationResult.fromJson(
@@ -172,9 +203,16 @@ class ConversationResult {
       ),
       vietnameseText: json['vietnameseText'] as String? ?? '',
       englishText: json['englishText'] as String? ?? '',
+      outputLanguage: TranslationOutputLanguage.fromCode(
+        json['targetLanguage'],
+      ),
+      translatedText: json['translatedText'] as String?,
       audioUri: rawAudioUrl == null
           ? null
           : backendBaseUri.resolve(rawAudioUrl),
+      audioSha256: _readAudioChecksum(json),
+      audioDurationSeconds: _readAudioDuration(json),
+      dynamicAudioKey: _readAudioKey(json),
       processingMode: json['processingMode'] as String? ?? 'fallback',
       textSource: json['textSource'] as String? ?? 'fallback',
       audioSource: json['audioSource'] as String? ?? 'cloudflare_tts',
@@ -193,13 +231,42 @@ class ConversationResult {
   final PracticeContext context;
   final String vietnameseText;
   final String englishText;
+  final TranslationOutputLanguage outputLanguage;
+  final String? translatedText;
+  String get displayedTranslation =>
+      outputLanguage == TranslationOutputLanguage.english
+      ? englishText
+      : translatedText ?? '';
   final Uri? audioUri;
+  final String? audioSha256;
+  final double? audioDurationSeconds;
+  final String? dynamicAudioKey;
   final String processingMode;
   final String textSource;
   final String audioSource;
   final String asrMode;
   final ConversationLatency latency;
   final ConversationLearningOutcome? learning;
+
+  static String? _readAudioChecksum(Map<String, dynamic> json) {
+    final value = json['audioSha256'] ?? json['sha256'];
+    return value is String && RegExp(r'^[a-fA-F0-9]{64}$').hasMatch(value)
+        ? value.toLowerCase()
+        : null;
+  }
+
+  static double? _readAudioDuration(Map<String, dynamic> json) {
+    final value = json['audioDurationSeconds'] ?? json['durationSeconds'];
+    final duration = value is num ? value.toDouble() : null;
+    return duration != null && duration > 0 && duration <= 45 ? duration : null;
+  }
+
+  static String? _readAudioKey(Map<String, dynamic> json) {
+    final value = json['dynamicAudioKey'] ?? json['audioKey'];
+    return value is String && RegExp(r'^[a-fA-F0-9]{64}$').hasMatch(value)
+        ? value.toLowerCase()
+        : null;
+  }
 }
 
 class ConversationHistoryItem {
@@ -207,6 +274,8 @@ class ConversationHistoryItem {
     required this.conversationId,
     required this.vietnameseText,
     required this.englishText,
+    this.outputLanguage = TranslationOutputLanguage.english,
+    this.translatedText,
     required this.createdAt,
     required this.qualityApproved,
     this.promotedToRule = false,
@@ -214,6 +283,7 @@ class ConversationHistoryItem {
     this.learningReason,
     this.learningUseCount,
     this.audioUri,
+    this.hasUserAudio = false,
     this.context = PracticeContext.home,
     this.processingMode = 'unknown',
     this.textSource = 'unknown',
@@ -241,6 +311,10 @@ class ConversationHistoryItem {
       conversationId: json['conversationId'] as String? ?? '',
       vietnameseText: json['vietnameseText'] as String? ?? '',
       englishText: json['englishText'] as String? ?? '',
+      outputLanguage: TranslationOutputLanguage.fromCode(
+        json['targetLanguage'],
+      ),
+      translatedText: json['translatedText'] as String?,
       createdAt: (parsedCreatedAt ?? DateTime.fromMillisecondsSinceEpoch(0))
           .toLocal(),
       qualityApproved: json['qualityApproved'] as bool?,
@@ -251,6 +325,7 @@ class ConversationHistoryItem {
       audioUri: rawAudioUrl == null
           ? null
           : backendBaseUri?.resolve(rawAudioUrl) ?? Uri.tryParse(rawAudioUrl),
+      hasUserAudio: json['hasUserAudio'] as bool? ?? false,
       context: PracticeContext.values.firstWhere(
         (item) => item.apiValue == json['context'],
         orElse: () => PracticeContext.home,
@@ -269,6 +344,12 @@ class ConversationHistoryItem {
   final String conversationId;
   final String vietnameseText;
   final String englishText;
+  final TranslationOutputLanguage outputLanguage;
+  final String? translatedText;
+  String get displayedTranslation =>
+      outputLanguage == TranslationOutputLanguage.english
+      ? englishText
+      : translatedText ?? '';
   final DateTime createdAt;
   final bool? qualityApproved;
   final bool promotedToRule;
@@ -276,6 +357,7 @@ class ConversationHistoryItem {
   final String? learningReason;
   final int? learningUseCount;
   final Uri? audioUri;
+  final bool hasUserAudio;
   final PracticeContext context;
   final String processingMode;
   final String textSource;
@@ -298,6 +380,8 @@ class ConversationHistoryItem {
       conversationId: conversationId,
       vietnameseText: vietnameseText,
       englishText: englishText,
+      outputLanguage: outputLanguage,
+      translatedText: translatedText,
       createdAt: createdAt,
       qualityApproved: approved,
       promotedToRule: learning?.promoted ?? promotedToRule,
@@ -310,6 +394,7 @@ class ConversationHistoryItem {
           : 'negative_feedback',
       learningUseCount: learning?.useCount ?? learningUseCount,
       audioUri: audioUri,
+      hasUserAudio: hasUserAudio,
       context: context,
       processingMode: processingMode,
       textSource: textSource,

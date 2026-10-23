@@ -1,0 +1,114 @@
+09-18 01:56:41:185 requestAudioFocus() from uid/pid 10797/17664 AA=USAGE_VOICE_COMMUNICATION/CONTENT_TYPE_SPEECH clientId=android.media.AudioManager@35603d9e7.b@ed16fa6 callingPack=com.innotrik.aispeaking req=1 flags=0x0 sdk=36
+09-18 02:01:29:014 requestAudioFocus() from uid/pid 10797/21705 AA=USAGE_VOICE_COMMUNICATION/CONTENT_TYPE_SPEECH clientId=android.media.AudioManager@e0818d3e7.b@7350c10 callingPack=com.innotrik.aispeaking req=1 flags=0x0 sdk=36
+09-18 02:01:43:647 requestAudioFocus() from uid/pid 10797/21705 AA=USAGE_VOICE_COMMUNICATION/CONTENT_TYPE_SPEECH clientId=android.media.AudioManager@e0818d3e7.b@5b7d270 callingPack=com.innotrik.aispeaking req=1 flags=0x0 sdk=36
+09-18 02:02:00:666 requestAudioFocus() from uid/pid 10797/21705 AA=USAGE_VOICE_COMMUNICATION/CONTENT_TYPE_SPEECH clientId=android.media.AudioManager@e0818d3e7.b@7eb74cd callingPack=com.innotrik.aispeaking req=1 flags=0x0 sdk=36
+  AudioPlaybackConfiguration piid:55 deviceId:0 type:android.media.SoundPool u/pid:1000/1597 state:idle attr:AudioAttributes: usage=USAGE_ASSISTANCE_SONIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null sessionId:0
+  AudioPlaybackConfiguration piid:71 deviceId:0 type:android.media.SoundPool u/pid:1000/2263 state:idle attr:AudioAttributes: usage=USAGE_ASSISTANCE_SONIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null sessionId:0
+  AudioPlaybackConfiguration piid:119 deviceId:0 type:android.media.SoundPool u/pid:10338/31040 state:idle attr:AudioAttributes: usage=USAGE_ASSISTANCE_SONIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null sessionId:0
+  AudioPlaybackConfiguration piid:14047 deviceId:0 type:android.media.SoundPool u/pid:10219/26803 state:idle attr:AudioAttributes: usage=USAGE_ASSISTANCE_SONIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null sessionId:0
+  AudioPlaybackConfiguration piid:24687 deviceId:4035 type:android.media.AudioTrack u/pid:10797/21705 state:stopped attr:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null sessionId:24505
+09-18 02:01:20:918 player piid:24567 state:started DeviceId:0
+09-18 02:01:21:024 player piid:24567 state:device DeviceId:4035
+09-18 02:01:23:222 player piid:24567 state:stopped DeviceId:0
+09-18 02:01:23:230 releasing player piid:24567
+09-18 02:01:23:961 new player piid:24575 uid/pid:10797/21705 type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null session:0
+09-18 02:01:23:976 player piid:24575 new AudioAttributes:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null
+09-18 02:01:24:021 player piid:24575 state:started DeviceId:0
+09-18 02:01:24:083 player piid:24575 state:device DeviceId:4035
+09-18 02:01:28:783 player piid:24575 state:stopped DeviceId:0
+09-18 02:01:28:788 releasing player piid:24575
+09-18 02:01:29:044 new player piid:24583 uid/pid:10797/21705 type:android.media.AudioTrack attr:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null session:24505
+09-18 02:01:29:049 player piid:24583 state:started DeviceId:0
+09-18 02:01:29:073 player piid:24583 state:device DeviceId:4035
+09-18 02:01:30:741 player piid:24583 state:stopped DeviceId:0
+09-18 02:01:33:375 player piid:24583 state:stopped DeviceId:0
+09-18 02:01:33:376 releasing player piid:24583
+09-18 02:01:33:470 new player piid:24591 uid/pid:10797/21705 type:android.media.AudioTrack attr:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null session:24505
+09-18 02:01:33:474 player piid:24591 state:started DeviceId:0
+09-18 02:01:33:511 player piid:24591 state:device DeviceId:4035
+09-18 02:01:34:957 player piid:24591 state:stopped DeviceId:0
+09-18 02:01:35:492 new player piid:24599 uid/pid:10797/21705 type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null session:0
+09-18 02:01:35:507 player piid:24599 new AudioAttributes:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null
+09-18 02:01:35:559 player piid:24599 state:started DeviceId:0
+09-18 02:01:35:628 player piid:24599 state:device DeviceId:4035
+09-18 02:01:36:708 player piid:24599 state:stopped DeviceId:0
+09-18 02:01:36:714 releasing player piid:24599
+09-18 02:01:43:594 player piid:24591 state:stopped DeviceId:0
+09-18 02:01:43:597 releasing player piid:24591
+09-18 02:01:43:635 new player piid:24615 uid/pid:10797/21705 type:android.media.AudioTrack attr:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null session:24505
+09-18 02:01:43:654 player piid:24615 state:started DeviceId:0
+09-18 02:01:43:675 player piid:24615 state:device DeviceId:4035
+09-18 02:01:49:603 player piid:24615 state:stopped DeviceId:0
+09-18 02:01:50:295 new player piid:24623 uid/pid:10797/21705 type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null session:0
+09-18 02:01:50:310 player piid:24623 new AudioAttributes:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null
+09-18 02:01:50:364 player piid:24623 state:started DeviceId:0
+09-18 02:01:50:429 player piid:24623 state:device DeviceId:4035
+09-18 02:01:51:520 player piid:24623 state:stopped DeviceId:0
+09-18 02:01:51:527 releasing player piid:24623
+09-18 02:01:51:661 player piid:24615 state:stopped DeviceId:0
+09-18 02:01:51:661 releasing player piid:24615
+09-18 02:01:51:738 new player piid:24631 uid/pid:10797/21705 type:android.media.AudioTrack attr:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null session:24505
+09-18 02:01:51:740 player piid:24631 state:started DeviceId:0
+09-18 02:01:51:770 player piid:24631 state:device DeviceId:4035
+09-18 02:01:53:453 player piid:24631 state:stopped DeviceId:0
+09-18 02:02:00:618 player piid:24631 state:stopped DeviceId:0
+09-18 02:02:00:619 releasing player piid:24631
+09-18 02:02:00:654 new player piid:24647 uid/pid:10797/21705 type:android.media.AudioTrack attr:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null session:24505
+09-18 02:02:00:673 player piid:24647 state:started DeviceId:0
+09-18 02:02:00:697 player piid:24647 state:device DeviceId:4035
+09-18 02:02:06:624 player piid:24647 state:stopped DeviceId:0
+09-18 02:02:07:467 new player piid:24655 uid/pid:10797/21705 type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null session:0
+09-18 02:02:07:482 player piid:24655 new AudioAttributes:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null
+09-18 02:02:07:528 player piid:24655 state:started DeviceId:0
+09-18 02:02:07:626 player piid:24655 state:device DeviceId:4035
+09-18 02:02:08:888 player piid:24655 state:stopped DeviceId:0
+09-18 02:02:08:894 releasing player piid:24655
+09-18 02:02:09:031 player piid:24647 state:stopped DeviceId:0
+09-18 02:02:09:031 releasing player piid:24647
+09-18 02:02:09:141 new player piid:24663 uid/pid:10797/21705 type:android.media.AudioTrack attr:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null session:24505
+09-18 02:02:09:145 player piid:24663 state:started DeviceId:0
+09-18 02:02:09:167 player piid:24663 state:device DeviceId:4035
+09-18 02:02:10:837 player piid:24663 state:stopped DeviceId:0
+09-18 02:02:11:275 player piid:24663 state:stopped DeviceId:0
+09-18 02:02:11:275 releasing player piid:24663
+09-18 02:02:12:069 new player piid:24671 uid/pid:10797/21705 type:android.media.AudioTrack attr:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null session:24505
+09-18 02:02:12:073 player piid:24671 state:started DeviceId:0
+09-18 02:02:13:967 player piid:24671 state:device DeviceId:2
+09-18 02:02:13:980 player piid:24671 state:device DeviceId:2
+09-18 02:02:14:047 player piid:24671 state:paused DeviceId:0
+09-18 02:02:14:963 new player piid:24679 uid/pid:10797/21705 type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null session:0
+09-18 02:02:14:978 player piid:24679 new AudioAttributes:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null
+09-18 02:02:15:029 player piid:24679 state:started DeviceId:0
+09-18 02:02:15:289 player piid:24671 state:device DeviceId:2
+09-18 02:02:15:296 player piid:24679 state:device DeviceId:4035
+09-18 02:02:15:305 player piid:24679 state:device DeviceId:4035
+09-18 02:02:17:862 player piid:24679 state:stopped DeviceId:0
+09-18 02:02:17:864 releasing player piid:24679
+09-18 02:02:19:998 player piid:24671 state:stopped DeviceId:0
+09-18 02:02:20:000 releasing player piid:24671
+09-18 02:02:20:194 new player piid:24687 uid/pid:10797/21705 type:android.media.AudioTrack attr:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null session:24505
+09-18 02:02:20:199 player piid:24687 state:started DeviceId:0
+09-18 02:02:20:213 player piid:24687 state:device DeviceId:4035
+09-18 02:02:20:980 player piid:24687 state:stopped DeviceId:0
+09-18 02:02:21:718 new player piid:24695 uid/pid:10797/21705 type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null session:0
+09-18 02:02:21:738 player piid:24695 new AudioAttributes:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null
+09-18 02:02:21:790 player piid:24695 state:started DeviceId:0
+09-18 02:02:21:860 player piid:24695 state:device DeviceId:4035
+09-18 02:02:22:929 player piid:24695 state:stopped DeviceId:0
+09-18 02:02:22:936 releasing player piid:24695
+09-18 02:02:23:233 new player piid:24711 uid/pid:10797/21705 type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null session:0
+09-18 02:02:23:247 player piid:24711 new AudioAttributes:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null
+09-18 02:02:23:332 player piid:24711 state:started DeviceId:0
+09-18 02:02:23:453 player piid:24711 state:device DeviceId:4035
+09-18 02:02:28:137 player piid:24711 state:stopped DeviceId:0
+09-18 02:02:28:142 releasing player piid:24711
+09-18 02:02:28:278 new player piid:24727 uid/pid:10252/30432 type:android.media.AudioTrack attr:AudioAttributes: usage=USAGE_NOTIFICATION_EVENT content=CONTENT_TYPE_MUSIC flags=0x800 tags= bundle=null session:24617
+09-18 02:02:28:285 player piid:24727 state:started DeviceId:0
+09-18 02:02:28:304 player piid:24727 state:device DeviceId:4035
+09-18 02:02:28:544 player piid:24727 state:stopped DeviceId:0
+09-18 02:02:28:546 releasing player piid:24727
+    [DeviceInfo: type:0x20 (bt_sco_hs) name:H20 addr:18:71:E8:29:26:9C codec: 0 sensorUuid: null]
+  mModeOwnerPid: 21705
+  mScoAudioState: SCO_STATE_ACTIVE_INTERNAL
+	AudioAttributes: usage=USAGE_VOICE_COMMUNICATION_SIGNALLING content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null forVolume: true stream: STREAM_DTMF(8)
+	AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null forVolume: true stream: STREAM_VOICE_CALL(0)

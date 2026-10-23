@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T06-B01\\C67-L2-T06-B01-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-T06-B01-Q03",
+  "sourceText": "Giơ tay lên: Raise your hands hay Bend your knees?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Giơ tay lên:",
+      "spoken_text": "Giơ tay lên:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Raise your hands",
+      "spoken_text": "Raise your hands",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Bend your knees?",
+      "spoken_text": "Bend your knees?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-1EAADB4EDF83265D339A6761",
+  "text": "Giơ tay lên: Raise your hands hay Bend your knees?",
+  "asset": "assets/audio/CURRICULUM/1eaadb4edf83265d339a6761.vi.v1.mp3",
+  "sha256": "02ef4bcafb08b46a260a11a616b8cf9f6fccc9b6ef87a141eb66d51a138c7287",
+  "durationSeconds": 7.1222
+}

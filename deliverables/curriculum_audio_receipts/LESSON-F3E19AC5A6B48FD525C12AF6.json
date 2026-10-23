@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T01-B01\\C67-L1-T01-B01-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T01-B01-Q07",
+  "sourceText": "Ngôi nhà: House hay Insect?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Ngôi nhà:",
+      "spoken_text": "Ngôi nhà:",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "House",
+      "spoken_text": "House",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Insect?",
+      "spoken_text": "Insect?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-F3E19AC5A6B48FD525C12AF6",
+  "text": "Ngôi nhà: House hay Insect?",
+  "asset": "assets/audio/CURRICULUM/f3e19ac5a6b48fd525c12af6.vi.v1.mp3",
+  "sha256": "6e43ed032eddf7ae3ff92678d4fd2a0271263e283ac7489c7cb4220a28f37f5d",
+  "durationSeconds": 4.018367
+}

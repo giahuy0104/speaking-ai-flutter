@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T09-B02\\C67-L3-T09-B02-T05_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T09-B02-T05_EN",
+  "sourceText": "At the playground.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "At the playground.",
+      "generation_key": "58e6ee1f3d490325"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-A10E55C2D799E94462651D5E",
+  "text": "At the playground.",
+  "asset": "assets/audio/CURRICULUM/a10e55c2d799e94462651d5e.en.v1.mp3",
+  "sha256": "72c9c092a0354d11ca1d82dc62c9c8ae353ed4f2f3119e3578e42cf9e663d84f",
+  "durationSeconds": 2.007075
+}

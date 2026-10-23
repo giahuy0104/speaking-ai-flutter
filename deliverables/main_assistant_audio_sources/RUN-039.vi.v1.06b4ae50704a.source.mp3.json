@@ -1,0 +1,20 @@
+{
+  "id": "RUN-039",
+  "signature": "06b4ae50704ac290bd201f3252d1294fe76850b8855e21f8182b8cba6f2eac3c",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Con muốn học bài số mấy?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:12:23.482Z",
+  "requestId": "O021HEuSnyeieeKZ3ekn",
+  "characterCost": "13",
+  "sourceSha256": "29e566a566df6f73e19c3a293512f81d8889d71e49bf5cc4789949ed7fe6bf2e"
+}

@@ -1,0 +1,83 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\350c22408f0d4fecc7b8007bdd10e66b1a85947db1e0a438da379afa620b17d6.tempo.mp3",
+      "signature": "350c22408f0d4fecc7b8007bdd10e66b1a85947db1e0a438da379afa620b17d6",
+      "request": {
+        "text": "It's a cat",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "8deb8c3dadb21f7427b89216f8bc188629dec130b016b99930d4497335f4003e",
+      "requestId": "mgPExQMor9laiL2Zqe5j",
+      "createdAt": "2026-09-15T23:16:18.310Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\bf7e195461603850e32a1fd5bdca60daac8c237356f9a84c816a4a74ac0e9732.tempo.mp3",
+      "signature": "bf7e195461603850e32a1fd5bdca60daac8c237356f9a84c816a4a74ac0e9732",
+      "request": {
+        "text": "hay",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "587b62310066af72f7481443c9fccef371a1ad2d8d537d3d1e9b16ebd3efc8b4",
+      "requestId": "Y8EyPPYGalhB5eNl9yAL",
+      "createdAt": "2026-09-15T23:15:44.925Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\55da5c70ccabf68da91dcc3cf435eb9c88025c4ab1dd383fa2c3a0fb5d352b7a.tempo.mp3",
+      "signature": "55da5c70ccabf68da91dcc3cf435eb9c88025c4ab1dd383fa2c3a0fb5d352b7a",
+      "request": {
+        "text": "It's a dog?",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "3d61c0d6ebb7e3e3ce7d21c9fed5d42158b5a6f2033c57f0fcfe24fb1813430d",
+      "requestId": "2ippNKkDBz0y89NZXSHx",
+      "createdAt": "2026-09-15T23:16:19.729Z"
+    }
+  ],
+  "id": "LESSON-9B8B1F671FCD1F0C6B469900",
+  "text": "It's a cat hay It's a dog?",
+  "asset": "assets/audio/CURRICULUM/9b8b1f671fcd1f0c6b469900.vi.v1.mp3",
+  "sha256": "56c58731d0ff0aaf8a9150f4e6bfaafc76703211873bd9b6e296ac3114bbfbd9",
+  "durationSeconds": 4.320159,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

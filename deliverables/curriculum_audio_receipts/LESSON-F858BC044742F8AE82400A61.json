@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C810-L1-T03-B02\\C810-L1-T03-B02-T02_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L1-T03-B02-T02_VI",
+  "sourceText": "Mình có thể vẽ.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình có thể vẽ.",
+      "generation_key": "35daec682d277255"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-F858BC044742F8AE82400A61",
+  "text": "Mình có thể vẽ.",
+  "asset": "assets/audio/CURRICULUM/f858bc044742f8ae82400a61.vi.v1.mp3",
+  "sha256": "0eecb2bb6aea2a448454ffadc2d036c7edd4fc0ace277064ed88c59631db46ac",
+  "durationSeconds": 1.412063
+}

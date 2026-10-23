@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T10-B01\\C1112-L3-T10-B01-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T10-B01-Q03",
+  "sourceText": "Dùng ít giấy hơn: Use less paper hay Close the tap?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Dùng ít giấy hơn:",
+      "spoken_text": "Dùng ít giấy hơn:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Use less paper",
+      "spoken_text": "Use less paper",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Close the tap?",
+      "spoken_text": "Close the tap?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-BD71620D8823FB2AE320FC31",
+  "text": "Dùng ít giấy hơn: Use less paper hay Close the tap?",
+  "asset": "assets/audio/CURRICULUM/bd71620d8823fb2ae320fc31.vi.v1.mp3",
+  "sha256": "0c297bb1886e5b24238bc7e38f732ac6b2d578faee8b3fa7fd9d772f03d1dee0",
+  "durationSeconds": 5.449773
+}

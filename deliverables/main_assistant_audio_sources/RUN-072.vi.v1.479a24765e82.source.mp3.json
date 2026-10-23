@@ -1,0 +1,20 @@
+{
+  "id": "RUN-072",
+  "signature": "479a24765e8279d5700a3ef9c34c764387dede642a774cc2f5deb407ae931905",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Đúng rồi!",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:13:47.791Z",
+  "requestId": "uVvPp3cWBHcm3Dx7v9jK",
+  "characterCost": "5",
+  "sourceSha256": "b197a94363312a77036d34594b19235310541e7cb1113b1ceaa91e6dc36e33f2"
+}

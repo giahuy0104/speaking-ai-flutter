@@ -1,0 +1,98 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\4b03caedecda613d41429c2bb36f56bfc0c7d509d2690b40e42e4b31074666ca.tempo.mp3",
+      "signature": "4b03caedecda613d41429c2bb36f56bfc0c7d509d2690b40e42e4b31074666ca",
+      "request": {
+        "text": "Bài này là",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "b09bd957c83cdba18684aba7c42c99530590f6859509d82049803f9e3c55436b",
+      "requestId": "NJm0jgo8lJZBsqbTOryf",
+      "createdAt": "2026-09-15T23:23:00.670Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\2a6e5f13d9b867e4b115f7ee9b03ee86abb824e0b70de09461318d94ea84531e.tempo.mp3",
+      "signature": "2a6e5f13d9b867e4b115f7ee9b03ee86abb824e0b70de09461318d94ea84531e",
+      "request": {
+        "text": "In Class.",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "c58811d0c85b39a13f93c1618cbe4a207b15e4eba866cd989450b68331aa18e1",
+      "requestId": "nBbdG9kn6x9fjTd1cUjm",
+      "createdAt": "2026-09-15T23:25:44.078Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\assets\\audio\\CURRICULUM\\c36781aa03745147514487c1.vi.v1.mp3",
+      "sourceKind": "verified-pack-clip",
+      "text": "Đến giờ vào lớp rồi.",
+      "language": "vi",
+      "sha256": "b7f93ad0941280160b485da31f12f706b8e2aa26c95abca79c7bff51d3e01d39"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\MP3\\static\\DETAIL_TRANSITION.mp3",
+      "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\manifest.json",
+      "packAudioId": "DETAIL_TRANSITION",
+      "sourceText": "Bắt đầu nhé.",
+      "modelId": "eleven_v3",
+      "profiles": {
+        "en": {
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75
+        },
+        "vi": {
+          "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+          "speed": 0.9
+        }
+      },
+      "speedMethod": "FFmpeg atempo applied after synthesis to each segment according to declared AUDIO_PLAN language, preserving pitch",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bắt đầu nhé.",
+          "generation_key": "629f2982441b8193"
+        }
+      ],
+      "sourceSha256": null,
+      "durationSeconds": 1.675034,
+      "sha256": "30121c6cc8eba7c99921818e9c60c4ff325dadc48ca444aec211b767b3f3f246",
+      "bytes": 28047
+    }
+  ],
+  "id": "LESSON-D6060FD0FF4FA640F66C791C",
+  "text": "Bài này là In Class. Đến giờ vào lớp rồi. Bắt đầu nhé.",
+  "asset": "assets/audio/CURRICULUM/d6060fd0ff4fa640f66c791c.vi.v1.mp3",
+  "sha256": "88161dd450f45b02f294edf871095673c319a212e5f99e7d0eb1af6d5e3a7c98",
+  "durationSeconds": 6.755193,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

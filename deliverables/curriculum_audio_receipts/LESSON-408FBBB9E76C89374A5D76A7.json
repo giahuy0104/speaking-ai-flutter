@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T02-B03\\C67-L1-T02-B03-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T02-B03-Q07",
+  "sourceText": "Bạn muốn nói \"Ba cây bút chì\". Three pencils hay Ten crayons?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói \"Ba cây bút chì\".",
+      "spoken_text": "Bạn muốn nói \"Ba cây bút chì\".",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "Three pencils",
+      "spoken_text": "Three pencils",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Ten crayons?",
+      "spoken_text": "Ten crayons?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-408FBBB9E76C89374A5D76A7",
+  "text": "Bạn muốn nói \"Ba cây bút chì\". Three pencils hay Ten crayons?",
+  "asset": "assets/audio/CURRICULUM/408fbbb9e76c89374a5d76a7.vi.v1.mp3",
+  "sha256": "10d0b1c0dac119c8a8ca06f45c421081fd1f0dbd516c193d0535bddaa47d8629",
+  "durationSeconds": 6.857392
+}

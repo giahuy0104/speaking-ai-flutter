@@ -1,0 +1,20 @@
+{
+  "signature": "250d08adafff88ffef4329017a4bacd64e3856b11e097dc294dd753d8a4dff8d",
+  "request": {
+    "text": "Rainy",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "d26a395e9e0edd6a614e0ef86bb8d6e97e74ce2e0cd172bc740b8643e6f44030",
+  "requestId": "Vj7QhS1AKkDhESmjOtic",
+  "createdAt": "2026-09-15T23:16:51.846Z"
+}

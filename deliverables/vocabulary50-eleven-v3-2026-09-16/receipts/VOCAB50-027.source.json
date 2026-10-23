@@ -1,0 +1,22 @@
+{
+  "id": "VOCAB50-027",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Nói lại câu này.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "g0boCAHVcaKMXKClY2Yc",
+  "historyItemId": "DlDjgJRCYsXvv0SvPpJQ",
+  "characterCost": "9",
+  "createdAt": "2026-09-16T03:20:51.860Z",
+  "sourceSha256": "9c54281152f992a2cf485f0bc3aa5dcd76d4ac05e8dd5de6880e965d3555a23d"
+}

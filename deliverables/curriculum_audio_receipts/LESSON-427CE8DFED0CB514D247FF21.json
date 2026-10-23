@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\MP3\\static\\CORE_SPEAK_04.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "CORE_SPEAK_04",
+  "sourceText": "Nói lại câu này nhé.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo applied after synthesis to each segment according to declared AUDIO_PLAN language, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Nói lại câu này nhé.",
+      "generation_key": "fcfb58ded95d64e1"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-427CE8DFED0CB514D247FF21",
+  "text": "Nói lại câu này nhé.",
+  "asset": "assets/audio/CURRICULUM/427ce8dfed0cb514d247ff21.vi.v1.mp3",
+  "sha256": "311ae9da30a89975bca17f80a2e50a263d1c520002cf15d871935ab850463d09",
+  "durationSeconds": 1.412063
+}

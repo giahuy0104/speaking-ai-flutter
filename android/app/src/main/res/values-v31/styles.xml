@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <bool name="companion_device_service_enabled">true</bool>
     <style name="LaunchTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
         <item name="android:windowSplashScreenBackground">#EAF4FF</item>
         <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>

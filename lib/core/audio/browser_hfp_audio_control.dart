@@ -8,7 +8,8 @@ import 'hfp_audio_control.dart';
 /// Web Bluetooth cannot control the Bluetooth Classic HFP profile. The
 /// headset must already be connected in the operating system, after which the
 /// browser may expose its microphone through MediaDevices/getUserMedia.
-class BrowserHfpAudioControl implements HfpAudioControl {
+class BrowserHfpAudioControl
+    implements HfpAudioControl, HfpConnectionAttemptControl {
   BrowserHfpAudioControl({
     required this.enabled,
     required SelectableAudioInputControl audioInput,
@@ -25,6 +26,13 @@ class BrowserHfpAudioControl implements HfpAudioControl {
   );
   bool _disposed = false;
   bool _initialized = false;
+  int _connectionGeneration = 0;
+
+  void _ensureCurrent(int generation) {
+    if (_disposed || generation != _connectionGeneration) {
+      throw const HfpAudioException('Device connection was cancelled.');
+    }
+  }
 
   @override
   bool get usesBrowserAudioInput => true;
@@ -62,7 +70,9 @@ class BrowserHfpAudioControl implements HfpAudioControl {
 
   @override
   Future<List<HfpAudioDevice>> findDevices() async {
+    final generation = ++_connectionGeneration;
     await initialize();
+    _ensureCurrent(generation);
     _requireSupport();
     _setStatus(
       const BluetoothAudioStatus(
@@ -74,13 +84,14 @@ class BrowserHfpAudioControl implements HfpAudioControl {
     try {
       final selectedId = _audioInput.selectedAudioInputDevice?.id;
       final inputs = await _audioInput.listAudioInputDevices();
+      _ensureCurrent(generation);
       final devices =
           inputs
-              .where((device) => isLikelyBrowserHfpLabel(device.displayName))
+              .where((device) => isLikelyBrowserHfpLabel(device.label))
               .map(
                 (device) => HfpAudioDevice(
                   id: device.id,
-                  name: device.displayName,
+                  name: device.label.trim(),
                   isConnected: device.id == selectedId,
                 ),
               )
@@ -93,7 +104,13 @@ class BrowserHfpAudioControl implements HfpAudioControl {
                 b.displayName.toLowerCase(),
               );
             });
-      final selected = _audioInput.selectedAudioInputDevice;
+      var selected = _audioInput.selectedAudioInputDevice;
+      if (selected != null &&
+          !inputs.any((input) => input.id == selected!.id)) {
+        await _audioInput.selectAudioInputDevice(null);
+        _ensureCurrent(generation);
+        selected = null;
+      }
       if (selected != null) {
         _setReady(selected);
       } else {
@@ -109,6 +126,7 @@ class BrowserHfpAudioControl implements HfpAudioControl {
       }
       return devices;
     } catch (error) {
+      _ensureCurrent(generation);
       _setStatus(
         BluetoothAudioStatus(
           phase: BluetoothAudioConnectionPhase.error,
@@ -122,7 +140,9 @@ class BrowserHfpAudioControl implements HfpAudioControl {
 
   @override
   Future<void> connect(HfpAudioDevice device) async {
+    final generation = ++_connectionGeneration;
     await initialize();
+    _ensureCurrent(generation);
     _requireSupport();
     _setStatus(
       BluetoothAudioStatus(
@@ -137,6 +157,7 @@ class BrowserHfpAudioControl implements HfpAudioControl {
       await _audioInput.selectAudioInputDevice(
         SelectableAudioInputDevice(id: device.id, label: device.displayName),
       );
+      _ensureCurrent(generation);
       final selected = _audioInput.selectedAudioInputDevice;
       if (selected == null || selected.id != device.id) {
         throw const HfpAudioException(
@@ -145,6 +166,7 @@ class BrowserHfpAudioControl implements HfpAudioControl {
       }
       _setReady(selected);
     } catch (error) {
+      _ensureCurrent(generation);
       _setStatus(
         BluetoothAudioStatus(
           phase: BluetoothAudioConnectionPhase.error,
@@ -160,6 +182,7 @@ class BrowserHfpAudioControl implements HfpAudioControl {
 
   @override
   Future<void> disconnect() async {
+    _connectionGeneration++;
     await _audioInput.selectAudioInputDevice(null);
     _setStatus(
       const BluetoothAudioStatus(
@@ -168,6 +191,26 @@ class BrowserHfpAudioControl implements HfpAudioControl {
         sampleRate: 16000,
       ),
     );
+  }
+
+  @override
+  Future<void> cancelConnectionAttempt() async {
+    _connectionGeneration++;
+    final input = _audioInput;
+    if (input is AudioInputSelectionCancellation) {
+      (input as AudioInputSelectionCancellation).cancelAudioInputSelection();
+    }
+    final selected = _audioInput.selectedAudioInputDevice;
+    if (selected != null) {
+      _setReady(selected);
+    } else {
+      _setStatus(
+        const BluetoothAudioStatus(
+          phase: BluetoothAudioConnectionPhase.idle,
+          sampleRate: 16000,
+        ),
+      );
+    }
   }
 
   @override
@@ -184,7 +227,7 @@ class BrowserHfpAudioControl implements HfpAudioControl {
       BluetoothAudioStatus(
         phase: BluetoothAudioConnectionPhase.recording,
         deviceId: selected.id,
-        deviceName: selected.displayName,
+        deviceName: selected.label.trim(),
         message: 'Đang ghi âm từ mic Bluetooth do trình duyệt cung cấp.',
         sampleRate: 16000,
       ),
@@ -204,7 +247,7 @@ class BrowserHfpAudioControl implements HfpAudioControl {
       BluetoothAudioStatus(
         phase: BluetoothAudioConnectionPhase.ready,
         deviceId: selected.id,
-        deviceName: selected.displayName,
+        deviceName: selected.label.trim(),
         message: 'Mic Bluetooth đã được chọn cho phiên Web này.',
         sampleRate: 16000,
       ),
@@ -239,6 +282,7 @@ class BrowserHfpAudioControl implements HfpAudioControl {
     if (_disposed) {
       return;
     }
+    _connectionGeneration++;
     await _audioInput.selectAudioInputDevice(null);
     _disposed = true;
     await _statusController.close();
@@ -250,8 +294,9 @@ bool isLikelyBrowserHfpLabel(String label) {
   if (normalized.isEmpty) {
     return false;
   }
-  return RegExp(
-    r'bluetooth|hfp|hands[ -]?free|headset|headphone|earbud|airpods|buds|beats|bose|jabra|freebuds|galaxy buds|pixel buds|sony w[fh]-|qcy|plantronics|poly|innotrik|bt audio|tai nghe|蓝牙|耳机',
-    caseSensitive: false,
-  ).hasMatch(normalized);
+  return isRecognizedHomiMicrophoneName(label) ||
+      RegExp(
+        r'bluetooth|hfp|hands[ -]?free|headset|headphone|earbud|airpods|buds|beats|bose|jabra|freebuds|galaxy buds|pixel buds|sony w[fh]-|qcy|plantronics|poly|innotrik|bt audio|tai nghe|蓝牙|耳机',
+        caseSensitive: false,
+      ).hasMatch(normalized);
 }

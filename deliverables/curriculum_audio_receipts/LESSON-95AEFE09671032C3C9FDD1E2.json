@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L2-T04-B01\\C35-L2-T04-B01-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L2-T04-B01-Q05",
+  "sourceText": "Bạn muốn nói \"Hình tròn\". Circle hay Triangle?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói \"Hình tròn\".",
+      "spoken_text": "Bạn muốn nói \"Hình tròn\".",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Circle",
+      "spoken_text": "Circle",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Triangle?",
+      "spoken_text": "Triangle?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-95AEFE09671032C3C9FDD1E2",
+  "text": "Bạn muốn nói \"Hình tròn\". Circle hay Triangle?",
+  "asset": "assets/audio/CURRICULUM/95aefe09671032c3c9fdd1e2.vi.v1.mp3",
+  "sha256": "5b21feeca025eca4c03461d0eca07dcd9a2add23aaa76675ab09f48d87bb4c5e",
+  "durationSeconds": 5.426054
+}

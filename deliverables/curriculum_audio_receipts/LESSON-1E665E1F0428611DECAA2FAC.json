@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T04-B02\\C67-L2-T04-B02-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-T04-B02-Q08",
+  "sourceText": "Bạn muốn nói 'Mình thích táo.' Hoàn thành câu: I... don't like bananas hay like apples?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói 'Mình thích táo.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Mình thích táo.' Hoàn thành câu:",
+      "input_index": 46
+    },
+    {
+      "language": "en",
+      "text": "I... don't like bananas",
+      "spoken_text": "I... don't like bananas",
+      "input_index": 47
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 48
+    },
+    {
+      "language": "en",
+      "text": "like apples?",
+      "spoken_text": "like apples?",
+      "input_index": 49
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-1E665E1F0428611DECAA2FAC",
+  "text": "Bạn muốn nói 'Mình thích táo.' Hoàn thành câu: I... don't like bananas hay like apples?",
+  "asset": "assets/audio/CURRICULUM/1e665e1f0428611decaa2fac.vi.v1.mp3",
+  "sha256": "c2efa3191d4a81b0b08aaaad7bc86df0c2224c62e47c1ea5df9f29bdeff5f8a6",
+  "durationSeconds": 9.679342
+}

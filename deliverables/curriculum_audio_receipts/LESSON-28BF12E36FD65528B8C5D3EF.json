@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T10-B02\\C810-L3-T10-B02-T05_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T10-B02-T05_EN",
+  "sourceText": "Go by car.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Go by car.",
+      "generation_key": "521781b605fc3338"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-28BF12E36FD65528B8C5D3EF",
+  "text": "Go by car.",
+  "asset": "assets/audio/CURRICULUM/28bf12e36fd65528b8c5d3ef.en.v1.mp3",
+  "sha256": "8168d35ad9cb715a1359d6c6003f069619f979c1f5d08da2c893802fc0b32a00",
+  "durationSeconds": 2.247982
+}

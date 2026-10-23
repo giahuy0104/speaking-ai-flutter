@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T07-B01\\C1112-L3-T07-B01-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T07-B01-Q03",
+  "sourceText": "Lúc ba giờ: At three hay At the park?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Lúc ba giờ:",
+      "spoken_text": "Lúc ba giờ:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "At three",
+      "spoken_text": "At three",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "At the park?",
+      "spoken_text": "At the park?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-FF1988B5F63E83399BC5AED5",
+  "text": "Lúc ba giờ: At three hay At the park?",
+  "asset": "assets/audio/CURRICULUM/ff1988b5f63e83399bc5aed5.vi.v1.mp3",
+  "sha256": "0162d147b89c34abd581abb21c6524f874e8af1c4ea7b8b94b4a08cfc6d3fd7c",
+  "durationSeconds": 4.060431
+}

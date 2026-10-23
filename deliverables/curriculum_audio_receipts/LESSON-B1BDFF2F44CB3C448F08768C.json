@@ -1,0 +1,33 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T01-B01\\C67-L1-T01-B01-Q06_CHOICE_2_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T01-B01-Q06",
+  "sourceText": "House.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "en",
+      "text": "House.",
+      "spoken_text": "House.",
+      "input_index": 35
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-B1BDFF2F44CB3C448F08768C",
+  "text": "House.",
+  "asset": "assets/audio/CURRICULUM/b1bdff2f44cb3c448f08768c.en.v1.mp3",
+  "sha256": "7a099436cd9084c0484c68b3bf40f7e8ea02e45555dbea0f4a38dabc6fe0662f",
+  "durationSeconds": 1.17068
+}

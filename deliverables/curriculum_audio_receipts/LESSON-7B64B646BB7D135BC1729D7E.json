@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T07-B02\\C35-L3-T07-B02-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T07-B02-Q06",
+  "sourceText": "Bạn muốn nói \"Cho mình táo nhé\". Rice, please hay Apple, please?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói \"Cho mình táo nhé\".",
+      "spoken_text": "Bạn muốn nói \"Cho mình táo nhé\".",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Rice, please",
+      "spoken_text": "Rice, please",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "Apple, please?",
+      "spoken_text": "Apple, please?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-7B64B646BB7D135BC1729D7E",
+  "text": "Bạn muốn nói \"Cho mình táo nhé\". Rice, please hay Apple, please?",
+  "asset": "assets/audio/CURRICULUM/7b64b646bb7d135bc1729d7e.vi.v1.mp3",
+  "sha256": "d45027da22a2e3a110fbc415f7b7362559834b2cda08ec352adc84f93baadd15",
+  "durationSeconds": 6.073129
+}

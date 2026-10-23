@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T08-B01\\C67-L3-T08-B01-T02_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T08-B01-T02_VI",
+  "sourceText": "Chơi cùng mình nhé.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Chơi cùng mình nhé.",
+      "generation_key": "fdef0417fbdacd17"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-F2EB09186AF858AD9A7D127C",
+  "text": "Chơi cùng mình nhé.",
+  "asset": "assets/audio/CURRICULUM/f2eb09186af858ad9a7d127c.vi.v1.mp3",
+  "sha256": "be4e80fd7fcf5dff424bcb9f8a329588bac4a5d7385c3f127ca6dae1915c9fd1",
+  "durationSeconds": 1.326735
+}

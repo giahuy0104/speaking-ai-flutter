@@ -1,0 +1,41 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\052b1251a508129d61395874c74142dff1fce38ac6b1216acd266fc0362c8c7e.tempo.mp3",
+      "signature": "052b1251a508129d61395874c74142dff1fce38ac6b1216acd266fc0362c8c7e",
+      "request": {
+        "text": "Mình luyện cách sắp xếp thời gian.",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "f25f8b7f350734a4a447a83d8bf77db423299bffe194e94710349cffa35bf1b2",
+      "requestId": "v3GbTQRerKusnVdAAyJ2",
+      "createdAt": "2026-09-15T23:20:33.764Z"
+    }
+  ],
+  "id": "LESSON-913B99219E6C383750B032AD",
+  "text": "Mình luyện cách sắp xếp thời gian.",
+  "asset": "assets/audio/CURRICULUM/913b99219e6c383750b032ad.vi.v1.mp3",
+  "sha256": "7225a82124926aeed20509fa249a84b2d881ff303b3c9c5a390ab4a139467fc1",
+  "durationSeconds": 2.292562,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

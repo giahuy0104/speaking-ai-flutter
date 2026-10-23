@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T10\\C35-L3-M12_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-M12",
+  "sourceText": "Ăn: Eat hay Play?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Ăn:",
+      "text": "Ăn:",
+      "spoken_text": "Ăn:",
+      "input_index": 66
+    },
+    {
+      "language": "en",
+      "source_text": "Eat",
+      "text": "Eat",
+      "spoken_text": "Eat",
+      "input_index": 67
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 68
+    },
+    {
+      "language": "en",
+      "source_text": "Play?",
+      "text": "Play?",
+      "spoken_text": "Play?",
+      "input_index": 69
+    }
+  ],
+  "sourceSha256": "29b6c2bcfd866e8182841fbb95e72606f37805ada0e9bd0b68e8f0b11384e9e6",
+  "id": "LESSON-E79EBFE0BB5817E02379AA74",
+  "text": "Ăn: Eat hay Play?",
+  "asset": "assets/audio/CURRICULUM/e79ebfe0bb5817e02379aa74.vi.v1.mp3",
+  "sha256": "29b6c2bcfd866e8182841fbb95e72606f37805ada0e9bd0b68e8f0b11384e9e6",
+  "durationSeconds": 2.808481
+}

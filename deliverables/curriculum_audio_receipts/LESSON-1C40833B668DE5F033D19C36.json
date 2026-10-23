@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T10-B02\\C1315-L3-T10-B02-Q01_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T10-B02-Q01",
+  "sourceText": "Bước tiếp theo của bạn là gì: What's your next step? hay I'll start this week?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bước tiếp theo của bạn là gì:",
+      "spoken_text": "Bước tiếp theo của bạn là gì:",
+      "input_index": 0
+    },
+    {
+      "language": "en",
+      "text": "What's your next step?",
+      "spoken_text": "What's your next step?",
+      "input_index": 1
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 2
+    },
+    {
+      "language": "en",
+      "text": "I'll start this week?",
+      "spoken_text": "I'll start this week?",
+      "input_index": 3
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-1C40833B668DE5F033D19C36",
+  "text": "Bước tiếp theo của bạn là gì: What's your next step? hay I'll start this week?",
+  "asset": "assets/audio/CURRICULUM/1c40833b668de5f033d19c36.vi.v1.mp3",
+  "sha256": "50e00033eef4af332f686da06ff98c3c41fce397e57c4af8b65dbbaf1f5454f8",
+  "durationSeconds": 6.069841
+}

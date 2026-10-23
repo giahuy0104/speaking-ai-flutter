@@ -1,0 +1,83 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\1889d943fceb38d9d85907a7998b12ef217c36707dc243556702d8dedc6e71d6.tempo.mp3",
+      "signature": "1889d943fceb38d9d85907a7998b12ef217c36707dc243556702d8dedc6e71d6",
+      "request": {
+        "text": "Mình học lại bài",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "3d2375d09e42f0c6ef949b58ea6463ebaa417947d36474a8aa89203156f37f3f",
+      "requestId": "2Kf3OOkeDTH7UaYt6jz4",
+      "createdAt": "2026-09-15T23:22:34.285Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\efda32b97e95cd2936b47ca0c378d927c7f7175c10be996f9c6ae657981e8878.tempo.mp3",
+      "signature": "efda32b97e95cd2936b47ca0c378d927c7f7175c10be996f9c6ae657981e8878",
+      "request": {
+        "text": "J to R Words",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "7b631d1c37f4743b28bc9d2dc83361ff701eab44053ca83a067cf3a381c24108",
+      "requestId": "kF9DuxIjuK1HWghPN62H",
+      "createdAt": "2026-09-15T23:24:51.354Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\f72caefaa52b9ec3d291f160d78b360185e13807d2eedb801f47a382b8e85780.tempo.mp3",
+      "signature": "f72caefaa52b9ec3d291f160d78b360185e13807d2eedb801f47a382b8e85780",
+      "request": {
+        "text": "nhé.",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "f8a90b46149d734b590160ab12314af597dc9eb203f9f411637ff57d12e7a8d6",
+      "requestId": "1gbfQaGo6f7yeN8SvxDC",
+      "createdAt": "2026-09-15T23:22:32.853Z"
+    }
+  ],
+  "id": "LESSON-50F200D286CB715857C5B341",
+  "text": "Mình học lại bài J to R Words nhé.",
+  "asset": "assets/audio/CURRICULUM/50f200d286cb715857c5b341.vi.v1.mp3",
+  "sha256": "9dc45422df6aedc301659610a91cd716c2881e484074a1533b04278d1e60c6cd",
+  "durationSeconds": 3.927642,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

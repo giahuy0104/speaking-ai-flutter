@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\MP3\\C1112-L1-T02\\C1112-L1-T02-B02_MICRO_OBJECTIVE.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\manifest.json",
+  "packAudioId": "C1112-L1-T02-B02",
+  "sourceText": "Mình luyện thói quen học tập hiệu quả.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "VI speech atempo 0.9 after synthesis, preserving pitch; sound effects retain original timing",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình luyện thói quen học tập hiệu quả.",
+      "generation_key": "15bacacc7bbfeea1"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-D56D66F399C4F8AAF866D15E",
+  "text": "Mình luyện thói quen học tập hiệu quả.",
+  "asset": "assets/audio/CURRICULUM/d56d66f399c4f8aaf866d15e.vi.v1.mp3",
+  "sha256": "5a994dc9b3a500f49b7721d1fb2fcb3b8ff373f9d39f113e14b9ab380b0ea178",
+  "durationSeconds": 2.573061
+}

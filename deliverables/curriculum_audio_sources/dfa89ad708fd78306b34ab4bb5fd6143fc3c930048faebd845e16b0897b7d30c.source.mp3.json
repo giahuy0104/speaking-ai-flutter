@@ -1,0 +1,20 @@
+{
+  "signature": "dfa89ad708fd78306b34ab4bb5fd6143fc3c930048faebd845e16b0897b7d30c",
+  "request": {
+    "text": "Good At.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "51194c71d1799a8f96880c85f5be95f46a90d9d547618e40113c1e0a036d3871",
+  "requestId": "8vRL7rYmltHrhA1Y8Q1v",
+  "createdAt": "2026-09-15T23:28:03.445Z"
+}

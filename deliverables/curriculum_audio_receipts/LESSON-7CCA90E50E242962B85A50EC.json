@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L1-T03-B02\\C810-L1-T03-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L1-T03-B02-Q04",
+  "sourceText": "Mình có thể đi xe đạp: I can play chess hay I can ride a bike?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình có thể đi xe đạp:",
+      "spoken_text": "Mình có thể đi xe đạp:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "I can play chess",
+      "spoken_text": "I can play chess",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "I can ride a bike?",
+      "spoken_text": "I can ride a bike?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-7CCA90E50E242962B85A50EC",
+  "text": "Mình có thể đi xe đạp: I can play chess hay I can ride a bike?",
+  "asset": "assets/audio/CURRICULUM/7cca90e50e242962b85a50ec.vi.v1.mp3",
+  "sha256": "35a05007f28ee593d6c8c64127dd009053262e3dd0d66c3dc9c16708c999da21",
+  "durationSeconds": 5.788367
+}

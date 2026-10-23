@@ -1,0 +1,20 @@
+{
+  "signature": "268d9926ba4fc6a407cb69a7210de286d85fa50673652ec939c3252591086cd0",
+  "request": {
+    "text": "Bài này bạn còn 4 Ngôi sao chưa chinh phục.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+    "speed": 0.9
+  },
+  "sha256": "94c9eeb0dd6416dce915f6ef434f5d863f3df7f435448a0c47328d214bd6c449",
+  "requestId": "2Re94gEprMQjR9ZSLx0c",
+  "createdAt": "2026-09-15T23:27:40.370Z"
+}

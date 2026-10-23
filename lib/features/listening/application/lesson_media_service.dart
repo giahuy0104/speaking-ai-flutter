@@ -1,9 +1,15 @@
 import 'dart:async';
 
 import 'package:audio_session/audio_session.dart';
+import 'package:flutter/foundation.dart';
 import 'package:record/record.dart';
 
+import '../../../core/audio/audio_input.dart';
+import '../../../core/audio/audio_gain.dart';
 import '../../../core/audio/audio_playback_service.dart';
+import '../../../core/audio/audio_turn_coordinator.dart';
+import '../../../core/audio/hfp_audio_control.dart';
+import '../../../core/audio/hfp_audio_route_coordinator.dart';
 import '../data/lesson_recording_history_store.dart';
 import 'lesson_recording_storage.dart';
 
@@ -14,34 +20,130 @@ class LessonRecording {
   final Duration duration;
 }
 
+/// Selects the physical output used for one lesson clip.
+///
+/// Guided lesson playback normally stays on [selectedLessonDevice] for the
+/// whole prompt/sample/capture turn. [phoneSpeaker] remains available only for
+/// callers that explicitly need to leave the selected lesson route.
+enum LessonPlaybackRoute { selectedLessonDevice, phoneSpeaker }
+
+/// How long a clip may stay paused before it is resumed once. just_audio
+/// pauses on becoming-noisy (and on iOS route-loss) without ever resuming, and
+/// a completion-aware clip that is paused never reports its end.
+const Duration _pausedPlaybackResumeDelay = Duration(seconds: 1);
+const Duration _iosPlaybackEndGracePeriod = Duration(milliseconds: 300);
+const Duration _iosPlaybackEndPositionMargin = Duration(milliseconds: 20);
+
+/// A pause this close to the end is left to report completion by itself.
+const Duration _pausedPlaybackEndMargin = Duration(milliseconds: 500);
+
 class LessonMediaService {
   LessonMediaService({
     AudioRecorder? recorder,
     AudioPlaybackService? playbackService,
+    HfpAudioControl? hfpAudioControl,
+    AudioTurnCoordinator? audioTurnCoordinator,
+    AudioTurnOwner audioTurnOwner = AudioTurnOwner.listeningLesson,
     LessonRecordingHistoryStore? historyStore,
+    Stream<AudioInterruptionEvent>? audioInterruptionEvents,
   }) : _recorder = recorder,
        _playbackService = playbackService,
-       historyStore = historyStore ?? const LessonRecordingHistoryStore();
+       _hfpAudioControl = hfpAudioControl,
+       _audioTurnCoordinator = audioTurnCoordinator,
+       _audioTurnOwner = audioTurnOwner,
+       _audioInterruptionEvents = audioInterruptionEvents,
+       historyStore = historyStore ?? const LessonRecordingHistoryStore() {
+    if (!kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS)) {
+      _hfpStatusSubscription = _hfpAudioControl?.statusChanges.listen((status) {
+        if (_activeHfpRouteToken == null ||
+            status.routeActive ||
+            status.phase == BluetoothAudioConnectionPhase.connecting ||
+            status.phase == BluetoothAudioConnectionPhase.discovering) {
+          return;
+        }
+        _playbackRequestGeneration += 1;
+        final completion = _activePlaybackCompletion;
+        if (completion != null && !completion.isCompleted) {
+          completion.completeError(
+            const HfpAudioException(
+              'Kết nối âm thanh HM-D001 bị gián đoạn. Bạn bấm nghe lại nhé.',
+            ),
+          );
+        }
+        // Stop the current clip before either phone can continue it on the
+        // built-in speaker after losing the selected H20 route.
+        unawaited(_playbackService?.stop().catchError((Object _) {}));
+        if (_recordingStartedAt != null) {
+          const failure = LessonMediaException(
+            'Mic HM-D001 bị ngắt kết nối khi đang ghi âm. Bạn kết nối lại HM-D001 rồi ghi lại nhé.',
+          );
+          final context = _activeContext;
+          if (context != null) {
+            unawaited(_cancelRecordingAfterRouteLoss(failure, context));
+          }
+        }
+      });
+    }
+  }
 
   final LessonRecordingHistoryStore historyStore;
+  final Map<String, Future<String>> _preparedRecordingPaths = {};
 
   AudioRecorder? _recorder;
   AudioPlaybackService? _playbackService;
+  final HfpAudioControl? _hfpAudioControl;
+  final AudioTurnCoordinator? _audioTurnCoordinator;
+  final AudioTurnOwner _audioTurnOwner;
+  final Stream<AudioInterruptionEvent>? _audioInterruptionEvents;
   DateTime? _recordingStartedAt;
   String? _activePath;
   _ActiveLessonRecording? _activeContext;
   Completer<void>? _activePlaybackCompletion;
   Future<void> _recordingOperation = Future<void>.value();
+  Object? _activeHfpRouteToken;
+  StreamSubscription<BluetoothAudioStatus>? _hfpStatusSubscription;
+  int _playbackRequestGeneration = 0;
+  LessonMediaException? _recordingRouteFailure;
+  final StreamController<LessonMediaException> _recordingErrors =
+      StreamController<LessonMediaException>.broadcast();
+
+  /// Unexpected capture failures that must also clear a screen's recording UI.
+  Stream<LessonMediaException> get recordingErrors => _recordingErrors.stream;
 
   AudioRecorder get _activeRecorder => _recorder ??= AudioRecorder();
 
+  String? get activeRecordingPath => _activePath;
+
+  /// Local volume samples for endpoint detection while a lesson is recording.
+  /// Observing this stream does not start another recorder or change the
+  /// selected phone/HFP input.
+  Stream<double> get recordingAmplitudeDbfs {
+    // Test doubles and callers that do not own an active recorder should not
+    // start the record plugin's periodic amplitude monitor.
+    if (_recordingStartedAt == null) return const Stream<double>.empty();
+    return _activeRecorder
+        .onAmplitudeChanged(const Duration(milliseconds: 90))
+        .map((amplitude) => amplitude.current);
+  }
+
   AudioPlaybackService get _activePlayback =>
-      _playbackService ??= JustAudioPlaybackService();
+      _playbackService ??= JustAudioPlaybackService(
+        audioTurnCoordinator: _audioTurnCoordinator,
+        audioTurnOwner: _audioTurnOwner,
+        manageIosAudioSession: true,
+      );
+
+  bool get _shouldUseSelectedHfp =>
+      shouldUseSelectedLessonHfp(_hfpAudioControl?.status);
 
   Future<String> recordingPath({
     required String lessonId,
     required int sentenceNumber,
-  }) => createLessonRecordingPath(lessonId, sentenceNumber);
+    String? extension,
+  }) =>
+      createLessonRecordingPath(lessonId, sentenceNumber, extension: extension);
 
   Future<String?> existingRecording({
     required String lessonId,
@@ -65,8 +167,82 @@ class LessonMediaService {
     }
   }
 
-  Future<void> play(Uri uri) async {
+  Future<String?> preserveStarRecording(String path) async {
+    try {
+      return await retainStarRecording(path);
+    } catch (error) {
+      debugPrint('STAR_RECORDING_RETENTION_FAILED error=$error');
+      return null;
+    }
+  }
+
+  Future<String?> availableRecordingPath(String path) =>
+      findLessonRecording(path);
+
+  Future<void> play(
+    Uri uri, {
+    LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = androidSpeechBoostDb,
+    bool fixedPlaybackGain = false,
+  }) async {
+    final generation = ++_playbackRequestGeneration;
+    await _preparePlaybackRoute(route);
+    _requireCurrentPlayback(generation);
+    // Route/session preparation can rebuild Android's playback chain. Apply
+    // gain afterwards so every clip starts with the requested level.
+    await _setPlaybackGain(playbackGainDb, fixed: fixedPlaybackGain);
+    _requireCurrentPlayback(generation);
     await _activePlayback.play(uri);
+  }
+
+  Stream<AudioInterruptionEvent> get _interruptions =>
+      _audioInterruptionEvents ??
+      Stream.fromFuture(
+        AudioSession.instance,
+      ).asyncExpand((session) => session.interruptionEventStream);
+
+  bool _isNearPlaybackEnd(AudioPlaybackService playback) {
+    if (playback is! ProgressAwareAudioPlaybackService) return false;
+    final progress = playback as ProgressAwareAudioPlaybackService;
+    final duration = progress.duration;
+    return duration != null &&
+        duration - progress.position < _pausedPlaybackEndMargin;
+  }
+
+  /// BLE/HFP can confirm the selected route a fraction after a clip is
+  /// requested. Match the challenge prompts' single short retry so a take
+  /// replay is not dropped by that transition, unless playback was stopped.
+  Future<void> _preparePlaybackRouteWithRetry(
+    LessonPlaybackRoute route,
+    int generation,
+  ) async {
+    try {
+      await _preparePlaybackRoute(route);
+    } on HfpAudioException {
+      _requireCurrentPlayback(generation);
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+      _requireCurrentPlayback(generation);
+      await _preparePlaybackRoute(route);
+    }
+  }
+
+  void _requireCurrentPlayback(int generation) {
+    if (generation != _playbackRequestGeneration) {
+      throw const LessonMediaException('Lượt phát âm thanh đã dừng.');
+    }
+  }
+
+  Future<void> _setPlaybackGain(double gainDb, {required bool fixed}) async {
+    final playback = _activePlayback;
+    if (fixed && playback is FixedPlaybackGainAwareAudioPlaybackService) {
+      await (playback as FixedPlaybackGainAwareAudioPlaybackService)
+          .setFixedPlaybackGainDb(gainDb);
+      return;
+    }
+    if (playback is PlaybackGainAwareAudioPlaybackService) {
+      await (playback as PlaybackGainAwareAudioPlaybackService)
+          .setPlaybackGainDb(gainDb);
+    }
   }
 
   Stream<bool> get playbackPlayingStream => _activePlayback.playingStream;
@@ -99,6 +275,16 @@ class LessonMediaService {
         : null;
   }
 
+  /// Rewinds the currently loaded long-form source without replacing it.
+  /// Song flows use this for the explicit "nghe lại" command; ordinary lesson
+  /// prompts continue to use their existing source lifecycle.
+  Future<bool> rewindPlayback() async {
+    final playback = _activePlayback;
+    if (playback is! SeekableAudioPlaybackService) return false;
+    await (playback as SeekableAudioPlaybackService).seek(Duration.zero);
+    return true;
+  }
+
   Future<void> preload(Uri uri) => _activePlayback.preload(uri);
 
   Future<void> unlockPlaybackForUserGesture() async {
@@ -112,27 +298,86 @@ class LessonMediaService {
   Future<void> playToCompletion(
     Uri uri, {
     Duration timeout = const Duration(seconds: 45),
+    LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = androidSpeechBoostDb,
+    bool fixedPlaybackGain = false,
   }) async {
+    final generation = ++_playbackRequestGeneration;
     final playback = _activePlayback;
+    await _preparePlaybackRouteWithRetry(route, generation);
+    _requireCurrentPlayback(generation);
+    // Keep authored clips, prompts, and child replays deterministic even after
+    // Android switches between media and HFP communication attributes.
+    await _setPlaybackGain(playbackGainDb, fixed: fixedPlaybackGain);
+    _requireCurrentPlayback(generation);
     final completed = Completer<void>();
+    // A native route-loss event can arrive while play() is still starting.
+    // Observe errors immediately; the awaited future below still propagates
+    // them to the guided sequence instead of reporting successful playback.
+    completed.future.ignore();
     final previousCompletion = _activePlaybackCompletion;
     if (previousCompletion != null && !previousCompletion.isCompleted) {
       previousCompletion.complete();
     }
     _activePlaybackCompletion = completed;
     var started = false;
+    var playStarted = false;
+    var playbackIsPlaying = false;
+    var resumed = false;
+    var interrupted = false;
+    Timer? resumeTimer;
+    Timer? endPositionTimer;
+    DateTime? endPositionObservedAt;
+    var observedProgressWhilePlaying = false;
     final CompletionAwareAudioPlaybackService? completionPlayback =
         playback is CompletionAwareAudioPlaybackService
         ? playback as CompletionAwareAudioPlaybackService
         : null;
+    final PrearmedCompletionAudioPlaybackService? prearmedPlayback =
+        playback is PrearmedCompletionAudioPlaybackService
+        ? playback as PrearmedCompletionAudioPlaybackService
+        : null;
     final subscription = playback.playingStream.listen(
       (playing) {
+        playbackIsPlaying = playing;
         if (playing) {
           started = true;
+          resumeTimer?.cancel();
         } else if (completionPlayback == null &&
             started &&
             !completed.isCompleted) {
           completed.complete();
+        } else if (completionPlayback != null &&
+            started &&
+            !resumed &&
+            !completed.isCompleted) {
+          // The end of a clip reports completion first, so only a pause that
+          // outlives the delay is a stalled clip.
+          resumeTimer?.cancel();
+          resumeTimer = Timer(_pausedPlaybackResumeDelay, () {
+            // just_audio resumes an interruption pause by itself, and a play()
+            // during the interruption would cancel that automatic resume.
+            if (!playStarted ||
+                interrupted ||
+                completed.isCompleted ||
+                generation != _playbackRequestGeneration ||
+                _isNearPlaybackEnd(playback)) {
+              return;
+            }
+            resumed = true;
+            unawaited(
+              playback
+                  .play(uri)
+                  .then<void>(
+                    (_) {},
+                    onError: (Object error, StackTrace stackTrace) {
+                      if (!completed.isCompleted) {
+                        completed.completeError(error, stackTrace);
+                      }
+                    },
+                  ),
+            );
+          });
         }
       },
       onError: (Object error, StackTrace stackTrace) {
@@ -141,30 +386,111 @@ class LessonMediaService {
         }
       },
     );
+    final interruptionSubscription = _interruptions.listen(
+      (event) =>
+          interrupted = event.begin && event.type != AudioInterruptionType.duck,
+      onError: (Object _) {},
+    );
+    StreamSubscription<void> listenForCompletion(Stream<void> stream) =>
+        stream.listen(
+          (_) {
+            if (!completed.isCompleted) {
+              completed.complete();
+            }
+          },
+          onError: (Object error, StackTrace stackTrace) {
+            if (!completed.isCompleted) {
+              completed.completeError(error, stackTrace);
+            }
+          },
+        );
     StreamSubscription<void>? completionSubscription;
     try {
+      // The source-scoped stream ignores completion from the previous clip.
+      // Arm it before play(), which may return after a very short clip ends.
+      if (!kIsWeb && prearmedPlayback != null) {
+        completionSubscription = listenForCompletion(
+          prearmedPlayback.completionStreamForNextPlay(uri),
+        );
+      }
       await playback.play(uri);
       started = true;
-      // Subscribe only after this source has actually started. just_audio's
-      // state stream can replay ProcessingState.completed from the previous
-      // source when a listener is attached, which must not finish the new
-      // lesson intro early.
-      completionSubscription = completionPlayback?.completionStream.listen(
-        (_) {
-          if (!completed.isCompleted) {
-            completed.complete();
+      playStarted = true;
+      if (!kIsWeb &&
+          defaultTargetPlatform == TargetPlatform.iOS &&
+          prearmedPlayback != null &&
+          playback is ProgressAwareAudioPlaybackService) {
+        final progress = playback as ProgressAwareAudioPlaybackService;
+        // On iOS, AVPlayer can reach the file's end without just_audio
+        // publishing ProcessingState.completed. Confirm a stable end position
+        // for this request so a finished take does not time out after playing.
+        endPositionTimer = Timer.periodic(const Duration(milliseconds: 100), (
+          _,
+        ) {
+          if (completed.isCompleted ||
+              generation != _playbackRequestGeneration ||
+              !identical(_activePlaybackCompletion, completed) ||
+              interrupted ||
+              (_shouldUseSelectedHfp &&
+                  _hfpAudioControl?.status.routeActive != true)) {
+            endPositionObservedAt = null;
+            return;
           }
-        },
-        onError: (Object error, StackTrace stackTrace) {
-          if (!completed.isCompleted) {
-            completed.completeError(error, stackTrace);
+          final duration = progress.duration;
+          final position = progress.position;
+          if (playbackIsPlaying &&
+              duration != null &&
+              duration > Duration.zero &&
+              position > Duration.zero &&
+              position < duration - _iosPlaybackEndPositionMargin) {
+            observedProgressWhilePlaying = true;
           }
-        },
-      );
+          final atCurrentSourceEnd =
+              observedProgressWhilePlaying &&
+              duration != null &&
+              duration > Duration.zero &&
+              position >= duration - _iosPlaybackEndPositionMargin;
+          if (!atCurrentSourceEnd) {
+            endPositionObservedAt = null;
+            return;
+          }
+          endPositionObservedAt ??= DateTime.now();
+          if (DateTime.now().difference(endPositionObservedAt!) <
+              _iosPlaybackEndGracePeriod) {
+            return;
+          }
+          debugPrint(
+            'HOMI iOS lesson playback completion inferred at source end: '
+            'position=$position duration=$duration',
+          );
+          completed.complete();
+        });
+      }
+      // Other completion-aware implementations may replay a stale completion
+      // on subscription, so retain their post-start subscription behavior.
+      completionSubscription ??= completionPlayback == null
+          ? null
+          : listenForCompletion(completionPlayback.completionStream);
       await completed.future.timeout(timeout);
+    } on TimeoutException {
+      final progress = playback is ProgressAwareAudioPlaybackService
+          ? playback as ProgressAwareAudioPlaybackService
+          : null;
+      debugPrint(
+        'HOMI lesson playback timeout: route=${route.name} '
+        'started=$started playStarted=$playStarted '
+        'playing=$playbackIsPlaying interrupted=$interrupted '
+        'position=${progress?.position} duration=${progress?.duration} '
+        'hfpPhase=${_hfpAudioControl?.status.phase.name} '
+        'hfpActive=${_hfpAudioControl?.status.routeActive}',
+      );
+      rethrow;
     } finally {
+      resumeTimer?.cancel();
+      endPositionTimer?.cancel();
       await Future.wait<void>(<Future<void>>[
         subscription.cancel(),
+        interruptionSubscription.cancel(),
         if (completionSubscription != null) completionSubscription.cancel(),
       ]);
       if (identical(_activePlaybackCompletion, completed)) {
@@ -174,11 +500,71 @@ class LessonMediaService {
   }
 
   Future<void> stopPlayback() async {
+    _playbackRequestGeneration += 1;
+    // A playback-only stop must not switch a live Android microphone away
+    // from H20. During navigation, cancelRecording releases the route after
+    // the recorder has restored its own AudioManager state.
+    final androidCaptureActive =
+        !kIsWeb &&
+        defaultTargetPlatform == TargetPlatform.android &&
+        _recordingStartedAt != null;
+    await _stopPlayback(releaseAudioRoute: !androidCaptureActive);
+  }
+
+  /// Explicitly leaves a lesson-owned HFP route and prepares phone output.
+  Future<void> preparePhoneSpeakerOutput() =>
+      _preparePlaybackRoute(LessonPlaybackRoute.phoneSpeaker);
+
+  /// Prepares and verifies the selected H20 output before native TTS supplies
+  /// lesson guidance. When H20 is selected this is deliberately fail-closed:
+  /// a route negotiation error must stay visible to the caller instead of
+  /// silently moving child-facing speech to the phone speaker.
+  Future<void> prepareSelectedLessonOutput() =>
+      _preparePlaybackRoute(LessonPlaybackRoute.selectedLessonDevice);
+
+  /// Transfers the live HFP lease to Apple Speech after its native audio engine
+  /// has started successfully. The native recognizer now owns and will release
+  /// the same route, so this service must not retain a stale ownership flag.
+  void handoffSelectedLessonOutputToNativeCapture() {
+    final control = _hfpAudioControl;
+    final leaseControl = control is HfpAudioRouteLeaseControl
+        ? control as HfpAudioRouteLeaseControl
+        : null;
+    if (leaseControl != null) {
+      unawaited(leaseControl.handoffAudioRoute());
+    }
+    _activeHfpRouteToken = null;
+  }
+
+  /// After an HM-D001 route blip has stopped a clip, waits briefly for the
+  /// selected HFP route to come back so the caller can replay it there.
+  Future<bool> waitForSelectedHfpRoute({
+    Duration timeout = const Duration(milliseconds: 1500),
+  }) async {
+    final control = _hfpAudioControl;
+    if (control == null) return false;
+    if (control.status.routeActive) return true;
+    try {
+      await control.statusChanges
+          .firstWhere((status) => status.routeActive)
+          .timeout(timeout);
+      return true;
+    } on TimeoutException {
+      return false;
+    } on StateError {
+      return false;
+    }
+  }
+
+  Future<void> _stopPlayback({required bool releaseAudioRoute}) async {
     final completion = _activePlaybackCompletion;
     if (completion != null && !completion.isCompleted) {
       completion.complete();
     }
     await _playbackService?.stop();
+    if (releaseAudioRoute) {
+      await _releaseHfpRoute();
+    }
   }
 
   Future<void> startRecording({
@@ -190,100 +576,446 @@ class LessonMediaService {
     String? vietnamese,
     bool saveToHistory = true,
   }) => _serializeRecordingOperation(() async {
-    await stopPlayback();
-    final recorder = _activeRecorder;
-    if (!await recorder.hasPermission()) {
+    var recorderStarted = false;
+    try {
+      _recordingRouteFailure = null;
+      // Keep an already confirmed HFP route alive while switching from the final
+      // guide clip to capture. Releasing it here makes iOS renegotiate to the
+      // phone between "Con nói lại nhé" and AVAudioRecorder opening its input.
+      await _stopPlayback(releaseAudioRoute: false);
+      final recorder = _activeRecorder;
+      if (!await recorder.hasPermission()) {
+        throw const LessonMediaException(
+          'Ứng dụng cần quyền micro để lưu bản ghi của bạn.',
+        );
+      }
+
+      final useSelectedHfp = _shouldUseSelectedHfp;
+      final session = await AudioSession.instance;
+      await session.configure(
+        lessonRecordingAudioSessionConfiguration(
+          useSelectedHfp: useSelectedHfp,
+        ),
+      );
+
+      if (useSelectedHfp) {
+        // On iOS, the Dart ownership flag is not proof that AVAudioSession still
+        // exposes the selected HFP input. Revalidate the native route at the
+        // exact playback-to-capture boundary before resolving recorder inputs.
+        await _activateSelectedHfpRoute(
+          force: !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS,
+        );
+      } else {
+        await _releaseHfpRoute();
+      }
+
+      final recordingInput = await _resolveRecordingInput(
+        recorder,
+        useSelectedHfp: useSelectedHfp,
+      );
+
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+        // AudioSession/HfpAudioControl already selected and verified the input.
+        // Letting record_ios configure AVAudioSession again at recorder.start()
+        // can replace the confirmed H20 route and produce a silent M4A even
+        // though the UI still reports HFP as active. Restore plugin ownership
+        // for phone-mic recordings, where there is no HFP route owner.
+        await recorder.ios?.manageAudioSession(!useSelectedHfp);
+      }
+
+      final path = await recordingPath(
+        lessonId: lessonId,
+        sentenceNumber: sentenceNumber,
+      );
+      await recorder.start(
+        lessonRecordConfig(
+          useSelectedHfp: useSelectedHfp,
+          inputDevice: recordingInput,
+        ),
+        path: path,
+      );
+      recorderStarted = true;
+      if (useSelectedHfp && _hfpAudioControl?.status.routeActive != true) {
+        throw const LessonMediaException(
+          'Mic HM-D001 bị ngắt kết nối khi mở ghi âm. Bạn kết nối lại HM-D001 rồi thử lại nhé.',
+        );
+      }
+      _activePath = path;
+      _activeContext = _ActiveLessonRecording(
+        lessonId: lessonId,
+        lessonTitle: lessonTitle ?? lessonId,
+        sentenceId: sentenceId ?? '$lessonId-sentence-$sentenceNumber',
+        sentenceNumber: sentenceNumber,
+        english: english ?? '',
+        vietnamese: vietnamese ?? '',
+        saveToHistory: saveToHistory,
+      );
+      _recordingStartedAt = DateTime.now();
+    } catch (_) {
+      if (recorderStarted) {
+        await _recorder?.cancel().catchError((Object _) {});
+      }
+      await _releaseHfpRoute();
+      rethrow;
+    }
+  });
+
+  Future<InputDevice?> _resolveRecordingInput(
+    AudioRecorder recorder, {
+    required bool useSelectedHfp,
+  }) async {
+    if (kIsWeb ||
+        (defaultTargetPlatform != TargetPlatform.iOS &&
+            defaultTargetPlatform != TargetPlatform.android)) {
+      return null;
+    }
+    final devices = await recorder.listInputDevices();
+    // Android's default-input probe can select the built-in stereo mic even
+    // while communication audio is routed to H20. Pinning this device also
+    // makes record_android inspect the selected input's actual capabilities.
+    final selected = selectLessonRecordingInput(
+      devices,
+      useSelectedHfp: useSelectedHfp,
+      selectedHfpDeviceId: _hfpAudioControl?.status.deviceId,
+      selectedHfpDeviceName: _hfpAudioControl?.status.deviceName,
+    );
+    if (selected != null) {
+      return selected;
+    }
+    if (useSelectedHfp) {
       throw const LessonMediaException(
-        'Ứng dụng cần quyền micro để lưu bản ghi của con.',
+        'Chưa mở được mic HM-D001 đã chọn. Hãy kết nối lại HM-D001 rồi thử lại.',
       );
     }
-    final session = await AudioSession.instance;
-    await session.configure(const AudioSessionConfiguration.speech());
+    throw const LessonMediaException(
+      'Chưa tìm thấy micro tích hợp của điện thoại.',
+    );
+  }
 
-    final path = await recordingPath(
-      lessonId: lessonId,
-      sentenceNumber: sentenceNumber,
+  Future<void> _preparePlaybackRoute(LessonPlaybackRoute route) async {
+    final playback = _activePlayback;
+    final selectedHfp =
+        route == LessonPlaybackRoute.selectedLessonDevice &&
+        _shouldUseSelectedHfp;
+    // Keep both the lesson audio and assistant speech on the H20 selected for
+    // the lesson. Relying on iOS to pick an A2DP route is unreliable for H20:
+    // when its media profile is not active, iOS silently falls back to the
+    // phone speaker. Holding the selected HFP/SCO route prevents that split
+    // until the lesson explicitly releases the route.
+    final useSelectedHfp = selectedHfp;
+    if (playback is CommunicationRouteAwareAudioPlaybackService) {
+      (playback as CommunicationRouteAwareAudioPlaybackService)
+          .setCommunicationRouteActive(useSelectedHfp);
+    }
+    if (!useSelectedHfp) {
+      // Clear SCO before configuring ordinary playback. This prevents a coach
+      // prompt from inheriting the preceding H20 communication route.
+      await _releaseHfpRoute(immediately: true);
+      await playback.prepare();
+      return;
+    }
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+      // Native HFP must own the shared AVAudioSession before just_audio's
+      // prepare() checks isAudioHandoffActive. Preparing first can race the
+      // speech-to-playback handoff and make iOS reject a category change with
+      // '!pri', leaving the child's recording inaudible.
+      await _activateSelectedHfpRoute(force: true);
+      await playback.prepare();
+      return;
+    }
+    // Android sets communication attributes before opening SCO.
+    await playback.prepare();
+    await _activateSelectedHfpRoute(
+      force: !kIsWeb && defaultTargetPlatform == TargetPlatform.android,
     );
-    await recorder.start(
-      const RecordConfig(
-        encoder: AudioEncoder.aacLc,
-        sampleRate: 16000,
-        bitRate: 64000,
-        numChannels: 1,
-        autoGain: true,
-        echoCancel: true,
-        noiseSuppress: true,
-      ),
-      path: path,
-    );
-    _activePath = path;
-    _activeContext = _ActiveLessonRecording(
-      lessonId: lessonId,
-      lessonTitle: lessonTitle ?? lessonId,
-      sentenceId: sentenceId ?? '$lessonId-sentence-$sentenceNumber',
-      sentenceNumber: sentenceNumber,
-      english: english ?? '',
-      vietnamese: vietnamese ?? '',
-      saveToHistory: saveToHistory,
-    );
-    _recordingStartedAt = DateTime.now();
-  });
+  }
+
+  Future<void> _activateSelectedHfpRoute({bool force = false}) async {
+    final control = _hfpAudioControl;
+    // A Bluetooth audio-state broadcast can report that SCO dropped while the
+    // Dart lease is still valid. Re-open the selected H20 in that case instead
+    // of trusting a stale ownership token and playing on a different stream.
+    if (_activeHfpRouteToken != null &&
+        !force &&
+        control?.status.routeActive == true) {
+      return;
+    }
+    if (control == null) {
+      return;
+    }
+    await control.startAudioRoute();
+    final leaseControl = control is HfpAudioRouteLeaseControl
+        ? control as HfpAudioRouteLeaseControl
+        : null;
+    _activeHfpRouteToken = leaseControl != null
+        ? leaseControl.activeAudioRouteToken
+        : Object();
+  }
+
+  Future<void> _releaseHfpRoute({bool immediately = false}) async {
+    // A start may still be awaiting native confirmation and have no token yet.
+    // Scoped controls serialize stop behind it and invalidate that late start.
+    if (_activeHfpRouteToken == null &&
+        _hfpAudioControl is! HfpAudioRouteLeaseControl) {
+      return;
+    }
+    _activeHfpRouteToken = null;
+    final control = _hfpAudioControl;
+    if (immediately && control is HfpImmediateRouteReleaseControl) {
+      await (control as HfpImmediateRouteReleaseControl)
+          .stopAudioRouteImmediately();
+    } else {
+      await control?.stopAudioRoute();
+    }
+  }
+
+  @visibleForTesting
+  static RecordConfig lessonRecordConfig({
+    required bool useSelectedHfp,
+    InputDevice? inputDevice,
+  }) => RecordConfig(
+    encoder: !kIsWeb && defaultTargetPlatform == TargetPlatform.android
+        ? AudioEncoder.wav
+        : AudioEncoder.aacLc,
+    sampleRate: 16000,
+    bitRate: 64000,
+    numChannels: 1,
+    // Android's automatic gain control keeps raising the input between the
+    // child's words, so the room reads as speech to the endpoint detector and
+    // a take runs to its six-second cap, or an opening burst of raised noise
+    // passes for speech and the take ends a second in. The saved take is
+    // levelled afterwards, so the gain is not needed for replay or scoring.
+    autoGain: kIsWeb || defaultTargetPlatform != TargetPlatform.android,
+    echoCancel: true,
+    noiseSuppress: true,
+    // record_android pauses on any audio-focus loss and never resumes by
+    // itself, so one notification sound drops the rest of the child's take.
+    audioInterruption:
+        !kIsWeb && defaultTargetPlatform == TargetPlatform.android
+        ? AudioInterruptionMode.none
+        : AudioInterruptionMode.pause,
+    device: inputDevice,
+    // HfpAudioControl already owns the exact selected H20 route. Letting the
+    // record plugin manage Bluetooth too makes it select the first SCO device
+    // and clear that route on stop.
+    androidConfig: AndroidRecordConfig(
+      manageBluetooth: false,
+      audioSource: useSelectedHfp
+          ? AndroidAudioSource.voiceCommunication
+          : AndroidAudioSource.mic,
+      // record_android treats modeNormal as "do not manage AudioManager mode".
+      // Its recorder remembers the mode from its first capture and would restore
+      // that stale mode on stop, overriding a later HFP route owned by the bridge.
+      audioManagerMode: AudioManagerMode.modeNormal,
+    ),
+    iosConfig: IosRecordConfig(
+      categoryOptions: useSelectedHfp
+          ? const <IosAudioCategoryOption>[
+              IosAudioCategoryOption.allowBluetooth,
+            ]
+          : const <IosAudioCategoryOption>[
+              IosAudioCategoryOption.defaultToSpeaker,
+            ],
+    ),
+  );
 
   Future<LessonRecording> stopRecording() =>
       _serializeRecordingOperation(() async {
-        final recorder = _recorder;
-        final startedAt = _recordingStartedAt;
-        final expectedPath = _activePath;
-        final context = _activeContext;
-        if (recorder == null ||
-            startedAt == null ||
-            expectedPath == null ||
-            context == null) {
-          throw const LessonMediaException('Chưa có bản ghi đang thực hiện.');
-        }
-        final recordedPath = await recorder.stop();
-        _recordingStartedAt = null;
-        _activePath = null;
-        _activeContext = null;
-        final resolvedPath = await resolveLessonRecording(
-          recordedPath,
-          expectedPath,
-        );
-        if (resolvedPath == null) {
-          throw const LessonMediaException('Không tìm thấy bản ghi vừa tạo.');
-        }
-        final recording = LessonRecording(
-          filePath: resolvedPath,
-          duration: DateTime.now().difference(startedAt),
-        );
-        if (context.saveToHistory) {
-          final createdAt = DateTime.now();
-          final evictedPaths = await historyStore.addSuccessful(
-            LessonRecordingHistoryEntry(
-              id: '${context.sentenceId}-${createdAt.microsecondsSinceEpoch}',
-              lessonId: context.lessonId,
-              lessonTitle: context.lessonTitle,
-              sentenceId: context.sentenceId,
-              sentenceNumber: context.sentenceNumber,
-              english: context.english,
-              vietnamese: context.vietnamese,
-              filePath: resolvedPath,
-              duration: recording.duration,
-              createdAt: createdAt,
+        try {
+          final routeFailure = _recordingRouteFailure;
+          if (routeFailure != null) throw routeFailure;
+          final recorder = _recorder;
+          final startedAt = _recordingStartedAt;
+          final expectedPath = _activePath;
+          final context = _activeContext;
+          if (recorder == null ||
+              startedAt == null ||
+              expectedPath == null ||
+              context == null) {
+            throw const LessonMediaException('Chưa có bản ghi đang thực hiện.');
+          }
+          // Capture the audible end before the plugin finalizes and flushes the
+          // file. On slower Android devices that finalization can take about a
+          // second; including it made a six-second recording appear as seven.
+          final stoppedAt = DateTime.now();
+          final recordedPath = await recorder.stop();
+          _recordingStartedAt = null;
+          _activePath = null;
+          _activeContext = null;
+          final recording = await prepareExternalRecordingForPlayback(
+            LessonRecording(
+              filePath: recordedPath ?? expectedPath,
+              duration: stoppedAt.difference(startedAt),
             ),
           );
-          for (final path in evictedPaths) {
-            await deleteLessonRecording(path);
+          final resolvedPath = recording.filePath;
+          if (context.saveToHistory) {
+            final createdAt = DateTime.now();
+            final evictedPaths = await historyStore.addSuccessful(
+              LessonRecordingHistoryEntry(
+                id: '${context.sentenceId}-${createdAt.microsecondsSinceEpoch}',
+                lessonId: context.lessonId,
+                lessonTitle: context.lessonTitle,
+                sentenceId: context.sentenceId,
+                sentenceNumber: context.sentenceNumber,
+                english: context.english,
+                vietnamese: context.vietnamese,
+                filePath: resolvedPath,
+                duration: recording.duration,
+                createdAt: createdAt,
+              ),
+            );
+            for (final path in evictedPaths) {
+              await deleteLessonRecording(path);
+            }
           }
+          // Keep the selected H20 output through scoring and feedback on both
+          // phones. Dropping the route here can finish its teardown after the
+          // next prompt starts, moving that prompt to the phone speaker.
+          if (kIsWeb ||
+              (defaultTargetPlatform != TargetPlatform.android &&
+                  defaultTargetPlatform != TargetPlatform.iOS)) {
+            await _releaseHfpRoute();
+          }
+          return recording;
+        } catch (_) {
+          await _releaseHfpRoute();
+          rethrow;
         }
-        return recording;
       });
 
+  /// Normalizes native recordings for replay without adding lesson history.
+  Future<LessonRecording> prepareExternalRecordingForPlayback(
+    LessonRecording recording,
+  ) async {
+    final pending = _preparedRecordingPaths.putIfAbsent(
+      recording.filePath,
+      () => _normalizeRecordingWithRetry(recording.filePath),
+    );
+    try {
+      final resolvedPath = await pending;
+      _preparedRecordingPaths[resolvedPath] = Future.value(resolvedPath);
+      return LessonRecording(
+        filePath: resolvedPath,
+        duration: recording.duration,
+      );
+    } catch (_) {
+      _preparedRecordingPaths.remove(recording.filePath);
+      rethrow;
+    }
+  }
+
+  Future<String> _normalizeRecordingWithRetry(String path) async {
+    for (var attempt = 0; attempt < 2; attempt++) {
+      try {
+        final resolved = await resolveLessonRecording(
+          path,
+          path,
+          requireNormalization: true,
+        );
+        if (resolved == null) throw StateError('Recording is missing.');
+        return resolved;
+      } catch (error) {
+        debugPrint(
+          'Lesson recording preparation attempt ${attempt + 1}: $error',
+        );
+      }
+    }
+    throw const LessonMediaException(
+      'Không thể chuẩn hóa bản ghi để phát lại. Bạn ghi lại nhé.',
+    );
+  }
+
+  /// Shared replay policy for prepared topic and challenge recordings.
+  Future<void> playRecordingToCompletion(LessonRecording recording) {
+    final parsed = Uri.tryParse(recording.filePath);
+    final isWindowsPath = RegExp(
+      r'^[a-zA-Z]:[/\\]',
+    ).hasMatch(recording.filePath);
+    final uri = isWindowsPath
+        ? Uri.file(recording.filePath, windows: true)
+        : parsed != null && parsed.hasScheme
+        ? parsed
+        : Uri.file(recording.filePath);
+    final requestedTimeout = recording.duration + const Duration(seconds: 5);
+    return playToCompletion(
+      uri,
+      timeout: requestedTimeout < const Duration(seconds: 10)
+          ? const Duration(seconds: 10)
+          : requestedTimeout,
+      route: LessonPlaybackRoute.selectedLessonDevice,
+      playbackGainDb: lessonRecordingPlaybackGainDb,
+      fixedPlaybackGain: true,
+    );
+  }
+
+  /// Adds audio captured by a native speech recognizer to the same local
+  /// lesson history used by recordings produced through the record plugin.
+  Future<LessonRecording> registerExternalRecording({
+    required LessonRecording recording,
+    required String lessonId,
+    required String lessonTitle,
+    required String sentenceId,
+    required int sentenceNumber,
+    required String english,
+    required String vietnamese,
+  }) async {
+    final prepared = await prepareExternalRecordingForPlayback(recording);
+    final resolvedPath = prepared.filePath;
+    final createdAt = DateTime.now();
+    final evictedPaths = await historyStore.addSuccessful(
+      LessonRecordingHistoryEntry(
+        id: '$sentenceId-${createdAt.microsecondsSinceEpoch}',
+        lessonId: lessonId,
+        lessonTitle: lessonTitle,
+        sentenceId: sentenceId,
+        sentenceNumber: sentenceNumber,
+        english: english,
+        vietnamese: vietnamese,
+        filePath: resolvedPath,
+        duration: recording.duration,
+        createdAt: createdAt,
+      ),
+    );
+    for (final path in evictedPaths) {
+      await deleteLessonRecording(path);
+    }
+    return prepared;
+  }
+
   Future<void> cancelRecording() => _serializeRecordingOperation(() async {
-    await _recorder?.cancel();
-    _recordingStartedAt = null;
-    _activePath = null;
-    _activeContext = null;
+    _recordingRouteFailure = null;
+    try {
+      await _recorder?.cancel();
+      _recordingStartedAt = null;
+      _activePath = null;
+      _activeContext = null;
+    } finally {
+      await _releaseHfpRoute();
+    }
+  });
+
+  Future<void> _cancelRecordingAfterRouteLoss(
+    LessonMediaException failure,
+    _ActiveLessonRecording context,
+  ) => _serializeRecordingOperation(() async {
+    // A navigation cancellation or a newer capture can overtake the queued
+    // route-loss callback. Only the recording that lost its route may stop.
+    if (_recordingStartedAt == null || !identical(_activeContext, context)) {
+      return;
+    }
+    _recordingRouteFailure = failure;
+    try {
+      await _recorder?.cancel();
+    } catch (_) {
+      // The route is already unavailable; keep the original useful failure.
+    } finally {
+      _recordingStartedAt = null;
+      _activePath = null;
+      _activeContext = null;
+      await _releaseHfpRoute().catchError((Object _) {});
+      _recordingErrors.add(failure);
+    }
   });
 
   Future<T> _serializeRecordingOperation<T>(Future<T> Function() action) {
@@ -305,10 +1037,80 @@ class LessonMediaService {
   }
 
   Future<void> dispose() async {
+    _preparedRecordingPaths.clear();
+    _playbackRequestGeneration += 1;
+    await _hfpStatusSubscription?.cancel();
     await _recordingOperation;
+    await _releaseHfpRoute();
     await _recorder?.dispose();
     await _playbackService?.dispose();
+    await _recordingErrors.close();
   }
+}
+
+@visibleForTesting
+bool shouldUseSelectedLessonHfp(BluetoothAudioStatus? status) =>
+    status != null &&
+    status.isBridgeSupported &&
+    (status.deviceId != null || status.isConnected);
+
+@visibleForTesting
+AudioSessionConfiguration lessonRecordingAudioSessionConfiguration({
+  required bool useSelectedHfp,
+}) => AudioSessionConfiguration(
+  avAudioSessionCategory: AVAudioSessionCategory.playAndRecord,
+  avAudioSessionCategoryOptions: useSelectedHfp
+      ? AVAudioSessionCategoryOptions.allowBluetooth
+      : AVAudioSessionCategoryOptions.defaultToSpeaker,
+  avAudioSessionMode: AVAudioSessionMode.voiceChat,
+  androidAudioAttributes: const AndroidAudioAttributes(
+    contentType: AndroidAudioContentType.speech,
+    usage: AndroidAudioUsage.voiceCommunication,
+  ),
+  androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
+  androidWillPauseWhenDucked: true,
+);
+
+@visibleForTesting
+InputDevice? selectLessonRecordingInput(
+  List<InputDevice> devices, {
+  required bool useSelectedHfp,
+  String? selectedHfpDeviceId,
+  String? selectedHfpDeviceName,
+}) {
+  if (!useSelectedHfp) {
+    for (final device in devices) {
+      if (device.type == InputDeviceType.builtIn) {
+        return device;
+      }
+    }
+    return null;
+  }
+
+  final selectedId = selectedHfpDeviceId?.trim();
+  if (selectedId != null && selectedId.isNotEmpty) {
+    for (final device in devices) {
+      if (device.id == selectedId &&
+          device.type == InputDeviceType.bluetoothSco) {
+        return device;
+      }
+    }
+  }
+
+  final selectedName = selectedHfpDeviceName?.trim().toLowerCase();
+  if (selectedName != null && selectedName.isNotEmpty) {
+    for (final device in devices) {
+      if (device.type == InputDeviceType.bluetoothSco &&
+          device.label.trim().toLowerCase() == selectedName) {
+        return device;
+      }
+    }
+  }
+
+  final hfpDevices = devices
+      .where((device) => device.type == InputDeviceType.bluetoothSco)
+      .toList(growable: false);
+  return hfpDevices.length == 1 ? hfpDevices.single : null;
 }
 
 class _ActiveLessonRecording {

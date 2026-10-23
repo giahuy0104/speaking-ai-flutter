@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L2-T04\\C35-L2-M04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L2-M04",
+  "sourceText": "Bạn muốn nói 'Nó là hình ngôi sao.' Hoàn thành câu: It's a... star hay circle?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn muốn nói 'Nó là hình ngôi sao.' Hoàn thành câu:",
+      "text": "Bạn muốn nói 'Nó là hình ngôi sao.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Nó là hình ngôi sao.' Hoàn thành câu:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "source_text": "It's a... star",
+      "text": "It's a... star",
+      "spoken_text": "It's a... star",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "source_text": "circle?",
+      "text": "circle?",
+      "spoken_text": "circle?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": "da772e1f7c0fc6b52ee40c2a0953714acbdc7c55f3d52504b3c8ff38c7b629c4",
+  "id": "LESSON-2076C9D24BC97B0F693B2672",
+  "text": "Bạn muốn nói 'Nó là hình ngôi sao.' Hoàn thành câu: It's a... star hay circle?",
+  "asset": "assets/audio/CURRICULUM/2076c9d24bc97b0f693b2672.vi.v1.mp3",
+  "sha256": "da772e1f7c0fc6b52ee40c2a0953714acbdc7c55f3d52504b3c8ff38c7b629c4",
+  "durationSeconds": 8.174694
+}

@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T09-B01\\C810-L3-T09-B01-T02_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T09-B01-T02_VI",
+  "sourceText": "Đã xem TV.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Đã xem TV.",
+      "generation_key": "ffd25c345b813394"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-20593392262891821C36229A",
+  "text": "Đã xem TV.",
+  "asset": "assets/audio/CURRICULUM/20593392262891821c36229a.vi.v1.mp3",
+  "sha256": "240e4c5cb73003041973fd1f7c4b89de0ce29eb550b2a1257ab29db3071fc983",
+  "durationSeconds": 1.499728
+}

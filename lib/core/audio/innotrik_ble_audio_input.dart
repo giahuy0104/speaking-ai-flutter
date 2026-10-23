@@ -371,10 +371,16 @@ class InnotrikBleAudioInput
       (item) => item.name == phaseName,
       orElse: () => BluetoothAudioConnectionPhase.error,
     );
+    final deviceId = _nullableString(map['deviceId']) ?? _status.deviceId;
+    final deviceName = map.containsKey('deviceName')
+        ? _nullableString(map['deviceName'])
+        : deviceId == _status.deviceId
+        ? _status.deviceName
+        : null;
     return BluetoothAudioStatus(
       phase: phase,
-      deviceId: _nullableString(map['deviceId']) ?? _status.deviceId,
-      deviceName: _nullableString(map['deviceName']) ?? _status.deviceName,
+      deviceId: deviceId,
+      deviceName: deviceName,
       message: _nullableString(map['message']),
       packetCount: (map['packetCount'] as num?)?.toInt() ?? _status.packetCount,
       invalidPacketCount:

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L2-T06-B02\\C35-L2-T06-B02-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L2-T06-B02-Q08",
+  "sourceText": "Bạn muốn nói \"Nhắm mắt lại\". Clap your hands hay Close your eyes?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói \"Nhắm mắt lại\".",
+      "spoken_text": "Bạn muốn nói \"Nhắm mắt lại\".",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "Clap your hands",
+      "spoken_text": "Clap your hands",
+      "input_index": 43
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "Close your eyes?",
+      "spoken_text": "Close your eyes?",
+      "input_index": 45
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-A69FEB3EA831A8555862D0D4",
+  "text": "Bạn muốn nói \"Nhắm mắt lại\". Clap your hands hay Close your eyes?",
+  "asset": "assets/audio/CURRICULUM/a69feb3ea831a8555862d0d4.vi.v1.mp3",
+  "sha256": "2cf300a23c1d52c14ffb93b50e9f2bcdc57b63324fb657f39a3bbc6cdd8904ce",
+  "durationSeconds": 7.046576
+}

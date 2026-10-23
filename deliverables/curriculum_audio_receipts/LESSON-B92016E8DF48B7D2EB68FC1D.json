@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T04-B01\\C1315-L2-T04-B01-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T04-B01-Q08",
+  "sourceText": "Bạn muốn diễn đạt \"Tiêu tiền\". Spend money hay The price?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn diễn đạt \"Tiêu tiền\".",
+      "spoken_text": "Bạn muốn diễn đạt \"Tiêu tiền\".",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "Spend money",
+      "spoken_text": "Spend money",
+      "input_index": 43
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "The price?",
+      "spoken_text": "The price?",
+      "input_index": 45
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-B92016E8DF48B7D2EB68FC1D",
+  "text": "Bạn muốn diễn đạt \"Tiêu tiền\". Spend money hay The price?",
+  "asset": "assets/audio/CURRICULUM/b92016e8df48b7d2eb68fc1d.vi.v1.mp3",
+  "sha256": "a844d0a74bdccd5408daa5b10002e216882eca06e712ac7fe83b20ee180b8016",
+  "durationSeconds": 5.300884
+}

@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T05-B02\\C67-L2-T05-B02-T04_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-T05-B02-T04_VI",
+  "sourceText": "Biển hiệu hình tam giác.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Biển hiệu hình tam giác.",
+      "generation_key": "b751d7f1949dda83"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-D9220AD52A1F4125EEE3A9E7",
+  "text": "Biển hiệu hình tam giác.",
+  "asset": "assets/audio/CURRICULUM/d9220ad52a1f4125eee3a9e7.vi.v1.mp3",
+  "sha256": "5bc3b65a5b8a9650674fa5ef26fff88faaa7ca8c6633f0a28d6b2ce153d926e6",
+  "durationSeconds": 1.964127
+}

@@ -1,0 +1,1248 @@
+00:00 +0: loading D:/Documents/ai-speaking-flutter-app/test/accessibility_resilience_test.dart
+00:00 +0: D:/Documents/ai-speaking-flutter-app/test/accessibility_resilience_test.dart: main flow supports 200 percent text, small screens and reduced motion
+00:00 +1: D:/Documents/ai-speaking-flutter-app/test/accessibility_resilience_test.dart: main flow supports 200 percent text, small screens and reduced motion
+00:00 +2: D:/Documents/ai-speaking-flutter-app/test/accessibility_resilience_test.dart: main flow supports 200 percent text, small screens and reduced motion
+00:03 +3: D:/Documents/ai-speaking-flutter-app/test/android_update_gate_test.dart: shows a blocking screen below the minimum build
+00:03 +4: D:/Documents/ai-speaking-flutter-app/test/android_update_gate_test.dart: shows a blocking screen below the minimum build
+00:04 +5: D:/Documents/ai-speaking-flutter-app/test/app/background_startup_test.dart: shares the bundled listening catalog background preload
+00:04 +6: D:/Documents/ai-speaking-flutter-app/test/android_update_gate_test.dart: opens the main app at the minimum supported build
+00:04 +7: D:/Documents/ai-speaking-flutter-app/test/android_update_gate_test.dart: opens the main app at the minimum supported build
+00:04 +8: D:/Documents/ai-speaking-flutter-app/test/android_update_gate_test.dart: opens the main app at the minimum supported build
+00:04 +9: D:/Documents/ai-speaking-flutter-app/test/android_update_gate_test.dart: opens the main app at the minimum supported build
+00:04 +10: D:/Documents/ai-speaking-flutter-app/test/android_update_gate_test.dart: opens the main app at the minimum supported build
+00:04 +11: D:/Documents/ai-speaking-flutter-app/test/android_update_gate_test.dart: does not block the first frame while checking
+00:04 +12: D:/Documents/ai-speaking-flutter-app/test/app/device_connection_feedback_overlay_test.dart: shows HOMI progress while H20 transports are connecting
+00:05 +13: D:/Documents/ai-speaking-flutter-app/test/app/device_connection_feedback_overlay_test.dart: shows HOMI progress while H20 transports are connecting
+00:05 +14: D:/Documents/ai-speaking-flutter-app/test/app/device_connection_feedback_overlay_test.dart: shows success only after MAIN control and H20 mic connect
+00:05 +15: D:/Documents/ai-speaking-flutter-app/test/architecture_boundaries_test.dart: feature and audio boundaries remain isolated
+00:06 +16: D:/Documents/ai-speaking-flutter-app/test/assistant_audio_inventory_test.dart: (setUpAll)
+00:06 +16: D:/Documents/ai-speaking-flutter-app/test/assistant_audio_inventory_test.dart: all fixed catalog, silence and fallback texts are covered without duplicates
+00:06 +16 -1: D:/Documents/ai-speaking-flutter-app/test/assistant_audio_inventory_test.dart: all fixed catalog, silence and fallback texts are covered without duplicates [E]
+  Expected: an object with length of <1>
+    Actual: WhereIterable<Map<String, dynamic>>:[]
+     Which: has length of <0>
+  Bạn muốn nghe lại, câu trước hay câu sau?
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test\assistant_audio_inventory_test.dart 45:9       main.<fn>
+  
+00:06 +16 -1: D:/Documents/ai-speaking-flutter-app/test/assistant_audio_inventory_test.dart: local spoken replies and guide objects are also covered
+00:06 +16 -2: D:/Documents/ai-speaking-flutter-app/test/assistant_audio_inventory_test.dart: local spoken replies and guide objects are also covered [E]
+  Expected: an object with length of <1>
+    Actual: WhereIterable<Map<String, dynamic>>:[]
+     Which: has length of <0>
+  lib/features\listening\domain\lesson_guide_flow.dart: Nói theo mình nhé.
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test\assistant_audio_inventory_test.dart 88:11      main.<fn>
+  
+00:06 +16 -2: D:/Documents/ai-speaking-flutter-app/test/assistant_audio_inventory_test.dart: every generated entry is enabled, reachable and matches its Eleven v3 receipt
+00:06 +17 -2: D:/Documents/ai-speaking-flutter-app/test/assistant_audio_inventory_test.dart: every generated entry is enabled, reachable and matches its Eleven v3 receipt
+00:06 +18 -2: D:/Documents/ai-speaking-flutter-app/test/assistant_audio_inventory_test.dart: every generated entry is enabled, reachable and matches its Eleven v3 receipt
+00:06 +19 -2: D:/Documents/ai-speaking-flutter-app/test/assistant_audio_inventory_test.dart: every generated entry is enabled, reachable and matches its Eleven v3 receipt
+00:06 +20 -2: D:/Documents/ai-speaking-flutter-app/test/core/platform/background_learning_session_test.dart: BackgroundLearningEvent.fromRaw maps a native interruption without losing its reason
+00:06 +21 -2: D:/Documents/ai-speaking-flutter-app/test/core/platform/background_learning_session_test.dart: BackgroundLearningEvent.fromRaw maps a resumable native audio session event
+00:06 +22 -2: D:/Documents/ai-speaking-flutter-app/test/core/platform/background_learning_session_test.dart: BackgroundLearningEvent.fromRaw treats stopped and malformed payloads as stopped
+00:06 +23 -2: D:/Documents/ai-speaking-flutter-app/test/core/platform/background_learning_session_test.dart: forwards the active lesson wake state to Android
+00:06 +24 -2: D:/Documents/ai-speaking-flutter-app/test/core/platform/background_learning_session_test.dart: reads whether the Android display is interactive
+00:06 +25 -2: D:/Documents/ai-speaking-flutter-app/test/core/platform/background_learning_session_test.dart: requests parent-visible H20 companion association on Android
+00:07 +26 -2: D:/Documents/ai-speaking-flutter-app/test/core/platform/platform_access_policy_test.dart: PlatformAccessPolicy bypasses every parental authentication only on native Android
+00:07 +27 -2: D:/Documents/ai-speaking-flutter-app/test/core/platform/platform_access_policy_test.dart: PlatformAccessPolicy bypasses Settings authentication only for native Android
+00:07 +28 -2: D:/Documents/ai-speaking-flutter-app/test/core/platform/platform_access_policy_test.dart: PlatformAccessPolicy bypasses topic age authentication only for native Android
+00:07 +29 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_adaptive_vad_test.dart: detects a soft voice above a quiet ambient floor
+00:07 +30 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_adaptive_vad_test.dart: rejects a short impact in a quiet room
+00:07 +31 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_adaptive_vad_test.dart: learns a steady fan instead of treating it as speech
+00:07 +32 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_adaptive_vad_test.dart: detects speech that rises above an already noisy room
+00:07 +33 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_adaptive_vad_test.dart: uses hysteresis so a brief level dip does not end speech
+00:07 +34 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_adaptive_vad_test.dart: accepts an ASR partial result as stronger speech evidence
+00:07 +35 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_android_speech_turn_test.dart: cancelled turn error and final cannot overwrite replacement
+00:07 +36 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_android_speech_turn_test.dart: stable partial drains native recognizer before returning
+00:08 +37 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_android_speech_turn_test.dart: stable partial drains native recognizer before returning
+00:08 +38 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_android_speech_turn_test.dart: stable partial drains native recognizer before returning
+00:08 +39 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_android_speech_turn_test.dart: stable partial drains native recognizer before returning
+00:08 +40 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_android_speech_turn_test.dart: stable partial drains native recognizer before returning
+00:08 +41 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_android_speech_turn_test.dart: stable partial drains native recognizer before returning
+00:08 +42 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_android_speech_turn_test.dart: stable partial drains native recognizer before returning
+00:08 +43 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_android_speech_turn_test.dart: stable partial drains native recognizer before returning
+00:08 +44 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_android_speech_turn_test.dart: stable partial drains native recognizer before returning
+00:08 +45 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_android_speech_turn_test.dart: stable partial drains native recognizer before returning
+00:08 +46 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_android_speech_turn_test.dart: stable partial drains native recognizer before returning
+00:08 +47 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_coordinated_voice_prompt_service_test.dart: explicit phone-speaker prompt does not acquire selected HFP
+00:08 +48 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_android_speech_turn_test.dart: current recognizer error remains visible with its code
+00:08 +49 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_android_speech_turn_test.dart: current recognizer error remains visible with its code
+00:08 +50 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_coordinated_voice_prompt_service_test.dart: stopping an old prompt cannot stop the next owner
+00:08 +51 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_android_speech_turn_test.dart: cancel during cold availability cannot open an obsolete mic
+00:08 +52 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_android_speech_turn_test.dart: cancel during cold availability cannot open an obsolete mic
+00:08 +53 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_android_speech_turn_test.dart: cancel before channel reply observes ready error and preserves new mic
+00:08 +54 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_android_speech_turn_test.dart: obsolete recorded-file error cannot cancel new mic
+00:08 +55 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_android_speech_turn_test.dart: obsolete recorded-file timeout cannot cancel new mic
+00:08 +56 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_android_speech_turn_test.dart: obsolete stop cannot read or clear the replacement capture
+00:08 +57 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_android_speech_turn_test.dart: stalled native stop is bounded and releases recognition
+00:08 +58 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_android_speech_turn_test.dart: first Android bind has a longer ceiling but warm mic stays bounded
+00:08 +59 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_android_speech_turn_test.dart: first Android bind has a longer ceiling but warm mic stays bounded
+00:08 +60 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_gain_test.dart: assistant speech is boosted above authored lesson audio
+00:08 +61 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_gain_test.dart: child recording target gains 80 percent without the old 24 dB clamp
+00:09 +62 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_coordinator_test.dart: stop during native start releases the late lease and cancels its caller
+00:09 +63 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_coordinator_test.dart: parallel starts in one scope cannot leak an extra route lease
+00:09 +64 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_coordinator_test.dart: next owner reopens a dropped native route despite an old Dart lease
+00:09 +65 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_coordinator_test.dart: disposing during native start leaves no owner or unobserved future
+00:09 +66 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_coordinator_test.dart: first owner opens HFP and final owner closes it
+00:09 +67 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_coordinator_test.dart: revalidating one scope keeps the same lease and route
+00:09 +68 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_coordinator_test.dart: handoff does not close a route retained by native speech
+00:09 +69 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_coordinator_test.dart: disposing an old scope cannot close the next owner
+00:09 +70 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_recovery_test.dart: connect applies the authoritative HFP snapshot immediately
+00:09 +71 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_recovery_test.dart: retries a transient iOS HFP route-unavailable transition
+00:09 +72 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_recovery_test.dart: retries a transient iOS HFP route-unavailable transition
+00:09 +73 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_recovery_test.dart: retries a transient iOS HFP route-unavailable transition
+00:09 +74 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_recovery_test.dart: retries a transient iOS HFP route-unavailable transition
+00:09 +75 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_recovery_test.dart: retries a transient Android HFP route failure
+00:09 +76 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_recovery_test.dart: retries a transient Android HFP route failure
+00:10 +76 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_ios_streaming_speech_input_test.dart: iOS forwards native speech activity and preserves dBFS
+HOMI Apple Speech [speech.begin] source=- route=- code=- 
+00:10 +77 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_recovery_test.dart: retries a transient Android HFP route failure
+00:10 +77 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_ios_streaming_speech_input_test.dart: iOS native speech keeps Apple latency and privacy telemetry
+HOMI Apple Speech [speech.ready] source=builtInMic route=in=[BuiltInMic:iPhone] code=- 
+HOMI Apple Speech [first_partial_transcript] source=builtInMic route=- code=- xin chào
+00:10 +78 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_recovery_test.dart: retries a transient Android HFP route failure
+00:10 +79 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_ios_streaming_speech_input_test.dart: iOS native runtime error never exposes a Batch WAV
+00:10 +80 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_ios_streaming_speech_input_test.dart: iOS native runtime error never exposes a Batch WAV
+HOMI Apple Speech [speech.ready] source=builtInMic route=- code=- 
+HOMI Apple Speech [first_partial_transcript] source=builtInMic route=- code=- xin chào
+HOMI Apple Speech [error] source=builtInMic route=- code=SPEECH_ANALYZER_FAILED SpeechAnalyzer interrupted
+00:10 +81 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:10 +81 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_ios_streaming_speech_input_test.dart: iOS MAIN releases the selected H20 HFP route after a turn
+HOMI Apple Speech [speech.ready] source=hfp route=in=[BluetoothHFP:H20] code=- 
+HOMI Apple Speech [first_final_transcript] source=hfp route=- code=- học từ vựng
+00:10 +82 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:10 +82 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_ios_streaming_speech_input_test.dart: iOS lesson requests English Apple Speech on the H20 route
+HOMI Apple Speech [speech.ready] source=hfp route=in=[BluetoothHFP:H20] code=- 
+HOMI Apple Speech [first_final_transcript] source=hfp route=- code=- I am hungry
+00:10 +83 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:10 +83 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_ios_streaming_speech_input_test.dart: iOS lesson recording path returns local WAV with transcript
+HOMI Apple Speech [speech.ready] source=builtInMic route=- code=- 
+HOMI Apple Speech [first_final_transcript] source=builtInMic route=- code=- Play soccer
+00:10 +84 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:10 +84 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_ios_streaming_speech_input_test.dart: iOS scopes H20 HFP activation to each consecutive utterance
+HOMI Apple Speech [speech.ready] source=hfp route=in=[BluetoothHFP:H20] code=- 
+HOMI Apple Speech [speech.ready] source=hfp route=in=[BluetoothHFP:H20] code=- 
+00:10 +85 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:10 +85 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_ios_streaming_speech_input_test.dart: iOS keeps one HFP lease across a verified continuous session
+HOMI Apple Speech [speech.ready] source=hfp route=in=[BluetoothHFP:H20] code=- 
+HOMI Apple Speech [speech.ready] source=hfp route=in=[BluetoothHFP:H20] code=- 
+HOMI Apple Speech [first_final_transcript] source=hfp route=- code=- Hello
+00:10 +86 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:10 +86 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_ios_streaming_speech_input_test.dart: iOS re-arms an active H20 route left ready by another flow
+HOMI Apple Speech [speech.ready] source=hfp route=in=[BluetoothHFP:H20] code=- 
+HOMI Apple Speech [speech.ready] source=hfp route=in=[BluetoothHFP:H20] code=- 
+00:10 +87 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:10 +88 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:10 +88 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_ios_streaming_speech_input_test.dart: a stale iOS speech.stop cannot release a newer HFP lease
+HOMI Apple Speech [speech.ready] source=hfp route=in=[BluetoothHFP:H20] code=- 
+HOMI Apple Speech [speech.ready] source=hfp route=in=[BluetoothHFP:H20] code=- 
+00:10 +89 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:10 +90 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:10 +90 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_ios_streaming_speech_input_test.dart: physical MAIN one-shot source bypasses a selected HFP route
+HOMI Apple Speech [speech.ready] source=builtInMic route=in=[BuiltInMic:iPhone] code=- 
+00:10 +91 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:10 +91 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_ios_streaming_speech_input_test.dart: iOS reports native HFP start failure without retrying phone mic
+HOMI Apple Speech [error] source=hfp route=- code=IOS_NATIVE_SPEECH_START_FAILED AVAudioEngine could not open HFP input
+00:10 +92 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:10 +92 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_ios_streaming_speech_input_test.dart: iOS bounds a native speech.start channel that never replies
+HOMI Apple Speech [error] source=builtInMic route=- code=SPEECH_READY_TIMEOUT Micro iOS chưa phát speech.ready đúng hạn.
+00:10 +93 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:10 +94 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:10 +95 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:10 +96 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:10 +97 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:10 +98 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_hfp_route_recovery_test.dart: stop invalidates a pending route retry
+00:10 +99 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: slow Android download falls back at 2s and warms only a later turn
+00:10 +100 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: slow Android download falls back at 2s and warms only a later turn
+00:10 +101 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: slow Android download falls back at 2s and warms only a later turn
+00:10 +102 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: slow Android download falls back at 2s and warms only a later turn
+00:10 +103 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: a retry joins a pending Android download instead of duplicating it
+00:10 +104 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: late corrupt Android response is not played or cached
+00:10 +105 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: stop prevents late Android HTTP from speaking
+00:10 +106 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: dispose prevents late Android HTTP from speaking
+00:10 +107 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: repeated MAIN reuses verified remote audio after stop
+00:10 +108 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: corrupt remote audio is never cached and a later retry recovers
+00:10 +109 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: optional curriculum pack plays locally with its duration budget
+00:10 +110 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: an missing optional curriculum pack preserves MAIN and fallback
+00:10 +111 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: an invalid optional curriculum pack preserves MAIN and fallback
+00:10 +112 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: an disabled optional curriculum pack preserves MAIN and fallback
+00:10 +113 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: dispose cancels pending manifest timer immediately
+00:10 +114 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: dispose cancels pending asset timer immediately
+00:10 +115 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: dispose cancels pending playback timer immediately
+00:10 +116 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: authored timeout budget is duration aware; unknown text keeps default
+00:10 +117 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: English feedback can match the explicit legacy Vietnamese lookup locale
+00:10 +118 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: real pilot matches runtime text, voices, speeds, checksum and watchdog
+00:10 +119 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: plays only exact text and locale, waiting for audio completion
+00:10 +120 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: missing, disabled, corrupted and mismatched entries keep existing TTS
+00:10 +121 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: feature switch avoids even reading the manifest
+00:10 +122 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: a disabled audio group falls back without disabling other groups
+00:10 +123 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: native playback failure stops failed audio before one TTS fallback
+00:10 +124 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: HFP_ROUTE_LOST propagates without replaying TTS on phone output
+00:10 +125 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: HFP_ROUTE_FAILED propagates without replaying TTS on phone output
+00:10 +126 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: HFP_ROUTE_TIMEOUT propagates without replaying TTS on phone output
+00:10 +127 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: HFP_ROUTE_CANCELLED propagates without replaying TTS on phone output
+00:10 +128 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: stop during asset loading cannot start audio or fallback TTS
+00:10 +129 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: stop during failing playback cannot resurrect the canceled prompt
+00:10 +130 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: load timeout is bounded and late asset result cannot play
+00:10 +131 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: disposal during loading prevents late playback
+00:10 +132 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: phone route, ready cue, native MAIN lease and style are forwarded
+00:10 +133 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: authored playback retains one lease until done, then allows recording
+00:10 +134 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: MAIN keeps its recording but new Core wording never plays the old script
+00:10 +135 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: MAIN keeps its recording but new Core wording never plays the old script
+00:10 +136 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: MAIN keeps its recording but new Core wording never plays the old script
+00:10 +137 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_main_assistant_audio_prompt_service_test.dart: factory serves only allowlisted assistant text across feature owners
+00:10 +138 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_pcm16_speech_trimmer_test.dart: trims long silence but keeps conservative speech padding
+00:10 +139 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_pcm16_speech_trimmer_test.dart: keeps softly spoken child audio above a quiet noise floor
+00:11 +140 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_pcm16_speech_trimmer_test.dart: does not invent speech or trim an all-silent recording
+00:11 +141 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_pcm16_speech_trimmer_test.dart: does not trim when the useful saving is too small
+00:11 +142 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_pcm_speech_preprocessor_test.dart: high-pass removes rumble while preserving the speech band
+00:11 +143 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_pcm_speech_preprocessor_test.dart: adaptive gate attenuates steady noise and keeps later speech
+00:11 +144 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_pcm_speech_preprocessor_test.dart: keeps PCM byte length and reports clipping without voice data
+00:11 +145 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_playback_completion_test.dart: recognizes the iOS insufficient-priority audio session error
+00:11 +146 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_playback_completion_test.dart: does not accept a stale completed state before the source end
+00:11 +147 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_playback_completion_test.dart: does not accept old end position immediately after a new start
+00:11 +148 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_playback_completion_test.dart: accepts completion when the current source reaches its end
+00:11 +149 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_playback_completion_test.dart: armed listener replaces the previous source duration
+00:11 +150 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_playback_completion_test.dart: stale completed state cannot finish an armed listener
+00:11 +151 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_playback_completion_test.dart: accepts completed before the final position event arrives
+00:11 +152 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_playback_routing_test.dart: stop removes a queued play before its H20 route can be released
+Audio source ready for file:///second.wav after 7 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+00:11 +153 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_playback_routing_test.dart: late cache result cannot restart a stopped clip or release a newer turn
+Audio source ready for file:///second.wav after 0 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+00:11 +154 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_playback_routing_test.dart: stop during native source loading prevents late play and permits next clip
+Audio source ready for file:///second.wav after 1 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+Audio source ready for file:///second.wav after 1 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+00:11 +155 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_playback_routing_test.dart: stop immediately before native play keeps the phone silent
+Audio source ready for file:///first.wav after 0 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+Audio playback failed: Lượt phát âm thanh đã dừng.
+00:11 +156 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_playback_routing_test.dart: dispose cancels pending cache work without reviving the player
+00:11 +157 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_playback_routing_test.dart: each Android player keeps its selected output when another session prepares media
+Audio source ready for file:///first.wav after 1 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+Audio source ready for file:///second.wav after 1 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+Audio source ready for file:///second.wav after 0 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+00:11 +158 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_playback_routing_test.dart: late cancelled preparation cannot overwrite the next output
+Audio source ready for file:///second.wav after 1 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+00:11 +159 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_playback_routing_test.dart: iOS playback does not receive Android attribute overrides
+Audio source ready for file:///first.wav after 1 ms (duration: 0:00:02.000000, position: 0:00:00.000000).
+00:11 +160 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: fallback buffer keeps immutable chunks in order
+00:11 +161 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: fallback buffer refuses a partial replay after its limit
+00:11 +162 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: vocabulary translation uses the zero-token on-device pipeline
+00:11 +163 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: English vocabulary sentences translate to Vietnamese on device
+00:11 +164 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Vietnamese vocabulary without diacritics translates in the correct direction
+00:11 +165 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: conversation waits for the navigation recognizer handoff
+00:11 +166 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: parental privacy guard blocks every recording start path
+00:11 +167 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: unlocks browser audio before stopping previous playback
+00:12 +168 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: manual Play can use the direct browser gesture path repeatedly
+00:12 +169 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: first manual Play recovers after Safari blocks autoplay
+00:12 +170 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: preferred audio input safely uses phone when BLE is unavailable
+00:12 +171 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: defaults to Cloudflare Batch Chunks without Android streaming
+00:12 +172 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: defaults to Cloudflare Batch Chunks without Android streaming
+00:12 +173 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: defaults to Cloudflare Batch Chunks without Android streaming
+00:12 +174 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: defaults to Cloudflare Batch Chunks without Android streaming
+00:12 +175 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: defaults to Cloudflare Batch Chunks without Android streaming
+00:12 +176 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: defaults to Cloudflare Batch Chunks without Android streaming
+00:12 +177 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: defaults to Cloudflare Batch Chunks without Android streaming
+00:12 +178 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: defaults to Cloudflare Batch Chunks without Android streaming
+00:12 +179 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: defaults to Cloudflare Batch Chunks without Android streaming
+00:12 +180 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: defaults to Cloudflare Batch Chunks without Android streaming
+00:12 +181 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: defaults to Cloudflare Batch Chunks without Android streaming
+00:12 +182 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: defaults to Cloudflare Batch Chunks without Android streaming
+00:12 +183 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_voice_prompt_service_test.dart: sends the Vietnamese retry prompt through the native bridge
+00:12 +184 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Android streaming start failure does not upload audio to Cloudflare
+00:12 +185 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Android streaming start failure does not upload audio to Cloudflare
+Android native recognition start failed: Android streaming start failed.
+00:12 +186 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_voice_prompt_service_test.dart: marks listening coach speech for the phone speaker
+00:12 +187 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:12 +188 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:12 +189 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:12 +190 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:12 +191 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:12 +192 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:12 +193 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:12 +194 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:12 +195 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:12 +196 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:12 +197 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:12 +198 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:12 +199 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:12 +200 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:12 +201 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:12 +202 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:13 +203 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:13 +204 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:13 +205 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:13 +206 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:13 +207 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:13 +208 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:13 +209 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:13 +210 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:13 +211 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:13 +212 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:13 +213 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:13 +214 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:13 +215 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:13 +216 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:13 +217 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:13 +218 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:13 +219 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:13 +220 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:13 +221 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:13 +222 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:13 +223 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:13 +224 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: late Android streaming failure keeps the standard recognition mode
+00:13 +225 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: spoken learning command bypasses translation and result audio
+00:13 +226 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: spoken learning command bypasses translation and result audio
+00:13 +227 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: spoken learning command bypasses translation and result audio
+00:13 +228 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: spoken learning command bypasses translation and result audio
+00:13 +229 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: spoken learning command bypasses translation and result audio
+00:13 +230 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: spoken learning command bypasses translation and result audio
+00:13 +231 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: spoken learning command bypasses translation and result audio
+00:13 +232 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: spoken learning command bypasses translation and result audio
+00:13 +233 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: spoken learning command bypasses translation and result audio
+00:14 +234 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: native alternative command bypasses the conversation request
+00:14 +235 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: native alternative command bypasses the conversation request
+00:14 +236 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: native alternative command bypasses the conversation request
+00:14 +237 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: native alternative command bypasses the conversation request
+00:14 +238 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: native alternative command bypasses the conversation request
+00:14 +239 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: native alternative command bypasses the conversation request
+00:14 +240 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: native alternative command bypasses the conversation request
+00:14 +241 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: native alternative command bypasses the conversation request
+00:14 +241 -2: D:/Documents/ai-speaking-flutter-app/test/core_update_app_update_service_test.dart: AppUpdateService fails open when network and cache are unavailable
+Live app update check failed safely: Bad state: offline
+00:14 +242 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: native alternative command bypasses the conversation request
+00:14 +242 -2: D:/Documents/ai-speaking-flutter-app/test/core_update_app_update_service_test.dart: AppUpdateService keeps a cached mandatory policy while offline
+Live app update check failed safely: Bad state: offline
+00:14 +243 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: native alternative command bypasses the conversation request
+00:14 +244 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: native alternative command bypasses the conversation request
+00:14 +245 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: (setUpAll)
+00:14 +245 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Batch command result is hidden and opens the command handler
+00:14 +246 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Batch command result is hidden and opens the command handler
+00:15 +247 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Batch command result is hidden and opens the command handler
+00:15 +248 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Batch command result is hidden and opens the command handler
+00:15 +249 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Batch command result is hidden and opens the command handler
+00:15 +250 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all 109 lessons retain IDs and bundle all 1202 bilingual core samples
+00:15 +250 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: HFP source failure does not fall back to Cloudflare audio ASR
+Android native recognition start failed: Android streaming start failed.
+00:15 +251 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all 109 lessons retain IDs and bundle all 1202 bilingual core samples
+00:15 +252 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: BLE without offline ASR falls back directly to Cloudflare Batch Chunks
+00:15 +253 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: BLE without offline ASR falls back directly to Cloudflare Batch Chunks
+00:15 +254 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:15 +255 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:15 +256 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:15 +257 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:15 +258 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:15 +259 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:16 +260 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:16 +261 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:16 +262 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:16 +263 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:16 +264 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:16 +265 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:16 +266 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:16 +267 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:16 +267 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Realtime failure replays buffered audio through Batch Chunks
+Legacy Realtime finalize failed; preparing Batch Chunks fallback: Instance of '_ExpectedRealtimeFailure'
+00:16 +268 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:17 +269 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:17 +270 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:17 +271 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:17 +271 -2: D:/Documents/ai-speaking-flutter-app/test/features/conversation/h20_hardware_diagnostics_test.dart: confirmed MAIN toggles offline recording and duplicate is ignored
+H20 MAIN: received • seq=1 • actionable
+H20 MAIN: dispatching • shortPress • seq=1
+H20 MAIN: accepted • seq=1
+H20 MAIN: received • seq=1 • duplicate
+H20 MAIN: duplicate ignored • seq=1
+H20 MAIN: received • seq=2 • actionable
+H20 MAIN: dispatching • shortPress • seq=2
+H20 MAIN: accepted • seq=2
+00:17 +272 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:17 +272 -2: D:/Documents/ai-speaking-flutter-app/test/features/conversation/h20_hardware_diagnostics_test.dart: observed raw MAIN toggles capture without APP State writes
+H20 MAIN: received • seq=16 • actionable
+H20 MAIN: dispatching • shortPress • seq=16
+H20 MAIN: accepted • seq=16
+00:17 +273 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:17 +274 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:17 +275 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:17 +275 -2: D:/Documents/ai-speaking-flutter-app/test/features/conversation/h20_hardware_diagnostics_test.dart: BLE long press stops once and release does not restart capture
+H20 MAIN: received • seq=1 • actionable
+H20 MAIN: dispatching • shortPress • seq=1
+H20 MAIN: accepted • seq=1
+H20 MAIN: received • seq=2 • actionable
+H20 MAIN: dispatching • longPress • seq=2
+H20 MAIN: accepted • seq=2
+H20 MAIN: received • seq=2 • actionable
+H20 MAIN: dispatching • release • seq=2
+H20 MAIN: accepted • seq=2
+00:17 +276 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:17 +277 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:17 +278 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:17 +279 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:17 +280 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:17 +281 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:17 +282 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:17 +283 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:17 +284 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:18 +285 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:18 +286 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:18 +287 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:18 +288 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:18 +289 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:18 +290 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:18 +291 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:18 +292 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:18 +293 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:18 +294 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:18 +295 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:18 +296 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:18 +297 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:18 +298 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:18 +299 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:18 +300 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:18 +301 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:18 +302 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:19 +303 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:19 +304 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:19 +305 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:19 +306 -2: D:/Documents/ai-speaking-flutter-app/test/curriculum_audio_inventory_test.dart: all uploaded curriculum files match their SHA-256 and receipts
+00:19 +307 -2: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: long MAIN suppresses a translation already processing
+00:19 +308 -2: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: long MAIN suppresses a translation already processing
+00:19 +309 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Web PCM silence requests terminal preview before recorder stop
+00:20 +310 -2: D:/Documents/ai-speaking-flutter-app/test/features/conversation/next_conversation_repository_test.dart: keeps late preview HTTP work alive without delaying finalize
+00:20 +311 -2: D:/Documents/ai-speaking-flutter-app/test/features/conversation/next_conversation_repository_test.dart: keeps late preview HTTP work alive without delaying finalize
+00:20 +312 -2: D:/Documents/ai-speaking-flutter-app/test/features/conversation/next_conversation_repository_test.dart: keeps late preview HTTP work alive without delaying finalize
+00:20 +313 -2: D:/Documents/ai-speaking-flutter-app/test/features/conversation/next_conversation_repository_test.dart: keeps late preview HTTP work alive without delaying finalize
+00:20 +314 -2: D:/Documents/ai-speaking-flutter-app/test/features/conversation/next_conversation_repository_test.dart: keeps late preview HTTP work alive without delaying finalize
+00:20 +315 -2: D:/Documents/ai-speaking-flutter-app/test/features/conversation/next_conversation_repository_test.dart: keeps late preview HTTP work alive without delaying finalize
+00:20 +316 -2: D:/Documents/ai-speaking-flutter-app/test/features/conversation/next_conversation_repository_test.dart: keeps late preview HTTP work alive without delaying finalize
+00:20 +316 -2: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: native transcript is corrected before online conversation translation
+Applied an exact on-device Vietnamese transcript correction.
+00:20 +317 -2: D:/Documents/ai-speaking-flutter-app/test/features/conversation/next_conversation_repository_test.dart: keeps late preview HTTP work alive without delaying finalize
+00:20 +318 -2: D:/Documents/ai-speaking-flutter-app/test/features/conversation/next_conversation_repository_test.dart: keeps late preview HTTP work alive without delaying finalize
+00:21 +319 -2: D:/Documents/ai-speaking-flutter-app/test/features/conversation/next_conversation_repository_test.dart: keeps late preview HTTP work alive without delaying finalize
+00:21 +320 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: confirmed PCM speech resume cancels the stale terminal timer
+00:21 +321 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: confirmed PCM speech resume cancels the stale terminal timer
+00:21 +322 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: confirmed PCM speech resume cancels the stale terminal timer
+00:21 +323 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: confirmed PCM speech resume cancels the stale terminal timer
+00:21 +324 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: confirmed PCM speech resume cancels the stale terminal timer
+00:21 +325 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: confirmed PCM speech resume cancels the stale terminal timer
+00:21 +326 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: confirmed PCM speech resume cancels the stale terminal timer
+00:21 +327 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: confirmed PCM speech resume cancels the stale terminal timer
+00:21 +328 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: confirmed PCM speech resume cancels the stale terminal timer
+00:21 +329 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: confirmed PCM speech resume cancels the stale terminal timer
+00:21 +330 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: confirmed PCM speech resume cancels the stale terminal timer
+00:21 +331 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: confirmed PCM speech resume cancels the stale terminal timer
+00:21 +332 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: confirmed PCM speech resume cancels the stale terminal timer
+00:21 +333 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: confirmed PCM speech resume cancels the stale terminal timer
+00:21 +334 -2: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: one-word Android partial also ends after the quiet window
+00:21 +335 -2: D:/Documents/ai-speaking-flutter-app/test/features/conversation/main_speaking_no_speech_test.dart: one-word Android partial also ends after the quiet window
+00:21 +336 -2: D:/Documents/ai-speaking-flutter-app/test/features/conversation/next_conversation_repository_test.dart: retries playback telemetry without blocking playback
+00:21 +337 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Web low-confidence Batch result does not upload the WAV a second time
+00:21 +338 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Web low-confidence Batch result does not upload the WAV a second time
+00:21 +339 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Web low-confidence Batch result does not upload the WAV a second time
+00:21 +340 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Web low-confidence Batch result does not upload the WAV a second time
+00:21 +341 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Web low-confidence Batch result does not upload the WAV a second time
+00:21 +342 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Web low-confidence Batch result does not upload the WAV a second time
+00:21 +343 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Web low-confidence Batch result does not upload the WAV a second time
+00:22 +344 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Web low-confidence Batch result does not upload the WAV a second time
+00:22 +345 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Web low-confidence Batch result does not upload the WAV a second time
+00:22 +346 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Web low-confidence Batch result does not upload the WAV a second time
+Batch chunk request was rejected permanently; skipping WAV fallback.
+00:22 +347 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Web technical Batch failure retains the WAV fallback
+00:22 +348 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Web technical Batch failure retains the WAV fallback
+00:22 +349 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Web technical Batch failure retains the WAV fallback
+00:22 +350 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Web technical Batch failure retains the WAV fallback
+00:22 +351 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Web technical Batch failure retains the WAV fallback
+00:22 +352 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Web technical Batch failure retains the WAV fallback
+Batch chunk finalize failed; uploading WAV fallback: Bad state: network failed
+00:22 +353 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Batch PCM metadata mismatch falls back to the complete WAV
+00:22 +354 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Batch PCM metadata mismatch falls back to the complete WAV
+00:22 +355 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Batch PCM metadata mismatch falls back to the complete WAV
+00:22 +356 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Batch PCM metadata mismatch falls back to the complete WAV
+00:22 +357 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Batch PCM metadata mismatch falls back to the complete WAV
+00:23 +358 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Batch PCM metadata mismatch falls back to the complete WAV
+00:23 +359 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Batch PCM metadata mismatch falls back to the complete WAV
+00:23 +360 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Batch PCM metadata mismatch falls back to the complete WAV
+00:23 +361 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Batch PCM metadata mismatch falls back to the complete WAV
+00:23 +362 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Batch PCM metadata mismatch falls back to the complete WAV
+Batch chunk finalize failed; uploading WAV fallback: Instance of '_PcmMetadataFailure'
+00:23 +363 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: home communication matches image one
+00:24 +364 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: home communication matches image one
+00:24 +365 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: home communication matches image one
+00:24 +366 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: home communication matches image one
+00:24 +367 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: processing status advances through ASR, translation, and audio
+00:24 +368 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: processing status advances through ASR, translation, and audio
+00:24 +369 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: processing status advances through ASR, translation, and audio
+00:24 +370 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: processing status advances through ASR, translation, and audio
+{"event":"playback_latency_client","conversationId":"file-result","audioStartedAfterStopMs":773,"audioLoadMs":0,"audioFromDeviceCache":false,"responseToPlaybackMs":0,"audioPreloadLoadedData":false,"audioPreloadCanPlay":false,"audioPreloadLoadedDataMs":null,"audioPreloadCanPlayMs":null}
+00:24 +371 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: opens vocabulary, returns to communication, and opens topics
+00:24 +372 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: opens vocabulary, returns to communication, and opens topics
+00:25 +373 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Web starts Batch immediately then discards it without detected speech
+00:25 +374 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Web starts Batch immediately then discards it without detected speech
+00:25 +375 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: topic rail opens the catalog directly
+00:25 +376 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: topic rail opens the catalog directly
+00:25 +377 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: topic rail opens the catalog directly
+00:25 +378 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: system Back closes vocabulary detail before leaving the tab
+00:25 +379 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: exact Android rule starts cached audio before backend finishes
+00:25 +380 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: exact Android rule starts cached audio before backend finishes
+{"event":"playback_latency_client","conversationId":"stream-result","audioStartedAfterStopMs":0,"audioLoadMs":0,"audioFromDeviceCache":false,"responseToPlaybackMs":0,"audioPreloadLoadedData":false,"audioPreloadCanPlay":false,"audioPreloadLoadedDataMs":null,"audioPreloadCanPlayMs":null}
+00:25 +381 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: add vocabulary dialog matches image three
+00:25 +382 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: add vocabulary dialog matches image three
+00:25 +383 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: add vocabulary dialog matches image three
+00:25 +384 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: add vocabulary dialog matches image three
+00:25 +385 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: add vocabulary dialog matches image three
+00:25 +386 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: add vocabulary dialog matches image three
+00:25 +387 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: add vocabulary dialog matches image three
+00:25 +388 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: add vocabulary dialog matches image three
+00:25 +389 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: add vocabulary dialog matches image three
+00:26 +390 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: add vocabulary dialog matches image three
+00:26 +390 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: exact Android rule remains usable while backend is unavailable
+Using on-device exact conversation rule: Instance of '_RetryableBackendFailure'
+{"event":"playback_latency_client","conversationId":"","audioStartedAfterStopMs":0,"audioLoadMs":0,"audioFromDeviceCache":false,"responseToPlaybackMs":0,"audioPreloadLoadedData":false,"audioPreloadCanPlay":false,"audioPreloadLoadedDataMs":null,"audioPreloadCanPlayMs":null}
+00:26 +391 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: add vocabulary dialog matches image three
+00:26 +392 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: add vocabulary dialog matches image three
+00:26 +393 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: add vocabulary dialog matches image three
+00:26 +394 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: add vocabulary dialog matches image three
+00:26 +395 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: add vocabulary dialog matches image three
+00:26 +396 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: Android opens recent history without device authentication
+00:26 +397 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: unknown Android sentence shows a friendly backend outage message
+00:26 +398 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: unknown Android sentence shows a friendly backend outage message
+00:26 +399 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: Android changes the listening age group without device authentication
+00:27 +400 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +401 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +402 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +403 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +404 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +405 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +406 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +407 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +408 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +409 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +410 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +411 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +412 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +413 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +414 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +415 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +416 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +417 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +418 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +419 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +420 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +421 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +422 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +423 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +424 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +425 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +426 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +427 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +428 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +429 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +429 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: unknown sentence uses on-device translation only after backend outage
+Using on-device conversation translation: ClientException: No network
+00:27 +430 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_golden_test.dart: dark home keeps the approved option two composition
+00:27 +431 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: reports settings modal visibility until the sheet closes
+00:27 +432 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: iOS Apple Speech transcript uses on-device translation when offline
+Using on-device conversation translation: ClientException: No network
+00:27 +433 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: iOS keeps header, side navigation, and hardware MAIN flow
+00:28 +434 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: iOS keeps header, side navigation, and hardware MAIN flow
+00:28 +435 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: iOS keeps header, side navigation, and hardware MAIN flow
+00:28 +436 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: iOS keeps header, side navigation, and hardware MAIN flow
+00:28 +437 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: iOS keeps header, side navigation, and hardware MAIN flow
+00:28 +438 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: iOS keeps header, side navigation, and hardware MAIN flow
+00:28 +439 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: iOS keeps header, side navigation, and hardware MAIN flow
+00:28 +439 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: network loss switches to device translation before HTTP starts
+Using on-device conversation translation: network_transport_unavailable
+00:28 +440 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: iOS keeps header, side navigation, and hardware MAIN flow
+00:28 +441 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: iOS keeps header, side navigation, and hardware MAIN flow
+00:28 +442 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_challenge_screen_test.dart: Android Challenge waits for ready cue before recording
+00:28 +443 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_challenge_screen_test.dart: Android Challenge waits for ready cue before recording
+00:28 +444 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: opens vocabulary from a recognized voice command
+00:28 +445 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: stop briefly waits for an almost-ready Realtime connection
+00:28 +446 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: stop briefly waits for an almost-ready Realtime connection
+00:29 +447 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: stop briefly waits for an almost-ready Realtime connection
+00:29 +448 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: stop briefly waits for an almost-ready Realtime connection
+00:29 +449 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: stop briefly waits for an almost-ready Realtime connection
+00:29 +450 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: topic lesson journey matches the approved direction
+00:29 +450 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Realtime connection failure uses buffered Batch Chunks at stop
+Legacy Realtime background connection failed: Bad state: Realtime connection failed
+00:29 +451 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: topic lesson journey matches the approved direction
+00:29 +452 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: topic lesson journey matches the approved direction
+00:29 +453 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: topic lesson journey matches the approved direction
+00:29 +454 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: topic lesson journey matches the approved direction
+00:29 +455 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: topic lesson journey matches the approved direction
+00:29 +456 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: topic lesson journey matches the approved direction
+00:29 +457 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: topic lesson journey matches the approved direction
+00:29 +458 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: topic lesson journey matches the approved direction
+00:29 +459 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: topic lesson journey matches the approved direction
+00:29 +460 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: topic lesson journey matches the approved direction
+00:29 +461 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: topic lesson journey matches the approved direction
+00:29 +462 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: topic lesson journey matches the approved direction
+00:30 +463 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: topic lesson journey matches the approved direction
+00:30 +464 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: topic lesson journey matches the approved direction
+00:30 +465 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: topic lesson journey matches the approved direction
+00:30 +466 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: topic lesson journey matches the approved direction
+00:30 +467 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: stop falls back after the bounded Realtime connection wait
+00:30 +468 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: stop falls back after the bounded Realtime connection wait
+00:30 +469 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: stop falls back after the bounded Realtime connection wait
+00:30 +470 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: stop falls back after the bounded Realtime connection wait
+00:30 +471 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: stop falls back after the bounded Realtime connection wait
+00:30 +472 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: stop falls back after the bounded Realtime connection wait
+00:30 +473 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: stop falls back after the bounded Realtime connection wait
+00:30 +474 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: stop falls back after the bounded Realtime connection wait
+00:30 +475 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: stop falls back after the bounded Realtime connection wait
+00:30 +476 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: stop falls back after the bounded Realtime connection wait
+00:30 +477 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: stop falls back after the bounded Realtime connection wait
+{"event":"openai_realtime_stop_wait_timeout","waitMs":501}
+00:30 +478 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: Main flow uses the saved age and topic owner to open the first lesson
+00:30 +479 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: Main flow uses the saved age and topic owner to open the first lesson
+00:30 +480 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: Main flow uses the saved age and topic owner to open the first lesson
+00:31 +481 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: Main flow uses the saved age and topic owner to open the first lesson
+00:31 +482 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: Main flow uses the saved age and topic owner to open the first lesson
+00:31 +483 -2: D:/Documents/ai-speaking-flutter-app/test/features/home/home_learning_shell_test.dart: Main flow uses the saved age and topic owner to open the first lesson
+00:31 +484 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: sentence practice matches the approved direction
+00:31 +485 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: sentence practice matches the approved direction
+00:31 +486 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: HFP source uses standard Android ASR and reports Bluetooth
+00:31 +487 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: HFP source uses standard Android ASR and reports Bluetooth
+00:31 +488 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: Android manual cue waits before capture
+00:32 +489 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: Android manual cue waits before capture
+00:32 +490 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: Android manual cue waits before capture
+00:32 +491 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: Android manual cue waits before capture
+00:32 +492 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: Android manual cue waits before capture
+00:32 +493 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: Android manual cue waits before capture
+00:32 +494 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: Android manual cue waits before capture
+00:32 +495 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: iOS native HFP capture uses selected media output for playback
+00:32 +496 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: iOS native HFP capture uses selected media output for playback
+00:32 +497 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: iOS native HFP capture uses selected media output for playback
+00:32 +498 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: iOS native HFP capture uses selected media output for playback
+00:32 +499 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: iOS native HFP capture uses selected media output for playback
+{"event":"playback_latency_client","conversationId":"stream-result","audioStartedAfterStopMs":0,"audioLoadMs":0,"audioFromDeviceCache":false,"responseToPlaybackMs":0,"audioPreloadLoadedData":false,"audioPreloadCanPlay":false,"audioPreloadLoadedDataMs":null,"audioPreloadCanPlayMs":null}
+00:32 +500 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: V4 completion opens an authored voice challenge
+00:33 +501 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: V4 completion opens an authored voice challenge
+00:33 +502 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: V4 completion opens an authored voice challenge
+00:33 +503 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: V4 completion opens an authored voice challenge
+00:33 +504 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: V4 completion opens an authored voice challenge
+00:33 +505 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: V4 completion opens an authored voice challenge
+00:33 +506 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: V4 completion opens an authored voice challenge
+00:33 +507 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: V4 completion opens an authored voice challenge
+00:33 +508 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_flow_golden_test.dart: V4 completion opens an authored voice challenge
+00:33 +509 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: playback start has a finite failure boundary
+00:33 +510 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: playback start has a finite failure boundary
+00:33 +511 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: playback start has a finite failure boundary
+00:33 +512 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: playback start has a finite failure boundary
+00:33 +513 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: playback start has a finite failure boundary
+00:33 +514 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: playback start has a finite failure boundary
+00:33 +515 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: playback start has a finite failure boundary
+00:33 +516 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: playback start has a finite failure boundary
+00:34 +517 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: playback start has a finite failure boundary
+00:34 +518 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: HFP failure of authored sample never falls back to TTS or capture
+00:34 +519 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: early exact-rule playback cannot prepare forever
+00:34 +520 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: early exact-rule playback cannot prepare forever
+00:34 +521 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: early exact-rule playback cannot prepare forever
+00:34 +522 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: early exact-rule playback cannot prepare forever
+00:34 +523 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: early exact-rule playback cannot prepare forever
+00:34 +524 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: early exact-rule playback cannot prepare forever
+00:34 +525 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: early exact-rule playback cannot prepare forever
+00:34 +526 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: early exact-rule playback cannot prepare forever
+00:34 +527 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: early exact-rule playback cannot prepare forever
+00:34 +528 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: early exact-rule playback cannot prepare forever
+00:34 +529 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: early exact-rule playback cannot prepare forever
+00:34 +530 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: early exact-rule playback cannot prepare forever
+00:34 +531 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: early exact-rule playback cannot prepare forever
+00:34 +532 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: early exact-rule playback cannot prepare forever
+00:34 +533 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: early exact-rule playback cannot prepare forever
+00:34 +534 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: early exact-rule playback cannot prepare forever
+00:34 +535 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: early exact-rule playback cannot prepare forever
+00:34 +536 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: early exact-rule playback cannot prepare forever
+00:34 +537 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: early exact-rule playback cannot prepare forever
+00:34 +538 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: early exact-rule playback cannot prepare forever
+00:34 +539 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: early exact-rule playback cannot prepare forever
+00:34 +540 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: early exact-rule playback cannot prepare forever
+00:34 +541 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: early exact-rule playback cannot prepare forever
+00:34 +542 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: early exact-rule playback cannot prepare forever
+00:34 +543 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: early exact-rule playback cannot prepare forever
+00:34 +544 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: V4 ActiveLearningCommand.replayCurrent waits for EN and VI to finish before capture
+00:34 +545 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: V4 ActiveLearningCommand.replayCurrent waits for EN and VI to finish before capture
+00:34 +546 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: V4 ActiveLearningCommand.replayCurrent waits for EN and VI to finish before capture
+00:34 +547 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_overview_screen_test.dart: V4 resumes from its first interrupted core sentence
+00:34 +548 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_overview_screen_test.dart: V4 resumes from its first interrupted core sentence
+00:35 +549 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_overview_screen_test.dart: V4 resumes from its first interrupted core sentence
+00:35 +550 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_overview_screen_test.dart: V4 resumes from its first interrupted core sentence
+00:35 +551 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: iOS start failure records with Cloudflare Batch fallback
+00:35 +552 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: iOS start failure records with Cloudflare Batch fallback
+00:35 +553 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: iOS start failure records with Cloudflare Batch fallback
+00:35 +554 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: iOS start failure records with Cloudflare Batch fallback
+00:35 +555 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: iOS start failure records with Cloudflare Batch fallback
+00:35 +556 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:35 +557 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:35 +558 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:35 +559 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:35 +560 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:35 +561 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:36 +562 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:36 +562 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_overview_screen_test.dart: intro opens V4 practice directly without overview prompts
+
+Warning: A call to tap() with finder "Found 1 widget with key [<'skip-lesson-intro'>]: [
+  TextButton-[<'skip-lesson-intro'>](style: ButtonStyle#233c6(backgroundColor: WidgetStatePropertyAll(Color(alpha: 0.9000, red: 1.0000, green: 1.0000, blue: 1.0000, colorSpace: ColorSpace.sRGB)), foregroundColor: WidgetStateMapper<Color?>({WidgetState.disabled: null, WidgetState.any: Color(alpha: 1.0000, red: 0.0588, green: 0.1333, blue: 0.3412, colorSpace: ColorSpace.sRGB)}), overlayColor: WidgetStateMapper<Color?>({WidgetState.pressed: Color(alpha: 0.1020, red: 0.0588, green: 0.1333, blue: 0.3412, colorSpace: ColorSpace.sRGB), WidgetState.hovered: Color(alpha: 0.0784, red: 0.0588, green: 0.1333, blue: 0.3412, colorSpace: ColorSpace.sRGB), WidgetState.focused: Color(alpha: 0.1020, red: 0.0588, green: 0.1333, blue: 0.3412, colorSpace: ColorSpace.sRGB)}), padding: WidgetStatePropertyAll(EdgeInsets(18.0, 12.0, 18.0, 12.0)), mouseCursor: WidgetStateMapper<MouseCursor?>({WidgetState.disabled: null, WidgetState.any: null})), dependencies: [IconTheme, InheritedCupertinoTheme, MediaQuery, _InheritedTheme, _LocalizationsScope-[GlobalKey#1c50c]], state: _ButtonStyleState#3940c),
+]" derived an Offset (Offset(722.0, 34.0)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+The finder corresponds to this RenderBox: RenderSemanticsAnnotations#235a0 relayoutBoundary=up2
+The hit test result at that offset is: HitTestResult(RenderMouseRegion#e8d98@Offset(722.0, 34.0), RenderSemanticsAnnotations#22ace@Offset(722.0, 34.0), RenderPointerListener#70934@Offset(722.0, 34.0), RenderSemanticsGestureHandler#5804b@Offset(722.0, 34.0), RenderExcludeSemantics#c9885@Offset(722.0, 34.0), RenderBlockSemantics#38a38@Offset(722.0, 34.0), RenderIgnorePointer#99b75@Offset(722.0, 34.0), _RenderTheater#718d3@Offset(722.0, 34.0), RenderAbsorbPointer#bef06@Offset(722.0, 34.0), RenderPointerListener#cd3b4@Offset(722.0, 34.0), RenderSemanticsAnnotations#27f91@Offset(722.0, 34.0), RenderCustomPaint#80ce1@Offset(722.0, 34.0), RenderSemanticsAnnotations#531f8@Offset(722.0, 34.0), RenderSemanticsAnnotations#cba75@Offset(722.0, 34.0), RenderSemanticsAnnotations#53872@Offset(722.0, 34.0), RenderTapRegionSurface#86a44@Offset(722.0, 34.0), RenderSemanticsAnnotations#a2404@Offset(722.0, 34.0), RenderSemanticsAnnotations#46012@Offset(722.0, 34.0), HitTestEntry<HitTestTarget>#e61c3(_ReusableRenderView#c92af), HitTestEntry<HitTestTarget>#3a2b1(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.<anonymous closure> (file:///D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_overview_screen_test.dart:281:18)
+<asynchronous suspension>
+#4      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#5      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+#6      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+00:36 +563 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:36 +564 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:36 +565 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:36 +566 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:36 +566 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: V4 falls back to local TTS when authored EN-VI audio fails
+HOMI English authored audio unavailable; using local TTS: Bad state: Authored audio unavailable.
+HOMI Vietnamese authored audio unavailable; using local TTS: Bad state: Authored audio unavailable.
+00:36 +567 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:36 +568 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:36 +569 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: standard Android ASR prefers direct streaming over recorded-audio injection
+00:36 +570 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: MAIN pause then resume accepts a correct fresh lesson attempt
+00:36 +571 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: MAIN pause then resume accepts a correct fresh lesson attempt
+00:36 +572 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: MAIN pause then resume accepts a correct fresh lesson attempt
+00:36 +573 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: MAIN pause then resume accepts a correct fresh lesson attempt
+00:36 +574 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: MAIN pause then resume accepts a correct fresh lesson attempt
+00:36 +575 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: MAIN pause then resume accepts a correct fresh lesson attempt
+00:36 +576 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: MAIN pause then resume accepts a correct fresh lesson attempt
+00:36 +577 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: MAIN pause then resume accepts a correct fresh lesson attempt
+00:36 +578 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: MAIN pause then resume accepts a correct fresh lesson attempt
+00:36 +579 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via system Back with stalled audio
+00:36 +580 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via system Back with stalled audio
+00:36 +581 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via system Back with stalled audio
+00:36 +582 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via system Back with stalled audio
+00:36 +583 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via system Back with stalled audio
+00:36 +584 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via system Back with stalled audio
+00:36 +585 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via system Back with stalled audio
+00:36 +586 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via system Back with stalled audio
+00:36 +587 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via system Back with stalled audio
+00:36 +588 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Android failure with local PCM still cannot use cloud fallback
+00:37 +589 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Android failure with local PCM still cannot use cloud fallback
+00:37 +590 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Android failure with local PCM still cannot use cloud fallback
+00:37 +591 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Android failure with local PCM still cannot use cloud fallback
+00:37 +592 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: Android end-of-lesson "(Học lại, 1, true)" opens the selected learning flow
+00:37 +593 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: Android end-of-lesson "(Học lại, 1, true)" opens the selected learning flow
+00:37 +594 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: recorded Android audio archive remains an explicit opt-in
+00:37 +595 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: recorded Android audio archive remains an explicit opt-in
+00:37 +596 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: recorded Android audio archive remains an explicit opt-in
+00:37 +597 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_recording_endpoint_detector_test.dart: ASR confirmation endpoints without RMS and renews on new words
+00:37 +598 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: V4 also replays the child recording before scoring
+00:37 +599 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: V4 also replays the child recording before scoring
+00:37 +600 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: V4 also replays the child recording before scoring
+00:37 +601 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: V4 also replays the child recording before scoring
+00:37 +602 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: V4 also replays the child recording before scoring
+00:37 +603 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: V4 also replays the child recording before scoring
+00:37 +604 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: V4 also replays the child recording before scoring
+00:37 +605 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: V4 also replays the child recording before scoring
+00:37 +606 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: V4 also replays the child recording before scoring
+00:37 +607 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: V4 also replays the child recording before scoring
+00:37 +608 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: Android completion arms command ASR before ting, not Core mic
+00:37 +609 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: Android completion arms command ASR before ting, not Core mic
+00:37 +610 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: Android completion arms command ASR before ting, not Core mic
+00:38 +611 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Android injected-audio failure never uploads WAV to Cloudflare
+00:38 +612 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Android injected-audio failure never uploads WAV to Cloudflare
+00:38 +613 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: next and previous both restart the selected sentence from its sample
+00:38 +614 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: MAIN invalidates an evaluation that finishes after pause
+00:38 +615 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: automatic Android no-match after VAD noise exits as no speech
+00:38 +616 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: automatic Android no-match after VAD noise exits as no speech
+00:38 +617 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: automatic Android no-match after VAD noise exits as no speech
+00:38 +618 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: V2 retries with feedback and English only, then sends a second miss to Review
+00:38 +619 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_recording_history_sheet_test.dart: history child replay uses the same gain as the lesson
+00:39 +620 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_recording_history_sheet_test.dart: history child replay uses the same gain as the lesson
+00:39 +621 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_recording_history_sheet_test.dart: history child replay uses the same gain as the lesson
+00:39 +622 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_recording_history_sheet_test.dart: history child replay uses the same gain as the lesson
+00:39 +623 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_recording_history_sheet_test.dart: history child replay uses the same gain as the lesson
+00:39 +624 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: browser HFP records with the selected Bluetooth web input
+00:39 +624 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: V2 still reopens recording when unclear feedback playback fails
+HOMI unclear feedback playback failed: Bad state: Unclear feedback playback failed.
+00:39 +625 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: browser HFP records with the selected Bluetooth web input
+00:39 +626 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: browser HFP records with the selected Bluetooth web input
+00:39 +627 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: browser HFP records with the selected Bluetooth web input
+00:39 +628 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: V4 marks the lesson complete only after its authored challenge finishes
+00:40 +629 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: V4 marks the lesson complete only after its authored challenge finishes
+00:40 +630 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: online Android without file injection keeps the fast native path
+00:40 +631 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: online Android without file injection keeps the fast native path
+00:40 +632 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: online Android without file injection keeps the fast native path
+00:40 +633 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: online Android without file injection keeps the fast native path
+00:40 +634 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: online Android without file injection keeps the fast native path
+00:40 +635 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: V4 resumes the exact completion choice after interruption
+00:40 +636 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: V2 hears next lesson choice and opens lesson two
+00:40 +637 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Safari Worker result archives the complete Web WAV
+00:40 +638 -2: D:/Documents/ai-speaking-flutter-app/test/core_audio_streaming_fallback_test.dart: Safari Worker result archives the complete Web WAV
+00:40 +639 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: V2 asks the child to repeat an unclear completion choice
+00:41 +640 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: V2 asks the child to repeat an unclear completion choice
+00:41 +641 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: MAIN commands pause, resume, and leave the lesson for home
+00:41 +642 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: MAIN commands pause, resume, and leave the lesson for home
+00:41 +643 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_practice_navigation_test.dart: MAIN commands pause, resume, and leave the lesson for home
+00:41 +644 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: V2 announces topic completion after its last lesson
+00:41 +645 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: prompts twice, then offers skip without automatically skipping
+00:41 +646 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: prompts twice, then offers skip without automatically skipping
+00:41 +647 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_wav_normalizer_test.dart: stereo becomes valid mono without changing duration or source
+00:41 +648 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: successful recording shows non-blocking fireworks and four actions
+00:41 +649 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: successful recording shows non-blocking fireworks and four actions
+00:41 +650 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: successful recording shows non-blocking fireworks and four actions
+00:41 +651 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: successful recording shows non-blocking fireworks and four actions
+00:41 +652 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: successful recording shows non-blocking fireworks and four actions
+00:41 +652 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_wav_normalizer_test.dart: new lesson recording finalization Android returns same finalized path with normalized audio
+Lesson WAV normalized: sampleRate=16000 channels=2->1 sourceBytes=52 outputBytes=48
+00:41 +653 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: successful recording shows non-blocking fireworks and four actions
+00:41 +654 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: successful recording shows non-blocking fireworks and four actions
+00:41 +655 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: successful recording shows non-blocking fireworks and four actions
+00:41 +656 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: sample and Vietnamese audio finish before the record guide plays
+00:42 +657 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: sample and Vietnamese audio finish before the record guide plays
+00:42 +658 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/listening_catalog_guided_flow_test.dart: V4 catalog connects every target to guided practice and authored checks
+00:42 +659 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: completion opens the learned review without playing the ending guide
+00:42 +660 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: completion opens the learned review without playing the ending guide
+00:42 +661 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: completion opens the learned review without playing the ending guide
+00:42 +662 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: completion opens the learned review without playing the ending guide
+00:42 +663 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: completion opens the learned review without playing the ending guide
+00:42 +664 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: learned review opens the next lesson in the same topic
+00:42 +665 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: learned review opens the next lesson in the same topic
+00:42 +666 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: learned review opens the next lesson in the same topic
+00:42 +667 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: learned review opens the next lesson in the same topic
+00:42 +668 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: learned review opens the next lesson in the same topic
+00:43 +669 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: learned review restarts the current lesson from sentence one
+00:43 +670 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: learned review restarts the current lesson from sentence one
+00:43 +671 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: learned review restarts the current lesson from sentence one
+00:43 +672 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: learned review restarts the current lesson from sentence one
+00:43 +673 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: learned review restarts the current lesson from sentence one
+00:43 +674 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: learned review restarts the current lesson from sentence one
+00:43 +675 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: learned review restarts the current lesson from sentence one
+00:43 +676 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: learned review restarts the current lesson from sentence one
+00:43 +677 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: learned review restarts the current lesson from sentence one
+00:43 +678 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/listening_progress_store_test.dart: first core sentence start persists without changing totals
+00:43 +679 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: last learned lesson returns to the selected listening topic
+00:43 +680 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: last learned lesson returns to the selected listening topic
+00:43 +681 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: last learned lesson returns to the selected listening topic
+00:43 +682 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: last learned lesson returns to the selected listening topic
+00:43 +683 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: last learned lesson returns to the selected listening topic
+00:43 +684 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: last learned lesson returns to the selected listening topic
+00:43 +685 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: last learned lesson returns to the selected listening topic
+00:43 +686 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: last learned lesson returns to the selected listening topic
+00:43 +687 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: last learned lesson returns to the selected listening topic
+00:43 +688 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: last learned lesson returns to the selected listening topic
+00:43 +689 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: last learned lesson returns to the selected listening topic
+00:43 +690 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: listening action pops the topic detail to the age catalog
+00:44 +691 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/song_karaoke_screen_test.dart: (setUpAll)
+00:44 +691 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: dialogue and song lessons expose age-appropriate practice cues
+00:44 +692 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: dialogue and song lessons expose age-appropriate practice cues
+00:44 +693 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: dialogue and song lessons expose age-appropriate practice cues
+00:44 +694 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/song_karaoke_screen_test.dart: song starts automatically after three seconds
+00:44 +695 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/song_karaoke_screen_test.dart: song starts automatically after three seconds
+00:44 +696 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/song_karaoke_screen_test.dart: song starts automatically after three seconds
+00:44 +697 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/song_karaoke_screen_test.dart: song starts automatically after three seconds
+00:44 +698 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/song_karaoke_screen_test.dart: song starts automatically after three seconds
+00:44 +699 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/song_karaoke_screen_test.dart: song starts automatically after three seconds
+00:44 +700 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/song_karaoke_screen_test.dart: song starts automatically after three seconds
+00:44 +701 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/song_karaoke_screen_test.dart: song starts automatically after three seconds
+00:44 +702 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/song_karaoke_screen_test.dart: song starts automatically after three seconds
+00:44 +703 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/song_karaoke_screen_test.dart: song starts automatically after three seconds
+00:44 +704 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/song_karaoke_screen_test.dart: song starts automatically after three seconds
+00:44 +705 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: dark theme keeps the listening journey text readable
+00:45 +706 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: dark theme keeps the listening journey text readable
+00:45 +707 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: dark theme keeps the listening journey text readable
+00:45 +708 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: dark theme keeps the listening journey text readable
+00:45 +709 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: dark theme keeps the listening journey text readable
+00:45 +710 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: dark theme keeps the listening journey text readable
+00:45 +711 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: dark theme keeps the listening journey text readable
+00:45 +712 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: dark theme keeps the listening journey text readable
+00:45 +713 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: dark theme keeps the listening journey text readable
+00:45 +714 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: dark theme keeps the listening journey text readable
+00:45 +715 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: dark theme keeps the listening journey text readable
+00:45 +716 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: dark theme keeps the listening journey text readable
+00:45 +717 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: dark theme keeps the listening journey text readable
+00:45 +718 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: dark theme keeps the listening journey text readable
+00:45 +719 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: dark theme keeps the listening journey text readable
+00:45 +720 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: dark theme keeps the listening journey text readable
+00:45 +721 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: dark theme keeps the listening journey text readable
+00:45 +722 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: lesson intro does not auto advance when playback fails
+00:45 +723 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart: lesson intro does not auto advance when playback fails
+Lesson intro playback failed for guided-flow (https://example.test/broken-intro.mp3): Bad state: Playback failed.
+#0      _FailingIntroMediaService.playToCompletion (file:///D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart:3051:5)
+#1      _LessonIntroScreenState._beginIntro (package:ai_speaking_flutter_app/features/listening/presentation/lesson_intro_screen.dart:164:35)
+#2      _LessonIntroScreenState.initState.<anonymous closure> (package:ai_speaking_flutter_app/features/listening/presentation/lesson_intro_screen.dart:102:57)
+#3      SchedulerBinding._invokeFrameCallback (package:flutter/src/scheduler/binding.dart:1430:15)
+#4      SchedulerBinding.handleDrawFrame (package:flutter/src/scheduler/binding.dart:1357:11)
+#5      AutomatedTestWidgetsFlutterBinding.pump.<anonymous closure> (package:flutter_test/src/binding.dart:2260:9)
+#8      TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#9      AutomatedTestWidgetsFlutterBinding.pump (package:flutter_test/src/binding.dart:2249:27)
+#10     WidgetTester.pumpWidget.<anonymous closure> (package:flutter_test/src/widget_tester.dart:598:22)
+#13     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#14     WidgetTester.pumpWidget (package:flutter_test/src/widget_tester.dart:595:27)
+#15     main.<anonymous closure> (file:///D:/Documents/ai-speaking-flutter-app/test/features/listening/lesson_guided_flow_test.dart:2387:18)
+<asynchronous suspension>
+#16     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#17     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 5 frames from dart:async and package:stack_trace)
+00:45 +724 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: topic navigation exposes the shared MAIN action
+00:45 +725 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: topic navigation exposes the shared MAIN action
+00:46 +726 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: topic navigation exposes the shared MAIN action
+00:46 +727 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/song_karaoke_screen_test.dart: karaoke screen matches the selected visual direction
+00:46 +728 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: topic prompts prepare and use the selected H20 output
+00:46 +729 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: entering topics restores the current Level intro
+00:46 +730 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: entering topics restores the current Level intro
+00:46 +731 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: entering topics restores the current Level intro
+00:47 +732 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: entering topics restores the current Level intro
+00:47 +733 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: entering topics restores the current Level intro
+00:47 +734 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: entering topics restores the current Level intro
+00:47 +735 -2: D:/Documents/ai-speaking-flutter-app/test/features/onboarding/startup_setup_screen_golden_test.dart: all three setup steps share the approved HOMI form
+00:47 +736 -2: D:/Documents/ai-speaking-flutter-app/test/features/onboarding/startup_setup_screen_golden_test.dart: all three setup steps share the approved HOMI form
+00:48 +737 -2: D:/Documents/ai-speaking-flutter-app/test/features/onboarding/startup_setup_screen_golden_test.dart: all three setup steps share the approved HOMI form
+00:48 +738 -2: D:/Documents/ai-speaking-flutter-app/test/features/onboarding/startup_setup_screen_golden_test.dart: all three setup steps share the approved HOMI form
+00:48 +739 -2: D:/Documents/ai-speaking-flutter-app/test/features/onboarding/startup_setup_screen_golden_test.dart: all three setup steps share the approved HOMI form
+00:49 +740 -2: D:/Documents/ai-speaking-flutter-app/test/features/onboarding/startup_setup_screen_test.dart: requires both BLE MAIN control and H20 microphone before setup can finish
+00:49 +741 -2: D:/Documents/ai-speaking-flutter-app/test/features/onboarding/startup_setup_screen_test.dart: requires both BLE MAIN control and H20 microphone before setup can finish
+00:49 +742 -2: D:/Documents/ai-speaking-flutter-app/test/features/onboarding/startup_setup_screen_test.dart: requires both BLE MAIN control and H20 microphone before setup can finish
+00:49 +743 -2: D:/Documents/ai-speaking-flutter-app/test/features/onboarding/startup_setup_screen_test.dart: requires both BLE MAIN control and H20 microphone before setup can finish
+00:49 +744 -2: D:/Documents/ai-speaking-flutter-app/test/features/onboarding/user_onboarding_tour_test.dart: walks through welcome, spotlight, and completion steps
+00:49 +745 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: reports completed V4 topics again after replaying one
+00:49 +746 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: reports completed V4 topics again after replaying one
+00:50 +747 -2: D:/Documents/ai-speaking-flutter-app/test/features/onboarding/startup_setup_screen_test.dart: limited mode can finish without microphone or H20
+00:50 +748 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: completed Course asks MAIN to choose a Level for relearn
+00:50 +749 -2: D:/Documents/ai-speaking-flutter-app/test/features/onboarding/startup_setup_screen_test.dart: closing legal review early does not unlock voice consent
+00:50 +750 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: does not report a V4 topic complete until its authored activities finish
+00:50 +751 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: does not report a V4 topic complete until its authored activities finish
+00:50 +752 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: does not report a V4 topic complete until its authored activities finish
+00:50 +753 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: does not report a V4 topic complete until its authored activities finish
+00:50 +754 -2: D:/Documents/ai-speaking-flutter-app/test/features/privacy/parental_gate_test.dart: native Android bypasses parental authentication entirely
+00:50 +755 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: renders a V4 song milestone as a normal lesson, not a legacy clip
+00:50 +756 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: renders a V4 song milestone as a normal lesson, not a legacy clip
+00:50 +757 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: renders a V4 song milestone as a normal lesson, not a legacy clip
+00:50 +758 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: renders a V4 song milestone as a normal lesson, not a legacy clip
+00:50 +759 -2: D:/Documents/ai-speaking-flutter-app/test/features/privacy/parental_gate_test.dart: device without a screen lock cannot enter parental area
+00:50 +760 -2: D:/Documents/ai-speaking-flutter-app/test/features/privacy/parental_gate_test.dart: device without a screen lock cannot enter parental area
+00:50 +761 -2: D:/Documents/ai-speaking-flutter-app/test/features/privacy/parental_gate_test.dart: device without a screen lock cannot enter parental area
+00:51 +762 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: a compact phone can reach the V4 lesson intro without layout errors
+00:51 +763 -2: D:/Documents/ai-speaking-flutter-app/test/features/listening/topic_listening_screen_test.dart: renders the learning journey responsively on web width
+00:51 +764 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/history_sheet_test.dart: history shows distinct review states and filters rejected items
+00:51 +765 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/history_sheet_test.dart: history shows distinct review states and filters rejected items
+00:51 +766 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/history_sheet_test.dart: history shows distinct review states and filters rejected items
+00:51 +767 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/history_sheet_test.dart: history shows distinct review states and filters rejected items
+00:51 +768 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/history_sheet_test.dart: history shows distinct review states and filters rejected items
+00:51 +769 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/history_sheet_test.dart: history shows distinct review states and filters rejected items
+00:52 +770 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/history_sheet_test.dart: history shows distinct review states and filters rejected items
+00:52 +771 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/history_sheet_test.dart: history shows distinct review states and filters rejected items
+00:52 +772 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/history_sheet_test.dart: history shows distinct review states and filters rejected items
+00:52 +773 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/history_sheet_test.dart: history shows distinct review states and filters rejected items
+00:52 +774 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/history_sheet_test.dart: history shows distinct review states and filters rejected items
+00:52 +775 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/history_sheet_test.dart: history shows distinct review states and filters rejected items
+00:52 +776 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/theme_mode_flow_test.dart: settings switches between dark and light immediately
+00:52 +777 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/theme_mode_flow_test.dart: settings switches between dark and light immediately
+00:52 +778 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/theme_mode_flow_test.dart: settings switches between dark and light immediately
+00:52 +779 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/theme_mode_flow_test.dart: settings switches between dark and light immediately
+00:52 +780 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/theme_mode_flow_test.dart: settings switches between dark and light immediately
+00:52 +781 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/theme_mode_flow_test.dart: settings switches between dark and light immediately
+00:52 +782 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/theme_mode_flow_test.dart: settings switches between dark and light immediately
+00:52 +783 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/theme_mode_flow_test.dart: settings switches between dark and light immediately
+00:53 +784 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/theme_mode_flow_test.dart: settings switches between dark and light immediately
+00:53 +785 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/theme_mode_flow_test.dart: settings switches between dark and light immediately
+00:53 +786 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/theme_mode_flow_test.dart: settings switches between dark and light immediately
+00:53 +787 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/theme_mode_flow_test.dart: settings switches between dark and light immediately
+00:53 +788 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/theme_mode_flow_test.dart: settings switches between dark and light immediately
+00:53 +789 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/theme_mode_flow_test.dart: settings switches between dark and light immediately
+00:53 +790 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/theme_mode_flow_test.dart: settings switches between dark and light immediately
+00:53 +791 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/theme_mode_flow_test.dart: settings switches between dark and light immediately
+00:53 +792 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/theme_mode_flow_test.dart: settings switches between dark and light immediately
+00:53 +793 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/theme_mode_flow_test.dart: settings switches between dark and light immediately
+00:53 +794 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/theme_mode_flow_test.dart: settings switches between dark and light immediately
+00:53 +795 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/theme_mode_flow_test.dart: settings switches between dark and light immediately
+00:53 +796 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/theme_mode_flow_test.dart: settings switches between dark and light immediately
+00:53 +797 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/theme_mode_flow_test.dart: settings changes the child age group
+00:53 +798 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: touch back changes UI immediately and cancels old audio queue
+00:54 +799 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: touch back changes UI immediately and cancels old audio queue
+00:54 +800 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: touch back changes UI immediately and cancels old audio queue
+00:54 +801 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: touch back changes UI immediately and cancels old audio queue
+00:54 +802 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: touch back changes UI immediately and cancels old audio queue
+00:54 +803 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: touch back changes UI immediately and cancels old audio queue
+00:55 +804 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_practice_screen_test.dart: unfinished Today exits with screen Back even if audio stop hangs
+00:55 +805 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_practice_screen_test.dart: unfinished Today exits with screen Back even if audio stop hangs
+00:55 +806 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/theme_mode_flow_test.dart: H20 settings use one compact shared surface
+00:55 +807 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_practice_golden_test.dart: parent-added journey uses the welcoming HOMI
+00:55 +808 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_practice_golden_test.dart: parent-added journey uses the welcoming HOMI
+00:55 +809 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: opens the three vocabulary journeys from the redesigned home
+00:55 +810 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: opens the three vocabulary journeys from the redesigned home
+00:55 +811 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/theme_mode_flow_test.dart: audio and data settings keep the shared visual rhythm
+00:55 +812 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/theme_mode_flow_test.dart: audio and data settings keep the shared visual rhythm
+00:55 +813 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_practice_golden_test.dart: stars journey uses the singing HOMI
+00:55 +814 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: shows search in Stars and Review without exposing add controls
+00:55 +815 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: shows search in Stars and Review without exposing add controls
+00:56 +816 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: shows search in Stars and Review without exposing add controls
+00:56 +817 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: shows search in Stars and Review without exposing add controls
+00:56 +818 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: shows search in Stars and Review without exposing add controls
+00:56 +819 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: shows search in Stars and Review without exposing add controls
+00:56 +820 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_practice_golden_test.dart: parent suggestion selection stays visually quiet
+00:56 +821 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_practice_golden_test.dart: parent suggestion selection stays visually quiet
+00:56 +822 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_practice_golden_test.dart: parent suggestion selection stays visually quiet
+00:56 +823 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_practice_golden_test.dart: parent suggestion selection stays visually quiet
+00:56 +824 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: adds a Vietnamese vocabulary entry and persists it
+00:56 +825 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/theme_mode_flow_test.dart: Android privacy deletion skips authentication but keeps confirmation
+00:56 +826 -2: D:/Documents/ai-speaking-flutter-app/test/features/settings/theme_mode_flow_test.dart: Android privacy deletion skips authentication but keeps confirmation
+00:56 +827 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: rejects content found anywhere in the Topic curriculum
+00:56 +828 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: rejects content found anywhere in the Topic curriculum
+00:56 +829 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_practice_screen_test.dart: Review next keeps skipped items pending after completing the block
+00:56 +830 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps search separate from the dedicated add flow
+00:57 +831 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps search separate from the dedicated add flow
+00:57 +832 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps search separate from the dedicated add flow
+00:57 +833 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps search separate from the dedicated add flow
+00:57 +834 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps search separate from the dedicated add flow
+00:57 +835 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps search separate from the dedicated add flow
+00:57 +836 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps search separate from the dedicated add flow
+00:57 +837 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps search separate from the dedicated add flow
+00:57 +838 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps search separate from the dedicated add flow
+00:57 +839 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps search separate from the dedicated add flow
+00:57 +840 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps search separate from the dedicated add flow
+00:57 +841 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps search separate from the dedicated add flow
+00:57 +842 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps search separate from the dedicated add flow
+00:57 +843 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps search separate from the dedicated add flow
+00:57 +844 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps search separate from the dedicated add flow
+00:57 +845 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps search separate from the dedicated add flow
+00:57 +846 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps search separate from the dedicated add flow
+00:57 +847 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps search separate from the dedicated add flow
+00:57 +848 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps search separate from the dedicated add flow
+00:57 +849 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps search separate from the dedicated add flow
+00:57 +850 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps search separate from the dedicated add flow
+00:57 +851 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps search separate from the dedicated add flow
+00:57 +852 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: shows distinct dictionary meanings for the parent to choose
+00:57 +853 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: shows distinct dictionary meanings for the parent to choose
+00:57 +854 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: shows distinct dictionary meanings for the parent to choose
+00:57 +855 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: shows distinct dictionary meanings for the parent to choose
+00:57 +856 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: shows distinct dictionary meanings for the parent to choose
+00:58 +857 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: shows distinct dictionary meanings for the parent to choose
+00:58 +858 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: shows distinct dictionary meanings for the parent to choose
+00:58 +859 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: shows distinct dictionary meanings for the parent to choose
+00:58 +860 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: shows distinct dictionary meanings for the parent to choose
+00:58 +861 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: shows distinct dictionary meanings for the parent to choose
+00:58 +862 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: shows lesson sentences in Stars and Review collections
+00:58 +863 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: shows lesson sentences in Stars and Review collections
+00:58 +864 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: shows lesson sentences in Stars and Review collections
+00:58 +865 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: shows lesson sentences in Stars and Review collections
+00:58 +866 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: shows lesson sentences in Stars and Review collections
+00:58 +867 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: shows lesson sentences in Stars and Review collections
+00:58 +868 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: shows lesson sentences in Stars and Review collections
+00:58 +869 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: refreshes collection counts after a lesson saves a sentence
+00:58 +870 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: Parent Added is oldest-first without legacy learning labels
+00:58 +871 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: Parent Added is oldest-first without legacy learning labels
+00:58 +872 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: Parent Added is oldest-first without legacy learning labels
+00:58 +873 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: Parent Added is oldest-first without legacy learning labels
+00:58 +874 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: Parent Added is oldest-first without legacy learning labels
+00:58 +875 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: Parent Added is oldest-first without legacy learning labels
+00:58 +876 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: edits both English and Vietnamese in the waiting queue
+00:58 +877 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: edits both English and Vietnamese in the waiting queue
+00:58 +878 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: edits both English and Vietnamese in the waiting queue
+00:58 +879 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: edits both English and Vietnamese in the waiting queue
+00:58 +880 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: edits both English and Vietnamese in the waiting queue
+00:58 +881 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: edits both English and Vietnamese in the waiting queue
+00:59 +882 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: announces the child voice at the start of every Star block
+00:59 +883 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: announces the child voice at the start of every Star block
+00:59 +884 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: announces the child voice at the start of every Star block
+00:59 +885 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: announces the child voice at the start of every Star block
+00:59 +886 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: announces the child voice at the start of every Star block
+00:59 +887 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps a newly added parent entry silent until it has been learned
+00:59 +888 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps a newly added parent entry silent until it has been learned
+00:59 +889 -2: D:/Documents/ai-speaking-flutter-app/test/features/vocabulary/vocabulary_home_screen_test.dart: keeps a newly added parent entry silent until it has been learned
+00:59 +890 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_speaking_session_controller_test.dart: repeated synchronization does not extend the ready timeout
+00:59 +891 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: global module commands remain available during content selection
+00:59 +892 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: global module commands remain available during content selection
+00:59 +893 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: global module commands remain available during content selection
+00:59 +894 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: global module commands remain available during content selection
+00:59 +895 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: global module commands remain available during content selection
+00:59 +896 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: global module commands remain available during content selection
+00:59 +897 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: global module commands remain available during content selection
+00:59 +898 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: global module commands remain available during content selection
+00:59 +899 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: global module commands remain available during content selection
+00:59 +900 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: global module commands remain available during content selection
+00:59 +901 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: global module commands remain available during content selection
+00:59 +902 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: global module commands remain available during content selection
+01:00 +903 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: every literal MAIN sample hands off to the correct existing module
+01:00 +904 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: fast path accepts unambiguous fallback phrases but defers broad input
+01:00 +905 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: continuous translation stops only on the approved exact phrase
+01:00 +906 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: chooses continuous translation after the Main menu
+01:00 +907 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: SKIP_SONG is separate and excludes sentence-shaped commands
+01:00 +908 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: accepts short child-friendly continuous speaking choices
+01:00 +909 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: accepts short child-friendly continuous speaking choices
+01:00 +910 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: every active learning node resumes after the second fallback
+01:00 +911 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: every active learning node resumes after the second fallback
+01:00 +912 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: every active learning node resumes after the second fallback
+01:00 +913 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: every active learning node resumes after the second fallback
+01:00 +914 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: every active learning node resumes after the second fallback
+01:00 +915 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: every active learning node resumes after the second fallback
+01:00 +916 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: accepts every D04 topic-learning synonym from Main
+01:00 +917 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: all explicit module samples work while another module is active
+01:00 +918 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: all explicit module samples work while another module is active
+01:00 +919 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: all explicit module samples work while another module is active
+01:00 +920 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: all explicit module samples work while another module is active
+01:00 +921 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: all explicit module samples work while another module is active
+01:00 +922 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: all explicit module samples work while another module is active
+01:00 +923 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: all explicit module samples work while another module is active
+01:00 +924 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: all explicit module samples work while another module is active
+01:00 +925 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: all explicit module samples work while another module is active
+01:00 +926 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: all explicit module samples work while another module is active
+01:00 +927 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: all explicit module samples work while another module is active
+01:00 +928 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: all explicit module samples work while another module is active
+01:00 +929 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: transfer from ActiveLearningModuleKind.listeningLesson/ActiveLearningVoiceNode.review includes translation intro once
+01:00 +930 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: vague module requests ask, retry once, then keep current content
+01:00 +931 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: vague module requests ask, retry once, then keep current content
+01:00 +932 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: vague module requests ask, retry once, then keep current content
+01:00 +933 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: vague module requests ask, retry once, then keep current content
+01:00 +934 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: vague module requests ask, retry once, then keep current content
+01:00 +935 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: vague module requests ask, retry once, then keep current content
+01:00 +936 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: vague module requests ask, retry once, then keep current content
+01:00 +937 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: vague module requests ask, retry once, then keep current content
+01:00 +938 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: vague module requests ask, retry once, then keep current content
+01:00 +939 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: vague module requests ask, retry once, then keep current content
+01:00 +940 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: vague module requests ask, retry once, then keep current content
+01:00 +941 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: vague module requests ask, retry once, then keep current content
+01:00 +942 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: asks before reopening a completed topic after lesson completion
+01:00 +943 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: asks before reopening a completed topic after lesson completion
+01:00 +944 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/main_voice_assistant_flow_test.dart: uses Level-scoped topic selection and opens the mic-ready flow
+01:00 +945 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: MAIN does not guess from an embedded destination or closed-choice answer
+01:00 +946 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: MAIN does not guess from an embedded destination or closed-choice answer
+01:00 +947 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: MAIN does not guess from an embedded destination or closed-choice answer
+01:00 +948 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: MAIN does not guess from an embedded destination or closed-choice answer
+01:00 +949 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: MAIN does not guess from an embedded destination or closed-choice answer
+01:00 +950 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: MAIN does not guess from an embedded destination or closed-choice answer
+01:00 +951 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: MAIN does not guess from an embedded destination or closed-choice answer
+01:00 +952 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: MAIN does not guess from an embedded destination or closed-choice answer
+01:00 +953 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: MAIN does not guess from an embedded destination or closed-choice answer
+01:00 +954 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: MAIN does not guess from an embedded destination or closed-choice answer
+01:00 +955 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: MAIN does not guess from an embedded destination or closed-choice answer
+01:00 +956 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/master_navigation_contract_test.dart: MAIN does not guess from an embedded destination or closed-choice answer
+01:00 +957 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: obsolete start timeout cannot cancel the current mic
+01:00 +958 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: obsolete start timeout cannot cancel the current mic
+01:00 +959 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: obsolete start timeout cannot cancel the current mic
+01:00 +960 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: obsolete start timeout cannot cancel the current mic
+01:00 +961 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: obsolete start timeout cannot cancel the current mic
+01:00 +962 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: obsolete start timeout cannot cancel the current mic
+01:00 +963 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: obsolete start timeout cannot cancel the current mic
+01:00 +964 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: obsolete start timeout cannot cancel the current mic
+01:00 +965 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: obsolete start timeout cannot cancel the current mic
+01:00 +966 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: obsolete start timeout cannot cancel the current mic
+01:00 +967 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: obsolete start timeout cannot cancel the current mic
+01:00 +968 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: obsolete start timeout cannot cancel the current mic
+01:00 +969 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: obsolete start timeout cannot cancel the current mic
+01:00 +970 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: obsolete start timeout cannot cancel the current mic
+01:00 +971 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_intent_resolver_test.dart: VoiceNavigationIntentResolver recognizes approved INT-022 HOMI wake phrases and ASR variants
+01:00 +972 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_intent_resolver_test.dart: VoiceNavigationIntentResolver recognizes approved INT-022 HOMI wake phrases and ASR variants
+01:00 +973 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: obsolete microphone start (false) cannot stop the newer MAIN
+01:00 +974 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_intent_resolver_test.dart: VoiceNavigationIntentResolver recognizes vocabulary commands with and without accents
+01:00 +975 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: obsolete microphone start (true) cannot stop the newer MAIN
+01:00 +976 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_intent_resolver_test.dart: VoiceNavigationIntentResolver recognizes all supported topic-learning synonyms
+01:00 +977 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: failed MAIN prompt closes its turn without opening microphone
+01:00 +978 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_intent_resolver_test.dart: VoiceNavigationIntentResolver recognizes the supported top-level destinations
+01:00 +979 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: failed command acknowledgment does not execute lesson action
+01:00 +980 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: failed command acknowledgment does not execute lesson action
+01:00 +981 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: failed command acknowledgment does not execute lesson action
+01:00 +982 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: failed command acknowledgment does not execute lesson action
+01:00 +983 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: failed command acknowledgment does not execute lesson action
+01:00 +984 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: failed command acknowledgment does not execute lesson action
+01:00 +985 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: timed-out prompt never becomes a successful question
+01:00 +986 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: authored prompt longer than eight seconds finishes before command window opens
+01:00 +987 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: forced pause stops assistant audio when HOMI leaves foreground
+01:00 +988 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: MAIN-only configuration never starts or acknowledges voice wake
+01:00 +989 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: two silent active-module windows dispatch STOP rather than resume
+01:00 +990 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: two silent song windows pause the song at its checkpoint
+01:00 +991 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: silent topic selection resumes the same Level when MAIN is pressed again
+01:01 +991 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/web_batch_streaming_speech_input_test.dart: uploads Web MAIN audio while speaking and finalizes Batch
+{"event":"main_cloud_batch_latency","audioStartMs":1,"uploadSessionReadyMs":1,"firstChunkMs":4,"speechDetectedMs":3,"captureStopMs":0,"batchFinalizeMs":2,"totalMs":10,"usedBluetoothInput":false}
+01:01 +992 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: silent topic selection resumes the same Level when MAIN is pressed again
+01:01 +992 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/web_batch_streaming_speech_input_test.dart: emits completed after speech followed by VAD silence
+{"event":"main_cloud_batch_latency","audioStartMs":0,"uploadSessionReadyMs":0,"firstChunkMs":null,"speechDetectedMs":0,"captureStopMs":0,"batchFinalizeMs":0,"totalMs":17,"usedBluetoothInput":false}
+01:01 +993 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: silent topic selection resumes the same Level when MAIN is pressed again
+01:01 +994 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: silent topic selection resumes the same Level when MAIN is pressed again
+01:01 +994 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/web_batch_streaming_speech_input_test.dart: opens the native HFP route before iOS MAIN capture
+{"event":"main_cloud_batch_latency","audioStartMs":0,"uploadSessionReadyMs":0,"firstChunkMs":null,"speechDetectedMs":0,"captureStopMs":0,"batchFinalizeMs":0,"totalMs":0,"usedBluetoothInput":false}
+01:01 +995 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: silent topic selection resumes the same Level when MAIN is pressed again
+01:01 +996 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/web_batch_streaming_speech_input_test.dart: uses the phone recorder when the iOS HFP route fails
+HOMI Batch HFP route failed; falling back to phone mic: HFP route unavailable
+01:01 +997 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: navigation transcript is handled without entering conversation
+01:01 +998 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: Main button speaks the menu then starts the speaking flow
+01:01 +999 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: idle screen keeps the compact hero above the fold
+01:01 +1000 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: idle screen keeps the compact hero above the fold
+01:01 +1001 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: idle screen keeps the compact hero above the fold
+01:01 +1002 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: idle screen keeps the compact hero above the fold
+01:01 +1003 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: idle screen keeps the compact hero above the fold
+01:01 +1004 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: idle screen keeps the compact hero above the fold
+01:01 +1005 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: idle screen keeps the compact hero above the fold
+01:01 +1006 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: idle screen keeps the compact hero above the fold
+01:01 +1007 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: idle screen keeps the compact hero above the fold
+01:01 +1008 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: idle screen keeps the compact hero above the fold
+01:02 +1009 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: idle screen keeps the compact hero above the fold
+01:02 +1010 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: idle screen keeps the compact hero above the fold
+01:02 +1011 -2: D:/Documents/ai-speaking-flutter-app/test/homi_gap66_audio_test.dart: real factory honors pack/global/per-group build switches on all routes
+01:02 +1012 -2: D:/Documents/ai-speaking-flutter-app/test/homi_gap66_audio_test.dart: real factory honors pack/global/per-group build switches on all routes
+01:02 +1013 -2: D:/Documents/ai-speaking-flutter-app/test/homi_gap66_audio_test.dart: real factory honors pack/global/per-group build switches on all routes
+01:02 +1014 -2: D:/Documents/ai-speaking-flutter-app/test/homi_gap66_audio_test.dart: real factory honors pack/global/per-group build switches on all routes
+01:02 +1015 -2: D:/Documents/ai-speaking-flutter-app/test/homi_gap66_audio_test.dart: real factory honors pack/global/per-group build switches on all routes
+01:02 +1016 -2: D:/Documents/ai-speaking-flutter-app/test/pwa_install_gate_test.dart: shows the four-step iOS web guide inside an in-app browser
+01:03 +1017 -2: D:/Documents/ai-speaking-flutter-app/test/pwa_install_gate_test.dart: shows the four-step iOS web guide inside an in-app browser
+01:03 +1018 -2: D:/Documents/ai-speaking-flutter-app/test/pwa_install_gate_test.dart: shows the four-step iOS web guide inside an in-app browser
+01:03 +1019 -2: D:/Documents/ai-speaking-flutter-app/test/pwa_install_gate_test.dart: shows the four-step iOS web guide inside an in-app browser
+01:03 +1020 -2: D:/Documents/ai-speaking-flutter-app/test/pwa_install_gate_test.dart: shows the four-step iOS web guide inside an in-app browser
+01:03 +1021 -2: D:/Documents/ai-speaking-flutter-app/test/pwa_install_gate_test.dart: shows the four-step iOS web guide inside an in-app browser
+01:03 +1022 -2: D:/Documents/ai-speaking-flutter-app/test/pwa_install_gate_test.dart: shows the four-step iOS web guide inside an in-app browser
+01:03 +1023 -2: D:/Documents/ai-speaking-flutter-app/test/pwa_install_gate_test.dart: shows the four-step iOS web guide inside an in-app browser
+01:03 +1024 -2: D:/Documents/ai-speaking-flutter-app/test/pwa_install_gate_test.dart: shows the four-step iOS web guide inside an in-app browser
+01:03 +1025 -2: D:/Documents/ai-speaking-flutter-app/test/pwa_install_gate_test.dart: shows the four-step iOS web guide inside an in-app browser
+01:03 +1026 -2: D:/Documents/ai-speaking-flutter-app/test/pwa_install_gate_test.dart: shows the four-step iOS web guide inside an in-app browser
+01:03 +1027 -2: D:/Documents/ai-speaking-flutter-app/test/pwa_install_gate_test.dart: shows the four-step iOS web guide inside an in-app browser
+01:03 +1028 -2: D:/Documents/ai-speaking-flutter-app/test/pwa_install_gate_test.dart: shows the four-step iOS web guide inside an in-app browser
+01:03 +1029 -2: D:/Documents/ai-speaking-flutter-app/test/pwa_install_gate_test.dart: shows the four-step iOS web guide inside an in-app browser
+01:03 +1030 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: topic listening screen matches the selected mobile direction
+01:03 +1031 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: topic listening screen matches the selected mobile direction
+01:03 +1032 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: topic listening screen matches the selected mobile direction
+01:03 +1033 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: topic listening screen matches the selected mobile direction
+01:03 +1034 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: topic listening screen matches the selected mobile direction
+01:03 +1035 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: topic listening screen matches the selected mobile direction
+01:03 +1036 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: topic listening screen matches the selected mobile direction
+01:03 +1037 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: topic listening screen matches the selected mobile direction
+01:03 +1038 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: topic listening screen matches the selected mobile direction
+01:03 +1039 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: topic listening screen matches the selected mobile direction
+01:03 +1040 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: topic listening screen matches the selected mobile direction
+01:03 +1041 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: topic listening screen matches the selected mobile direction
+01:03 +1042 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: topic listening screen matches the selected mobile direction
+01:03 +1043 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: topic listening screen matches the selected mobile direction
+01:03 +1044 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: topic listening screen matches the selected mobile direction
+01:03 +1045 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: topic listening screen matches the selected mobile direction
+01:03 +1046 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: topic listening screen matches the selected mobile direction
+01:03 +1047 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: topic listening screen matches the selected mobile direction
+01:03 +1048 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: topic listening screen matches the selected mobile direction
+01:03 +1049 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: topic listening screen matches the selected mobile direction
+01:03 +1050 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: topic listening screen matches the selected mobile direction
+01:03 +1051 -2: D:/Documents/ai-speaking-flutter-app/test/golden_conversation_screen_test.dart: topic listening screen matches the selected mobile direction
+01:03 +1052 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: every branch uses the shared second-silence pause prompt
+01:03 +1053 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: every branch uses the shared second-silence pause prompt
+01:03 +1054 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: pauses navigation recognizer before conversation can reuse it
+01:03 +1055 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: handles an explicit command from a stable partial result
+01:03 +1056 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: hears the wake phrase from a secondary Android transcript
+01:04 +1057 -2: D:/Documents/ai-speaking-flutter-app/test/pwa_update_gate_test.dart: offers a reload when a newer web build is available
+01:04 +1058 -2: D:/Documents/ai-speaking-flutter-app/test/pwa_update_gate_test.dart: offers a reload when a newer web build is available
+01:04 +1059 -2: D:/Documents/ai-speaking-flutter-app/test/pwa_update_gate_test.dart: offers a reload when a newer web build is available
+01:04 +1060 -2: D:/Documents/ai-speaking-flutter-app/test/pwa_update_gate_test.dart: offers a reload when a newer web build is available
+01:04 +1061 -2: D:/Documents/ai-speaking-flutter-app/test/features/voice_navigation/voice_navigation_controller_test.dart: pause waits for a pending navigation start to release the mic
+01:04 +1062 -2: D:/Documents/ai-speaking-flutter-app/test/pwa_update_gate_test.dart: keeps the banner hidden for the current web build
+01:04 +1063 -2: Some tests failed.
+
+Failing tests:
+  D:/Documents/ai-speaking-flutter-app/test/assistant_audio_inventory_test.dart: all fixed catalog, silence and fallback texts are covered without duplicates
+  D:/Documents/ai-speaking-flutter-app/test/assistant_audio_inventory_test.dart: local spoken replies and guide objects are also covered

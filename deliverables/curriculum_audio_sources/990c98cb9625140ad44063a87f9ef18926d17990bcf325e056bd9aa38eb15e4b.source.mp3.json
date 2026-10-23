@@ -1,0 +1,20 @@
+{
+  "signature": "990c98cb9625140ad44063a87f9ef18926d17990bcf325e056bd9aa38eb15e4b",
+  "request": {
+    "text": "Station Words.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "ff2f56ae01af6eb00b687be6643238bfeb74f0efa930a645f5a97519b90929a4",
+  "requestId": "KJ0tPHd3zLrAOpagNBqn",
+  "createdAt": "2026-09-15T23:30:28.869Z"
+}

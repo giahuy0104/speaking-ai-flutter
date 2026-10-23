@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T05\\C1112-L2-M05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-M05",
+  "sourceText": "Bạn muốn nói 'Bạn nên uống nước.' Hoàn thành câu: You should... drink water hay eat breakfast?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn muốn nói 'Bạn nên uống nước.' Hoàn thành câu:",
+      "text": "Bạn muốn nói 'Bạn nên uống nước.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Bạn nên uống nước.' Hoàn thành câu:",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "source_text": "You should... drink water",
+      "text": "You should... drink water",
+      "spoken_text": "You should... drink water",
+      "input_index": 27
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 28
+    },
+    {
+      "language": "en",
+      "source_text": "eat breakfast?",
+      "text": "eat breakfast?",
+      "spoken_text": "eat breakfast?",
+      "input_index": 29
+    }
+  ],
+  "sourceSha256": "a5985052840a5e7546d0c5b96f433a7b361280558ffe082257437c210f20cc9a",
+  "id": "LESSON-EA63F0C968BD043D548122AC",
+  "text": "Bạn muốn nói 'Bạn nên uống nước.' Hoàn thành câu: You should... drink water hay eat breakfast?",
+  "asset": "assets/audio/CURRICULUM/ea63f0c968bd043d548122ac.vi.v1.mp3",
+  "sha256": "a5985052840a5e7546d0c5b96f433a7b361280558ffe082257437c210f20cc9a",
+  "durationSeconds": 9.644875
+}

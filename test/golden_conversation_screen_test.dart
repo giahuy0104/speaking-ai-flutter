@@ -1,5 +1,4 @@
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
-import 'package:ai_speaking_flutter_app/config/app_config.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
 import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
@@ -33,13 +32,11 @@ void main() {
       MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
+        builder: _disableAnimations,
         home: ConversationScreen(
           controller: controller,
-          config: AppConfig(
-            backendBaseUri: _previewBackendUri,
-            useDemoBackend: true,
-            childAge: 6,
-          ),
+          onOpenHistory: _noopCallback,
+          onOpenSettings: _noopCallback,
         ),
       ),
     );
@@ -75,13 +72,11 @@ void main() {
       MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
+        builder: _disableAnimations,
         home: ConversationScreen(
           controller: controller,
-          config: AppConfig(
-            backendBaseUri: _previewBackendUri,
-            useDemoBackend: true,
-            childAge: 6,
-          ),
+          onOpenHistory: _noopCallback,
+          onOpenSettings: _noopCallback,
         ),
       ),
     );
@@ -91,6 +86,51 @@ void main() {
     await expectLater(
       find.byType(ConversationScreen),
       matchesGoldenFile('goldens/conversation-recording-390x844.png'),
+    );
+  });
+
+  testWidgets('processing screen uses the waveform instead of a spinner', (
+    tester,
+  ) async {
+    await _loadGoldenFonts();
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final controller =
+        ConversationController(
+            audioInput: const _PreviewAudioInput(),
+            playbackService: const _PreviewPlaybackService(),
+            repository: const _PreviewRepository(),
+            childAge: 6,
+          )
+          ..phase = ConversationPhase.processing
+          ..processingStage = ConversationProcessingStage.recognizing
+          ..result = _previewResult;
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: buildAppTheme(),
+        builder: _disableAnimations,
+        home: ConversationScreen(
+          controller: controller,
+          onOpenHistory: _noopCallback,
+          onOpenSettings: _noopCallback,
+        ),
+      ),
+    );
+    await _precacheConversationAssets(tester);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(
+      find.byKey(const Key('conversation-animated-waveform')),
+      findsOneWidget,
+    );
+    await expectLater(
+      find.byType(ConversationScreen),
+      matchesGoldenFile('goldens/conversation-processing-waveform-390x844.png'),
     );
   });
 
@@ -116,13 +156,11 @@ void main() {
       MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
+        builder: _disableAnimations,
         home: ConversationScreen(
           controller: controller,
-          config: AppConfig(
-            backendBaseUri: _previewBackendUri,
-            useDemoBackend: true,
-            childAge: 6,
-          ),
+          onOpenHistory: _noopCallback,
+          onOpenSettings: _noopCallback,
         ),
       ),
     );
@@ -146,9 +184,11 @@ void main() {
       MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
+        builder: _disableAnimations,
         home: const TopicListeningScreen(
           language: DisplayLanguage.vietnamese,
           childAge: 6,
+          onMainPressed: _noopMainPress,
         ),
       ),
     );
@@ -177,6 +217,15 @@ void main() {
   });
 }
 
+void _noopCallback() {}
+
+Future<void> _noopMainPress() async {}
+
+Widget _disableAnimations(BuildContext context, Widget? child) => MediaQuery(
+  data: MediaQuery.of(context).copyWith(disableAnimations: true),
+  child: child!,
+);
+
 Future<void> _precacheConversationAssets(WidgetTester tester) async {
   await tester.runAsync(() async {
     final context = tester.element(find.byType(ConversationScreen));
@@ -198,8 +247,6 @@ Future<void> _loadGoldenFonts() async {
     ..addFont(rootBundle.load('assets/fonts/MaterialIcons-Regular.otf'));
   await Future.wait<void>(<Future<void>>[roboto.load(), materialIcons.load()]);
 }
-
-final _previewBackendUri = Uri.parse('https://api.example.com');
 
 const _previewResult = ConversationResult(
   conversationId: 'conv_preview',

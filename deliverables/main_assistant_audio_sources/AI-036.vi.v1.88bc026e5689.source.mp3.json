@@ -1,0 +1,20 @@
+{
+  "id": "AI-036",
+  "signature": "88bc026e56897010110c324e9b10798046fbeef9fb79c73f377f7d1f196e7267",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bộ sưu tập ngôi sao chưa có từ nào.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:09:15.242Z",
+  "requestId": "S3Oin05LJtVHYSSQ1RBg",
+  "characterCost": "19",
+  "sourceSha256": "55d8dd7c4ce01276d808ef953a8446b641fdbc765c4fbfe42b7b9e388ec0e0a9"
+}

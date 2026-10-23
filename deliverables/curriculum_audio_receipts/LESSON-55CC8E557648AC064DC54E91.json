@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T05-B02\\C810-L2-T05-B02-Q02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T05-B02-Q02",
+  "sourceText": "Ở trong nhà: Fly a kite hay Stay inside?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Ở trong nhà:",
+      "spoken_text": "Ở trong nhà:",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "text": "Fly a kite",
+      "spoken_text": "Fly a kite",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "text": "Stay inside?",
+      "spoken_text": "Stay inside?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-55CC8E557648AC064DC54E91",
+  "text": "Ở trong nhà: Fly a kite hay Stay inside?",
+  "asset": "assets/audio/CURRICULUM/55cc8e557648ac064dc54e91.vi.v1.mp3",
+  "sha256": "663b0c551d60f342ab68f769565456344323fe20c3e773c9fd261f83ff9179cc",
+  "durationSeconds": 4.891111
+}

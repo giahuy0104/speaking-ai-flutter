@@ -1,0 +1,21 @@
+{
+  "id": "RUNTIME-TRANSLATION-CONTROL-001",
+  "signature": "7bd4f390a83165e49c523ce39ff1c344a43231d7ed0216167b945c62d44680ce",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn muốn tiếp tục dịch, học Chủ đề hay Bộ từ vựng?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "createdAt": "2026-09-17T13:07:31.536Z",
+  "requestId": "b3wbxGGiprP67QnnPkqt",
+  "characterCost": "28",
+  "sourceSha256": "3f66f6a2ce71d0b849af31a0a4102a27c2c39f270d8bc15db4bdf8da73a8250c"
+}

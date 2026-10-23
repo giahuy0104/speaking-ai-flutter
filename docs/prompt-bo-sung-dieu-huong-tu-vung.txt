@@ -1,0 +1,114 @@
+PROMPT TRIỂN KHAI CẬP NHẬT ĐIỀU HƯỚNG ĐẾN BỘ TỪ VỰNG
+
+Hãy triển khai BỔ SUNG điều hướng trong repository speaking-ai-flutter:
+- Từ Dịch tiếng Anh đến Ba mẹ đã thêm, Ngôi sao, Luyện lại của Bộ từ vựng.
+- Từ Chủ đề đến Ba mẹ đã thêm, Ngôi sao, Luyện lại của Bộ từ vựng.
+
+Đây là CẬP NHẬT, không phải THAY THẾ. Giữ nguyên ba phần chính Dịch tiếng Anh, Chủ đề, Bộ từ vựng; giữ các tab, màn hình, chức năng, dữ liệu và quy tắc học đang có. Ba đích con vẫn thuộc Bộ từ vựng. Không tạo màn hình hoặc kho dữ liệu trùng.
+
+1. Phạm vi triển khai
+
+Ưu tiên mở rộng điều hướng giọng nói qua MAIN hiện có. Khi đang Dịch hoặc ở Chủ đề, người dùng kích hoạt MAIN và nói “Ba mẹ đã thêm”, “Ngôi sao” hoặc “Luyện lại” để vào trực tiếp đích tương ứng, không phải vào trang gốc Bộ từ vựng rồi chọn lại.
+
+Tùy chọn giao diện, chỉ triển khai khi người dùng chọn phương án này: thêm menu gọn “Mở nhanh từ vựng” trên màn Dịch và Chủ đề, gồm ba đích. Đây là lối tắt bổ sung, không thay thanh điều hướng và không biến ba đích thành ba tab chính mới. Bản triển khai mặc định của prompt này không yêu cầu thêm menu mới.
+
+2. Đọc mã nguồn và giữ nguyên thay đổi khác
+
+Đọc AGENTS.md và git status trước khi sửa. Workspace đang có thay đổi chưa commit; không reset, checkout lại hoặc ghi đè công việc khác. Nếu có .codegraph/ thì dùng CodeGraph trước khi tìm/đọc code; không tự tạo index.
+
+Những file cần khảo sát theo mã hiện hành:
+- lib/features/home/presentation/home_learning_shell.dart
+- lib/features/voice_navigation/application/main_voice_assistant_flow.dart
+- lib/features/voice_navigation/application/voice_navigation_controller.dart
+- lib/features/voice_navigation/application/voice_navigation_intent_resolver.dart
+- lib/features/voice_navigation/application/active_learning_command_resolver.dart
+- lib/features/voice_navigation/domain/master_navigation_contract.dart
+- lib/features/vocabulary/presentation/vocabulary_home_screen.dart
+- lib/core/device/active_learning_module.dart
+- lib/core/session/app_flow_coordinator.dart
+- lib/core/navigation/active_learning_navigation.dart
+- lib/app/ai_speaking_app.dart
+- Các màn liên quan trong lib/features/listening/presentation/ và lib/features/conversation/presentation/.
+
+Điều hướng, màn hình và phân giải lệnh nằm trong Flutter/Dart. Native Android/iOS phụ trách microphone, ASR, Bluetooth/HFP, phát âm thanh, nút thiết bị và học nền. Ưu tiên sửa Flutter; chỉ sửa native nếu chứng minh được giới hạn cụ thể của bridge.
+
+Các thành phần đã có để tái sử dụng:
+- VoiceVocabularyTarget.parent/star/review và VoiceNavigationIntent.vocabularyTarget.
+- HomeLearningShell._executeVoiceNavigation chuyển phần rồi mở đích.
+- VocabularyHomeNavigationController.openVoiceTarget và VocabularyHomeScreen._openVoiceTarget.
+- MainVoiceAssistantFlow._handleActiveLearning đã hỗ trợ chuyển từ hoạt động Chủ đề đến ba đích này.
+- ActiveLearningCommandResolver đã có OPEN_PARENT/OPEN_STAR/OPEN_REVIEW.
+
+Khoảng thiếu quan sát được trong mã nguồn ngày 09/10/2026: _handleOtherLearning, _handleAfterTranslationStop và _handleModuleSwitch chưa xử lý đầy đủ ba đích con. Không chỉ sửa handler; phải đồng bộ việc chấp nhận lệnh theo trạng thái và fallback.
+
+3. Luồng Dịch tiếng Anh
+
+- Đang dịch liên tục: bấm MAIN app hoặc thiết bị theo cơ chế đang hỗ trợ, ngắt phiên dịch qua cancellation/handoff hiện có, rồi nhận một trong ba đích mới tại chooseOtherLearning.
+- Sau “Dừng lại”: giữ quy tắc đóng microphone. Lần bấm MAIN tiếp theo mở chooseAfterTranslationStop và cho phép chọn ba đích mới cùng các lựa chọn cũ.
+- Màn Dịch chưa chạy phiên liên tục: xác định trạng thái MAIN thực tế; cho phép chọn ba đích từ menu đó, mở rộng chooseFeature nếu cần.
+- Giữ các lệnh chuyển phần cũ, tiếp tục dịch, dừng, trợ giúp và hành vi khi không có tiếng nói.
+- Không đưa resolver điều hướng vào pipeline câu tự do đang được dịch. “Tôi nhìn thấy ngôi sao” và các câu chứa tên đích vẫn là nội dung dịch nếu chưa kích hoạt MAIN/menu điều hướng.
+- Không dịch nốt bản ghi đã bị hủy để chuyển phần. Kết quả xử lý muộn không được phát audio hoặc cập nhật trạng thái của màn nguồn sau khi đã rời đi.
+
+4. Luồng Chủ đề
+
+- Tái sử dụng nhánh đang hỗ trợ chuyển đích trong _handleActiveLearning, không viết lại.
+- Kiểm tra các trạng thái chọn chủ đề, chọn bài, intro, core, challenge, review, song, kết thúc bài/chủ đề và menu chuyển phần. Bổ sung nơi thiếu để “đang ở Chủ đề” không chỉ có nghĩa là đang ở một node học cụ thể.
+- Mở rộng chooseModuleSwitch nhận ba đích con; giữ toàn bộ lựa chọn chuyển phần cũ.
+- Khi rời Chủ đề, lưu checkpoint bằng cơ chế hiện có. Không hoàn thành bài, tăng câu, reset tiến độ hoặc xóa phiên vì chuyển phần. Trở lại Chủ đề qua luồng hiện có tiếp tục đúng vị trí đang dở.
+- Phân biệt “Luyện lại” của Bộ từ vựng với “Học lại bài này”, “Học lại chủ đề này” và “Nghe lại”. Giữ ý nghĩa lệnh hiện tại theo ngữ cảnh.
+
+5. Cách sửa logic dùng chung
+
+- Tái sử dụng _vocabularyTarget và _moduleNavigationTurn để tạo intent destination=vocabulary, vocabularyTarget=parent/star/review.
+- Bổ sung các đích vào đúng stage handler và đồng bộ _hasStageSpecificIntent, canHandle, canHandlePartial/canCommitPartial, fallback, prompt-echo detection, lexicon và manifest ASR thực sự được dùng trong dự án.
+- allowedStates của MasterNavigationContract là metadata; cập nhật metadata không thay thế việc bổ sung handler. Giữ intent/alias cũ và cập nhật test nếu mở rộng trạng thái.
+- Nếu đường wake/continuous navigation qua VoiceNavigationIntentResolver cần hỗ trợ đích con, thêm nhánh khớp lệnh đầy đủ có ngữ cảnh. Không nhận câu chứa tên đích bằng cách khớp chuỗi con rộng.
+- Không mở rộng phạm vi commit partial một cách tùy tiện. Giữ chính sách hiện có cho lệnh rõ ràng; kiểm tra partial chưa đầy đủ, câu có nhiều đích và tiếng prompt của chính app để tránh chuyển nhầm.
+- Các màn nguồn gửi callback/intent về shell hoặc coordinator hiện có. Không gọi private state của feature khác, tạo Navigator độc lập hay nhân đôi logic điều hướng ở mỗi màn.
+- Đảm bảo đích đã mount/controller đã attach trước khi gửi yêu cầu. Không im lặng báo thành công nếu callback đích chưa tồn tại.
+
+6. Hành vi đích và bàn giao audio
+
+- Ba mẹ đã thêm và Ngôi sao dùng đúng danh sách, dữ liệu và hành vi phát hiện có.
+- Luyện lại sử dụng luồng voice hiện hành: _openVoiceTarget -> _runAudioCommand(_openReviewFromVoice), cùng _prepareReviewFromVoice và _startReview. Không giả định luồng này giống nút giao diện.
+- Trong mã hiện tại, _startReview mặc định xử lý nhóm Today đang dở, còn _openReviewFromVoice gọi với allowPendingToday=true. Giữ các quy tắc đã có cho từng cách truy cập, không đổi ưu tiên phiên hoặc xóa phiên dở trong cập nhật điều hướng.
+- Giữ autoStart=false khi mở đích cụ thể để luồng Today không tự chạy chồng lên đích mới. Tái sử dụng autoStart và việc kết thúc lượt MAIN đã có trong shell/controller.
+- Không chờ Future của toàn bộ phiên phát/học mới coi điều hướng hoàn tất. Phân biệt đích đã nhận yêu cầu/route đã cài đặt với việc người dùng học xong.
+- Mỗi thời điểm chỉ một module sở hữu microphone/playback. Giữ cơ chế kết thúc native MAIN turn và handoff trước khi đích cần audio; không đổi thứ tự prepareOnly/navigationBeforePrompt/navigationAfterPrompt tùy tiện.
+- Giữ mounted check, generation/cancellation guard, timeout và xử lý riêng iOS hiện có. Chuyển thất bại phải có trạng thái rõ ràng; không làm mất nguồn trước khi việc lưu checkpoint/bàn giao cần thiết thành công.
+- Danh sách rỗng dùng prompt và lựa chọn hiện có. Không giả lập dữ liệu.
+- Giữ Back và lịch sử điều hướng hiện có, chặn route trùng khi nhấn/lệnh lặp. Không tự thêm cơ chế Back về nguồn mới ngoài phạm vi.
+- Rời Dịch giữ lịch sử/kết quả đã hoàn tất; quay lại không tự bật microphone khi chưa có thao tác kích hoạt phù hợp.
+- Không sửa schema, xóa từ vựng, bản ghi Ngôi sao, tiến độ, hàng đợi Luyện lại hoặc cấu hình phụ huynh; giữ parental gate.
+
+7. Nếu triển khai thêm lối tắt giao diện
+
+- Dùng widget/menu chung theo theme, context.tr, SafeArea, Semantics và key kiểm thử hiện tại.
+- Lối tắt Ba mẹ/Ngôi sao mở danh sách để người dùng chọn tiếp. Không tự phát audio vì dùng nhầm openVoiceTarget.
+- Luyện lại giữ quy tắc UI hiện có. Callback dùng chung cơ chế chuyển phần nhưng phân biệt nguồn UI/voice khi cần.
+- Đóng menu không chọn giữ nguyên phiên hiện tại. Khi chọn đích, hủy/pause nguồn và bàn giao audio đúng cơ chế.
+- Kiểm tra màn nhỏ, chữ lớn, dark mode và giữ nguyên các nút/tab cũ.
+
+8. Âm thanh, nền tảng và kiểm thử
+
+- Ưu tiên audio/prompt hiện có. Nếu thêm lời hướng dẫn, cập nhật text, file audio, key, registry/manifest và test inventory tương ứng; không dùng câu mới với file đọc câu cũ.
+- Giữ online/offline đã hỗ trợ. Không cam kết ASR offline trên iOS nếu cấu hình hiện tại không có. Nếu Android dùng phrase/manifest truyền từ Dart thì sửa dữ liệu đúng luồng, không nhân đôi điều hướng trong Kotlin.
+- Không thêm plugin, permission hoặc sửa native nếu thay đổi Flutter đủ đáp ứng. Nếu cần native, nêu bằng chứng và test tái hiện.
+- Unit test mỗi trạng thái bổ sung: ba đích trả đúng destination/target; bộ chấp nhận lệnh và handler thống nhất; lệnh cũ/stop/continue/help/fallback/echo còn đúng.
+- Widget/integration test sáu đường Dịch/Chủ đề x Ba mẹ/Ngôi sao/Luyện lại qua MAIN phù hợp. Nếu triển khai UI, kiểm thử thêm cùng sáu đường qua menu.
+- Test dữ liệu rỗng, Today đang dở, checkpoint, Back, lệnh lặp, partial và câu dịch chứa tên đích.
+- Test nguồn đang ghi âm/processing/phát audio, đích chưa attach, chuyển thất bại/timeout, kết quả muộn và kết thúc native MAIN turn trước khi đích cần microphone.
+- Chạy flutter analyze và các test liên quan trong test/features/voice_navigation/, test/features/home/, test/features/listening/, test/features/vocabulary/, cùng kiểm tra kiến trúc/audio inventory bị ảnh hưởng.
+- Kiểm tra Android/iOS thật hoặc simulator khả dụng: MAIN màn hình, MAIN thiết bị nếu có, foreground và background/khóa màn hình theo khả năng app. Widget test không chứng minh được hoạt động Bluetooth/ASR trên thiết bị thật.
+- Báo chính xác lệnh/kết quả và kiểm tra chưa chạy được, không tuyên bố đã kiểm thử iOS thật nếu chưa làm.
+
+9. Nghiệm thu và bàn giao
+
+Đạt khi từ cả hai nguồn vào đúng ba đích; lựa chọn và chức năng cũ còn nguyên; không mất dữ liệu/tiến độ, audio cạnh tranh, chuyển nhầm câu dịch hoặc route trùng.
+
+Bàn giao code, danh sách file thay đổi, hành vi mới và kết quả kiểm thử. Phân biệt phần tái sử dụng với phần bổ sung.
+
+Logic Dart dùng chung cho Android/iOS, nhưng cần build/phát hành riêng: APK/AAB Android, IPA iOS. iOS cần macOS/Xcode hoặc workflow ios-app-store trong codemagic.yaml. Sửa source không tự cập nhật app đã cài.
+
+Không tự tăng version, upload, publish, deploy hoặc đổi backend trong tác vụ này. Chỉ build artifact khi người dùng yêu cầu.

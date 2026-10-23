@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T04-B02\\C67-L2-T04-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-T04-B02-Q04",
+  "sourceText": "Có, mình thích: No, I don't hay Yes, I do?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Có, mình thích:",
+      "spoken_text": "Có, mình thích:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "No, I don't",
+      "spoken_text": "No, I don't",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Yes, I do?",
+      "spoken_text": "Yes, I do?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-4FE3C9F1E43C3C133FB64618",
+  "text": "Có, mình thích: No, I don't hay Yes, I do?",
+  "asset": "assets/audio/CURRICULUM/4fe3c9f1e43c3c133fb64618.vi.v1.mp3",
+  "sha256": "cc8bbd27d355178e8e92dc3519fab8cc425f3e08f0bcfcc832fd5239b1f310ff",
+  "durationSeconds": 5.310204
+}

@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T04-B02\\C1112-L2-T04-B02-T02_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T04-B02-T02_VI",
+  "sourceText": "Mình đi xe đạp.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình đi xe đạp.",
+      "generation_key": "5ed83cdbd7e78d31"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-4B1D89C073DDEC70199FF28C",
+  "text": "Mình đi xe đạp.",
+  "asset": "assets/audio/CURRICULUM/4b1d89c073ddec70199ff28c.vi.v1.mp3",
+  "sha256": "9e844d9547c5f4574ec668eb8ff4bb6d918e4015ea1b8af3e39b9e15676db1aa",
+  "durationSeconds": 1.58737
+}

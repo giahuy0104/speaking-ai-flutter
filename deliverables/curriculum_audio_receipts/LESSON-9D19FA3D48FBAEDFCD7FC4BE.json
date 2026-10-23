@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T08\\C1315-L3-M06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-M06",
+  "sourceText": "Bạn cần diễn đạt \"Đồ uống\". Drink hay Main dish?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần diễn đạt \"Đồ uống\".",
+      "text": "Bạn cần diễn đạt \"Đồ uống\".",
+      "spoken_text": "Bạn cần diễn đạt \"Đồ uống\".",
+      "input_index": 31
+    },
+    {
+      "language": "en",
+      "source_text": "Drink",
+      "text": "Drink",
+      "spoken_text": "Drink",
+      "input_index": 32
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 33
+    },
+    {
+      "language": "en",
+      "source_text": "Main dish?",
+      "text": "Main dish?",
+      "spoken_text": "Main dish?",
+      "input_index": 34
+    }
+  ],
+  "sourceSha256": "583887ffc7a0db6e7d5e32b5b39795eb6f8c34b6d31f98e787c4090ff4dc895d",
+  "id": "LESSON-9D19FA3D48FBAEDFCD7FC4BE",
+  "text": "Bạn cần diễn đạt \"Đồ uống\". Drink hay Main dish?",
+  "asset": "assets/audio/CURRICULUM/9d19fa3d48fbaedfcd7fc4be.vi.v1.mp3",
+  "sha256": "583887ffc7a0db6e7d5e32b5b39795eb6f8c34b6d31f98e787c4090ff4dc895d",
+  "durationSeconds": 4.773107
+}

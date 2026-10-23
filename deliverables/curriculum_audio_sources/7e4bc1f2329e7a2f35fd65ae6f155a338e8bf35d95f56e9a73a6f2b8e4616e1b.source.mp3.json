@@ -1,0 +1,20 @@
+{
+  "signature": "7e4bc1f2329e7a2f35fd65ae6f155a338e8bf35d95f56e9a73a6f2b8e4616e1b",
+  "request": {
+    "text": "Weekly Activities",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "6860da571f37b54881056c59bb6c28ce394337d2317c9da2044eef00cd317aa3",
+  "requestId": "6HC6sC5p2n1sRxSD0PtM",
+  "createdAt": "2026-09-15T23:27:32.551Z"
+}

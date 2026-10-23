@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T07-B02\\C67-L3-T07-B02-T01_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T07-B02-T01_EN",
+  "sourceText": "Open your book.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Open your book.",
+      "generation_key": "4a9304b23c440156"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-3DA8655E4B2BCA491F2701A5",
+  "text": "Open your book.",
+  "asset": "assets/audio/CURRICULUM/3da8655e4b2bca491f2701a5.en.v1.mp3",
+  "sha256": "55e4b9ed0a8141a49521cf355393ade51baa42c08430f3464c6d2ec3dabd29c8",
+  "durationSeconds": 2.007075
+}

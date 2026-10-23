@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T10-B02\\C35-L3-T10-B02-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T10-B02-Q03",
+  "sourceText": "Mình cùng chơi nhé: Let's play hay Bath time?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình cùng chơi nhé:",
+      "spoken_text": "Mình cùng chơi nhé:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Let's play",
+      "spoken_text": "Let's play",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Bath time?",
+      "spoken_text": "Bath time?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-6E37B00528E9493C68EAEBF0",
+  "text": "Mình cùng chơi nhé: Let's play hay Bath time?",
+  "asset": "assets/audio/CURRICULUM/6e37b00528e9493c68eaebf0.vi.v1.mp3",
+  "sha256": "e7a1d60fa05bcbee11fe652c62641dc45a310b6fc1ca57ee92973f1d2ef41b01",
+  "durationSeconds": 4.404354
+}

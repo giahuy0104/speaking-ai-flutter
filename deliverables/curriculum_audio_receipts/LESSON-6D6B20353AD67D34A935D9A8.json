@@ -1,0 +1,33 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T01-B03\\C35-L1-T01-B03-Q02_CHOICE_2_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-T01-B03-Q02",
+  "sourceText": "Umbrella.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Umbrella.",
+      "spoken_text": "Umbrella.",
+      "input_index": 11
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-6D6B20353AD67D34A935D9A8",
+  "text": "Umbrella.",
+  "asset": "assets/audio/CURRICULUM/6d6b20353ad67d34a935d9a8.en.v1.mp3",
+  "sha256": "2069ff1370f084db5e16b6d9a7e7d21c0231f342225b66d46906ce00691b639b",
+  "durationSeconds": 1.539932
+}

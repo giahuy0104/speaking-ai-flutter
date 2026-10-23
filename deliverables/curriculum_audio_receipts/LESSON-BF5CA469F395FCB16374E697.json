@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L2-T05\\C35-L2-M05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L2-M05",
+  "sourceText": "Bạn muốn nói 'Đó là con mèo.' Hoàn thành câu: It's a... cat hay dog?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn muốn nói 'Đó là con mèo.' Hoàn thành câu:",
+      "text": "Bạn muốn nói 'Đó là con mèo.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Đó là con mèo.' Hoàn thành câu:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "source_text": "It's a... cat",
+      "text": "It's a... cat",
+      "spoken_text": "It's a... cat",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "source_text": "dog?",
+      "text": "dog?",
+      "spoken_text": "dog?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": "590c8d04095fc0e02c0d875ec0f1a147628c951c812e8a53cd26517d02d7415a",
+  "id": "LESSON-BF5CA469F395FCB16374E697",
+  "text": "Bạn muốn nói 'Đó là con mèo.' Hoàn thành câu: It's a... cat hay dog?",
+  "asset": "assets/audio/CURRICULUM/bf5ca469f395fcb16374e697.vi.v1.mp3",
+  "sha256": "590c8d04095fc0e02c0d875ec0f1a147628c951c812e8a53cd26517d02d7415a",
+  "durationSeconds": 7.886667
+}

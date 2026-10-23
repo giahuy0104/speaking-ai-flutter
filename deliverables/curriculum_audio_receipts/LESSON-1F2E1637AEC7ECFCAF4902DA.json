@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T08-B02\\C1112-L3-T08-B02-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T08-B02-Q08",
+  "sourceText": "Bạn muốn hỏi giá món đồ này. How much is this? hay Is there a cheaper one?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn hỏi giá món đồ này.",
+      "spoken_text": "Bạn muốn hỏi giá món đồ này.",
+      "input_index": 46
+    },
+    {
+      "language": "en",
+      "text": "How much is this?",
+      "spoken_text": "How much is this?",
+      "input_index": 47
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 48
+    },
+    {
+      "language": "en",
+      "text": "Is there a cheaper one?",
+      "spoken_text": "Is there a cheaper one?",
+      "input_index": 49
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-1F2E1637AEC7ECFCAF4902DA",
+  "text": "Bạn muốn hỏi giá món đồ này. How much is this? hay Is there a cheaper one?",
+  "asset": "assets/audio/CURRICULUM/1f2e1637aec7ecfcaf4902da.vi.v1.mp3",
+  "sha256": "5178dee00645000529aac170f3ac1d44fd71774d8629dd4bcc984176ebff6e31",
+  "durationSeconds": 6.34288
+}

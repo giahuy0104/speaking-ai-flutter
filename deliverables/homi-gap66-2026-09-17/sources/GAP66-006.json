@@ -1,0 +1,21 @@
+{
+  "id": "GAP66-006",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bắt đầu Level 2. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "slcJrinME4bkL8YGH2MQ",
+  "historyItemId": "2Ytns09EAhJj498alEYD",
+  "characterCost": "29",
+  "createdAt": "2026-09-17T14:24:22.652Z",
+  "sourceSha256": "752b7dbcdd08ac58cd92ae315b3dd642cb2cd24def84d6e42118d4788d68ccc8"
+}

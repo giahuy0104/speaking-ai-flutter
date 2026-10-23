@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T07-B01\\C67-L3-T07-B01-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T07-B01-Q04",
+  "sourceText": "Giáo viên: Hand hay Teacher?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Giáo viên:",
+      "spoken_text": "Giáo viên:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Hand",
+      "spoken_text": "Hand",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Teacher?",
+      "spoken_text": "Teacher?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-351ED1D2500F802C2BD6F8E6",
+  "text": "Giáo viên: Hand hay Teacher?",
+  "asset": "assets/audio/CURRICULUM/351ed1d2500f802c2bd6f8e6.vi.v1.mp3",
+  "sha256": "72260f83ddb89167e9e6592ca08fd7a1fb4e384bc51a298baa46329fbbac0be1",
+  "durationSeconds": 3.769524
+}

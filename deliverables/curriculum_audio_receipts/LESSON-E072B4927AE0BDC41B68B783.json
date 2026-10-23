@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T05-B02\\C1315-L2-T05-B02-T05_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T05-B02-T05_VI",
+  "sourceText": "Nói chuyện với ai đó.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Nói chuyện với ai đó.",
+      "generation_key": "18704de7aa3bdd59"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-E072B4927AE0BDC41B68B783",
+  "text": "Nói chuyện với ai đó.",
+  "asset": "assets/audio/CURRICULUM/e072b4927ae0bdc41b68b783.vi.v1.mp3",
+  "sha256": "df8b37ea4e2d8195d480e67633165aae44b0b33ae2454f3e1dd86d0a148a4f34",
+  "durationSeconds": 2.051769
+}

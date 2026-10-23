@@ -1,0 +1,13 @@
+C:\Users\Windows\AppData\Local\Android\Sdk\emulator\qemu\windows-x86_64\qemu-system-x86_64-headless.exe: unable to map backing store for guest RAM: Invalid argument
+C:\Users\Windows\AppData\Local\Android\Sdk\emulator\qemu\windows-x86_64\qemu-system-x86_64-headless.exe: falling back to regular RAM allocation.
+ERROR: Insufficient RAM free for launching emulator.
+Please free up memory (close other programs and files),
+or decrease the AVD RAM size and try again.
+Stats:
+    Currently committed: 22962.808594 MB
+    Commit limit: 24065.687500 MB
+    Remaining: 1102.878906 MB
+    Needed: 2560.000000 MB
+For more info, see the Emulator Troubleshooting website:
+https://developer.android.com/studio/run/emulator-troubleshooting#windows_free_ram_and_commit_charge
+under "Windows: Free RAM and commit charge".

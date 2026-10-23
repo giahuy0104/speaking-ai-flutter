@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T08-B02\\C67-L3-T08-B02-Q02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T08-B02-Q02",
+  "sourceText": "Lượt của bạn: Here you go hay Your turn?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Lượt của bạn:",
+      "spoken_text": "Lượt của bạn:",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "text": "Here you go",
+      "spoken_text": "Here you go",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "text": "Your turn?",
+      "spoken_text": "Your turn?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-994D2CB26EB01FC38A36BAA9",
+  "text": "Lượt của bạn: Here you go hay Your turn?",
+  "asset": "assets/audio/CURRICULUM/994d2cb26eb01fc38a36baa9.vi.v1.mp3",
+  "sha256": "f339f91a34f0081f81d45ec6c064104ae751886b16f753f9ec8a553117aae70d",
+  "durationSeconds": 3.802857
+}

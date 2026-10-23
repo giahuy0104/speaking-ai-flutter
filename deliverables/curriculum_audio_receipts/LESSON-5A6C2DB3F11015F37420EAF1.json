@@ -1,0 +1,83 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\780c79fa7d134cddd60c6b33d43816640b61c0f58c0a517327c14a923f2a8296.tempo.mp3",
+      "signature": "780c79fa7d134cddd60c6b33d43816640b61c0f58c0a517327c14a923f2a8296",
+      "request": {
+        "text": "Mình học tiếp bài",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "9b2c46c9688d32e84a5e8ecac31cc57558533040684155ec5d982e7d74ae20c8",
+      "requestId": "n139BUZ8jDXSls7lra7j",
+      "createdAt": "2026-09-15T23:22:30.166Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\3c202d1d91a3289131b72c0786c59dbf60c9bf9b364ddc7bf6224dcf5b06d966.tempo.mp3",
+      "signature": "3c202d1d91a3289131b72c0786c59dbf60c9bf9b364ddc7bf6224dcf5b06d966",
+      "request": {
+        "text": "Count With Me",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "3764d1efc63a9992b395e7bb5663f6d9352e126e84f41de78a842ccca35709fd",
+      "requestId": "a5v1o6T4UxtfZ7T2oNFX",
+      "createdAt": "2026-09-15T23:23:21.321Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\f72caefaa52b9ec3d291f160d78b360185e13807d2eedb801f47a382b8e85780.tempo.mp3",
+      "signature": "f72caefaa52b9ec3d291f160d78b360185e13807d2eedb801f47a382b8e85780",
+      "request": {
+        "text": "nhé.",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "f8a90b46149d734b590160ab12314af597dc9eb203f9f411637ff57d12e7a8d6",
+      "requestId": "1gbfQaGo6f7yeN8SvxDC",
+      "createdAt": "2026-09-15T23:22:32.853Z"
+    }
+  ],
+  "id": "LESSON-5A6C2DB3F11015F37420EAF1",
+  "text": "Mình học tiếp bài Count With Me nhé.",
+  "asset": "assets/audio/CURRICULUM/5a6c2db3f11015f37420eaf1.vi.v1.mp3",
+  "sha256": "8797c80370bc65e1099c789708d13cc026015b72b9e9b7b40e9816b1671c2cb7",
+  "durationSeconds": 3.59737,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

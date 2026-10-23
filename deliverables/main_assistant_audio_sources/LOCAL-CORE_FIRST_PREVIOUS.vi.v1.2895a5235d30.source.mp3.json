@@ -1,0 +1,20 @@
+{
+  "id": "LOCAL-CORE_FIRST_PREVIOUS",
+  "signature": "2895a5235d30bd8ea4004b594624de59e2319cf6cc60db89e666034765066c6c",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Đây là câu đầu tiên. Mình nghe lại nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:18:11.472Z",
+  "requestId": "2OQTyGQqpI1qQ58fE1ab",
+  "characterCost": "21",
+  "sourceSha256": "b55bb4b02c5fd333898a71f0da87c4aaab12408fdf87b35df4920220341bc1f8"
+}

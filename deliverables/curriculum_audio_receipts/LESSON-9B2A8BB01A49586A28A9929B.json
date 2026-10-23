@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T04-B01\\C1315-L2-T04-B01-T05_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T04-B01-T05_VI",
+  "sourceText": "Tiết kiệm tiền.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Tiết kiệm tiền.",
+      "generation_key": "229b8bbbe735d987"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-9B2A8BB01A49586A28A9929B",
+  "text": "Tiết kiệm tiền.",
+  "asset": "assets/audio/CURRICULUM/9b2a8bb01a49586a28a9929b.vi.v1.mp3",
+  "sha256": "60e4362f71328fad11d2c26a5b5c9729f2a8820eb450e087036171e3f8860ece",
+  "durationSeconds": 1.412063
+}

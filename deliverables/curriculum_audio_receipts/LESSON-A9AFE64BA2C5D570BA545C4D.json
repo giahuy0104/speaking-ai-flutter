@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T05-B01\\C1112-L2-T05-B01-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T05-B01-Q03",
+  "sourceText": "Ngủ sớm: Sleep early hay Exercise daily?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Ngủ sớm:",
+      "spoken_text": "Ngủ sớm:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Sleep early",
+      "spoken_text": "Sleep early",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Exercise daily?",
+      "spoken_text": "Exercise daily?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-A9AFE64BA2C5D570BA545C4D",
+  "text": "Ngủ sớm: Sleep early hay Exercise daily?",
+  "asset": "assets/audio/CURRICULUM/a9afe64ba2c5d570ba545c4d.vi.v1.mp3",
+  "sha256": "080c531cc41d91336946ca70d06948cd3d9cd6cb7d73537194668cca37cd9ec2",
+  "durationSeconds": 4.818118
+}

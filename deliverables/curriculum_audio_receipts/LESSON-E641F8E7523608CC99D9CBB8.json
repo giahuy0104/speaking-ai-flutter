@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L1-T03-B02\\C1112-L1-T03-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L1-T03-B02-Q05",
+  "sourceText": "Mình làm việc nhóm tốt: I work well in teams hay I'm good at drawing?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình làm việc nhóm tốt:",
+      "spoken_text": "Mình làm việc nhóm tốt:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "I work well in teams",
+      "spoken_text": "I work well in teams",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "I'm good at drawing?",
+      "spoken_text": "I'm good at drawing?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-E641F8E7523608CC99D9CBB8",
+  "text": "Mình làm việc nhóm tốt: I work well in teams hay I'm good at drawing?",
+  "asset": "assets/audio/CURRICULUM/e641f8e7523608cc99d9cbb8.vi.v1.mp3",
+  "sha256": "7ca9f6918271fc82ffe09e490129eb904579e9d75460e959de06f924ad0dadcc",
+  "durationSeconds": 6.92517
+}

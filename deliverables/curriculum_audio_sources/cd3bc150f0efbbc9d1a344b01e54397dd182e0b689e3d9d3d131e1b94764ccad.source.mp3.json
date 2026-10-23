@@ -1,0 +1,20 @@
+{
+  "signature": "cd3bc150f0efbbc9d1a344b01e54397dd182e0b689e3d9d3d131e1b94764ccad",
+  "request": {
+    "text": "Ask for Help",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "58f789e7b060350f4700e7bba2cdef165aaae34a22e7e0bc872c8949e607cb46",
+  "requestId": "BUc7dKYt8KHlqWeRuyeG",
+  "createdAt": "2026-09-15T23:28:53.907Z"
+}

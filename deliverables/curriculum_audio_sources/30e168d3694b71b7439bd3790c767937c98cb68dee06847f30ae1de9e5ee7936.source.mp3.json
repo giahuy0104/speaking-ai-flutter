@@ -1,0 +1,20 @@
+{
+  "signature": "30e168d3694b71b7439bd3790c767937c98cb68dee06847f30ae1de9e5ee7936",
+  "request": {
+    "text": "Stay Clean.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "bb4b1c7336a6e73e0539e98780b9d8b60db7ba2f7148c69d6d0076305161184a",
+  "requestId": "0WUaRMQMFCZ0OHvGwWOq",
+  "createdAt": "2026-09-15T23:25:37.530Z"
+}

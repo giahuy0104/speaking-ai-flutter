@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L2-T05-B01\\C35-L2-T05-B01-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L2-T05-B01-Q04",
+  "sourceText": "Con bò: Duck hay Cow?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Con bò:",
+      "spoken_text": "Con bò:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Duck",
+      "spoken_text": "Duck",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Cow?",
+      "spoken_text": "Cow?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-CCC63B4DA589AD03CDBB761F",
+  "text": "Con bò: Duck hay Cow?",
+  "asset": "assets/audio/CURRICULUM/ccc63b4da589ad03cdbb761f.vi.v1.mp3",
+  "sha256": "a2283f5f54d169d88632dc9eeb4bdd189b92874c1f0406fa440b5aa530cde686",
+  "durationSeconds": 3.247302
+}

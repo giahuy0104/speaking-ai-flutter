@@ -1,0 +1,83 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\1889d943fceb38d9d85907a7998b12ef217c36707dc243556702d8dedc6e71d6.tempo.mp3",
+      "signature": "1889d943fceb38d9d85907a7998b12ef217c36707dc243556702d8dedc6e71d6",
+      "request": {
+        "text": "Mình học lại bài",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "3d2375d09e42f0c6ef949b58ea6463ebaa417947d36474a8aa89203156f37f3f",
+      "requestId": "2Kf3OOkeDTH7UaYt6jz4",
+      "createdAt": "2026-09-15T23:22:34.285Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\c8803cf40baae6a7e1e498edcecc1a00108c3c804c6d93bfc8a39d749131aa32.tempo.mp3",
+      "signature": "c8803cf40baae6a7e1e498edcecc1a00108c3c804c6d93bfc8a39d749131aa32",
+      "request": {
+        "text": "Plan Words",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "029e537185ae657843017ea74b5b495d6195d32cebbdeb99166f83430cf11aa7",
+      "requestId": "6NXCxyjWhVbf9Zb9obqj",
+      "createdAt": "2026-09-15T23:28:33.513Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\f72caefaa52b9ec3d291f160d78b360185e13807d2eedb801f47a382b8e85780.tempo.mp3",
+      "signature": "f72caefaa52b9ec3d291f160d78b360185e13807d2eedb801f47a382b8e85780",
+      "request": {
+        "text": "nhé.",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "f8a90b46149d734b590160ab12314af597dc9eb203f9f411637ff57d12e7a8d6",
+      "requestId": "1gbfQaGo6f7yeN8SvxDC",
+      "createdAt": "2026-09-15T23:22:32.853Z"
+    }
+  ],
+  "id": "LESSON-847E655D91653384D03E1969",
+  "text": "Mình học lại bài Plan Words nhé.",
+  "asset": "assets/audio/CURRICULUM/847e655d91653384d03e1969.vi.v1.mp3",
+  "sha256": "8b07b01f87aa751a1810e104c8ac74d95a9995f2abd88d5f9d584b5d4a3a4ea7",
+  "durationSeconds": 3.846145,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

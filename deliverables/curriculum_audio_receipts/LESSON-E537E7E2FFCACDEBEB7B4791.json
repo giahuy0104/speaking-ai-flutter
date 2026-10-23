@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L1-T03-B02\\C1112-L1-T03-B02-Q02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L1-T03-B02-Q02",
+  "sourceText": "Mình giỏi giải quyết vấn đề: I'm good at sports hay I'm good at solving problems?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình giỏi giải quyết vấn đề:",
+      "spoken_text": "Mình giỏi giải quyết vấn đề:",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "text": "I'm good at sports",
+      "spoken_text": "I'm good at sports",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "text": "I'm good at solving problems?",
+      "spoken_text": "I'm good at solving problems?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-E537E7E2FFCACDEBEB7B4791",
+  "text": "Mình giỏi giải quyết vấn đề: I'm good at sports hay I'm good at solving problems?",
+  "asset": "assets/audio/CURRICULUM/e537e7e2ffcacdebeb7b4791.vi.v1.mp3",
+  "sha256": "9e5ebd8c273dc433ea1fbe81849a932662535014d4fcbcd3004d15c963e0f1d1",
+  "durationSeconds": 9.171859
+}

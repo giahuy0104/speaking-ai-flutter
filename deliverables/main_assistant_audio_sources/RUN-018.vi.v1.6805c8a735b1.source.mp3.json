@@ -1,0 +1,20 @@
+{
+  "id": "RUN-018",
+  "signature": "6805c8a735b1ab6b4523909b17191549cf9a7eb2d1fda8bd662cf34d03aa281f",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Những ngôi sao của con.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:11:35.418Z",
+  "requestId": "XsntyIxFqy53hGV1fCTG",
+  "characterCost": "13",
+  "sourceSha256": "29e76e444ff962491fb2e8ab7ed64e7349fe1da3411b5546905f9f905809f4e9"
+}

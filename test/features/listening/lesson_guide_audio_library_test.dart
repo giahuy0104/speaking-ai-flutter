@@ -90,7 +90,7 @@ void main() {
     expect(await library.uriForAudioCode('missing'), isNull);
   });
 
-  test('bundles guide audio for every supported age and cue', () async {
+  test('production library keeps prerecorded guide audio disabled', () async {
     final library = LessonGuideAudioLibrary();
     const ageGroups = <(int, int)>[(3, 5), (6, 7), (8, 10), (11, 12), (13, 15)];
 
@@ -98,11 +98,11 @@ void main() {
       for (final cue in LessonGuideCue.values) {
         expect(
           await library.randomUri(cue, startAge: startAge, endAge: endAge),
-          isNotNull,
-          reason: 'Missing $cue audio for ages $startAge-$endAge',
+          isNull,
         );
       }
     }
+    expect(await library.uriForAudioCode('AI_GUIDE_BEFORE_SENTENCE'), isNull);
   });
 }
 

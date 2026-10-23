@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T06-B01\\C810-L2-T06-B01-T01_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T06-B01-T01_VI",
+  "sourceText": "Điện thoại.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Điện thoại.",
+      "generation_key": "4534c458fe57248d"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-5E9AC24C0DF57E011AF8B3FD",
+  "text": "Điện thoại.",
+  "asset": "assets/audio/CURRICULUM/5e9ac24c0df57e011af8b3fd.vi.v1.mp3",
+  "sha256": "5ac3bc8e4d5d78d4115bd906f4b3c37bea7b141a25b8bd692a3eb8f6e278a195",
+  "durationSeconds": 1.23907
+}

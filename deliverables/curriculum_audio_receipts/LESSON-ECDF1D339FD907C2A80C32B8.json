@@ -1,0 +1,63 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T10-B02\\C1315-L3-T10-B02-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T10-B02-Q06",
+  "sourceText": "HOMI nói: What's your next step? Bạn muốn bắt đầu ngay. I'll start this week hay I'll ask for advice?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "HOMI nói:",
+      "spoken_text": "HOMI nói:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "What's your next step?",
+      "spoken_text": "What's your next step?",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "Bạn muốn bắt đầu ngay.",
+      "spoken_text": "Bạn muốn bắt đầu ngay.",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "I'll start this week",
+      "spoken_text": "I'll start this week",
+      "input_index": 33
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 34
+    },
+    {
+      "language": "en",
+      "text": "I'll ask for advice?",
+      "spoken_text": "I'll ask for advice?",
+      "input_index": 35
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-ECDF1D339FD907C2A80C32B8",
+  "text": "HOMI nói: What's your next step? Bạn muốn bắt đầu ngay. I'll start this week hay I'll ask for advice?",
+  "asset": "assets/audio/CURRICULUM/ecdf1d339fd907c2a80c32b8.vi.v1.mp3",
+  "sha256": "a95bb0613da7564b51d5b22a6fe1b161ec3feb6f9558f41da5f9f2840d3943eb",
+  "durationSeconds": 8.270408
+}

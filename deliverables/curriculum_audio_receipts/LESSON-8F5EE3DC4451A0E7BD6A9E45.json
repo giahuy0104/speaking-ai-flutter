@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T09-B02\\C1112-L3-T09-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T09-B02-Q04",
+  "sourceText": "Làm ơn chờ ở đây: I need your help hay Please wait here?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Làm ơn chờ ở đây:",
+      "spoken_text": "Làm ơn chờ ở đây:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "I need your help",
+      "spoken_text": "I need your help",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Please wait here?",
+      "spoken_text": "Please wait here?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-8F5EE3DC4451A0E7BD6A9E45",
+  "text": "Làm ơn chờ ở đây: I need your help hay Please wait here?",
+  "asset": "assets/audio/CURRICULUM/8f5ee3dc4451a0e7bd6a9e45.vi.v1.mp3",
+  "sha256": "6c8ea84cfccc6c7de318c40d8944ef9453dda69677f74b5ea9ceb3929765d4c8",
+  "durationSeconds": 7.310408
+}

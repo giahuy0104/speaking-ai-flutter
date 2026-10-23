@@ -1,13 +1,18 @@
+import 'package:flutter/foundation.dart';
 import 'package:web/web.dart' as web;
 
 final Set<String> _availableRecordingPaths = <String>{};
 
+String lessonRecordingFileExtension({TargetPlatform? platform}) => 'webm';
+
 Future<String> createLessonRecordingPath(
   String lessonId,
-  int sentenceNumber,
-) async =>
+  int sentenceNumber, {
+  String? extension,
+}) async =>
     '$lessonId-sentence-$sentenceNumber-'
-    '${DateTime.now().microsecondsSinceEpoch}.webm';
+    '${DateTime.now().microsecondsSinceEpoch}.'
+    '${extension?.replaceFirst(RegExp(r'^\.'), '').trim() ?? 'webm'}';
 
 Future<String?> findLessonRecording(String path) async {
   final value = path.trim();
@@ -15,6 +20,8 @@ Future<String?> findLessonRecording(String path) async {
       ? value
       : null;
 }
+
+Future<String?> retainStarRecording(String path) => findLessonRecording(path);
 
 Future<void> deleteLessonRecording(String path) async {
   _availableRecordingPaths.remove(path);
@@ -25,8 +32,9 @@ Future<void> deleteLessonRecording(String path) async {
 
 Future<String?> resolveLessonRecording(
   String? recordedPath,
-  String expectedPath,
-) async {
+  String expectedPath, {
+  bool requireNormalization = false,
+}) async {
   final path = recordedPath?.trim();
   if (path == null || path.isEmpty) {
     return null;

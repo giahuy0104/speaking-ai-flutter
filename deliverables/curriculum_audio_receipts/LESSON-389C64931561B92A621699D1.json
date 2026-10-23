@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T08-B01\\C810-L3-T08-B01-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T08-B01-Q08",
+  "sourceText": "Bạn muốn nói 'Mình tức giận.' Hoàn thành câu: I'm... tired hay angry?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói 'Mình tức giận.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Mình tức giận.' Hoàn thành câu:",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "I'm... tired",
+      "spoken_text": "I'm... tired",
+      "input_index": 43
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "angry?",
+      "spoken_text": "angry?",
+      "input_index": 45
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-389C64931561B92A621699D1",
+  "text": "Bạn muốn nói 'Mình tức giận.' Hoàn thành câu: I'm... tired hay angry?",
+  "asset": "assets/audio/CURRICULUM/389c64931561b92a621699d1.vi.v1.mp3",
+  "sha256": "36370ef461bd4b99aed387579bf232c51353a97d9b09d1ff7be71159baf4f5bc",
+  "durationSeconds": 8.19839
+}

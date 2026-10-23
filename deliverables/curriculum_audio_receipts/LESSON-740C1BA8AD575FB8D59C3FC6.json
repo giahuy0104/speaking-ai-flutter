@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T09-B02\\C1112-L3-T09-B02-T04_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T09-B02-T04_VI",
+  "sourceText": "Làm ơn chờ ở đây.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Làm ơn chờ ở đây.",
+      "generation_key": "29cb97280c5eff31"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-740C1BA8AD575FB8D59C3FC6",
+  "text": "Làm ơn chờ ở đây.",
+  "asset": "assets/audio/CURRICULUM/740c1ba8ad575fb8d59c3fc6.vi.v1.mp3",
+  "sha256": "f1a60fdcf110c38597115867402f49e8d6d638b48fd63aad427f39d26edf0d21",
+  "durationSeconds": 1.791134
+}

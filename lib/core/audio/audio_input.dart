@@ -72,6 +72,11 @@ abstract interface class SelectableAudioInputControl {
   Future<void> selectAudioInputDevice(SelectableAudioInputDevice? device);
 }
 
+/// Invalidates pending selection without clearing an already selected input.
+abstract interface class AudioInputSelectionCancellation {
+  void cancelAudioInputSelection();
+}
+
 enum BluetoothAudioConnectionPhase {
   disabled,
   unsupported,
@@ -123,6 +128,8 @@ class BluetoothAudioStatus {
     this.routeActive = false,
     this.inputDeviceName,
     this.outputDeviceName,
+    this.outputPortType,
+    this.routeSequence,
     this.audioRoute,
   });
 
@@ -137,6 +144,12 @@ class BluetoothAudioStatus {
   final bool routeActive;
   final String? inputDeviceName;
   final String? outputDeviceName;
+
+  /// Native iOS output kind, such as bluetoothA2DP or builtInSpeaker.
+  final String? outputPortType;
+
+  /// Monotonic native route-change sequence; absent on older builds/Android.
+  final int? routeSequence;
   final String? audioRoute;
 
   bool get isBridgeSupported =>

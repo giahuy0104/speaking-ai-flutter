@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T08\\C35-L3-M04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-M04",
+  "sourceText": "Bạn muốn nói 'Mẹ của mình.' Hoàn thành câu: My... mom hay dad?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn muốn nói 'Mẹ của mình.' Hoàn thành câu:",
+      "text": "Bạn muốn nói 'Mẹ của mình.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Mẹ của mình.' Hoàn thành câu:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "source_text": "My... mom",
+      "text": "My... mom",
+      "spoken_text": "My... mom",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "source_text": "dad?",
+      "text": "dad?",
+      "spoken_text": "dad?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": "63e00795427fcfe8a9a1db97106a8dc4742bfb205b4938aeb1fab0215ec18f83",
+  "id": "LESSON-F07C953F66319946D9D61CB1",
+  "text": "Bạn muốn nói 'Mẹ của mình.' Hoàn thành câu: My... mom hay dad?",
+  "asset": "assets/audio/CURRICULUM/f07c953f66319946d9d61cb1.vi.v1.mp3",
+  "sha256": "63e00795427fcfe8a9a1db97106a8dc4742bfb205b4938aeb1fab0215ec18f83",
+  "durationSeconds": 8.386372
+}

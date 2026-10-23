@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T07-B02\\C1315-L3-T07-B02-Q02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T07-B02-Q02",
+  "sourceText": "Sân ga nào: Platform three hay Which platform?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Sân ga nào:",
+      "spoken_text": "Sân ga nào:",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "text": "Platform three",
+      "spoken_text": "Platform three",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "text": "Which platform?",
+      "spoken_text": "Which platform?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-F49C6E96463703DFCD114075",
+  "text": "Sân ga nào: Platform three hay Which platform?",
+  "asset": "assets/audio/CURRICULUM/f49c6e96463703dfcd114075.vi.v1.mp3",
+  "sha256": "99a2b8919659146dd60524e1da7b5f4e45b3c53e2dd5a133ad5f8e23adb9b050",
+  "durationSeconds": 4.908413
+}

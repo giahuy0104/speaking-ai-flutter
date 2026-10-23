@@ -4,7 +4,8 @@ import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.MediaPlayer
-import android.media.ToneGenerator
+import android.media.AudioDeviceInfo
+import android.os.Build
 import android.media.audiofx.LoudnessEnhancer
 import android.os.Bundle
 import android.os.Handler
@@ -16,6 +17,8 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
 import java.util.Locale
+import java.util.concurrent.Executors
+import kotlin.math.pow
 import kotlin.math.roundToInt
 
 class VoicePromptBridge(
@@ -28,9 +31,15 @@ class VoicePromptBridge(
         val locale: String,
         val gainDb: Double,
         val completion: MethodChannel.Result?,
+        val speechRate: Float = 0.92f,
+        val pitch: Float = 1.0f,
+        val forcePhoneSpeaker: Boolean = false,
+        val forceMediaPlayback: Boolean = false,
     )
 
     private val appContext = context.applicationContext
+    private val audioManager =
+        appContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private val methodChannel = MethodChannel(messenger, "ailingo_voice_prompt")
     private val mainHandler = Handler(Looper.getMainLooper())
     private var textToSpeech: TextToSpeech? = null
@@ -38,19 +47,39 @@ class VoicePromptBridge(
     private var pendingPrompt: PendingPrompt? = null
     private var awaitedUtteranceId: String? = null
     private var awaitedResult: MethodChannel.Result? = null
-    private var readyCueGenerator: ToneGenerator? = null
+    private var readyCuePlayer: MediaPlayer? = null
     private var readyCueCompletion: Runnable? = null
-    private var readyCueResult: MethodChannel.Result? = null
+    private val readyCueResults = mutableListOf<MethodChannel.Result>()
+    var isH20RouteOwned: () -> Boolean = { false }
+    private val levelWorker = Executors.newSingleThreadExecutor()
+    // Builds and releases prompt players in order, so a new player is never
+    // created in the media server while the previous one is being torn down,
+    // and never waits behind a loudness analysis.
+    private val playerWorker = Executors.newSingleThreadExecutor()
     private var synthesizedPromptId: String? = null
     private var synthesizedPromptFile: File? = null
     private var synthesizedPromptGainMillibels = 0
+    private var synthesizedPromptForcePhoneSpeaker = false
+    private var synthesizedPromptForceMediaPlayback = false
+    private var synthesizedPromptLevelKey: String? = null
+    /** True khi gain đi kèm lời gọi là số đo lúc build của đúng clip này. */
+    private var synthesizedPromptGainFromManifest = false
+    // Matched levels of authored clips by content; main thread only.
+    private val authoredPromptLevels =
+        object : LinkedHashMap<String, PlaybackLoudnessResult>(16, 0.75f, true) {
+            override fun removeEldestEntry(
+                eldest: MutableMap.MutableEntry<String, PlaybackLoudnessResult>?,
+            ) = size > 64
+        }
     private var promptPlaybackId: String? = null
     private var promptPlaybackFile: File? = null
     private var promptPlayer: MediaPlayer? = null
     private var promptLoudnessEnhancer: LoudnessEnhancer? = null
     private var utteranceSequence = 0L
+    private var diagnosticCueSequence = 0L
 
     init {
+        AudioDiagnostics.event("diagnostics.native.ready", mapOf("build" to "audio-fix-v2"))
         methodChannel.setMethodCallHandler(this)
         textToSpeech = TextToSpeech(appContext, this)
     }
@@ -68,6 +97,10 @@ class VoicePromptBridge(
         }
         textToSpeech?.apply {
             setSpeechRate(0.92f)
+            // Keep the direct TextToSpeech fallback on the same communication
+            // stream as synthesized-file playback. Otherwise an OEM TTS engine
+            // that rejects file synthesis can jump from H20 to the phone.
+            setAudioAttributes(voicePromptAudioAttributes())
             setOnUtteranceProgressListener(
                 object : UtteranceProgressListener() {
                     override fun onStart(utteranceId: String?) = Unit
@@ -91,7 +124,16 @@ class VoicePromptBridge(
             )
         }
         pendingPrompt?.let {
-            speak(it.text, it.locale, it.gainDb, completion = it.completion)
+            speak(
+                it.text,
+                it.locale,
+                it.gainDb,
+                completion = it.completion,
+                speechRate = it.speechRate,
+                pitch = it.pitch,
+                forcePhoneSpeaker = it.forcePhoneSpeaker,
+                forceMediaPlayback = it.forceMediaPlayback,
+            )
         }
         pendingPrompt = null
     }
@@ -101,12 +143,22 @@ class VoicePromptBridge(
         result: MethodChannel.Result,
     ) {
         when (call.method) {
+            "analyzePlaybackLevel" -> analyzePlaybackLevel(call, result)
+            "playAuthoredAudioAndWait" -> playAuthoredAudio(call, result)
             "speak" -> {
                 val text = call.argument<String>("text")?.trim().orEmpty()
                 val locale = call.argument<String>("locale")?.trim().orEmpty()
                 val gainDb = requestedGainDb(call)
+                val forcePhoneSpeaker = call.argument<Boolean>("forcePhoneSpeaker") == true
+                val forceMediaPlayback = call.argument<Boolean>("forceMediaPlayback") == true
                 if (text.isNotEmpty()) {
-                    speak(text, locale.ifEmpty { "vi-VN" }, gainDb)
+                    speak(
+                        text,
+                        locale.ifEmpty { "vi-VN" },
+                        gainDb,
+                        forcePhoneSpeaker = forcePhoneSpeaker,
+                        forceMediaPlayback = forceMediaPlayback,
+                    )
                 }
                 result.success(null)
             }
@@ -114,6 +166,8 @@ class VoicePromptBridge(
                 val text = call.argument<String>("text")?.trim().orEmpty()
                 val locale = call.argument<String>("locale")?.trim().orEmpty()
                 val gainDb = requestedGainDb(call)
+                val forcePhoneSpeaker = call.argument<Boolean>("forcePhoneSpeaker") == true
+                val forceMediaPlayback = call.argument<Boolean>("forceMediaPlayback") == true
                 if (text.isEmpty()) {
                     result.success(null)
                 } else {
@@ -122,6 +176,12 @@ class VoicePromptBridge(
                         locale.ifEmpty { "vi-VN" },
                         gainDb,
                         completion = result,
+                        speechRate = (call.argument<Number>("speechRate")?.toFloat() ?: 0.92f)
+                            .coerceIn(0.5f, 1.5f),
+                        pitch = (call.argument<Number>("pitch")?.toFloat() ?: 1.0f)
+                            .coerceIn(0.8f, 1.2f),
+                        forcePhoneSpeaker = forcePhoneSpeaker,
+                        forceMediaPlayback = forceMediaPlayback,
                     )
                 }
             }
@@ -144,10 +204,23 @@ class VoicePromptBridge(
         localeTag: String,
         gainDb: Double,
         completion: MethodChannel.Result? = null,
+        speechRate: Float = 0.92f,
+        pitch: Float = 1.0f,
+        forcePhoneSpeaker: Boolean = false,
+        forceMediaPlayback: Boolean = false,
     ) {
         if (!initialized) {
             completePendingPrompt()
-            pendingPrompt = PendingPrompt(text, localeTag, gainDb, completion)
+            pendingPrompt = PendingPrompt(
+                text,
+                localeTag,
+                gainDb,
+                completion,
+                speechRate,
+                pitch,
+                forcePhoneSpeaker,
+                forceMediaPlayback,
+            )
             return
         }
         val engine = textToSpeech
@@ -161,6 +234,16 @@ class VoicePromptBridge(
         clearSynthesizedPrompt()
         releasePromptPlayback()
         val requestedLocale = Locale.forLanguageTag(localeTag)
+        // Reset every utterance: translation style cannot leak into Core,
+        // Challenge, vocabulary, or the MAIN assistant's feedback.
+        engine.setSpeechRate(speechRate)
+        engine.setPitch(pitch)
+        engine.setAudioAttributes(
+            voicePromptAudioAttributes(
+                forcePhoneSpeaker = forcePhoneSpeaker,
+                forceMediaPlayback = forceMediaPlayback,
+            ),
+        )
         val languageResult = engine.setLanguage(requestedLocale)
         if (
             languageResult == TextToSpeech.LANG_MISSING_DATA ||
@@ -170,6 +253,7 @@ class VoicePromptBridge(
         }
         utteranceSequence += 1
         val utteranceId = "voice-prompt-$utteranceSequence"
+        AudioDiagnostics.output("tts.synthesis.request", audioManager, mapOf("id" to utteranceId, "gainDb" to gainDb, "characters" to text.length))
         if (completion != null) {
             awaitedUtteranceId = utteranceId
             awaitedResult = completion
@@ -182,6 +266,9 @@ class VoicePromptBridge(
         synthesizedPromptId = utteranceId
         synthesizedPromptFile = outputFile
         synthesizedPromptGainMillibels = (gainDb * 100.0).roundToInt()
+        synthesizedPromptGainFromManifest = false
+        synthesizedPromptForcePhoneSpeaker = forcePhoneSpeaker
+        synthesizedPromptForceMediaPlayback = forceMediaPlayback
         val status =
             engine.synthesizeToFile(text, speechParameters, outputFile, utteranceId)
         if (status == TextToSpeech.ERROR) {
@@ -196,8 +283,112 @@ class VoicePromptBridge(
         }
     }
 
+    // Negative values are expected: the authored catalogue is measured at build
+    // time and most clips sit above the shared playback target, so the caller
+    // asks for attenuation. Clamping those away left the first play of every
+    // clip at its authored level.
     private fun requestedGainDb(call: MethodCall): Double =
-        (call.argument<Number>("gainDb")?.toDouble() ?: 8.0).coerceIn(0.0, 12.0)
+        suppliedGainDb(call) ?: AuthoredPromptLevel.DEFAULT_GAIN_DB
+
+    /** Gain do Dart gửi xuống, hoặc null khi lời gọi không kèm con số nào. */
+    private fun suppliedGainDb(call: MethodCall): Double? =
+        call.argument<Number>("gainDb")?.toDouble()
+            ?.coerceIn(-AndroidPlaybackLoudness.MAX_GAIN_DB, 12.0)
+
+    private fun analyzePlaybackLevel(call: MethodCall, result: MethodChannel.Result) {
+        val path = call.argument<String>("path")
+        val asset = call.argument<String>("asset")
+        levelWorker.execute {
+            val measured = runCatching {
+                val file = if (asset != null && asset.startsWith("assets/") && !asset.contains("..")) {
+                    val stamp = appContext.packageManager.getPackageInfo(appContext.packageName, 0).lastUpdateTime
+                    val key = java.security.MessageDigest.getInstance("SHA-256")
+                        .digest(asset.toByteArray()).joinToString("") { "%02x".format(it) }
+                    File(appContext.cacheDir, "level-$stamp-$key.audio").also { target ->
+                        if (!target.exists()) {
+                            appContext.assets.open("flutter_assets/$asset").use { input ->
+                                target.outputStream().use { output -> input.copyTo(output) }
+                            }
+                        }
+                    }
+                } else if (path != null) File(path) else null
+                file?.let(AndroidPlaybackLoudness::analyze)?.toMap()
+            }.getOrNull()
+            mainHandler.post { result.success(measured) }
+        }
+    }
+
+    private fun isScoRouteActive(): Boolean {
+        @Suppress("DEPRECATION")
+        val bluetoothScoOn = audioManager.isBluetoothScoOn
+        return (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S &&
+            audioManager.communicationDevice?.type ==
+            android.media.AudioDeviceInfo.TYPE_BLUETOOTH_SCO) || bluetoothScoOn
+    }
+
+    private fun voicePromptAudioAttributes(
+        forcePhoneSpeaker: Boolean = false,
+        forceMediaPlayback: Boolean = false,
+    ): AudioAttributes {
+        val usage =
+            if (
+                PromptAudioUsage.usesCallStream(
+                    forcePhoneSpeaker,
+                    forceMediaPlayback,
+                    isH20RouteOwned(),
+                    isScoRouteActive(),
+                )
+            ) {
+                AudioAttributes.USAGE_VOICE_COMMUNICATION
+            } else {
+                AudioAttributes.USAGE_MEDIA
+            }
+        return AudioAttributes.Builder()
+            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+            .setUsage(usage)
+            .build()
+    }
+
+    private fun playAuthoredAudio(call: MethodCall, result: MethodChannel.Result) {
+        val bytes = call.argument<ByteArray>("bytes")
+        if (bytes == null || bytes.isEmpty() || bytes.size > 2 * 1024 * 1024) {
+            result.error("INVALID_PROMPT_AUDIO", "Invalid authored prompt bytes.", null)
+            return
+        }
+        // Reuse the local communication-route player and completion/cancellation
+        // lifecycle so authored MP3 and TTS preserve the same H20 ownership.
+        completePendingPrompt()
+        completeActiveAwaited()
+        completeReadyCue()
+        textToSpeech?.stop()
+        clearSynthesizedPrompt()
+        releasePromptPlayback()
+        utteranceSequence += 1
+        val utteranceId = "authored-prompt-$utteranceSequence"
+        awaitedUtteranceId = utteranceId
+        awaitedResult = result
+        val file = File(appContext.cacheDir, "$utteranceId.mp3")
+        synthesizedPromptId = utteranceId
+        synthesizedPromptFile = file
+        // Dart chỉ gửi gainDb khi manifest phủ clip này, nên có số tức là đã
+        // đo lúc build và không cần giải mã lại.
+        val manifestGainDb = suppliedGainDb(call)
+        synthesizedPromptGainFromManifest = !AuthoredPromptLevel.shouldMeasure(manifestGainDb)
+        synthesizedPromptGainMillibels =
+            ((manifestGainDb ?: AuthoredPromptLevel.DEFAULT_GAIN_DB) * 100.0).roundToInt()
+        synthesizedPromptForcePhoneSpeaker =
+            call.argument<Boolean>("forcePhoneSpeaker") == true
+        synthesizedPromptForceMediaPlayback =
+            call.argument<Boolean>("forceMediaPlayback") == true
+        synthesizedPromptLevelKey = "${bytes.size}:${bytes.contentHashCode()}"
+        try {
+            file.writeBytes(bytes)
+            playSynthesizedPrompt(utteranceId)
+        } catch (_: Exception) {
+            clearSynthesizedPrompt()
+            completeAwaited(utteranceId, "Unable to prepare authored prompt audio.")
+        }
+    }
 
     private fun handleTtsDone(utteranceId: String?) {
         mainHandler.post {
@@ -230,15 +421,36 @@ class VoicePromptBridge(
         }
     }
 
-    private fun playSynthesizedPrompt(utteranceId: String) {
+    private fun playSynthesizedPrompt(utteranceId: String, scoWaitedMs: Long = 0L) {
+        if (scoWaitedMs == 0L) {
+            AudioDiagnostics.event("prompt.native.prepare", mapOf("id" to utteranceId))
+        }
         if (utteranceId != synthesizedPromptId) {
+            return
+        }
+        if (
+            PromptScoWait.shouldWait(
+                synthesizedPromptForcePhoneSpeaker,
+                isH20RouteOwned(),
+                isScoRouteActive(),
+                scoWaitedMs,
+            )
+        ) {
+            mainHandler.postDelayed(
+                { playSynthesizedPrompt(utteranceId, scoWaitedMs + PromptScoWait.POLL_MS) },
+                PromptScoWait.POLL_MS,
+            )
             return
         }
         val audioFile = synthesizedPromptFile
         val gainMillibels = synthesizedPromptGainMillibels
+        val levelKey = synthesizedPromptLevelKey
+        val gainFromManifest = synthesizedPromptGainFromManifest
         synthesizedPromptId = null
         synthesizedPromptFile = null
         synthesizedPromptGainMillibels = 0
+        synthesizedPromptLevelKey = null
+        synthesizedPromptGainFromManifest = false
         if (audioFile == null || !audioFile.exists() || audioFile.length() == 0L) {
             audioFile?.delete()
             completeAwaited(utteranceId, "TTS produced no playable audio.")
@@ -246,34 +458,143 @@ class VoicePromptBridge(
         }
 
         releasePromptPlayback()
-        val player = MediaPlayer()
         promptPlaybackId = utteranceId
         promptPlaybackFile = audioFile
+        val attributes = voicePromptAudioAttributes(
+            forcePhoneSpeaker = synthesizedPromptForcePhoneSpeaker,
+            forceMediaPlayback = synthesizedPromptForceMediaPlayback,
+        )
+        val preferredDevice = if (
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            !synthesizedPromptForcePhoneSpeaker
+        ) {
+            audioManager.communicationDevice
+                ?.takeIf { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO }
+        } else {
+            null
+        }
+        // MediaPlayer() and setDataSource() block on the media server (the
+        // extractor sniffs the file before setDataSource returns), about
+        // 30 ms on a Pixel 8, and landed on the first frames of the tab
+        // transition that starts this prompt. The player is built on the
+        // worker behind the release of the previous one; it is registered
+        // and prepared on the main thread only if this prompt is still
+        // current.
+        playerWorker.execute {
+            val player = MediaPlayer()
+            val failure = runCatching {
+                player.setAudioAttributes(attributes)
+                preferredDevice?.let { player.setPreferredDevice(it) }
+                player.setDataSource(audioFile.absolutePath)
+                player.setVolume(1.0f, 1.0f)
+            }.exceptionOrNull()
+            mainHandler.post {
+                if (promptPlaybackId != utteranceId) {
+                    releaseOffMainThread(player)
+                    return@post
+                }
+                if (failure != null) {
+                    releaseOffMainThread(player)
+                    finishPromptPlayback(
+                        utteranceId,
+                        failure.message ?: "TTS playback failed.",
+                    )
+                    return@post
+                }
+                startPromptPlayer(
+                    player,
+                    utteranceId,
+                    audioFile,
+                    gainMillibels,
+                    levelKey,
+                    gainFromManifest,
+                )
+            }
+        }
+    }
+
+    private fun startPromptPlayer(
+        player: MediaPlayer,
+        utteranceId: String,
+        audioFile: File,
+        gainMillibels: Int,
+        levelKey: String?,
+        gainFromManifest: Boolean,
+    ) {
         promptPlayer = player
         try {
-            player.setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                    .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
-                    .build(),
-            )
-            player.setDataSource(audioFile.absolutePath)
-            player.setVolume(1.0f, 1.0f)
             player.setOnPreparedListener { preparedPlayer ->
                 if (promptPlayer !== preparedPlayer || promptPlaybackId != utteranceId) {
                     return@setOnPreparedListener
                 }
-                promptLoudnessEnhancer = try {
-                    LoudnessEnhancer(preparedPlayer.audioSessionId).apply {
-                        setTargetGain(gainMillibels)
-                        enabled = true
+                var levelApplied = false
+                fun startWithLevel(measured: PlaybackLoudnessResult?) {
+                    if (levelApplied || promptPlayer !== preparedPlayer || promptPlaybackId != utteranceId) return
+                    levelApplied = true
+                    try {
+                        // Số của manifest là số đo lúc build của đúng clip này,
+                        // nên nó được cùng dải với số đo runtime. Trần 8 dB chỉ
+                        // dành cho mức dự phòng chung, thứ không đo gì cả.
+                        val gainDb = AuthoredPromptLevel.gainDb(
+                            manifestGainDb = if (gainFromManifest) gainMillibels / 100.0 else null,
+                            measuredGainDb = measured?.gainDb,
+                            fallbackGainDb = (gainMillibels / 100.0)
+                                .coerceIn(-AndroidPlaybackLoudness.MAX_GAIN_DB, 8.0),
+                        )
+                        val volume = 10.0.pow(gainDb.coerceAtMost(0.0) / 20.0).toFloat()
+                        preparedPlayer.setVolume(volume, volume)
+                        promptLoudnessEnhancer = try {
+                            LoudnessEnhancer(preparedPlayer.audioSessionId).apply {
+                                setTargetGain((gainDb.coerceAtLeast(0.0) * 100).roundToInt())
+                                enabled = true
+                            }
+                        } catch (_: RuntimeException) { null }
+                        AudioDiagnostics.event("prompt.level.applied", mapOf("id" to utteranceId, "gainDb" to gainDb, "measured" to (measured != null), "manifest" to gainFromManifest))
+                        preparedPlayer.start()
+                        AudioDiagnostics.output("prompt.native.started", audioManager, mapOf("id" to utteranceId, "gainDb" to gainDb, "durationMs" to preparedPlayer.duration, "sessionId" to preparedPlayer.audioSessionId))
+                    } catch (error: RuntimeException) {
+                        finishPromptPlayback(utteranceId, error.message ?: "Unable to start prompt.")
                     }
-                } catch (_: RuntimeException) {
-                    null
                 }
-                preparedPlayer.start()
+                if (gainFromManifest) {
+                    // Manifest đã có gain đo lúc build của đúng clip này. Giải mã
+                    // lại chỉ để thay nó bằng một số đo runtime khác là vừa tốn
+                    // công vừa làm clip nghe khác nhau giữa các lần phát.
+                    startWithLevel(null)
+                    return@setOnPreparedListener
+                }
+                if (levelKey != null) {
+                    // Authored clips are fixed assets whose MP3 decode rarely fits
+                    // the wait below. Start now; measure in the background so the
+                    // clip's next playback starts with its matched level.
+                    val cached = authoredPromptLevels[levelKey]
+                    startWithLevel(cached)
+                    if (cached == null) {
+                        levelWorker.execute {
+                            val measured = runCatching {
+                                AndroidPlaybackLoudness.analyze(
+                                    audioFile,
+                                    AndroidPlaybackLoudness.BACKGROUND_DECODE_NS,
+                                )
+                            }.getOrNull() ?: return@execute
+                            mainHandler.post { authoredPromptLevels[levelKey] = measured }
+                        }
+                    }
+                    return@setOnPreparedListener
+                }
+                // A slow OEM codec must not reintroduce a seconds-long wait.
+                val levelTimeout = Runnable { startWithLevel(null) }
+                mainHandler.postDelayed(levelTimeout, 450L)
+                levelWorker.execute {
+                    val measured = runCatching { AndroidPlaybackLoudness.analyze(audioFile) }.getOrNull()
+                    mainHandler.post {
+                        mainHandler.removeCallbacks(levelTimeout)
+                        startWithLevel(measured)
+                    }
+                }
             }
             player.setOnCompletionListener {
+                AudioDiagnostics.event("prompt.native.audio_completed", mapOf("id" to utteranceId))
                 mainHandler.post { finishPromptPlayback(utteranceId) }
             }
             player.setOnErrorListener { _, _, _ ->
@@ -304,19 +625,44 @@ class VoicePromptBridge(
 
     private fun clearSynthesizedPrompt() {
         synthesizedPromptId = null
+        synthesizedPromptLevelKey = null
         synthesizedPromptGainMillibels = 0
+        synthesizedPromptGainFromManifest = false
+        synthesizedPromptForcePhoneSpeaker = false
+        synthesizedPromptForceMediaPlayback = false
         synthesizedPromptFile?.delete()
         synthesizedPromptFile = null
     }
 
     private fun releasePromptPlayback() {
         promptPlaybackId = null
-        promptLoudnessEnhancer?.release()
+        val enhancer = promptLoudnessEnhancer
+        val player = promptPlayer
+        val file = promptPlaybackFile
         promptLoudnessEnhancer = null
-        promptPlayer?.release()
         promptPlayer = null
-        promptPlaybackFile?.delete()
         promptPlaybackFile = null
+        releaseOffMainThread(player, enhancer, file)
+    }
+
+    /**
+     * MediaPlayer.release() waits for the media server to tear the player
+     * down, 25 ms on the emulator and about 70 ms on a Pixel 8. Every tab
+     * change that stops a prompt paid that on the main thread as the first
+     * frame of the transition. The fields are cleared synchronously so late
+     * callbacks fail their identity checks; only the teardown moves.
+     */
+    private fun releaseOffMainThread(
+        player: MediaPlayer?,
+        enhancer: LoudnessEnhancer? = null,
+        file: File? = null,
+    ) {
+        if (player == null && enhancer == null && file == null) return
+        playerWorker.execute {
+            runCatching { enhancer?.release() }
+            runCatching { player?.release() }
+            file?.delete()
+        }
     }
 
     private fun completeAwaited(
@@ -351,33 +697,150 @@ class VoicePromptBridge(
     }
 
     private fun playSpeechReadyCue(result: MethodChannel.Result) {
-        completeReadyCue()
-        val generator = try {
-            readyCueGenerator ?: ToneGenerator(AudioManager.STREAM_MUSIC, 85).also {
-                readyCueGenerator = it
-            }
-        } catch (error: RuntimeException) {
+        // Concurrent requests share this one sound and its completion.
+        if (readyCuePlayer != null) {
+            readyCueResults.add(result)
+            AudioDiagnostics.event("cue.native.coalesced", mapOf("cueId" to diagnosticCueSequence))
+            return
+        }
+        diagnosticCueSequence += 1
+        val cueId = diagnosticCueSequence
+        val player = try { MediaPlayer() } catch (error: RuntimeException) {
             result.error("READY_CUE_UNAVAILABLE", error.message, null)
             return
         }
-        if (!generator.startTone(ToneGenerator.TONE_PROP_BEEP, 170)) {
-            result.error("READY_CUE_UNAVAILABLE", "Unable to play the ready cue.", null)
-            return
-        }
-        readyCueResult = result
-        // Include a short gap so the microphone never records the tail of the tone.
-        val completion = Runnable { completeReadyCue() }
-        readyCueCompletion = completion
-        mainHandler.postDelayed(completion, 260L)
+        readyCuePlayer = player
+        readyCueResults.add(result)
+        prepareSpeechReadyCue(player, cueId)
     }
 
-    private fun completeReadyCue() {
+    private fun prepareSpeechReadyCue(player: MediaPlayer, cueId: Long, scoWaitedMs: Long = 0L) {
+        if (readyCuePlayer !== player) return
+        if (PromptScoWait.shouldWait(false, isH20RouteOwned(), isScoRouteActive(), scoWaitedMs)) {
+            mainHandler.postDelayed(
+                { prepareSpeechReadyCue(player, cueId, scoWaitedMs + PromptScoWait.POLL_MS) },
+                PromptScoWait.POLL_MS,
+            )
+            return
+        }
+        try {
+            val file = File(appContext.cacheDir, "speech-ready-v2.wav")
+            val waveform = ReadyCueWaveform.wavBytes()
+            if (!file.exists() || file.length() != waveform.size.toLong()) {
+                file.writeBytes(waveform)
+            }
+            player.setAudioAttributes(voicePromptAudioAttributes(forceMediaPlayback = true))
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                audioManager.communicationDevice?.takeIf { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO }
+                    ?.let { player.setPreferredDevice(it) }
+            }
+            player.setDataSource(file.absolutePath)
+            player.setVolume(1f, 1f) // PCM already generated at the common target.
+            player.setOnPreparedListener {
+                if (readyCuePlayer !== player) return@setOnPreparedListener
+                AudioDiagnostics.output("cue.native.start", audioManager, mapOf("cueId" to cueId, "sessionId" to player.audioSessionId))
+                try {
+                    player.start() // Exactly one start; no hidden retry on a second renderer.
+                } catch (_: RuntimeException) {
+                    completeReadyCue("READY_CUE_UNAVAILABLE")
+                    return@setOnPreparedListener
+                }
+                // Some Android 12 Bluetooth SCO implementations play this
+                // 120 ms WAV but never deliver MediaPlayer.onCompletion. Once
+                // start succeeds, use the known cue length plus a generous
+                // route/drain/tail allowance as a successful completion gate.
+                // The hard prepare timeout below still fails closed when the
+                // player never starts at all.
+                readyCueCompletion?.let(mainHandler::removeCallbacks)
+                val drainGuard = Runnable {
+                    if (readyCuePlayer === player) {
+                        AudioDiagnostics.event(
+                            "cue.native.drain_guard",
+                            mapOf(
+                                "cueId" to cueId,
+                                "isPlaying" to runCatching { player.isPlaying }.getOrNull(),
+                                "deviceType" to runCatching { player.routedDevice?.type }.getOrNull(),
+                                "deviceId" to runCatching { player.routedDevice?.id }.getOrNull(),
+                            ),
+                        )
+                        completeReadyCue()
+                    }
+                }
+                readyCueCompletion = drainGuard
+                mainHandler.postDelayed(drainGuard, 700L)
+                mainHandler.postDelayed({
+                    if (readyCuePlayer === player) {
+                        runCatching {
+                            AudioDiagnostics.event("cue.native.routed", mapOf("cueId" to cueId, "deviceType" to player.routedDevice?.type, "deviceId" to player.routedDevice?.id))
+                        }
+                    }
+                }, 40L)
+            }
+            player.setOnCompletionListener {
+                if (readyCuePlayer !== player) return@setOnCompletionListener
+                readyCueCompletion?.let(mainHandler::removeCallbacks)
+                // Keep the existing acoustic-tail guard before lesson recording.
+                val tail = Runnable { if (readyCuePlayer === player) completeReadyCue() }
+                readyCueCompletion = tail
+                mainHandler.postDelayed(tail, 180L)
+            }
+            player.setOnErrorListener { _, what, extra ->
+                if (readyCuePlayer === player) {
+                    AudioDiagnostics.event("cue.native.error", mapOf("cueId" to cueId, "what" to what, "extra" to extra))
+                    completeReadyCue("READY_CUE_UNAVAILABLE")
+                }
+                true
+            }
+            val timeout = Runnable { if (readyCuePlayer === player) completeReadyCue("READY_CUE_TIMEOUT") }
+            readyCueCompletion = timeout
+            mainHandler.postDelayed(timeout, 3000L)
+            player.prepareAsync()
+        } catch (_: Exception) {
+            completeReadyCue("READY_CUE_UNAVAILABLE")
+        }
+    }
+
+    private fun completeReadyCue(errorCode: String? = null) {
+        if (readyCuePlayer != null || readyCueResults.isNotEmpty()) {
+            AudioDiagnostics.event("cue.native.complete", mapOf("cueId" to diagnosticCueSequence, "errorCode" to errorCode))
+        }
         readyCueCompletion?.let(mainHandler::removeCallbacks)
         readyCueCompletion = null
-        readyCueGenerator?.stopTone()
-        val completion = readyCueResult
-        readyCueResult = null
-        completion?.success(null)
+        val player = readyCuePlayer
+        readyCuePlayer = null
+        releaseOffMainThread(player)
+        val completions = readyCueResults.toList()
+        readyCueResults.clear()
+        for (completion in completions) {
+            if (errorCode == null) completion.success(null)
+            else completion.error(errorCode, "Không thể phát tín hiệu sẵn sàng trên đường âm thanh đã chọn.", null)
+        }
+    }
+
+    fun stopForRouteLoss() {
+        // Runs on the bridge's main thread before SCO is released. Complete
+        // with an error so callers cannot interpret a cut-off prompt as heard.
+        pendingPrompt?.completion?.error("HFP_ROUTE_LOST", "Kết nối âm thanh HM-D001 bị gián đoạn. Hãy thử lại.", null)
+        pendingPrompt = null
+        val completion = awaitedResult
+        awaitedResult = null
+        awaitedUtteranceId = null
+        completion?.error("HFP_ROUTE_LOST", "Kết nối âm thanh HM-D001 bị gián đoạn. Hãy thử lại.", null)
+        completeReadyCue("HFP_ROUTE_LOST")
+        textToSpeech?.stop()
+        clearSynthesizedPrompt()
+        releasePromptPlayback()
+    }
+
+    fun stopForBackgroundSession() {
+        mainHandler.post {
+            completePendingPrompt()
+            completeActiveAwaited()
+            completeReadyCue()
+            textToSpeech?.stop()
+            clearSynthesizedPrompt()
+            releasePromptPlayback()
+        }
     }
 
     fun dispose() {
@@ -391,7 +854,7 @@ class VoicePromptBridge(
         methodChannel.setMethodCallHandler(null)
         textToSpeech?.shutdown()
         textToSpeech = null
-        readyCueGenerator?.release()
-        readyCueGenerator = null
+        levelWorker.shutdown()
+        playerWorker.shutdown()
     }
 }

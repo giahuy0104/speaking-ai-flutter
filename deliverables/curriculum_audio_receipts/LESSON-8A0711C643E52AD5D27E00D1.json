@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T06-B02\\C1315-L2-T06-B02-Q01_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T06-B02-Q01",
+  "sourceText": "Giữ mật khẩu riêng tư: Keep passwords private hay Don't share your location?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Giữ mật khẩu riêng tư:",
+      "spoken_text": "Giữ mật khẩu riêng tư:",
+      "input_index": 0
+    },
+    {
+      "language": "en",
+      "text": "Keep passwords private",
+      "spoken_text": "Keep passwords private",
+      "input_index": 1
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 2
+    },
+    {
+      "language": "en",
+      "text": "Don't share your location?",
+      "spoken_text": "Don't share your location?",
+      "input_index": 3
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-8A0711C643E52AD5D27E00D1",
+  "text": "Giữ mật khẩu riêng tư: Keep passwords private hay Don't share your location?",
+  "asset": "assets/audio/CURRICULUM/8a0711c643e52ad5d27e00d1.vi.v1.mp3",
+  "sha256": "3f1434fffe2ddcbc191640e3207d970834152e4bfd880f002437b1d60680562d",
+  "durationSeconds": 6.860816
+}

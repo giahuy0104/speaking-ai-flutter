@@ -1,0 +1,20 @@
+{
+  "signature": "cc48a844c5fd5f1bfe0c4b993d6ae7ea14f488176f849080ed4c37a1dfd51d33",
+  "request": {
+    "text": "Bird",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "ec171deaeaf8d5a033d5a7a217211b9a2532d3706f080afc6a77e7065bebda28",
+  "requestId": "vJu5PM5iQFml3eTMpbkn",
+  "createdAt": "2026-09-15T23:17:39.117Z"
+}

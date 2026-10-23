@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T04\\C1315-L2-M02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-M02",
+  "sourceText": "Bạn cần diễn đạt \"Nó hợp ngân sách\". It fits my budget hay I don't need it?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần diễn đạt \"Nó hợp ngân sách\".",
+      "text": "Bạn cần diễn đạt \"Nó hợp ngân sách\".",
+      "spoken_text": "Bạn cần diễn đạt \"Nó hợp ngân sách\".",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "source_text": "It fits my budget",
+      "text": "It fits my budget",
+      "spoken_text": "It fits my budget",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "source_text": "I don't need it?",
+      "text": "I don't need it?",
+      "spoken_text": "I don't need it?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": "164f6f5d65440994534a983084ddf1c44302ddf553400e2a4100fb4c7d5828a8",
+  "id": "LESSON-8133CDD2248CBB21F7354C8D",
+  "text": "Bạn cần diễn đạt \"Nó hợp ngân sách\". It fits my budget hay I don't need it?",
+  "asset": "assets/audio/CURRICULUM/8133cdd2248cbb21f7354c8d.vi.v1.mp3",
+  "sha256": "164f6f5d65440994534a983084ddf1c44302ddf553400e2a4100fb4c7d5828a8",
+  "durationSeconds": 6.082177
+}

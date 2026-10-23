@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T09-B01\\C1112-L3-T09-B01-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T09-B01-Q03",
+  "sourceText": "Mình lỡ xe buýt: I missed the bus hay My phone is dead?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình lỡ xe buýt:",
+      "spoken_text": "Mình lỡ xe buýt:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "I missed the bus",
+      "spoken_text": "I missed the bus",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "My phone is dead?",
+      "spoken_text": "My phone is dead?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-4773025B220315CB320DDE95",
+  "text": "Mình lỡ xe buýt: I missed the bus hay My phone is dead?",
+  "asset": "assets/audio/CURRICULUM/4773025b220315cb320dde95.vi.v1.mp3",
+  "sha256": "1c8a48d28cd747064d2a4d833f9ec3fb6161df17000d5cbc3fcde0068c7c6004",
+  "durationSeconds": 5.891361
+}

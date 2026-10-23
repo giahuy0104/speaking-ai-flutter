@@ -1,0 +1,120 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\428a19aff63c860bcb45c70f0accd12f5e5c2c1f4efe91d6760d914110c79786.tempo.mp3",
+      "signature": "428a19aff63c860bcb45c70f0accd12f5e5c2c1f4efe91d6760d914110c79786",
+      "request": {
+        "text": "Bài đầu tiên là",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "a1ea02a4dcb0df90eb9cae415778e8ac3acae5484b00002ba75e238e959b24c0",
+      "requestId": "SURgNpwPTAi5JeyjeOp7",
+      "createdAt": "2026-09-15T23:22:26.647Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\3ccdc46b35026115d7c948d68dd8653c16377cc9df60041b8069b1e2b611c317.tempo.mp3",
+      "signature": "3ccdc46b35026115d7c948d68dd8653c16377cc9df60041b8069b1e2b611c317",
+      "request": {
+        "text": "One to Ten.",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "5e553f17d414bb41e61d7650f7686daae3660dc84896eeec598d141aaa23c930",
+      "requestId": "AfQcIHGH5aZnq8D6gVvz",
+      "createdAt": "2026-09-15T23:23:13.968Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\MP3\\C35-L1-T02\\C35-L1-T02-B01_MICRO_OBJECTIVE.mp3",
+      "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\manifest.json",
+      "packAudioId": "C35-L1-T02-B01",
+      "sourceText": "Mình cùng học cách đếm số nhé.",
+      "modelId": "eleven_v3",
+      "profiles": {
+        "en": {
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75
+        },
+        "vi": {
+          "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+          "speed": 0.9
+        }
+      },
+      "speedMethod": "VI speech atempo 0.9 after synthesis, preserving pitch; sound effects retain original timing",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Mình cùng học cách đếm số nhé.",
+          "generation_key": "e05b48feaaf05191"
+        }
+      ],
+      "sourceSha256": null,
+      "durationSeconds": 2.139433,
+      "sha256": "254f98464ff14bdd1b5aace523ceef79100855b1e655fbe03c35a9f19d24dcba",
+      "bytes": 35152
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\MP3\\static\\DETAIL_TRANSITION.mp3",
+      "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\manifest.json",
+      "packAudioId": "DETAIL_TRANSITION",
+      "sourceText": "Bắt đầu nhé.",
+      "modelId": "eleven_v3",
+      "profiles": {
+        "en": {
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75
+        },
+        "vi": {
+          "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+          "speed": 0.9
+        }
+      },
+      "speedMethod": "FFmpeg atempo applied after synthesis to each segment according to declared AUDIO_PLAN language, preserving pitch",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bắt đầu nhé.",
+          "generation_key": "629f2982441b8193"
+        }
+      ],
+      "sourceSha256": null,
+      "durationSeconds": 1.675034,
+      "sha256": "30121c6cc8eba7c99921818e9c60c4ff325dadc48ca444aec211b767b3f3f246",
+      "bytes": 28047
+    }
+  ],
+  "id": "LESSON-EDEFD41B13F9A5ADD45E1EF3",
+  "text": "Bài đầu tiên là One to Ten. Mình cùng học cách đếm số nhé. Bắt đầu nhé.",
+  "asset": "assets/audio/CURRICULUM/edefd41b13f9a5add45e1ef3.vi.v1.mp3",
+  "sha256": "2c10d6a1683ef63763dd21f5f70e680f26350e750f945dd39bc142c522f1cb04",
+  "durationSeconds": 6.437528,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

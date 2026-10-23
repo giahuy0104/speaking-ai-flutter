@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T04-B02\\C810-L2-T04-B02-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T04-B02-Q03",
+  "sourceText": "Rẽ phải: Turn right hay Near the park?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Rẽ phải:",
+      "spoken_text": "Rẽ phải:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Turn right",
+      "spoken_text": "Turn right",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Near the park?",
+      "spoken_text": "Near the park?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-178D40C8FA9B50CB0EC4B13A",
+  "text": "Rẽ phải: Turn right hay Near the park?",
+  "asset": "assets/audio/CURRICULUM/178d40c8fa9b50cb0ec4b13a.vi.v1.mp3",
+  "sha256": "4e0b333c2874f74e43c76bf483194eaff6c84ad6ba4d2b101099616f2caed3bc",
+  "durationSeconds": 4.12381
+}

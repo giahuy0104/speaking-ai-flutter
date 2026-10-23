@@ -11,6 +11,11 @@ abstract interface class CodedConversationException {
   String? get errorCode;
 }
 
+abstract interface class ConversationFailureDiagnostics {
+  int? get statusCode;
+  String? get requestId;
+}
+
 /// An API failure for which retrying or using an on-device result is safe.
 abstract interface class RetryableConversationException {
   bool get isRetryable;
@@ -66,6 +71,10 @@ abstract interface class ConversationRepository {
   Future<void> dispose();
 }
 
+abstract interface class TranslationTargetRepository {
+  void setTranslationTarget(TranslationOutputLanguage language);
+}
+
 /// Optional capability for conversation paths that produce a transcript first
 /// and therefore cannot attach the original recording to `/api/conversation`.
 ///
@@ -76,6 +85,13 @@ abstract interface class UserAudioArchiveRepository {
     required ConversationResult result,
     required AudioCapture capture,
   });
+}
+
+/// Optional authenticated playback capability for a child's archived audio.
+/// Implementations return a short-lived URL rather than exposing storage
+/// identifiers in the history response.
+abstract interface class UserAudioHistoryPlaybackRepository {
+  Future<Uri> fetchUserAudioPlaybackUri(String conversationId);
 }
 
 abstract interface class BatchChunkUploadSession {

@@ -1,0 +1,20 @@
+{
+  "signature": "30befc81a0b4d4ce86a369bc462232ee27e7028ff39d6c22bb5e884a7ba70d32",
+  "request": {
+    "text": "Hôm nay trời thế nào?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+    "speed": 0.9
+  },
+  "sha256": "16627d23f4bf383eb4bd75a6943cdfd01b94295d5ae9c6d12c5de71f0c2f0302",
+  "requestId": "PrI1MaqZ1yBXgYsjmRql",
+  "createdAt": "2026-09-15T23:18:51.822Z"
+}

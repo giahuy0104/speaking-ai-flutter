@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T05-B02\\C1112-L2-T05-B02-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T05-B02-Q06",
+  "sourceText": "Bạn muốn nói 'Bạn nên uống nước.' Hoàn thành câu: You should... eat breakfast hay drink water?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói 'Bạn nên uống nước.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Bạn nên uống nước.' Hoàn thành câu:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "You should... eat breakfast",
+      "spoken_text": "You should... eat breakfast",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "drink water?",
+      "spoken_text": "drink water?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-CF79507FEBC3EAA48A88FA48",
+  "text": "Bạn muốn nói 'Bạn nên uống nước.' Hoàn thành câu: You should... eat breakfast hay drink water?",
+  "asset": "assets/audio/CURRICULUM/cf79507febc3eaa48a88fa48.vi.v1.mp3",
+  "sha256": "47abe3e0cb74a98fd09f84db17ed8355e7f1de6532c77d66e261057d9ae0437e",
+  "durationSeconds": 10.243923
+}

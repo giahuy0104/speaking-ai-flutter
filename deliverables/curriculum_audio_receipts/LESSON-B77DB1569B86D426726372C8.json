@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\MP3\\ROLEPLAY_01\\ROLEPLAY_01_TURN_02_HOMI_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "ROLEPLAY_01_TURN_02_VI",
+  "sourceText": "Được, vào đi.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75, VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Được, vào đi.",
+      "generation_key": "ab0bfd394a3d5d9e"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-B77DB1569B86D426726372C8",
+  "text": "Được, vào đi.",
+  "asset": "assets/audio/CURRICULUM/b77db1569b86d426726372c8.vi.v1.mp3",
+  "sha256": "dc0a78dc61f2fda406a2dc04369e231e0b920cf8d5e8b179829ffc6c4bbcc0cd",
+  "durationSeconds": 1.412063
+}

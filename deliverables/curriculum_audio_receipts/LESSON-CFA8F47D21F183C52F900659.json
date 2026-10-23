@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T05-B01\\C67-L2-T05-B01-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-T05-B01-Q06",
+  "sourceText": "Bạn muốn nói \"Túi đỏ\". Green pencil hay Red bag?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói \"Túi đỏ\".",
+      "spoken_text": "Bạn muốn nói \"Túi đỏ\".",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Green pencil",
+      "spoken_text": "Green pencil",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "Red bag?",
+      "spoken_text": "Red bag?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-CFA8F47D21F183C52F900659",
+  "text": "Bạn muốn nói \"Túi đỏ\". Green pencil hay Red bag?",
+  "asset": "assets/audio/CURRICULUM/cfa8f47d21f183c52f900659.vi.v1.mp3",
+  "sha256": "05570f5372dc7128afcfdf3281bf48cd7f2f3cf9a1d97259536f6514e44d19f5",
+  "durationSeconds": 5.878707
+}

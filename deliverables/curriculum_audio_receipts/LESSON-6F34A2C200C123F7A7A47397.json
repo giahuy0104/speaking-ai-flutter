@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T05-B01\\C1315-L2-T05-B01-T06_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T05-B01-T06_VI",
+  "sourceText": "Mình cần ngủ thêm.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình cần ngủ thêm.",
+      "generation_key": "64eb7c9464dbc77e"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-6F34A2C200C123F7A7A47397",
+  "text": "Mình cần ngủ thêm.",
+  "asset": "assets/audio/CURRICULUM/6f34a2c200c123f7a7a47397.vi.v1.mp3",
+  "sha256": "278bc107d8863b9b84cf8b889a796ebbba1e98a8d036473824ce4a9a79dc0bfa",
+  "durationSeconds": 1.499728
+}

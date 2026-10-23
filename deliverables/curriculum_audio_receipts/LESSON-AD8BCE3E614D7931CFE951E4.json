@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L1-T02-B02\\C1112-L1-T02-B02-T02_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L1-T02-B02-T02_EN",
+  "sourceText": "I make a study plan.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "I make a study plan.",
+      "generation_key": "afd5950f6b9790fa"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-AD8BCE3E614D7931CFE951E4",
+  "text": "I make a study plan.",
+  "asset": "assets/audio/CURRICULUM/ad8bce3e614d7931cfe951e4.en.v1.mp3",
+  "sha256": "0e7936a61d61ca493853b13b73d6a9c465c959349e367942766fe627db414877",
+  "durationSeconds": 3.0839
+}

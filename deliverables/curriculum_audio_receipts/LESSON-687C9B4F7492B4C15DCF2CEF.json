@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T05-B01\\C1315-L2-T05-B01-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T05-B01-Q08",
+  "sourceText": "Bạn muốn nói 'Mình không tập trung được.' Hoàn thành câu: I... need a break hay can't focus?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói 'Mình không tập trung được.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Mình không tập trung được.' Hoàn thành câu:",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "I... need a break",
+      "spoken_text": "I... need a break",
+      "input_index": 43
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "can't focus?",
+      "spoken_text": "can't focus?",
+      "input_index": 45
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-687C9B4F7492B4C15DCF2CEF",
+  "text": "Bạn muốn nói 'Mình không tập trung được.' Hoàn thành câu: I... need a break hay can't focus?",
+  "asset": "assets/audio/CURRICULUM/687c9b4f7492b4c15dcf2cef.vi.v1.mp3",
+  "sha256": "f263f94ec3dccdb29b8662022d0c7baa70c9185a80196bf8fabf2f4733390b6f",
+  "durationSeconds": 10.021315
+}

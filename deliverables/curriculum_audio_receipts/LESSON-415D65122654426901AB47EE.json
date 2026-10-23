@@ -1,0 +1,149 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\MP3\\dynamic\\TOPIC_INTRO\\TOPIC_INTRO_09.mp3",
+      "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\manifest.json",
+      "packAudioId": "TOPIC_INTRO__SELECTED_TOPIC_NO_09",
+      "sourceText": "Chủ đề 9.",
+      "modelId": "eleven_v3",
+      "profiles": {
+        "en": {
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75
+        },
+        "vi": {
+          "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+          "speed": 0.9
+        }
+      },
+      "speedMethod": "FFmpeg atempo applied after synthesis to each segment according to declared AUDIO_PLAN language, preserving pitch",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Chủ đề 9.",
+          "generation_key": "bbae0005742d9856"
+        }
+      ],
+      "sourceSha256": null,
+      "durationSeconds": 1.326735,
+      "sha256": "eff2c5f51de44a14597ebf64e16b8c0307e68499aeb91e000bc0d1db4d2cd303",
+      "bytes": 22195
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\428a19aff63c860bcb45c70f0accd12f5e5c2c1f4efe91d6760d914110c79786.tempo.mp3",
+      "signature": "428a19aff63c860bcb45c70f0accd12f5e5c2c1f4efe91d6760d914110c79786",
+      "request": {
+        "text": "Bài đầu tiên là",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "a1ea02a4dcb0df90eb9cae415778e8ac3acae5484b00002ba75e238e959b24c0",
+      "requestId": "SURgNpwPTAi5JeyjeOp7",
+      "createdAt": "2026-09-15T23:22:26.647Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\00a0c4f32f6e30c1e42d8a35bed9340fbec711d6e8579ecdb43fc53d133b3875.tempo.mp3",
+      "signature": "00a0c4f32f6e30c1e42d8a35bed9340fbec711d6e8579ecdb43fc53d133b3875",
+      "request": {
+        "text": "Yesterday Actions.",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "272b76b4a148e163c3bb6f20deeba35f08a54099f9d69b644a9aca6605984dbd",
+      "requestId": "fO4hGo5WT0hIxI0BeyQs",
+      "createdAt": "2026-09-15T23:27:17.029Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\MP3\\C810-L3-T09\\C810-L3-T09-B01_MICRO_OBJECTIVE.mp3",
+      "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\manifest.json",
+      "packAudioId": "C810-L3-T09-B01",
+      "sourceText": "Mình cùng luyện cách kể việc đã xảy ra nhé.",
+      "modelId": "eleven_v3",
+      "profiles": {
+        "en": {
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75
+        },
+        "vi": {
+          "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+          "speed": 0.9
+        }
+      },
+      "speedMethod": "VI speech atempo 0.9 after synthesis, preserving pitch; sound effects retain original timing",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Mình cùng luyện cách kể việc đã xảy ra nhé.",
+          "generation_key": "bc8abf4b0b0f9faf"
+        }
+      ],
+      "sourceSha256": null,
+      "durationSeconds": 2.921361,
+      "sha256": "36c13b9e4971a16d84dede1a3a4c54a68093db4539732d9e631006883b69189f",
+      "bytes": 47691
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\MP3\\static\\DETAIL_TRANSITION.mp3",
+      "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\01_A_CAU_HE_THONG_ELEVEN_V3_EN075_VI090\\manifest.json",
+      "packAudioId": "DETAIL_TRANSITION",
+      "sourceText": "Bắt đầu nhé.",
+      "modelId": "eleven_v3",
+      "profiles": {
+        "en": {
+          "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+          "speed": 0.75
+        },
+        "vi": {
+          "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+          "speed": 0.9
+        }
+      },
+      "speedMethod": "FFmpeg atempo applied after synthesis to each segment according to declared AUDIO_PLAN language, preserving pitch",
+      "segments": [
+        {
+          "language": "vi",
+          "text": "Bắt đầu nhé.",
+          "generation_key": "629f2982441b8193"
+        }
+      ],
+      "sourceSha256": null,
+      "durationSeconds": 1.675034,
+      "sha256": "30121c6cc8eba7c99921818e9c60c4ff325dadc48ca444aec211b767b3f3f246",
+      "bytes": 28047
+    }
+  ],
+  "id": "LESSON-415D65122654426901AB47EE",
+  "text": "Chủ đề 9. Bài đầu tiên là Yesterday Actions. Mình cùng luyện cách kể việc đã xảy ra nhé. Bắt đầu nhé.",
+  "asset": "assets/audio/CURRICULUM/415d65122654426901ab47ee.vi.v1.mp3",
+  "sha256": "d1ebf3f7a8f74c09236a0e879ebc0176ce76f1aea47ce932c72c4169bac6b7b4",
+  "durationSeconds": 9.400113,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

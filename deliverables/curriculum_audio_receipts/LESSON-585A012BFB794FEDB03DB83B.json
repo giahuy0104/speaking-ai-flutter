@@ -1,0 +1,63 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T07-B02\\C1112-L3-T07-B02-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T07-B02-Q06",
+  "sourceText": "HOMI nói: Are you free Saturday? Bạn muốn đổi ngày. How about Sunday? hay See you there?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "HOMI nói:",
+      "spoken_text": "HOMI nói:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Are you free Saturday?",
+      "spoken_text": "Are you free Saturday?",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "Bạn muốn đổi ngày.",
+      "spoken_text": "Bạn muốn đổi ngày.",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "How about Sunday?",
+      "spoken_text": "How about Sunday?",
+      "input_index": 33
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 34
+    },
+    {
+      "language": "en",
+      "text": "See you there?",
+      "spoken_text": "See you there?",
+      "input_index": 35
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-585A012BFB794FEDB03DB83B",
+  "text": "HOMI nói: Are you free Saturday? Bạn muốn đổi ngày. How about Sunday? hay See you there?",
+  "asset": "assets/audio/CURRICULUM/585a012bfb794fedb03db83b.vi.v1.mp3",
+  "sha256": "3990843e59e2bff51ec4e566342c4b432b7616f2d5d5883448c16264ef63a284",
+  "durationSeconds": 9.495896
+}

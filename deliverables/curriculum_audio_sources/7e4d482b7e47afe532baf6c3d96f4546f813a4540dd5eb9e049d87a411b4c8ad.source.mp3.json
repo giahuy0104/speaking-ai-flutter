@@ -1,0 +1,20 @@
+{
+  "signature": "7e4d482b7e47afe532baf6c3d96f4546f813a4540dd5eb9e049d87a411b4c8ad",
+  "request": {
+    "text": "Shapes Around Me.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "04f333c73e62c6c5a103078b7b772ef46973fd0c1df17442ccbcb6ce63e8a9a6",
+  "requestId": "eFI4Vw5QzmXJRwgxvKIg",
+  "createdAt": "2026-09-15T23:25:30.931Z"
+}

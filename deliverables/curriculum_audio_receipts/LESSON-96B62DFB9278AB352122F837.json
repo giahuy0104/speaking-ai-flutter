@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T04-B01\\C810-L2-T04-B01-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T04-B01-Q08",
+  "sourceText": "Bạn cần nói \"Thư viện\". Hospital hay Library?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn cần nói \"Thư viện\".",
+      "spoken_text": "Bạn cần nói \"Thư viện\".",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "Hospital",
+      "spoken_text": "Hospital",
+      "input_index": 43
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "Library?",
+      "spoken_text": "Library?",
+      "input_index": 45
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-96B62DFB9278AB352122F837",
+  "text": "Bạn cần nói \"Thư viện\". Hospital hay Library?",
+  "asset": "assets/audio/CURRICULUM/96b62dfb9278ab352122f837.vi.v1.mp3",
+  "sha256": "4e10fca1c30e426ab6ea301b87370baaaf9ab5e0f4662979f405d579622f91f3",
+  "durationSeconds": 5.567982
+}

@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\MP3\\C67-L3-T08\\C67-L3-T08-B02_MICRO_OBJECTIVE.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\03_C_HOOK_MICRO_OBJECTIVE_ELEVEN_V3_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T08-B02",
+  "sourceText": "Mình cùng học cách chơi và tương tác với bạn nhé.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "VI speech atempo 0.9 after synthesis, preserving pitch; sound effects retain original timing",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình cùng học cách chơi và tương tác với bạn nhé.",
+      "generation_key": "90fec76076a481e5"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-E6903731635F8FE959ED2E79",
+  "text": "Mình cùng học cách chơi và tương tác với bạn nhé.",
+  "asset": "assets/audio/CURRICULUM/e6903731635f8fe959ed2e79.vi.v1.mp3",
+  "sha256": "a8776f55a9057ad4e37980a29e8c4046f573980a9cdaf796b6ce6dd2719286e5",
+  "durationSeconds": 3.009025
+}

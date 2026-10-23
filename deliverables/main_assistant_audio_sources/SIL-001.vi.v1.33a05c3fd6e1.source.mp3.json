@@ -1,0 +1,20 @@
+{
+  "id": "SIL-001",
+  "signature": "33a05c3fd6e1ef524a8ea6b68d32f8af15ead3f8480f89d73549570ca1126a68",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn có thể chọn: dịch sang tiếng Anh, học theo chủ đề hoặc học bộ từ vựng.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:10:20.975Z",
+  "requestId": "o5xCOPgIT65hFybjt7Wd",
+  "characterCost": "41",
+  "sourceSha256": "2353ab6193ec238eebb905ca71e6452b3c476ce1bf006186413f8c53d9673577"
+}

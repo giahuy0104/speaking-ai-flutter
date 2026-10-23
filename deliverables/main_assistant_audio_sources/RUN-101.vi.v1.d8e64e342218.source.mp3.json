@@ -1,0 +1,20 @@
+{
+  "id": "RUN-101",
+  "signature": "d8e64e3422187bced2c4386c4537e247313a7e7e8a9fb0a950baf481f477f913",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Được. Nghe câu đúng nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:14:26.828Z",
+  "requestId": "u1YRKjId86jJcLqGKSiB",
+  "characterCost": "13",
+  "sourceSha256": "74a2a3a6ee49512a749bd4d295b8295ddc6119f35ccbcdd1728069ada71fda8a"
+}

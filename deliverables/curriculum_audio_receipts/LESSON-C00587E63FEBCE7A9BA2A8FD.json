@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T01\\C1315-L1-M02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-M02",
+  "sourceText": "Bạn muốn nói 'Mình thư giãn buổi tối.' Hoàn thành câu: I... relax in the evening hay read at night?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn muốn nói 'Mình thư giãn buổi tối.' Hoàn thành câu:",
+      "text": "Bạn muốn nói 'Mình thư giãn buổi tối.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Mình thư giãn buổi tối.' Hoàn thành câu:",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "source_text": "I... relax in the evening",
+      "text": "I... relax in the evening",
+      "spoken_text": "I... relax in the evening",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "source_text": "read at night?",
+      "text": "read at night?",
+      "spoken_text": "read at night?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": "7d8b09d001cd587182d8a62b5e8ae42c95cd7ae30f79dec380631439a86413e0",
+  "id": "LESSON-C00587E63FEBCE7A9BA2A8FD",
+  "text": "Bạn muốn nói 'Mình thư giãn buổi tối.' Hoàn thành câu: I... relax in the evening hay read at night?",
+  "asset": "assets/audio/CURRICULUM/c00587e63febce7a9ba2a8fd.vi.v1.mp3",
+  "sha256": "7d8b09d001cd587182d8a62b5e8ae42c95cd7ae30f79dec380631439a86413e0",
+  "durationSeconds": 10.467914
+}

@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "pack": "system-sfx",
+  "version": "v1",
+  "enabled": true,
+  "mediaType": "system",
+  "allowTtsFallback": false,
+  "prompts": [
+    {
+      "key": "system.h20.speaker_test",
+      "enabled": true,
+      "locale": "vi-VN",
+      "asset": "assets/audio/A-3-5/GUIDE_RECORD/A035_GUIDE_RECORD_01.mp3",
+      "durationSeconds": 1.952,
+      "sha256": "3e57ce17817527240dca14c1f5376ec50eaefc0f047fbe363fef3f94aa6cbed0",
+      "sizeBytes": 32181
+    },
+    {
+      "key": "system.reward.star_ting",
+      "enabled": true,
+      "locale": "und",
+      "asset": "assets/audio/MAIN/SFX_STAR_TING.mp3",
+      "durationSeconds": 1.09,
+      "sha256": "a2e36db69791f65868ff9b37ccc6de3befb47525bfb8d4747ca483b1f8b0887d",
+      "sizeBytes": 20954
+    }
+  ],
+  "minimumAppVersion": "1.0.8"
+}

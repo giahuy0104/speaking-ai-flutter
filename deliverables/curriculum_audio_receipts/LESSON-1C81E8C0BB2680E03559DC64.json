@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T02-B02\\C67-L1-T02-B02-T09_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T02-B02-T09_VI",
+  "sourceText": "Mười chín.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mười chín.",
+      "generation_key": "f39e48cd82435a0e"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-1C81E8C0BB2680E03559DC64",
+  "text": "Mười chín.",
+  "asset": "assets/audio/CURRICULUM/1c81e8c0bb2680e03559dc64.vi.v1.mp3",
+  "sha256": "14a2cfe5701992a946507a26718264559fb795de65a39dfaea746686cb8b2f4f",
+  "durationSeconds": 1.063764
+}

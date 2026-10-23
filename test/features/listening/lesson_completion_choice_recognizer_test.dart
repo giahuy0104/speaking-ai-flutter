@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:ai_speaking_flutter_app/config/app_config.dart';
@@ -44,9 +45,48 @@ void main() {
     expect(resolver.resolve('Con chưa biết'), isNull);
   });
 
+  test('prefers original Vietnamese over a legacy translated choice', () async {
+    final directory = await Directory.systemTemp.createTemp('homi-choice-');
+    final audio = File('${directory.path}${Platform.pathSeparator}choice.wav');
+    await audio.writeAsBytes(<int>[1, 2, 3, 4]);
+    addTearDown(() async {
+      await audio.delete();
+      await directory.delete();
+    });
+    final recognizer = BackendLessonCompletionChoiceRecognizer(
+      config: AppConfig(
+        backendBaseUri: Uri.parse('https://example.test'),
+        useDemoBackend: false,
+        childAge: 6,
+      ),
+      client: MockClient(
+        (request) async => request.url.path.endsWith('recognize-choice')
+            ? http.Response('Not found', 404)
+            : http.Response(
+                jsonEncode(<String, String>{
+                  'sourceText': 'Con muốn học lại Bài 1',
+                  'englishText': 'I want to learn again',
+                }),
+                200,
+                headers: const {'content-type': 'application/json'},
+              ),
+      ),
+    );
+    addTearDown(recognizer.dispose);
+    expect(
+      await recognizer.transcribe(
+        LessonRecording(
+          filePath: audio.path,
+          duration: const Duration(seconds: 1),
+        ),
+      ),
+      'Con muốn học lại Bài 1',
+    );
+  });
+
   test('falls back to the legacy audio API when the route is missing', () async {
     final audio = File(
-      '${Directory.systemTemp.path}${Platform.pathSeparator}lesson-choice-fallback-test.m4a',
+      '${Directory.systemTemp.path}${Platform.pathSeparator}lesson-choice-fallback-test.wav',
     );
     await audio.writeAsBytes(<int>[1, 2, 3, 4]);
     addTearDown(() async {
@@ -63,6 +103,10 @@ void main() {
       ),
       client: MockClient((request) async {
         requestedPaths.add(request.url.path);
+        expect(
+          latin1.decode(request.bodyBytes),
+          contains('filename="lesson-choice.wav"'),
+        );
         if (request.url.path == '/api/listening/recognize-choice') {
           return http.Response('<html>Not found</html>', 404);
         }
@@ -127,7 +171,7 @@ void main() {
         isA<LessonCompletionRecognitionException>().having(
           (error) => error.toString(),
           'message',
-          'Chưa nhận ra lựa chọn của con.',
+          'Chưa nhận ra lựa chọn của bạn.',
         ),
       ),
     );

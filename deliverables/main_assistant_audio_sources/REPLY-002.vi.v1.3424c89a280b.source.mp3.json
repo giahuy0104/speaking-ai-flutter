@@ -1,0 +1,20 @@
+{
+  "id": "REPLY-002",
+  "signature": "3424c89a280bf406455061bc9c7a73fd6767603505c7eed5e281319b7ca5fbbb",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Các nút câu trước, câu sau và nghe lại chỉ dùng trong phần luyện câu.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:18:02.290Z",
+  "requestId": "LU0hqHH0WyTij8v5JJoR",
+  "characterCost": "38",
+  "sourceSha256": "f53bb3fc8db0a6f51953d3a137966cb995d9492081f122f16cecf70230800dee"
+}

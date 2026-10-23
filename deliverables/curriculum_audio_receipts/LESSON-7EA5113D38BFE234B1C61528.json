@@ -1,0 +1,83 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\780c79fa7d134cddd60c6b33d43816640b61c0f58c0a517327c14a923f2a8296.tempo.mp3",
+      "signature": "780c79fa7d134cddd60c6b33d43816640b61c0f58c0a517327c14a923f2a8296",
+      "request": {
+        "text": "Mình học tiếp bài",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "9b2c46c9688d32e84a5e8ecac31cc57558533040684155ec5d982e7d74ae20c8",
+      "requestId": "n139BUZ8jDXSls7lra7j",
+      "createdAt": "2026-09-15T23:22:30.166Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\d2ffbf00f386f0b2f71273093de68810a1e8778dc1b399deffb0875b1fb33b81.tempo.mp3",
+      "signature": "d2ffbf00f386f0b2f71273093de68810a1e8778dc1b399deffb0875b1fb33b81",
+      "request": {
+        "text": "Best Way",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "cdd4e5829778538d68483430f5d972854c6c8e1c2cec1c94ef348548a6c7e7b5",
+      "requestId": "HrpY0kzDdRV4Inxs5hCT",
+      "createdAt": "2026-09-15T23:28:15.375Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\f72caefaa52b9ec3d291f160d78b360185e13807d2eedb801f47a382b8e85780.tempo.mp3",
+      "signature": "f72caefaa52b9ec3d291f160d78b360185e13807d2eedb801f47a382b8e85780",
+      "request": {
+        "text": "nhé.",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "f8a90b46149d734b590160ab12314af597dc9eb203f9f411637ff57d12e7a8d6",
+      "requestId": "1gbfQaGo6f7yeN8SvxDC",
+      "createdAt": "2026-09-15T23:22:32.853Z"
+    }
+  ],
+  "id": "LESSON-7EA5113D38BFE234B1C61528",
+  "text": "Mình học tiếp bài Best Way nhé.",
+  "asset": "assets/audio/CURRICULUM/7ea5113d38bfe234b1c61528.vi.v1.mp3",
+  "sha256": "81a1f5a3cbd0d92ae6518d44d037c9cb9c847d0e0aaaf452d51b6c015324e666",
+  "durationSeconds": 3.388639,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}
