@@ -88,6 +88,13 @@ class Aiv0BleControlBridge(
     private var lastPacketAt = 0L
 
     private var permissionResult: MethodChannel.Result? = null
+    private var scanAttemptId: String? = null
+    private var connectionAttemptId: String? = null
+    private var bondAttemptId: String? = null
+    // Capture origin per GATT, including callbacks arriving after cancel/retry.
+    private val gattAttemptIds = java.util.Collections.synchronizedMap(
+        java.util.WeakHashMap<BluetoothGatt, String?>(),
+    )
     private var scanResult: MethodChannel.Result? = null
     private var connectResult: MethodChannel.Result? = null
     private var bondResult: MethodChannel.Result? = null
@@ -440,7 +447,7 @@ class Aiv0BleControlBridge(
     }
 
     private fun scan(call: MethodCall, result: MethodChannel.Result) {
-        BleDiagnostics.event(appContext, "scan.request", mapOf("timeoutMs" to call.argument<Number>("timeoutMs"), "foreground" to (call.argument<Boolean>("foreground") == true), "permissions" to hasPermissions(), "adapter" to bluetoothAdapterState()))
+        BleDiagnostics.event(appContext, "scan.request", mapOf("attemptId" to call.argument<String>("attemptId"), "timeoutMs" to call.argument<Number>("timeoutMs"), "foreground" to (call.argument<Boolean>("foreground") == true), "permissions" to hasPermissions(), "adapter" to bluetoothAdapterState()))
         if (!ensureBluetoothReady(result)) return
         if (scanResult != null) {
             result.error("SCAN_IN_PROGRESS", "Đang quét thiết bị Bluetooth.", null)
@@ -448,6 +455,7 @@ class Aiv0BleControlBridge(
         }
         stopScan(complete = true)
         scanDevices.clear()
+        scanAttemptId = call.argument<String>("attemptId")
         val callback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, scanResult: ScanResult) {
                 if (scanCallback !== this) return
@@ -463,7 +471,7 @@ class Aiv0BleControlBridge(
                 if (scanCallback !== this) return
                 scanTimeout?.let(mainHandler::removeCallbacks)
                 scanTimeout = null
-                BleDiagnostics.event(appContext, "scan.failed", mapOf("code" to errorCode))
+                BleDiagnostics.event(appContext, "scan.failed", mapOf("attemptId" to scanAttemptId, "code" to errorCode))
                 val pending = this@Aiv0BleControlBridge.scanResult
                 this@Aiv0BleControlBridge.scanResult = null
                 scanCallback = null
@@ -523,7 +531,7 @@ class Aiv0BleControlBridge(
         val previous = scanDevices[id]
         if (previous == null || (name.isNotEmpty() && previous.name != name) ||
             (advertisesControlService && !previous.advertisesControlService)) {
-            BleDiagnostics.event(appContext, "scan.device", mapOf("id" to id, "name" to name, "advertisedName" to advertisedName, "rssi" to result.rssi, "uuids" to result.scanRecord?.serviceUuids?.map { it.toString() }, "connectable" to if (Build.VERSION.SDK_INT >= 26) result.isConnectable else null, "likely" to likely, "controlService" to advertisesControlService))
+            BleDiagnostics.event(appContext, "scan.device", mapOf("attemptId" to scanAttemptId, "id" to id, "name" to name, "advertisedName" to advertisedName, "rssi" to result.rssi, "uuids" to result.scanRecord?.serviceUuids?.map { it.toString() }, "connectable" to if (Build.VERSION.SDK_INT >= 26) result.isConnectable else null, "likely" to likely, "controlService" to advertisesControlService))
         }
         // Name/service can arrive in a weaker scan-response packet. Retain
         // identity metadata across packets independently of the best RSSI.
@@ -546,7 +554,7 @@ class Aiv0BleControlBridge(
         val pending = scanResult
         scanResult = null
         if (complete && pending != null) {
-            BleDiagnostics.event(appContext, "scan.complete", mapOf("count" to scanDevices.size, "devices" to scanDevices.values.map { it.toMap() }))
+            BleDiagnostics.event(appContext, "scan.complete", mapOf("attemptId" to scanAttemptId, "count" to scanDevices.size, "devices" to scanDevices.values.map { it.toMap() }))
             val devices = scanDevices.values.sortedWith(
                 compareByDescending<ScannedDevice> { it.likely }
                     .thenByDescending { it.rssi },
@@ -578,6 +586,7 @@ class Aiv0BleControlBridge(
             result.error("DEVICE_NOT_FOUND", "Không tìm thấy thiết bị $requestedId.", null)
             return
         }
+        connectionAttemptId = call.argument<String>("attemptId")
         deviceId = requestedId
         runtimePreferences.edit().putBoolean(MANUAL_DISCONNECT, false).apply()
         deviceName = runCatching { device.name }.getOrNull()?.trim()?.takeIf { it.isNotEmpty() }
@@ -606,16 +615,17 @@ class Aiv0BleControlBridge(
             result.error("DEVICE_NOT_FOUND", "Không tìm thấy thiết bị H20 để ghép đôi.", null)
             return
         }
+        bondAttemptId = call.argument<String>("attemptId")
         val initialState = runCatching { device.bondState }.getOrNull()
-        BleDiagnostics.event(appContext, "bond.request", mapOf("id" to id, "type" to device.type, "state" to initialState))
+        BleDiagnostics.event(appContext, "bond.request", mapOf("attemptId" to bondAttemptId, "id" to id, "type" to device.type, "state" to initialState))
         if (initialState == BluetoothDevice.BOND_BONDED) {
-            BleDiagnostics.event(appContext, "bond.complete", mapOf("id" to id, "bonded" to true, "alreadyPaired" to true))
+            BleDiagnostics.event(appContext, "bond.complete", mapOf("attemptId" to bondAttemptId, "id" to id, "bonded" to true, "alreadyPaired" to true))
             result.success(true)
             return
         }
         val started = initialState == BluetoothDevice.BOND_BONDING ||
             runCatching { device.createBond() }.getOrDefault(false)
-        BleDiagnostics.event(appContext, "bond.started", mapOf("id" to id, "started" to started))
+        BleDiagnostics.event(appContext, "bond.started", mapOf("attemptId" to bondAttemptId, "id" to id, "started" to started))
         if (!started) {
             result.success(false)
             return
@@ -648,12 +658,12 @@ class Aiv0BleControlBridge(
         bondPoll = null
         val pending = bondResult
         bondResult = null
-        if (pending != null) BleDiagnostics.event(appContext, "bond.complete", mapOf("bonded" to bonded))
+        if (pending != null) BleDiagnostics.event(appContext, "bond.complete", mapOf("attemptId" to bondAttemptId, "bonded" to bonded))
         pending?.success(bonded)
     }
 
     private fun openGatt(device: BluetoothDevice) {
-        BleDiagnostics.event(appContext, "gatt.open", mapOf("id" to device.address, "name" to device.name))
+        BleDiagnostics.event(appContext, "gatt.open", mapOf("attemptId" to connectionAttemptId, "id" to device.address, "name" to device.name))
         cancelPendingReconnect()
         mainHandler.removeCallbacks(connectionTimeout)
         val opened = runCatching {
@@ -666,13 +676,14 @@ class Aiv0BleControlBridge(
             failConnection("Không thể mở GATT HM-D001: ${error.message}")
             return
         }
+        gattAttemptIds[opened] = connectionAttemptId
         bluetoothGatt = opened
         mainHandler.postDelayed(connectionTimeout, 15_000L)
     }
 
     private val gattCallback = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
-            BleDiagnostics.event(appContext, "gatt.state", mapOf("id" to gatt.device.address, "status" to status, "state" to newState))
+            BleDiagnostics.event(appContext, "gatt.state", mapOf("attemptId" to gattAttemptIds[gatt], "currentGatt" to (gatt === bluetoothGatt), "id" to gatt.device.address, "status" to status, "state" to newState))
             mainHandler.post {
                 if (gatt !== bluetoothGatt) {
                     // A cancelled session can deliver its disconnect after a new
@@ -703,7 +714,7 @@ class Aiv0BleControlBridge(
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
-            BleDiagnostics.event(appContext, "gatt.services", mapOf("status" to status, "services" to gatt.services.map { service -> mapOf("uuid" to service.uuid.toString(), "characteristics" to service.characteristics.map { mapOf("uuid" to it.uuid.toString(), "properties" to it.properties) }) }))
+            BleDiagnostics.event(appContext, "gatt.services", mapOf("attemptId" to gattAttemptIds[gatt], "currentGatt" to (gatt === bluetoothGatt), "status" to status, "services" to gatt.services.map { service -> mapOf("uuid" to service.uuid.toString(), "characteristics" to service.characteristics.map { mapOf("uuid" to it.uuid.toString(), "properties" to it.properties) }) }))
             mainHandler.post {
                 if (gatt !== bluetoothGatt) return@post
                 if (status != BluetoothGatt.GATT_SUCCESS) {
@@ -776,6 +787,13 @@ class Aiv0BleControlBridge(
             descriptor: BluetoothGattDescriptor,
             status: Int,
         ) {
+            BleDiagnostics.event(appContext, "gatt.cccd.result", mapOf(
+                "attemptId" to gattAttemptIds[gatt],
+                "currentGatt" to (gatt === bluetoothGatt),
+                "descriptor" to descriptor.uuid.toString(),
+                "characteristic" to descriptor.characteristic?.uuid?.toString(),
+                "status" to status,
+            ))
             mainHandler.post {
                 if (gatt !== bluetoothGatt) return@post
                 if (descriptor.uuid != Aiv0BleProtocol.clientCharacteristicConfigUuid) return@post
@@ -795,6 +813,10 @@ class Aiv0BleControlBridge(
                 } else {
                     "Đã kết nối BLE Control AIV0."
                 }
+                BleDiagnostics.event(appContext, "main.ready", mapOf(
+                    "attemptId" to gattAttemptIds[gatt], "id" to deviceId,
+                    "cccdConfirmed" to true, "writeMode" to writeMode,
+                ))
                 connectResult?.success(snapshot())
                 connectResult = null
                 emitStatus()

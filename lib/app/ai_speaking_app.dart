@@ -8,6 +8,8 @@ import '../domain/device/device_connection.dart';
 import '../presentation/device/bloc/device_bloc.dart';
 import '../presentation/device/device_microphone_sheet.dart';
 import 'di/device_dependencies.dart';
+import 'di/app_dependencies.dart';
+import '../presentation/app/bloc/app_bloc.dart';
 import 'device/legacy_device_connection_port.dart';
 
 import '../config/app_config.dart';
@@ -90,11 +92,15 @@ class AiSpeakingApp extends StatefulWidget {
   const AiSpeakingApp({
     super.key,
     this.deviceConnectionNow,
+    this.appDependenciesFactory,
     this.useDeviceConnectionService = const bool.fromEnvironment(
       'DEVICE_CONNECTION_SERVICE_ONBOARDING',
       defaultValue: true,
     ),
   });
+
+  /// The app owns and closes the dependency scope returned by this factory.
+  final AppDependenciesFactory? appDependenciesFactory;
 
   /// Pilot/rollback switch. Legacy setup remains intact for comparison.
   final bool useDeviceConnectionService;
@@ -172,15 +178,17 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   bool _backgroundWorkStarted = false;
   bool _retryParentH20SetupOnResume = false;
   bool _parentH20ResumeRetryInProgress = false;
-  bool _startupProfileLoading = true;
+  late final AppDependencies _appDependencies;
+  AppBloc get _appBloc => _appDependencies.bloc;
+  bool get _startupProfileLoading => _appBloc.state.isLoading;
   bool _startupPermissionRequestInProgress = false;
   int _startupPermissionGeneration = 0;
   bool _microphonePermissionGranted = false;
   bool _bluetoothPermissionGranted = false;
   bool _startupHomiAudioPaired = false;
-  bool _privacyConsentGranted = false;
-  bool _limitedModeSelected = false;
-  bool _parentSetupCompleted = false;
+  bool get _privacyConsentGranted => _appBloc.state.privacyConsentGranted;
+  bool get _limitedModeSelected => _appBloc.state.isLimited;
+  bool get _parentSetupCompleted => _appBloc.state.isReady;
   int? _childAge;
   int? _pendingStartupAge;
   String? _startupPermissionError;
@@ -447,11 +455,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         (_config.enableAiv0BleControl || _config.enableHfpAudio);
   }
 
-  bool get _startupReady =>
-      !_startupProfileLoading &&
-      _parentSetupCompleted &&
-      _childAge != null &&
-      (_privacyConsentGranted || _limitedModeSelected);
+  bool get _startupReady => _appBloc.state.isReady;
 
   bool get _voiceAccessEnabled =>
       _privacyConsentGranted && _microphonePermissionGranted;
@@ -477,6 +481,17 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       },
     );
     _config = AppConfig.fromEnvironment();
+    _appDependencies =
+        widget.appDependenciesFactory?.call(
+          initialize: _loadStartupProfile,
+          onResumed: _handleAppResumed,
+        ) ??
+        AppDependencies(
+          initialize: _loadStartupProfile,
+          onResumed: _handleAppResumed,
+          onFailure: (error, stack) =>
+              debugPrint('App lifecycle failed: $error'),
+        );
     _bluetoothPower = BluetoothPowerController(
       readState: () async =>
           await _aiv0BleControl?.readBluetoothAdapterState() ??
@@ -543,6 +558,11 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       _hideIosBleReconnectNotice();
       return;
     }
+    unawaited(_appBloc.dispatch(AppResumed()));
+  }
+
+  void _handleAppResumed() {
+    if (!mounted) return;
     final bleStatus = _aiv0BleControl?.status;
     if (bleStatus != null) _updateIosBleReconnectNotice(bleStatus);
     if (_bluetoothPower.hasChecked) unawaited(_bluetoothPower.refresh());
@@ -666,9 +686,15 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     unawaited(_warmTopicImagesWhenIdle());
   }
 
-  Future<void> _initializeStartupSetup() async {
+  Future<AppStartupSnapshot> _loadStartupProfile() async {
+    const empty = AppStartupSnapshot(
+      privacyConsentGranted: false,
+      limitedModeSelected: false,
+      setupCompleted: false,
+      hasValidProfile: false,
+    );
     await _controller?.initializeDeviceConnectionPreferences();
-    if (!mounted) return;
+    if (!mounted) return empty;
     int? storedAge;
     var storedConsent = false;
     var storedLimitedMode = false;
@@ -696,25 +722,27 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     } catch (error) {
       debugPrint('Could not load startup privacy/profile state: $error');
     }
-    if (!mounted) {
-      return;
-    }
-    if (storedAge != null) {
-      _propagateChildAge(storedAge);
-    }
+    if (!mounted) return empty;
+    if (storedAge != null) _propagateChildAge(storedAge);
     setState(() {
       _childAge = storedAge;
       _pendingStartupAge = storedAge;
-      _privacyConsentGranted =
-          storedConsent && _config.privacyReleaseConfigurationComplete;
-      _limitedModeSelected = storedLimitedMode && !_privacyConsentGranted;
-      _parentSetupCompleted =
-          storedParentSetupComplete &&
-          storedAge != null &&
-          (_privacyConsentGranted || _limitedModeSelected);
       _offlineSpeechModelConsent = storedOfflineSpeechModelConsent;
-      _startupProfileLoading = false;
     });
+    return AppStartupSnapshot(
+      privacyConsentGranted:
+          storedConsent && _config.privacyReleaseConfigurationComplete,
+      limitedModeSelected: storedLimitedMode,
+      setupCompleted: storedParentSetupComplete,
+      hasValidProfile: storedAge != null,
+    );
+  }
+
+  Future<void> _initializeStartupSetup() async {
+    await _appBloc.initialize();
+    if (!mounted || _appBloc.state.status == AppStatus.initializationFailed) {
+      return;
+    }
     if (_privacyConsentGranted && _parentSetupCompleted) {
       _startBackgroundWork();
       _syncAndroidHfpAutoSelectionRetry();
@@ -725,7 +753,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       // both the virtual MAIN entry point and the physical MAIN action.
       unawaited(_requestStartupPermissions());
     }
-    if (storedOfflineSpeechModelConsent ==
+    if (_offlineSpeechModelConsent ==
         AndroidOfflineSpeechModelConsent.allowed) {
       unawaited(_prepareOfflineLanguageModels());
     }
@@ -787,7 +815,10 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (!mounted) {
       return;
     }
-    setState(() => _parentSetupCompleted = true);
+    await _appBloc.dispatch(
+      AppOnboardingCompleted(hasValidProfile: _childAge != null),
+    );
+    if (!mounted) return;
     if (_privacyConsentGranted) {
       _startBackgroundWork();
       _syncIosUnifiedConnectionRetry();
@@ -815,11 +846,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (!mounted) {
       return;
     }
-    setState(() {
-      _privacyConsentGranted = true;
-      _limitedModeSelected = false;
-      _startupPermissionError = null;
-    });
+    setState(() => _startupPermissionError = null);
+    await _appBloc.dispatch(AppConsentGranted());
   }
 
   Future<void> _continueWithoutVoice() async {
@@ -831,12 +859,11 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       return;
     }
     setState(() {
-      _limitedModeSelected = true;
-      _privacyConsentGranted = false;
       _microphonePermissionGranted = false;
       _bluetoothPermissionGranted = false;
       _startupPermissionError = null;
     });
+    await _appBloc.dispatch(AppLimitedModeSelected());
   }
 
   Future<void> _checkStartupPermissions() async {
@@ -1009,10 +1036,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       _parentSetupProgressStore.clear(),
     ]);
     if (mounted) {
-      setState(() {
-        _limitedModeSelected = false;
-        _parentSetupCompleted = false;
-      });
+      await _appBloc.dispatch(AppOnboardingReopened());
     }
   }
 
@@ -1038,15 +1062,14 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       return;
     }
     setState(() {
-      _privacyConsentGranted = false;
-      _limitedModeSelected = false;
-      _parentSetupCompleted = false;
       _microphonePermissionGranted = false;
       _bluetoothPermissionGranted = false;
       _childAge = null;
       _pendingStartupAge = null;
       _startupPermissionError = null;
     });
+    await _appBloc.dispatch(AppConsentRevoked());
+    if (!mounted) return;
     _syncAndroidHfpAutoSelectionRetry();
     _syncIosUnifiedConnectionRetry();
   }
@@ -1282,8 +1305,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         '尚未连接 MAIN。请开启 HOMI，靠近手机后重试。',
       ),
       DeviceIssue.audioBlocksMain => language.choose(
-        'Âm thanh HOMI đang bật nên chưa kết nối được nút MAIN. Tạm tắt âm thanh HOMI, kết nối MAIN rồi bật lại âm thanh.',
-        'HOMI 音频已开启，暂时无法连接 MAIN 按钮。请先暂时关闭 HOMI 音频，连接 MAIN 后再重新开启音频。',
+        'Âm thanh HOMI đã kết nối, nhưng chưa tìm thấy nút MAIN. Bạn có thể thử tạm tắt âm thanh HOMI, kết nối MAIN rồi bật lại.',
+        'HOMI 音频已连接，但尚未找到 MAIN 按钮。可以尝试暂时关闭 HOMI 音频，连接 MAIN 后再开启。',
       ),
       DeviceIssue.audioUnavailable => language.choose(
         'MAIN đã kết nối nhưng micro HOMI chưa sẵn sàng. Hãy kiểm tra kết nối âm thanh rồi thử lại.',
@@ -3829,6 +3852,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
 
   @override
   void dispose() {
+    unawaited(_appDependencies.dispose());
     unawaited(_onboardingDevice?.dispose());
     _deviceAttemptGeneration += 1;
     _deviceAttemptCancelled.complete();
@@ -3869,7 +3893,14 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   late final _appRouter = createAppRouter();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => BlocProvider<AppBloc>.value(
+    value: _appBloc,
+    child: BlocBuilder<AppBloc, AppState>(
+      builder: (context, state) => _buildApp(context),
+    ),
+  );
+
+  Widget _buildApp(BuildContext context) {
     final controller = _controller!;
 
     return MaterialApp(
@@ -3938,7 +3969,36 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
           ),
         );
       },
-      home: _startupReady
+      home: _appBloc.state.status == AppStatus.initializationFailed
+          ? Scaffold(
+              body: SafeArea(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          controller.displayLanguage.choose(
+                            'Chưa thể khởi động HOMI. Vui lòng thử lại.',
+                            '暂时无法启动 HOMI，请重试。',
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        FilledButton(
+                          key: const Key('app-startup-retry'),
+                          onPressed: _initializeStartupSetup,
+                          child: Text(
+                            controller.displayLanguage.choose('Thử lại', '重试'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            )
+          : _startupReady
           ? AndroidUpdateGate(
               config: _config,
               child: PwaInstallGate(
@@ -4067,7 +4127,10 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
                             previous.attempt != next.attempt),
                     listener: (context, state) =>
                         unawaited(_showOnboardingMicrophoneSelection(state)),
-                    builder: (context, state) => buildSetup(state),
+                    builder: (context, state) {
+                      device.service.diagnostics.state('ui', state);
+                      return buildSetup(state);
+                    },
                   ),
                 );
               },

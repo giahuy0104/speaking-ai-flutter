@@ -1,6 +1,6 @@
 # DeviceConnectionService / DeviceBloc — onboarding pilot
 
-Ngày: 22/10/2026. Phạm vi: onboarding Android/iOS. Home, Settings, MAIN dispatcher, audio playback và native BLE/HFP vẫn dùng triển khai cũ. Đây là chuyển phần điều phối có kiểm thử, không phải xác nhận đã sửa lỗi quảng bá BLE trên mẫu HM-D001 thực tế.
+Ngày tạo: 22/10/2026. Đồng bộ source: 23/10/2026. Phạm vi: onboarding Android/iOS. Home, Settings, MAIN dispatcher, audio playback và native BLE/HFP vẫn dùng triển khai cũ. Đây là chuyển phần điều phối có kiểm thử, không phải xác nhận đã sửa lỗi quảng bá BLE trên mẫu HM-D001 thực tế.
 
 ## Tài liệu đối chiếu
 
@@ -33,8 +33,8 @@ Quyền/microphone/Bluetooth enable và hướng dẫn hệ điều hành vẫn 
 
 1. Kiểm consent, quyền micro/Bluetooth và radio. Không có quyền/radio thì không quét.
 2. Thao tác chủ động khôi phục chính sách auto-connect như cũ.
-3. Xác minh MAIN: tái sử dụng BLE saved identity/scan. Lần đầu Android có thể fallback Classic → system bond → cập nhật bond/xác minh HFP thực có giới hạn → BLE rescan → đọc lại HFP trước chọn candidate, tuyệt đối không lấy Classic MAC làm MAIN chưa xác minh.
-4. Đọc riêng trạng thái audio đã pair. Nếu MAIN chưa có: partial, không mở picker/không chọn micro.
+3. Xác minh MAIN trước audio: đọc inventory HFP để hỗ trợ nhận diện, rồi tái sử dụng BLE saved identity/scan. `LegacyDeviceConnectionPort.connectMain` không truyền `requestBond` hoặc `verifyPairing`; không fallback Classic → bond trước MAIN và không mở GATT mù trên Classic MAC. Native chỉ xác nhận MAIN khi GATT/service hợp lệ và CCCD Indicate thành công.
+4. Đọc riêng audioPaired và audioConnected. Nếu MAIN chưa có: partial, không mở picker/không chọn micro. Nếu đồng thời có audio connected, giữ enum `audioBlocksMain` vì tương thích nhưng chỉ coi là quan sát, chưa chứng minh HFP/A2DP gây lỗi BLE. UI gợi ý thử tạm ngắt âm thanh trong Cài đặt; không tự bật/tắt radio.
 5. MAIN có rồi: ghép đôi bổ sung khi cần, tìm HFP đã khả dụng và liên kết đúng thiết bị. Giữ các nhịp dò HFP hiện tại: Android 0/350/650/900/1200/1600ms; iOS 0/600/600ms.
 6. Nếu cần người dùng chọn/xác nhận association: phát `choosingMicrophone`, Bloc/UI trả lựa chọn kèm attempt token. Không nhận lựa chọn từ lượt cũ hoặc sau MAIN mất/đổi thiết bị.
 7. Nếu chọn HFP làm MAIN rớt, thử khôi phục qua adapter hiện có. Chỉ trả ready khi cả MAIN và audio đã xác minh; SCO chỉ mở khi phiên audio cần.
@@ -57,7 +57,9 @@ Trong test có thể truyền `AiSpeakingApp(useDeviceConnectionService: false)`
 Các test mới kiểm tra first install, pair-only, MAIN trước mic, mất MAIN khi picker mở, xác nhận association, double tap, cancel rồi retry, callback muộn, timeout và Bloc Cancel khi Connect đang chờ. App tests chạy cả Android/iOS và cả pilot/legacy cho kết nối thành công. Bộ regression giữ kiểm tra Settings/Home, quyền, layout, persistence và transport. Kết quả cuối được lưu trong verification.json ở evidence và SESSION.md; test giả lập không thay thế xác minh radio/mic/loa thật.
 
 
-## Xác minh trạng thái sau pair — đang áp dụng (22/10/2026)
+## Xác minh trạng thái sau pair — lịch sử, không còn trong connectMain (22/10/2026)
+
+**Cập nhật 23/10:** phần bên dưới mô tả nhánh cũ. `connectMain` hiện không truyền hook này; helper vẫn còn để xác minh nhánh pair bổ sung sau khi đã có MAIN. Không khôi phục pair-first theo tài liệu lịch sử.
 
 Chỉ adapter pilot onboarding Android truyền `verifyPairing` vào auto-connect. Transport giữ mặc định không có hook cho Home/Settings/legacy; iOS không chạy bước này. Hook cũng áp dụng khi pairing trên BLE candidate/địa chỉ MAIN đã lưu, và khi pair bổ sung cho MAIN đang kết nối.
 
@@ -92,7 +94,9 @@ Nhánh bổ sung chỉ được bật bởi adapter của onboarding qua `recove
 Kiểm chứng bổ sung: 207 test Dart, 26 test native đều qua; analyzer sạch. APK debug đã cài giữ dữ liệu. Vivo thực chạy preparation→filtered scan→GATT verified thành công sau tạm ngắt riêng MAIN; cuối MAIN/audio/paired đều true, không cycle radio hoặc xóa pair. Chưa tái hiện từ trạng thái chưa từng pair trên phần cứng trong lượt này. Evidence: `../docs/session-artifacts/2026-10-22-postpair-recovery/`.
 
 
-## Ghép đôi trong Cài đặt hệ thống — đang áp dụng (22/10/2026)
+## Ghép đôi trong Cài đặt hệ thống — lịch sử UI pair-first (22/10/2026)
+
+**Cập nhật 23/10:** luồng hiện tại là MAIN-first ở phần trên. UI chỉ mở hướng dẫn audio theo trạng thái partial hoặc MAIN có nhưng audio chưa có. Hướng dẫn pair từ Settings trước MAIN bên dưới đã được thay. Pair từ Settings cũng có lượt thất bại trong log14:48; không coi đây là cách sửa chắc chắn.
 
 Onboarding Android không còn tự `createBond()`/Classic discovery. Bằng chứng thật: sau bond trong app, MAIN BLE không xuất hiện kể cả khi HFP/A2DP đã kết nối hoặc tắt/bật nguồn HOMI; chỉ tắt/bật Bluetooth điện thoại làm MAIN hiện. Nhánh tự mở HFP/A2DP qua API ẩn đã thử và gỡ bỏ vì không giải quyết.
 
@@ -100,3 +104,10 @@ Onboarding Android không còn tự `createBond()`/Classic discovery. Bằng ch�
 - "Mở Cài đặt Bluetooth" (Android `ACTION_BLUETOOTH_SETTINGS`; iOS chỉ mở được trang Cài đặt của app, guide nhắc quay về trang chính → Bluetooth). Màn setup tự kết nối lại khi app resumed, không cần bấm thêm. "Tôi đã ghép đôi, kết nối ngay" kết nối trực tiếp.
 - `LegacyDeviceConnectionPort.connectMain` bỏ `requestBond`/`verifyPairing`; quét BLE với HFP đang connected như trước. `pairConnectedMain` (MAIN có, audio chưa pair) và Settings sheet ngoài onboarding giữ nguyên.
 - Chưa kiểm chứng trên vivo: pair lần đầu trong Cài đặt rồi mở app có lên MAIN hay không.
+
+
+## Timeline chẩn đoán local — 23/10/2026
+
+Debug onboarding tự bật `DeviceConnectionDiagnostics` qua DI. Mỗi lượt có ID riêng đi theo Zone qua await, MethodChannel, GATT, service, Bloc và UI; hủy giữ ID gốc cho trạng thái cancelled, callback muộn không được gắn ID của lượt mới. Không đổi timer/retry/readiness. Android ghi CCCD result riêng trước MAIN ready; HFP inventory và HFP/A2DP/SCO broadcasts được phân biệt rõ.
+
+Chi tiết trường log, giới hạn, lệnh test và bằng chứng gửi ODM: [device-connection-local-diagnostics.md](device-connection-local-diagnostics.md). Việc giả lập local bảo vệ logic app, không xác nhận firmware/Android stack đã sửa. User tự test trên phần cứng.

@@ -19,8 +19,8 @@ enum DeviceIssue {
   unsupported,
   mainUnavailable,
 
-  /// HOMI audio (HFP/A2DP) connected before MAIN. HM-D001 stops advertising
-  /// BLE MAIN while Classic audio is up, so audio must be paused first.
+  /// Observed HOMI audio connected while MAIN is unavailable. The legacy name
+  /// is retained; this state alone does not prove HFP/A2DP caused BLE failure.
   audioBlocksMain,
   audioUnavailable,
   selectionRequired,

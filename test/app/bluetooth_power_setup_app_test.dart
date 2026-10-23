@@ -1,5 +1,8 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:ai_speaking_flutter_app/app/di/app_dependencies.dart';
+import 'package:ai_speaking_flutter_app/presentation/app/bloc/app_bloc.dart';
+import 'package:ai_speaking_flutter_app/features/home/presentation/home_learning_shell.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ai_speaking_flutter_app/presentation/device/bloc/device_bloc.dart';
 import 'package:ai_speaking_flutter_app/domain/device/device_connection.dart';
@@ -20,6 +23,155 @@ import '../support/onboarding_actions.dart';
 
 void main() {
   final android = TargetPlatformVariant({TargetPlatform.android});
+
+  testWidgets(
+    'AppBloc limited setup enters Home and reopening consent returns to onboarding',
+    (tester) async {
+      final app = await _pumpApp(
+        tester,
+        setupCompleted: false,
+        surfaceSize: const Size(460, 900),
+        preferenceOverrides: {'homi.parental-privacy-consent.version': 0},
+      );
+      var screen = tester.widget<StartupSetupScreen>(
+        find.byType(StartupSetupScreen),
+      );
+      final bloc = BlocProvider.of<AppBloc>(
+        tester.element(find.byType(StartupSetupScreen)),
+      );
+      expect(bloc.state.status, AppStatus.onboardingRequired);
+      await screen.onContinueWithoutVoice();
+      await tester.pumpAndSettle();
+      screen = tester.widget<StartupSetupScreen>(
+        find.byType(StartupSetupScreen),
+      );
+      expect(bloc.state.isLimited, isTrue);
+      expect(bloc.state.isReady, isFalse);
+      await screen.onCompleteSetup();
+      await tester.pumpAndSettle();
+      expect(find.byType(HomeLearningShell), findsOneWidget);
+      expect(bloc.state.isReady, isTrue);
+      expect(bloc.state.privacyConsentGranted, isFalse);
+      expect(app.count('connect'), 0);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getInt('homi.parent-setup.version'), 1);
+      tester
+          .widget<HomeLearningShell>(find.byType(HomeLearningShell))
+          .onManagePrivacyConsent!();
+      await tester.pumpAndSettle();
+      expect(find.byType(StartupSetupScreen), findsOneWidget);
+      expect(bloc.state.isReady, isFalse);
+      expect(bloc.state.isLimited, isFalse);
+      expect(prefs.getInt('homi.parent-setup.version'), isNull);
+      expect(tester.takeException(), isNull);
+    },
+    variant: android,
+  );
+
+  testWidgets(
+    'AppBloc restored Home stays ready without HOMI and on resume',
+    (tester) async {
+      final app = await _pumpApp(
+        tester,
+        surfaceSize: const Size(460, 900),
+        preferenceOverrides: {
+          'homi.parental-privacy-consent.version': 0,
+          'homi.parental-privacy-consent.limited-mode': true,
+        },
+      );
+      final bloc = BlocProvider.of<AppBloc>(
+        tester.element(find.byType(HomeLearningShell)),
+      );
+      expect(bloc.state.isReady, isTrue);
+      expect(app.bleConnected, isFalse);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+      expect(bloc.state.isReady, isTrue);
+      expect(bloc.state.isLimited, isTrue);
+      expect(find.byType(HomeLearningShell), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+    variant: android,
+  );
+
+  testWidgets(
+    'AppBloc startup failure displays retry and injected loader can recover',
+    (tester) async {
+      var loads = 0;
+      await _pumpApp(
+        tester,
+        setupCompleted: false,
+        appDependenciesFactory: ({required initialize, required onResumed}) {
+          return AppDependencies(
+            initialize: () async {
+              if (++loads == 1) {
+                throw StateError('local startup fixture failure');
+              }
+              return initialize();
+            },
+            onResumed: onResumed,
+          );
+        },
+      );
+      expect(find.byKey(const Key('app-startup-retry')), findsOneWidget);
+      expect(find.byType(StartupSetupScreen), findsNothing);
+      await tester.tap(find.byKey(const Key('app-startup-retry')));
+      await tester.pumpAndSettle();
+      expect(loads, 2);
+      expect(find.byKey(const Key('app-startup-retry')), findsNothing);
+      expect(find.byType(StartupSetupScreen), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+    variant: android,
+  );
+
+  testWidgets(
+    'AppBloc full onboarding retains the existing HOMI completion gate',
+    (tester) async {
+      await _pumpApp(tester, setupCompleted: false);
+      final screen = tester.widget<StartupSetupScreen>(
+        find.byType(StartupSetupScreen),
+      );
+      final bloc = BlocProvider.of<AppBloc>(
+        tester.element(find.byType(StartupSetupScreen)),
+      );
+      expect(bloc.state.privacyConsentGranted, isTrue);
+      expect(screen.h20BleConnected, isFalse);
+      await screen.onCompleteSetup();
+      await tester.pumpAndSettle();
+      expect(bloc.state.status, AppStatus.onboardingRequired);
+      expect(find.byType(HomeLearningShell), findsNothing);
+      expect(
+        (await SharedPreferences.getInstance()).getInt(
+          'homi.parent-setup.version',
+        ),
+        isNull,
+      );
+    },
+    variant: android,
+  );
+
+  for (final invalidProfile in [true, false]) {
+    testWidgets(
+      'AppBloc rejects persisted setup with ${invalidProfile ? 'invalid age' : 'outdated consent'}',
+      (tester) async {
+        await _pumpApp(
+          tester,
+          preferenceOverrides: invalidProfile
+              ? {'innotrik.child-age.v1': 99}
+              : {'homi.parental-privacy-consent.version': 0},
+        );
+        final bloc = BlocProvider.of<AppBloc>(
+          tester.element(find.byType(StartupSetupScreen)),
+        );
+        expect(bloc.state.status, AppStatus.onboardingRequired);
+        expect(find.byType(HomeLearningShell), findsNothing);
+        expect(tester.takeException(), isNull);
+      },
+      variant: android,
+    );
+  }
 
   for (final useService in [true, false]) {
     testWidgets(
@@ -57,6 +209,13 @@ void main() {
         expect(await result, isTrue);
         final screen = tester.widget<StartupSetupScreen>(
           find.byType(StartupSetupScreen),
+        );
+        expect(
+          BlocProvider.of<AppBloc>(
+            tester.element(find.byType(StartupSetupScreen)),
+          ).state.status,
+          AppStatus.onboardingRequired,
+          reason: 'Device ready does not complete parental onboarding',
         );
         expect(screen.h20BleConnected, isTrue);
         expect(screen.h20HfpConfigured, isTrue);
@@ -560,7 +719,8 @@ void main() {
     'first setup connects MAIN before HOMI audio and guides each settings step',
     (tester) async {
       final app = await _pumpApp(tester, setupCompleted: false);
-      // HOMI audio is already connected, which hides its BLE MAIN advert.
+      // Simulate the reported observation: audio connected, no MAIN advert.
+      // This fixture does not establish why the real radio failed.
       app.hfpDevices = [
         {'id': _NativeApp.deviceId, 'name': 'HM-D001', 'isConnected': true},
       ];
@@ -576,6 +736,13 @@ void main() {
       expect(app.count('scan'), greaterThan(0));
       expect(app.count('connect'), 0);
       expect(find.byKey(const Key('homi-guide-pause-audio')), findsOneWidget);
+      expect(
+        find.textContaining(
+          'Âm thanh HOMI đã kết nối, nhưng chưa tìm thấy nút MAIN.',
+        ),
+        findsWidgets,
+      );
+      expect(find.textContaining('MAIN chỉ kết nối được'), findsNothing);
       final openSettings = find.byKey(const Key('homi-guide-open-settings'));
       await tester.ensureVisible(openSettings);
       await tester.tap(openSettings);
@@ -705,8 +872,11 @@ Future<_NativeApp> _pumpApp(
   bool bleConnected = false,
   bool setupCompleted = true,
   bool useService = true,
+  Size surfaceSize = const Size(390, 844),
+  Map<String, Object> preferenceOverrides = const {},
+  AppDependenciesFactory? appDependenciesFactory,
 }) async {
-  tester.view.physicalSize = const Size(390, 844);
+  tester.view.physicalSize = surfaceSize;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
@@ -715,6 +885,7 @@ Future<_NativeApp> _pumpApp(
     if (setupCompleted) 'homi.parent-setup.version': 1,
     'innotrik.user-onboarding.version': 1,
     'homi.parental-privacy-consent.version': 3,
+    ...preferenceOverrides,
   });
   final app = _NativeApp(
     tester,
@@ -724,7 +895,10 @@ Future<_NativeApp> _pumpApp(
   app.installChannels();
   addTearDown(app.close);
   await tester.pumpWidget(
-    AiSpeakingApp(useDeviceConnectionService: useService),
+    AiSpeakingApp(
+      useDeviceConnectionService: useService,
+      appDependenciesFactory: appDependenciesFactory,
+    ),
   );
   await tester.pumpAndSettle();
   await tester.pump(const Duration(seconds: 15));

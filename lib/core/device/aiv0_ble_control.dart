@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'device_connection_diagnostics.dart';
+
 const aiv0ControlServiceUuid = '9E3B0001-4A7C-4D6F-8B21-5C17A2D94010';
 const aiv0ButtonEventUuid = '9E3B0002-4A7C-4D6F-8B21-5C17A2D94010';
 const aiv0AppStateUuid = '9E3B0003-4A7C-4D6F-8B21-5C17A2D94010';
@@ -737,7 +739,10 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
           generation,
           () => _methodChannel.invokeMethod<bool>(
             'requestDualModeBond',
-            <String, Object?>{'deviceId': deviceId},
+            <String, Object?>{
+              'deviceId': deviceId,
+              ...DeviceConnectionDiagnostics.channelFields,
+            },
           ),
         ) ==
         true;
@@ -833,6 +838,7 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
       generation,
       () => _methodChannel.invokeListMethod<Object?>('scan', <String, Object?>{
         'timeoutMs': timeout.inMilliseconds,
+        ...DeviceConnectionDiagnostics.channelFields,
         if (foreground) 'foreground': true,
       }),
     );
@@ -865,7 +871,10 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
       generation,
       () => _methodChannel.invokeMapMethod<Object?, Object?>(
         'connect',
-        <String, Object?>{'deviceId': deviceId},
+        <String, Object?>{
+          'deviceId': deviceId,
+          ...DeviceConnectionDiagnostics.channelFields,
+        },
       ),
     );
     // Android returns the verified GATT/MAIN Notify snapshot with the connect
@@ -1119,11 +1128,13 @@ class MethodChannelAiv0BleControl implements Aiv0BleControl {
       }
     }
     final targetId = candidate?.id;
-    if (const bool.fromEnvironment('HOMI_BLE_DIAGNOSTICS') &&
+    if ((const bool.fromEnvironment('HOMI_BLE_DIAGNOSTICS') ||
+            DeviceConnectionDiagnostics.channelFields.isNotEmpty) &&
         !kIsWeb &&
         defaultTargetPlatform == TargetPlatform.android) {
       try {
         await _methodChannel.invokeMethod<void>('bleDiagnostic', {
+          ...DeviceConnectionDiagnostics.channelFields,
           'savedId': savedDeviceId,
           'savedName': savedDeviceName,
           'connectedHfpIds': connectedHfpDeviceIds,
