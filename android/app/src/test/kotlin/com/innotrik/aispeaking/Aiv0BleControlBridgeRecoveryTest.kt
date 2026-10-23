@@ -58,8 +58,8 @@ class Aiv0BleControlBridgeRecoveryTest {
         shadowOf(adapter()).setEnabled(true)
         context.getSharedPreferences("homi_android_runtime", Context.MODE_PRIVATE)
             .edit()
-            .putString("h20_ble_device_id", address)
-            .putString("h20_ble_device_name", "HM-D001")
+            .putString("homi_ble_device_id", address)
+            .putString("homi_ble_device_name", "HM-D001")
             .commit()
         bridge = Aiv0BleControlBridge(HomiAndroidHost(context), NoopMessenger)
         bridge.onListen(
@@ -89,6 +89,24 @@ class Aiv0BleControlBridgeRecoveryTest {
         assertEquals(null, lastMessage())
         idleFor(Duration.ofSeconds(2))
         assertEquals(0, gatts().size)
+    }
+
+    @Test
+    fun existingHmD001ConnectionAndManualDisconnectSurvivePreferenceRename() {
+        bridge.dispose()
+        val preferences = context.getSharedPreferences("homi_android_runtime", Context.MODE_PRIVATE)
+        preferences.edit().clear()
+            .putString("h20_ble_device_id", address)
+            .putString("h20_ble_device_name", "HM-D001")
+            .putBoolean("h20_ble_manual_disconnect", true)
+            .commit()
+
+        bridge = Aiv0BleControlBridge(HomiAndroidHost(context), NoopMessenger)
+
+        assertEquals(address, preferences.getString("homi_ble_device_id", null))
+        assertEquals("HM-D001", preferences.getString("homi_ble_device_name", null))
+        assertEquals(true, preferences.getBoolean("homi_ble_manual_disconnect", false))
+        assertEquals(false, preferences.contains("h20_ble_device_id"))
     }
 
     @Test

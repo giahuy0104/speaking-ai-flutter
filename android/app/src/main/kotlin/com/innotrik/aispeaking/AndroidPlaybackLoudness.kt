@@ -23,7 +23,7 @@ import kotlin.math.min
 object AndroidPlaybackLoudness {
     const val TARGET_RMS_DBFS = -21.0
     const val SAMPLE_PEAK_CEILING_DBFS = -1.0
-    // H20 SCO captures can be substantially quieter than authored audio. The
+    // HM-D001 SCO captures can be substantially quieter than authored audio. The
     // LoudnessEnhancer supplies limiting, while the meter still attenuates loud
     // sources and respects sample headroom when choosing the actual gain.
     const val MAX_GAIN_DB = 28.0
@@ -298,7 +298,7 @@ class PcmPlaybackLevelMeter(private val sampleRate: Int, private val channelCoun
         // Absolute -50 dBFS gate, plus -30 dB relative to the strongest window.
         // This excludes pauses and very quiet noise from the level estimate.
         // A clip that is below the absolute gate end to end is treated as noise
-        // and left alone: an H20 capture sits at most ~28 dB under the target,
+        // and left alone: an HM-D001 capture sits at most ~28 dB under the target,
         // i.e. near -49 dBFS, so anything quieter is not a quiet child but an
         // empty room, and boosting it 28 dB would put hiss in the child's ear.
         val gate = max(

@@ -259,12 +259,12 @@ void main() {
         );
         await emit({
           'type': 'button',
-          'bytes': [1, 1, 7, 1, 255, 255, 100, 0, 16, 0, 0, 0],
+          'bytes': [1, 1, 1, 0, 7, 0, 100, 0, 16, 0, 0, 0],
         });
         expect(received, hasLength(2));
         expect(received.last.button, Aiv0Button.main);
         expect(received.last.gesture, Aiv0ButtonGesture.shortPress);
-        expect(received.last.isObservedH20Packet, isTrue);
+        expect(received.last.isObservedHmD001Packet, isTrue);
         expect(received.last.isActionable, isTrue);
         await subscription.cancel();
         await control.dispose();

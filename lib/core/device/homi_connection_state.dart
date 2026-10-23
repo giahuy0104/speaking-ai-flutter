@@ -1,18 +1,18 @@
 import '../audio/audio_input.dart';
 import 'aiv0_ble_control.dart';
 
-enum H20ConnectionPhase {
+enum HomiConnectionPhase {
   disconnected,
   hfpReady,
   bleReady,
-  h20Ready,
+  homiReady,
   mainTurnActive,
 }
 
-/// One app-level view of H20 readiness across its independent HFP and BLE
-/// transports. Neither link alone is reported as a fully ready H20.
-class H20ConnectionState {
-  const H20ConnectionState({
+/// One app-level view of HM-D001 readiness across its independent HFP and BLE
+/// transports. Neither link alone is reported as a fully ready HM-D001.
+class HomiConnectionState {
+  const HomiConnectionState({
     required this.phase,
     required this.hfpSelected,
     required this.hfpReady,
@@ -21,7 +21,7 @@ class H20ConnectionState {
     this.hfpMatchesHomi = false,
   });
 
-  factory H20ConnectionState.from({
+  factory HomiConnectionState.from({
     required BluetoothAudioStatus hfpStatus,
     required Aiv0BleStatus bleStatus,
     bool hfpInputSelected = true,
@@ -29,7 +29,7 @@ class H20ConnectionState {
     bool? hfpMatchesHomi,
   }) {
     final hfpSelected = hfpInputSelected && hfpStatus.deviceId != null;
-    // A connected, selected HFP profile is ready for an idle H20. SCO is
+    // A connected, selected HFP profile is ready for an idle HM-D001. SCO is
     // intentionally opened only while HOMI speaks or listens; requiring an
     // always-active route here made a healthy idle headset look disconnected.
     final hfpReady = hfpSelected && hfpStatus.isConnected;
@@ -39,15 +39,15 @@ class H20ConnectionState {
         hfpMatchesHomi ??
         sameConnectionDeviceId(hfpStatus.deviceId, bleStatus.deviceId);
     final phase = mainTurnActive && routeActive
-        ? H20ConnectionPhase.mainTurnActive
+        ? HomiConnectionPhase.mainTurnActive
         : hfpReady && bleReady && matchesHomi
-        ? H20ConnectionPhase.h20Ready
+        ? HomiConnectionPhase.homiReady
         : hfpReady
-        ? H20ConnectionPhase.hfpReady
+        ? HomiConnectionPhase.hfpReady
         : bleReady
-        ? H20ConnectionPhase.bleReady
-        : H20ConnectionPhase.disconnected;
-    return H20ConnectionState(
+        ? HomiConnectionPhase.bleReady
+        : HomiConnectionPhase.disconnected;
+    return HomiConnectionState(
       phase: phase,
       hfpSelected: hfpSelected,
       hfpReady: hfpReady,
@@ -57,7 +57,7 @@ class H20ConnectionState {
     );
   }
 
-  final H20ConnectionPhase phase;
+  final HomiConnectionPhase phase;
   final bool hfpSelected;
   final bool hfpReady;
   final bool routeActive;
@@ -72,14 +72,14 @@ class H20ConnectionState {
   /// still requires the selected HFP profile to be connected right now.
   bool get isHomiAudioReady => hfpReady && hfpMatchesHomi;
 
-  bool get isH20Ready => isHomiAudioReady && bleReady;
+  bool get isHomiReady => isHomiAudioReady && bleReady;
 
-  /// Whether a physical H20 MAIN press may start the strict HFP turn.
+  /// Whether a physical HM-D001 MAIN press may start the strict HFP turn.
   ///
   /// The MAIN turn may start only after both independent transports have been
   /// confirmed. The turn then opens and authoritatively verifies SCO/HFP; a
   /// route failure must not fall back to the phone microphone.
-  bool get canStartStrictHfpTurn => isH20Ready;
+  bool get canStartStrictHfpTurn => isHomiReady;
 }
 
 bool sameConnectionDeviceId(String? first, String? second) {

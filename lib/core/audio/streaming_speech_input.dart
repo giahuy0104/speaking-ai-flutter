@@ -198,7 +198,7 @@ abstract interface class LessonEnglishSpeechInput {
 
 /// Lets the caller pin the next native recognition turn to a verified input.
 ///
-/// This is intentionally one-shot: a physical H20 MAIN press can force the
+/// This is intentionally one-shot: a physical HM-D001 MAIN press can force the
 /// iPhone microphone without permanently overriding a later, explicitly
 /// selected HFP route.
 abstract interface class NativeSpeechAudioSourceControl {
@@ -876,7 +876,7 @@ class AndroidStreamingSpeechInput
       );
     } finally {
       // A stable partial may beat the final result. Explicitly drain that
-      // recognizer before its owner releases H20 / starts the next turn.
+      // recognizer before its owner releases HM-D001 / starts the next turn.
       if (turn == _recognitionTurn &&
           identical(_resultCompleter, completer) &&
           !completer.isCompleted) {
@@ -1087,7 +1087,7 @@ class AndroidStreamingSpeechInput
       if (_platformName == 'iOS') {
         // IOSSpeechRecognizerBridge already reports conventional dBFS
         // (-60...0). Applying Android's positive RMS conversion flattened
-        // almost every iOS sample to -60 and hid real H20 microphone activity.
+        // almost every iOS sample to -60 and hid real HM-D001 microphone activity.
         _amplitudeController.add(rmsDb.clamp(-60.0, 0.0));
       } else {
         final level = ((rmsDb + 2) / 12).clamp(0.0, 1.0);
@@ -1345,7 +1345,7 @@ class IOSStreamingSpeechInput extends AndroidStreamingSpeechInput
          // Route confirmation may legitimately take about two seconds after
          // iOS changes from HFP to the built-in microphone. Do not let Dart
          // cancel the native start while AVAudioSession is still settling:
-         // on H20 the native route polls, one engine retry and the first
+         // on HM-D001 the native route polls, one engine retry and the first
          // buffer wait can add up to about 7.8 s.
          readyTimeout: const Duration(seconds: 9),
        );
@@ -1425,7 +1425,7 @@ class IOSStreamingSpeechInput extends AndroidStreamingSpeechInput
   Future<void> startCommandRecognition() =>
       _startWithAudioRoute(commandMode: true);
 
-  /// Reuses the verified iOS/H20 native pipeline for an English lesson turn.
+  /// Reuses the verified iOS/HM-D001 native pipeline for an English lesson turn.
   @override
   Future<void> startLessonEnglishRecognition() =>
       _startWithAudioRoute(commandMode: false, localeIdentifier: 'en-US');
@@ -1465,7 +1465,7 @@ class IOSStreamingSpeechInput extends AndroidStreamingSpeechInput
           (routeControl.status.deviceId != null ||
               routeControl.status.isConnected)) {
         if (!isContinuousHfpSessionActive) {
-          // Selecting H20 in Settings only remembers the preferred input. The
+          // Selecting HM-D001 in Settings only remembers the preferred input. The
           // HFP route must be activated immediately before AVAudioEngine opens
           // its input node or Apple Speech can remain on an inactive route.
           routeGeneration = ++_audioRouteGeneration;
@@ -1485,7 +1485,7 @@ class IOSStreamingSpeechInput extends AndroidStreamingSpeechInput
         } else if (!routeControl.status.routeActive ||
             routeControl.status.phase !=
                 BluetoothAudioConnectionPhase.recording) {
-          // After a short H20 route blip native reports the route as "ready"
+          // After a short HM-D001 route blip native reports the route as "ready"
           // again, never "recording". The session still owns the route, so
           // re-confirm it instead of failing every later turn.
           await routeControl.startAudioRoute();
@@ -1529,7 +1529,7 @@ class IOSStreamingSpeechInput extends AndroidStreamingSpeechInput
     try {
       return await super.stop();
     } finally {
-      // Apple Speech has finished consuming the H20 microphone. Keeping SCO
+      // Apple Speech has finished consuming the HM-D001 microphone. Keeping SCO
       // alive after this boundary prevents the independent BLE control link
       // from reconnecting, so a later physical MAIN press never reaches Dart.
       if (routeGeneration != null) {

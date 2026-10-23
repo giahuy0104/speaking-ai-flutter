@@ -184,7 +184,7 @@ void main() {
     },
   );
 
-  for (final savedName in <String?>[null, 'HM-D001', 'H20']) {
+  for (final savedName in <String?>[null, 'HM-D001', 'HM-D001']) {
     test('radio turns off during auto-connect with saved=$savedName', () async {
       if (savedName != null) {
         SharedPreferences.setMockInitialValues(<String, Object>{

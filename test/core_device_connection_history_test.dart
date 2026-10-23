@@ -130,7 +130,7 @@ void main() {
   test('history encodes UTC timestamps and retains legacy BLE keys', () async {
     SharedPreferences.setMockInitialValues(<String, Object>{
       'aiv0_ble_last_device_id': 'legacy-ble',
-      'aiv0_ble_last_device_name': 'H20',
+      'aiv0_ble_last_device_name': 'HM-D001',
     });
     final timestamp = DateTime.parse('2026-10-19T15:30:00+07:00');
     final saved = record(
@@ -145,6 +145,6 @@ void main() {
     expect(restored?.connectedAt, DateTime.utc(2026, 10, 19, 8, 30));
     final preferences = await SharedPreferences.getInstance();
     expect(preferences.getString('aiv0_ble_last_device_id'), 'legacy-ble');
-    expect(preferences.getString('aiv0_ble_last_device_name'), 'H20');
+    expect(preferences.getString('aiv0_ble_last_device_name'), 'HM-D001');
   });
 }

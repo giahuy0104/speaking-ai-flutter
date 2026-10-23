@@ -22,7 +22,7 @@ void main() {
       final hfp = _FakeHfpAudioControl(
         pendingDiscovery: discovery,
         devices: const [
-          HfpAudioDevice(id: 'h20', name: 'H20', isConnected: true),
+          HfpAudioDevice(id: 'hm-d001', name: 'HM-D001', isConnected: true),
         ],
       );
       final controller = ConversationController(
@@ -32,13 +32,13 @@ void main() {
         repository: _NoNetworkRepository(),
         childAge: 6,
       );
-      final attempt = controller.autoConnectH20Hfp();
+      final attempt = controller.autoConnectHomiHfp();
       controller.cancelAutomaticHfpSelection();
       discovery.complete(hfp.devices);
       expect(await attempt, isFalse);
       expect(hfp.connectedDevice, isNull);
       expect(controller.usesHfpInput, isFalse);
-      expect(await controller.autoConnectH20Hfp(), isTrue);
+      expect(await controller.autoConnectHomiHfp(), isTrue);
       expect(controller.usesHfpInput, isTrue);
       controller.dispose();
     },
@@ -51,7 +51,7 @@ void main() {
       final hfp = _FakeHfpAudioControl(
         pendingConnection: connection,
         devices: const [
-          HfpAudioDevice(id: 'h20', name: 'H20', isConnected: true),
+          HfpAudioDevice(id: 'hm-d001', name: 'HM-D001', isConnected: true),
         ],
       );
       final controller = ConversationController(
@@ -61,7 +61,7 @@ void main() {
         repository: _NoNetworkRepository(),
         childAge: 6,
       );
-      final attempt = controller.autoConnectH20Hfp();
+      final attempt = controller.autoConnectHomiHfp();
       await _flushAsyncEvents();
       controller.cancelAutomaticHfpSelection();
       connection.complete();
@@ -72,7 +72,7 @@ void main() {
   );
 
   test(
-    'H20 loopback records and plays locally without repository calls',
+    'HM-D001 loopback records and plays locally without repository calls',
     () async {
       final input = _FakeAudioInput();
       final hfp = _FakeHfpAudioControl();
@@ -86,32 +86,32 @@ void main() {
         childAge: 6,
       );
 
-      await controller.setH20HardwareTestMode(true);
-      await controller.startH20OfflineRecording();
+      await controller.setHomiHardwareTestMode(true);
+      await controller.startHomiOfflineRecording();
 
-      expect(controller.h20HardwareTestPhase, H20HardwareTestPhase.recording);
+      expect(controller.homiHardwareTestPhase, HomiHardwareTestPhase.recording);
       expect(input.startCount, 1);
       expect(hfp.startRouteCount, 1);
       expect(playback.communicationRouteActive, isTrue);
 
-      await controller.stopAndReplayH20OfflineRecording();
+      await controller.stopAndReplayHomiOfflineRecording();
 
       expect(input.stopCount, 1);
       expect(playback.playedUris.single.scheme, 'file');
       expect(hfp.stopRouteCount, 1);
       expect(repository.networkCallCount, 0);
-      expect(controller.h20HardwareTestPhase, H20HardwareTestPhase.completed);
-      expect(controller.h20HardwareTestResult?.inputRouteVerified, isTrue);
-      expect(controller.h20HardwareTestResult?.outputRouteVerified, isTrue);
+      expect(controller.homiHardwareTestPhase, HomiHardwareTestPhase.completed);
+      expect(controller.homiHardwareTestResult?.inputRouteVerified, isTrue);
+      expect(controller.homiHardwareTestResult?.outputRouteVerified, isTrue);
       expect(
-        controller.h20HardwareTestResult?.inputDeviceName,
-        'H20 Microphone',
+        controller.homiHardwareTestResult?.inputDeviceName,
+        'HM-D001 Microphone',
       );
-      expect(controller.h20HardwareTestResult?.outputDeviceName, 'H20 Speaker');
+      expect(controller.homiHardwareTestResult?.outputDeviceName, 'HM-D001 Speaker');
       expect(playback.communicationRouteActive, isFalse);
 
-      controller.confirmH20PlaybackAudible(true);
-      expect(controller.h20HardwareTestResult?.playbackAudible, isTrue);
+      controller.confirmHomiPlaybackAudible(true);
+      expect(controller.homiHardwareTestResult?.playbackAudible, isTrue);
       controller.dispose();
     },
   );
@@ -128,21 +128,21 @@ void main() {
       childAge: 6,
     );
 
-    await controller.setH20HardwareTestMode(true);
-    await controller.playH20BundledSpeakerTest();
+    await controller.setHomiHardwareTestMode(true);
+    await controller.playHomiBundledSpeakerTest();
 
     expect(playback.playedUris.single.scheme, 'asset');
     expect(
       playback.playedUris.single.path,
       'assets/audio/A-3-5/GUIDE_RECORD/A035_GUIDE_RECORD_01.mp3',
     );
-    expect(controller.h20HardwareTestResult?.outputRouteVerified, isTrue);
+    expect(controller.homiHardwareTestResult?.outputRouteVerified, isTrue);
     expect(repository.networkCallCount, 0);
     controller.dispose();
   });
 
   test(
-    'offline recording refuses to claim H20 when SCO route is not active',
+    'offline recording refuses to claim HM-D001 when SCO route is not active',
     () async {
       final controller = ConversationController(
         audioInput: _FakeAudioInput(),
@@ -152,14 +152,14 @@ void main() {
         childAge: 6,
       );
 
-      await controller.setH20HardwareTestMode(true);
+      await controller.setHomiHardwareTestMode(true);
 
       await expectLater(
-        controller.startH20OfflineRecording(),
+        controller.startHomiOfflineRecording(),
         throwsA(isA<StateError>()),
       );
-      expect(controller.h20HardwareTestPhase, H20HardwareTestPhase.error);
-      expect(controller.h20HardwareTestResult, isNull);
+      expect(controller.homiHardwareTestPhase, HomiHardwareTestPhase.error);
+      expect(controller.homiHardwareTestResult, isNull);
       controller.dispose();
     },
   );
@@ -178,20 +178,20 @@ void main() {
         repository: _NoNetworkRepository(),
         childAge: 6,
       );
-      await controller.setH20HardwareTestMode(true);
+      await controller.setHomiHardwareTestMode(true);
 
       aiv0.emitMain(sequence: 1);
       await _flushAsyncEvents();
-      expect(controller.h20HardwareTestPhase, H20HardwareTestPhase.recording);
+      expect(controller.homiHardwareTestPhase, HomiHardwareTestPhase.recording);
 
       aiv0.emitMain(sequence: 1, duplicate: true);
       await _flushAsyncEvents();
-      expect(controller.h20HardwareTestPhase, H20HardwareTestPhase.recording);
+      expect(controller.homiHardwareTestPhase, HomiHardwareTestPhase.recording);
       expect(input.stopCount, 0);
 
       aiv0.emitMain(sequence: 2);
       await _flushAsyncEvents();
-      expect(controller.h20HardwareTestPhase, H20HardwareTestPhase.completed);
+      expect(controller.homiHardwareTestPhase, HomiHardwareTestPhase.completed);
       expect(input.stopCount, 1);
       expect(playback.playedUris.single.scheme, 'file');
       controller.dispose();
@@ -209,23 +209,23 @@ void main() {
       repository: _NoNetworkRepository(),
       childAge: 6,
     );
-    await controller.setH20HardwareTestMode(true);
+    await controller.setHomiHardwareTestMode(true);
 
     aiv0.emitObservedRawMain();
     await _flushAsyncEvents();
 
     expect(input.startCount, 1);
-    expect(controller.h20HardwareTestPhase, H20HardwareTestPhase.recording);
+    expect(controller.homiHardwareTestPhase, HomiHardwareTestPhase.recording);
     expect(controller.aiv0ButtonEventLog, hasLength(1));
     expect(aiv0.appStateWrites, 0);
     controller.dispose();
   });
 
-  test('automatically selects the H20 HFP input after BLE connects', () async {
+  test('automatically selects the HM-D001 HFP input after BLE connects', () async {
     final hfp = _FakeHfpAudioControl(
       devices: const <HfpAudioDevice>[
         HfpAudioDevice(id: 'airpods', name: 'AirPods Pro', isConnected: true),
-        HfpAudioDevice(id: 'h20', name: 'H20', isConnected: false),
+        HfpAudioDevice(id: 'hm-d001', name: 'HM-D001', isConnected: false),
       ],
     );
     final controller = ConversationController(
@@ -236,8 +236,8 @@ void main() {
       childAge: 6,
     );
 
-    expect(await controller.autoConnectH20Hfp(bleDeviceName: 'H20'), isTrue);
-    expect(hfp.connectedDevice?.id, 'h20');
+    expect(await controller.autoConnectHomiHfp(bleDeviceName: 'HM-D001'), isTrue);
+    expect(hfp.connectedDevice?.id, 'hm-d001');
     expect(controller.usesHfpInput, isTrue);
     controller.dispose();
   });
@@ -248,7 +248,7 @@ void main() {
       final hfp = _FakeHfpAudioControl(
         devices: const <HfpAudioDevice>[
           HfpAudioDevice(id: 'airpods', name: 'AirPods Pro', isConnected: true),
-          HfpAudioDevice(id: 'h20', name: 'H20', isConnected: false),
+          HfpAudioDevice(id: 'hm-d001', name: 'HM-D001', isConnected: false),
         ],
       );
       final controller = ConversationController(
@@ -260,8 +260,8 @@ void main() {
       );
 
       expect(
-        await controller.autoConnectH20Hfp(
-          bleDeviceName: 'H20',
+        await controller.autoConnectHomiHfp(
+          bleDeviceName: 'HM-D001',
           requireConnected: true,
         ),
         isFalse,
@@ -291,20 +291,20 @@ void main() {
         onLongPress: (_) => controller.stopCurrentMainAction(),
       );
       controller.setMainButtonDispatcher(coordinator.handle);
-      await controller.setH20HardwareTestMode(true);
+      await controller.setHomiHardwareTestMode(true);
 
       aiv0.emitMain(sequence: 1);
       await _flushAsyncEvents();
-      expect(controller.h20HardwareTestPhase, H20HardwareTestPhase.recording);
+      expect(controller.homiHardwareTestPhase, HomiHardwareTestPhase.recording);
 
       aiv0.emitMain(sequence: 2, gesture: Aiv0ButtonGesture.longPress);
       await _flushAsyncEvents();
-      expect(controller.h20HardwareTestPhase, H20HardwareTestPhase.completed);
+      expect(controller.homiHardwareTestPhase, HomiHardwareTestPhase.completed);
       expect(input.stopCount, 1);
 
       aiv0.emitMain(sequence: 2, gesture: Aiv0ButtonGesture.release);
       await _flushAsyncEvents();
-      expect(controller.h20HardwareTestPhase, H20HardwareTestPhase.completed);
+      expect(controller.homiHardwareTestPhase, HomiHardwareTestPhase.completed);
       expect(input.startCount, 1);
       expect(input.stopCount, 1);
       controller.dispose();
@@ -317,8 +317,8 @@ void main() {
       initialStatus: const Aiv0BleStatus(
         phase: Aiv0BlePhase.reconnecting,
         protocolConfirmed: true,
-        deviceId: 'H20-BLE',
-        deviceName: 'H20',
+        deviceId: 'HM-D001-BLE',
+        deviceName: 'HM-D001',
         peripheralState: 'connecting',
         mainNotificationState: 'unavailable',
       ),
@@ -355,8 +355,8 @@ void main() {
         initialStatus: const Aiv0BleStatus(
           phase: Aiv0BlePhase.reconnecting,
           protocolConfirmed: true,
-          deviceId: 'H20-BLE',
-          deviceName: 'H20',
+          deviceId: 'HM-D001-BLE',
+          deviceName: 'HM-D001',
           peripheralState: 'connecting',
           mainNotificationState: 'unavailable',
         ),
@@ -444,7 +444,7 @@ void main() {
       await controller.connectHfpDevice(
         const HfpAudioDevice(
           id: '00:11:22:33:44:55',
-          name: 'H20',
+          name: 'HM-D001',
           isConnected: true,
         ),
         confirmHomiAssociation: true,
@@ -464,7 +464,7 @@ void main() {
         expect(controller.isRecording, isTrue);
         expect(controller.isContinuousHfpSessionActive, isTrue);
         expect(controller.isHomiAudioReady, isTrue);
-        expect(controller.isH20Ready, isFalse);
+        expect(controller.isHomiReady, isFalse);
         expect(speech.cancelCount, cancelBeforeLoss);
       }
       await controller.cancelCurrentMainAction();
@@ -575,7 +575,7 @@ void main() {
       await _flushAsyncEvents();
       expect(controller.isRecording, isFalse);
       expect(controller.isRecordingStartBlocked, isTrue);
-      const device = HfpAudioDevice(id: 'h20', name: 'H20', isConnected: true);
+      const device = HfpAudioDevice(id: 'hm-d001', name: 'HM-D001', isConnected: true);
       expect(
         (await controller.connectHfpDevice(device)).outcome,
         DeviceConnectionOutcome.busy,
@@ -676,11 +676,11 @@ void main() {
   );
 
   testWidgets(
-    'losing the selected H20 route stops in-flight translation audio',
+    'losing the selected HM-D001 route stops in-flight translation audio',
     (tester) async {
       final hfp = _FakeHfpAudioControl(
         devices: const <HfpAudioDevice>[
-          HfpAudioDevice(id: 'h20', name: 'H20', isConnected: true),
+          HfpAudioDevice(id: 'hm-d001', name: 'HM-D001', isConnected: true),
         ],
       );
       final playback = _HeldPlaybackService();
@@ -738,7 +738,7 @@ void main() {
     (tester) async {
       final hfp = _FakeHfpAudioControl(
         devices: const <HfpAudioDevice>[
-          HfpAudioDevice(id: 'h20', name: 'H20', isConnected: true),
+          HfpAudioDevice(id: 'hm-d001', name: 'HM-D001', isConnected: true),
         ],
       );
       final playback = _HeldPlaybackService();
@@ -865,7 +865,7 @@ class _FakeAudioInput implements AudioInput {
     return const AudioCapture(
       // URI-only fake path: use POSIX form so Uri.file is valid on both the
       // Windows golden baseline and Codemagic macOS builders.
-      filePath: '/tmp/h20-offline-test.m4a',
+      filePath: '/tmp/hm-d001-offline-test.m4a',
       mimeType: 'audio/mp4',
       duration: Duration(seconds: 3),
       inputLabel: 'Mic điện thoại',
@@ -897,7 +897,7 @@ class _FakeContinuousHfpStreamingSpeechInput
   bool _sessionActive = false;
 
   @override
-  String get label => 'H20 Apple Speech';
+  String get label => 'HM-D001 Apple Speech';
 
   @override
   Stream<double> get amplitudeDbfs => const Stream<double>.empty();
@@ -923,7 +923,7 @@ class _FakeContinuousHfpStreamingSpeechInput
   Future<StreamingSpeechCapture> stop() async => const StreamingSpeechCapture(
     sourceText: 'hello',
     duration: Duration(seconds: 1),
-    inputLabel: 'H20 Apple Speech',
+    inputLabel: 'HM-D001 Apple Speech',
     confidence: 1,
     firstResultMs: 10,
     finalAfterStopMs: 10,
@@ -977,7 +977,7 @@ class _FakeHfpAudioControl implements HfpAudioControl {
            const BluetoothAudioStatus(
              phase: BluetoothAudioConnectionPhase.ready,
              deviceId: '00:11:22:33:44:55',
-             deviceName: 'H20',
+             deviceName: 'HM-D001',
              sampleRate: 16000,
            );
 
@@ -996,8 +996,8 @@ class _FakeHfpAudioControl implements HfpAudioControl {
   void emitRouteLoss() {
     _status = const BluetoothAudioStatus(
       phase: BluetoothAudioConnectionPhase.idle,
-      deviceId: 'h20',
-      deviceName: 'H20',
+      deviceId: 'hm-d001',
+      deviceName: 'HM-D001',
       sampleRate: 16000,
     );
     _statuses.add(_status);
@@ -1006,8 +1006,8 @@ class _FakeHfpAudioControl implements HfpAudioControl {
   void emitOutputRoute(String portType, {required int sequence}) {
     final next = BluetoothAudioStatus(
       phase: BluetoothAudioConnectionPhase.ready,
-      deviceId: 'h20',
-      deviceName: 'H20',
+      deviceId: 'hm-d001',
+      deviceName: 'HM-D001',
       sampleRate: 16000,
       outputPortType: portType,
       routeSequence: sequence,
@@ -1064,11 +1064,11 @@ class _FakeHfpAudioControl implements HfpAudioControl {
     _status = const BluetoothAudioStatus(
       phase: BluetoothAudioConnectionPhase.recording,
       deviceId: '00:11:22:33:44:55',
-      deviceName: 'H20',
+      deviceName: 'HM-D001',
       sampleRate: 16000,
       routeActive: true,
-      inputDeviceName: 'H20 Microphone',
-      outputDeviceName: 'H20 Speaker',
+      inputDeviceName: 'HM-D001 Microphone',
+      outputDeviceName: 'HM-D001 Speaker',
       audioRoute: 'HFP/SCO two-way',
     );
     _statuses.add(_status);
@@ -1080,7 +1080,7 @@ class _FakeHfpAudioControl implements HfpAudioControl {
     _status = const BluetoothAudioStatus(
       phase: BluetoothAudioConnectionPhase.ready,
       deviceId: '00:11:22:33:44:55',
-      deviceName: 'H20',
+      deviceName: 'HM-D001',
       sampleRate: 16000,
     );
     _statuses.add(_status);
@@ -1188,8 +1188,8 @@ class _FakeAiv0BleControl implements Aiv0BleControl {
            Aiv0BleStatus(
              phase: Aiv0BlePhase.connected,
              protocolConfirmed: protocolConfirmed,
-             deviceId: 'H20-BLE',
-             deviceName: 'H20',
+             deviceId: 'HM-D001-BLE',
+             deviceName: 'HM-D001',
              writeMode: 'withResponse',
              peripheralState: 'connected',
              mainNotificationState: 'notifying',
@@ -1263,10 +1263,10 @@ class _FakeAiv0BleControl implements Aiv0BleControl {
         rawBytes: Uint8List.fromList(<int>[
           0x01,
           0x01,
+          0x01,
+          0x00,
           0x10,
-          0x01,
-          0x01,
-          0x04,
+          0x00,
           0x3E,
           0x00,
           0x3A,
@@ -1278,7 +1278,7 @@ class _FakeAiv0BleControl implements Aiv0BleControl {
         button: Aiv0Button.main,
         gesture: Aiv0ButtonGesture.shortPress,
         sequence: 0x10,
-        isObservedH20Packet: true,
+        isObservedHmD001Packet: true,
       ),
     );
   }
@@ -1318,7 +1318,7 @@ class _NoNetworkRepository implements ConversationRepository {
 
   Never _networkCalled() {
     networkCallCount += 1;
-    throw StateError('The offline H20 test must not call the repository.');
+    throw StateError('The offline HM-D001 test must not call the repository.');
   }
 
   @override

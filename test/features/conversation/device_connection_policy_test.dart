@@ -63,7 +63,7 @@ void main() {
         )).succeeded,
         isTrue,
       );
-      expect(controller.isH20Ready, isTrue);
+      expect(controller.isHomiReady, isTrue);
       expect(controller.lastConnectedMicrophone?.bleDeviceId, 'ble');
       expect((await controller.disconnectHfpDevice()).succeeded, isTrue);
       expect((await controller.disconnectAiv0Device()).succeeded, isTrue);
@@ -83,20 +83,20 @@ void main() {
       expect(controller.requiresHomiMicrophoneConfirmation(microphone), isTrue);
       expect((await controller.connectHfpDevice(microphone)).succeeded, isTrue);
       expect(controller.usesHfpInput, isTrue);
-      expect(controller.h20ConnectionState().hfpReady, isTrue);
-      expect(controller.isH20Ready, isFalse);
+      expect(controller.homiConnectionState().hfpReady, isTrue);
+      expect(controller.isHomiReady, isFalse);
       expect(controller.lastConnectedMicrophone?.bleDeviceId, isNull);
       await controller.connectHfpDevice(
         microphone,
         confirmHomiAssociation: true,
       );
-      expect(controller.isH20Ready, isTrue);
+      expect(controller.isHomiReady, isTrue);
       controller.dispose();
       final restored = _controller(ble: _Ble.connected(), hfp: _Hfp());
       await restored.initializeDeviceConnectionPreferences();
       expect(restored.requiresHomiMicrophoneConfirmation(microphone), isFalse);
       await restored.connectHfpDevice(microphone);
-      expect(restored.isH20Ready, isTrue);
+      expect(restored.isHomiReady, isTrue);
       restored.dispose();
     },
   );
@@ -115,10 +115,10 @@ void main() {
         confirmHomiAssociation: true,
       );
       expect(controller.usesHfpInput, isTrue);
-      expect(controller.isH20Ready, isFalse);
+      expect(controller.isHomiReady, isFalse);
       expect(controller.lastConnectedMicrophone?.id, 'airpods');
       expect(controller.lastConnectedMicrophone?.bleDeviceId, isNull);
-      expect(await controller.autoConnectH20Hfp(), isFalse);
+      expect(await controller.autoConnectHomiHfp(), isFalse);
       expect(controller.hfpAudioStatus.deviceId, 'airpods');
       controller.dispose();
     },
@@ -135,10 +135,10 @@ void main() {
       final restoredHfp = _Hfp(devices: [microphone]);
       final restored = _controller(hfp: restoredHfp);
       await restored.initializeDeviceConnectionPreferences();
-      expect(await restored.autoConnectH20Hfp(), isFalse);
+      expect(await restored.autoConnectHomiHfp(), isFalse);
       expect(restoredHfp.findCount, 0);
       await restored.resumeAutomaticDeviceConnection();
-      expect(await restored.autoConnectH20Hfp(), isTrue);
+      expect(await restored.autoConnectHomiHfp(), isTrue);
       expect(restoredHfp.findCount, 1);
       restored.dispose();
     },
@@ -220,9 +220,9 @@ void main() {
         ],
       );
       final controller = _controller(ble: _Ble.connected(), hfp: hfp);
-      expect(await controller.autoConnectH20Hfp(), isTrue);
+      expect(await controller.autoConnectHomiHfp(), isTrue);
       expect(controller.hfpAudioStatus.deviceId, 'second');
-      expect(controller.isH20Ready, isTrue);
+      expect(controller.isHomiReady, isTrue);
       controller.dispose();
     },
   );
@@ -238,12 +238,12 @@ void main() {
       final hfp = _Hfp(devices: [microphone]);
       final controller = _controller(ble: _Ble.connected(), hfp: hfp);
       await controller.connectHfpDevice(unrelated);
-      expect(await controller.autoConnectH20Hfp(), isFalse);
+      expect(await controller.autoConnectHomiHfp(), isFalse);
       expect(hfp.status.deviceId, 'airpods');
       await controller.resumeAutomaticDeviceConnection();
-      expect(await controller.autoConnectH20Hfp(), isTrue);
+      expect(await controller.autoConnectHomiHfp(), isTrue);
       expect(hfp.status.deviceId, 'mic');
-      expect(controller.isH20Ready, isFalse);
+      expect(controller.isHomiReady, isFalse);
       controller.dispose();
     },
   );
@@ -268,9 +268,9 @@ void main() {
         ],
       );
       final controller = _controller(ble: _Ble.connected(), hfp: hfp);
-      expect(await controller.autoConnectH20Hfp(), isTrue);
+      expect(await controller.autoConnectHomiHfp(), isTrue);
       expect(controller.hfpAudioStatus.deviceId, 'known-mic');
-      expect(controller.isH20Ready, isTrue);
+      expect(controller.isHomiReady, isTrue);
       expect(controller.lastConnectedMicrophone?.name, isEmpty);
       expect(controller.lastConnectedMicrophone?.bleDeviceId, 'ble');
       controller.dispose();
@@ -290,7 +290,7 @@ void main() {
     );
     final controller = _controller(ble: _Ble.connected(), hfp: _Hfp());
     await controller.connectHfpDevice(microphone);
-    expect(controller.isH20Ready, isFalse);
+    expect(controller.isHomiReady, isFalse);
     expect(controller.lastConnectedMicrophone?.bleDeviceId, isNull);
     controller.dispose();
   });
@@ -305,13 +305,13 @@ void main() {
         microphone,
         confirmHomiAssociation: true,
       );
-      expect(controller.isH20Ready, isTrue);
+      expect(controller.isHomiReady, isTrue);
 
       ble.status = const Aiv0BleStatus(
         phase: Aiv0BlePhase.reconnecting,
         protocolConfirmed: true,
       );
-      expect(controller.isH20Ready, isFalse);
+      expect(controller.isHomiReady, isFalse);
       expect(controller.isHomiAudioReady, isTrue);
       expect(controller.usesHfpInput, isTrue);
       expect(controller.verifiedHomiBleDeviceId, 'ble');
@@ -346,7 +346,7 @@ void main() {
       final restored = _controller(ble: ble, hfp: _Hfp());
       await restored.connectHfpDevice(microphone);
       expect(restored.isHomiAudioReady, isTrue);
-      expect(restored.isH20Ready, isFalse);
+      expect(restored.isHomiReady, isFalse);
       expect(restored.lastConnectedMicrophone?.bleDeviceId, 'ble');
 
       ble.status = const Aiv0BleStatus(
@@ -355,7 +355,7 @@ void main() {
         deviceId: 'different-homi',
       );
       expect(restored.isHomiAudioReady, isFalse);
-      expect(restored.isH20Ready, isFalse);
+      expect(restored.isHomiReady, isFalse);
       expect(restored.verifiedHomiBleDeviceId, isNull);
       restored.dispose();
     },
@@ -371,7 +371,7 @@ void main() {
       );
       await controller.disconnectAiv0Device();
       expect(controller.isHomiAudioReady, isTrue);
-      expect(controller.isH20Ready, isFalse);
+      expect(controller.isHomiReady, isFalse);
       expect(controller.automaticBleConnectionAllowed, isFalse);
       await controller.disconnectHfpDevice();
       expect(controller.isHomiAudioReady, isFalse);

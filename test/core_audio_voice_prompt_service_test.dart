@@ -168,7 +168,7 @@ void main() {
     });
   });
 
-  test('marks lesson speech for selected H20 output', () async {
+  test('marks lesson speech for selected HM-D001 output', () async {
     const channel = MethodChannel('test_media_output_prompt');
     MethodCall? receivedCall;
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger

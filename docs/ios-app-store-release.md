@@ -45,19 +45,19 @@
 No `.p8`, certificate, provisioning profile, Apple password or signing secret
 belongs in this repository.
 
-## H20 Settings diagnostics and iOS feature parity
+## HM-D001 Settings diagnostics and iOS feature parity
 
 The vocabulary, topic/listening, translation and assistant screens are shared
 Flutter flows, not separate iOS copies. Keep their command dispatcher, progress
 and grading rules shared; only microphone, speech, audio route and hardware
 adapters are platform-specific.
 
-The parent Settings H20 diagnostics panel records raw control observations:
+The parent Settings HM-D001 diagnostics panel records raw control observations:
 
-- BLE retains every packet, including unknown/draft bytes. Only the previously
-  observed 12-byte MAIN SHORT shape is labelled as such.
+- BLE retains every packet, including unknown/draft bytes. Confirmed HM-D001
+  button and gesture codes are labelled; other packets remain unknown.
 - iOS listens for play, pause, togglePlayPause, nextTrack and previousTrack in
-  a foreground learning/diagnostics context with an H20 Bluetooth audio route.
+  a foreground learning/diagnostics context with an HM-D001 Bluetooth audio route.
   Listening does not start recording, activate AVAudioSession or create an
   artificial Now Playing session.
 - Remote commands are labelled `iosRemoteCommand` with the original command
@@ -95,14 +95,14 @@ Before building a release:
    reinstalls device Pods after simulator tests and rejects a simulator
    adapter in a device build. Download the
    `RunnerTests.xcresult` artifact if it fails. Windows Flutter tests cannot
-   establish native iOS compilation or physical H20 behavior.
+   establish native iOS compilation or physical HM-D001 behavior.
 2. Run `ios-app-store` with the existing signing/privacy group. It also runs
    the same simulator/native tests before signing; a native failure blocks the
    IPA. This is an explicit build/upload workflow; editing these files does not
    trigger a Codemagic build or upload.
-3. On TestFlight, pair H20 audio in iPhone Settings and connect BLE in HOMI.
-   Open the H20 control diagnostics panel. Record the real button/gesture
-   matrix in `docs/h20-physical-buttons-android-ios-test-plan.md`.
+3. On TestFlight, pair HM-D001 audio in iPhone Settings and connect BLE in HOMI.
+   Open the HM-D001 control diagnostics panel. Record the real button/gesture
+   matrix for the current firmware.
 4. Separately test vocabulary (star/parent-added/relearn), topic selection,
    listening Core/Challenge/Resume, Vietnamese-to-English translation, and MAIN
    assistant navigation. Include microphone denial, missing speech/translation

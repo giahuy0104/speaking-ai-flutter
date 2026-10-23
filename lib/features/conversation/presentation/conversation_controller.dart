@@ -20,7 +20,7 @@ import '../../../core/audio/streaming_speech_input.dart';
 import '../../../core/audio/sentence_audio_cache.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/device/aiv0_ble_control.dart';
-import '../../../core/device/h20_connection_state.dart';
+import '../../../core/device/homi_connection_state.dart';
 import '../../../core/device/device_connection_history.dart';
 import '../../../core/device/device_display_name.dart';
 import '../../../core/device/main_button_coordinator.dart';
@@ -38,8 +38,8 @@ import '../domain/speech_gated_batch_upload_session.dart';
 
 export '../application/conversation_settings_port.dart'
     show
-        H20HardwareTestPhase,
-        H20HardwareTestResult,
+        HomiHardwareTestPhase,
+        HomiHardwareTestResult,
         DeviceConnectionOutcome,
         DeviceConnectionResult,
         DeviceConnectionBusyException;
@@ -383,7 +383,7 @@ class ConversationController extends ChangeNotifier
   Timer? _maximumDurationTimer;
   Timer? _offlineFallbackTimer;
   Timer? _processingStageTimer;
-  Timer? _h20HardwareRecordingTimer;
+  Timer? _homiHardwareRecordingTimer;
   Timer? _connectionNoticeTimer;
   DateTime? _recordingStartedAt;
   DateTime? _stoppedAt;
@@ -414,8 +414,8 @@ class ConversationController extends ChangeNotifier
   bool _usingRealtimeTranscription = false;
   bool _usingOfflineIntent = false;
   bool _playbackPlaying = false;
-  bool _h20HardwareAudioInputStarted = false;
-  bool _h20HardwareStopInProgress = false;
+  bool _homiHardwareAudioInputStarted = false;
+  bool _homiHardwareStopInProgress = false;
   BatchChunkUploadSession? _batchChunkUpload;
   SpeechGatedBatchUploadSession? _batchSpeechGate;
   _AdaptiveWebChunkUpload? _adaptiveWebUpload;
@@ -483,13 +483,13 @@ class ConversationController extends ChangeNotifier
       _repository is TranslationTargetRepository;
   bool bleDiagnosticRunning = false;
   @override
-  bool h20HardwareTestModeEnabled = false;
+  bool homiHardwareTestModeEnabled = false;
   @override
-  H20HardwareTestPhase h20HardwareTestPhase = H20HardwareTestPhase.idle;
+  HomiHardwareTestPhase homiHardwareTestPhase = HomiHardwareTestPhase.idle;
   @override
-  H20HardwareTestResult? h20HardwareTestResult;
+  HomiHardwareTestResult? homiHardwareTestResult;
   @override
-  String? h20HardwareTestMessage;
+  String? homiHardwareTestMessage;
   @override
   NativeSpeechDiagnostic? nativeSpeechDiagnostic;
 
@@ -934,7 +934,7 @@ class ConversationController extends ChangeNotifier
       );
 
   /// Shared native route owner used by listening lessons so their prompt audio
-  /// and recorder select the same H20 input as the conversation flow.
+  /// and recorder select the same HM-D001 input as the conversation flow.
   HfpAudioControl? get learningAudioRouteControl => _hfpAudioControl;
 
   /// Creates an isolated lesson owner backed by the process-wide HFP route
@@ -960,8 +960,8 @@ class ConversationController extends ChangeNotifier
   bool get canUseHfp =>
       hfpAudioStatus.isConnected || hfpAudioStatus.deviceId != null;
   bool get hasSelectedHfpInput => hfpAudioStatus.deviceId != null;
-  bool get isH20Ready => h20ConnectionState().isH20Ready;
-  bool get isHomiAudioReady => h20ConnectionState().isHomiAudioReady;
+  bool get isHomiReady => homiConnectionState().isHomiReady;
+  bool get isHomiAudioReady => homiConnectionState().isHomiAudioReady;
 
   /// Recover only the control peripheral associated with the live microphone.
   /// A disconnected status may contain another failed connection's device ID.
@@ -974,8 +974,8 @@ class ConversationController extends ChangeNotifier
   @override
   bool get canUseAiv0Ble => aiv0BleStatus.isConnected;
   @override
-  H20ConnectionState h20ConnectionState({bool mainTurnActive = false}) =>
-      H20ConnectionState.from(
+  HomiConnectionState homiConnectionState({bool mainTurnActive = false}) =>
+      HomiConnectionState.from(
         hfpStatus: hfpAudioStatus,
         bleStatus: aiv0BleStatus,
         hfpInputSelected: _hfpInputSelected,
@@ -1015,10 +1015,10 @@ class ConversationController extends ChangeNotifier
   bool get isPreparingMicrophone => _preparingMicrophone;
   bool get isContinuousHfpSessionActive => _continuousHfpSessionActive;
   ConversationTurnEndReason? get lastTurnEndReason => _lastTurnEndReason;
-  bool get h20HardwareTestActive =>
-      h20HardwareTestPhase == H20HardwareTestPhase.openingRoute ||
-      h20HardwareTestPhase == H20HardwareTestPhase.recording ||
-      h20HardwareTestPhase == H20HardwareTestPhase.playing;
+  bool get homiHardwareTestActive =>
+      homiHardwareTestPhase == HomiHardwareTestPhase.openingRoute ||
+      homiHardwareTestPhase == HomiHardwareTestPhase.recording ||
+      homiHardwareTestPhase == HomiHardwareTestPhase.playing;
   bool get isRecordingStartBlocked =>
       _preparingMicrophone ||
       _handlingHfpRouteLoss ||
@@ -1026,7 +1026,7 @@ class ConversationController extends ChangeNotifier
       _continuousTranslationSession.isRecordingStartPending ||
       _pendingHfpStartOperation != null ||
       bleDiagnosticRunning ||
-      h20HardwareTestActive ||
+      homiHardwareTestActive ||
       hfpAudioStatus.isBusy ||
       phase == ConversationPhase.recording ||
       phase == ConversationPhase.processing;
@@ -1052,7 +1052,7 @@ class ConversationController extends ChangeNotifier
 
   /// Opens one HFP route for a hands-free translation session.
   ///
-  /// BLE MAIN is an independent best-effort control transport. Some H20/iOS
+  /// BLE MAIN is an independent best-effort control transport. Some HM-D001/iOS
   /// combinations temporarily lose BLE while HFP capture is active, so waiting
   /// for BLE here would make microphone preparation block for several seconds
   /// without improving the audio route.
@@ -1741,7 +1741,7 @@ class ConversationController extends ChangeNotifier
   }) {
     _aiv0MainDispatchStatus = status;
     _aiv0MainDispatchAt = DateTime.now();
-    debugPrint('H20 MAIN: $status');
+    debugPrint('HM-D001 MAIN: $status');
     recordAiv0MainDiagnostic(stage, message: status, values: values);
     if (!_disposed) {
       notifyListeners();
@@ -1780,12 +1780,12 @@ class ConversationController extends ChangeNotifier
         event.gesture != MainButtonGesture.shortPress) {
       return MainButtonActionResult.ignored;
     }
-    if (h20HardwareTestModeEnabled) {
-      if (h20HardwareTestPhase == H20HardwareTestPhase.playing ||
-          h20HardwareTestPhase == H20HardwareTestPhase.openingRoute) {
+    if (homiHardwareTestModeEnabled) {
+      if (homiHardwareTestPhase == HomiHardwareTestPhase.playing ||
+          homiHardwareTestPhase == HomiHardwareTestPhase.openingRoute) {
         return MainButtonActionResult.busy;
       }
-      await toggleH20OfflineRecordingTest();
+      await toggleHomiOfflineRecordingTest();
       return MainButtonActionResult.accepted;
     }
     if (phase == ConversationPhase.processing || _preparingMicrophone) {
@@ -1805,13 +1805,13 @@ class ConversationController extends ChangeNotifier
   /// A long MAIN press is a cancellation boundary: an unfinished recording is
   /// discarded instead of finalized, and a late backend result is ignored.
   Future<MainButtonActionResult> stopCurrentMainAction() async {
-    if (h20HardwareTestPhase == H20HardwareTestPhase.recording) {
-      await stopAndReplayH20OfflineRecording();
+    if (homiHardwareTestPhase == HomiHardwareTestPhase.recording) {
+      await stopAndReplayHomiOfflineRecording();
       return MainButtonActionResult.accepted;
     }
-    if (h20HardwareTestPhase == H20HardwareTestPhase.openingRoute ||
-        h20HardwareTestPhase == H20HardwareTestPhase.playing) {
-      await cancelH20HardwareTest();
+    if (homiHardwareTestPhase == HomiHardwareTestPhase.openingRoute ||
+        homiHardwareTestPhase == HomiHardwareTestPhase.playing) {
+      await cancelHomiHardwareTest();
       return MainButtonActionResult.accepted;
     }
     return cancelCurrentMainAction();
@@ -1922,13 +1922,13 @@ class ConversationController extends ChangeNotifier
       cancelCurrentMainAction();
 
   Aiv0AppState get _currentAiv0AppState {
-    if (h20HardwareTestPhase == H20HardwareTestPhase.recording) {
+    if (homiHardwareTestPhase == HomiHardwareTestPhase.recording) {
       return Aiv0AppState.recording;
     }
-    if (h20HardwareTestPhase == H20HardwareTestPhase.playing) {
+    if (homiHardwareTestPhase == HomiHardwareTestPhase.playing) {
       return Aiv0AppState.playing;
     }
-    if (h20HardwareTestPhase == H20HardwareTestPhase.error) {
+    if (homiHardwareTestPhase == HomiHardwareTestPhase.error) {
       return Aiv0AppState.error;
     }
     if (_playbackPlaying) return Aiv0AppState.playing;
@@ -2051,7 +2051,7 @@ class ConversationController extends ChangeNotifier
 
   /// Selects a recognized candidate without claiming a name proves it is the
   /// same physical HOMI. Differing IDs require a saved parent confirmation.
-  Future<bool> autoConnectH20Hfp({
+  Future<bool> autoConnectHomiHfp({
     String? bleDeviceName,
     bool requireConnected = false,
   }) async {
@@ -2070,13 +2070,13 @@ class ConversationController extends ChangeNotifier
           hfpAudioStatus.deviceId != null &&
           hfpAudioStatus.isConnected) {
         // A manually chosen working microphone remains the parent's choice.
-        return h20ConnectionState().hfpMatchesHomi;
+        return homiConnectionState().hfpMatchesHomi;
       }
       _explicitDeviceRetryRequested = false;
       final devices = await control.findDevices();
       _ensureDeviceOperationCurrent(generation);
       final remembered = _lastConnectedMicrophone;
-      final device = selectLikelyH20HfpDevice(
+      final device = selectLikelyHomiHfpDevice(
         devices,
         bleDeviceName: bleDeviceName,
         bleDeviceId: aiv0BleStatus.deviceId,
@@ -2102,7 +2102,7 @@ class ConversationController extends ChangeNotifier
           : AsrMode.batchChunks;
       await _rememberMicrophone(device);
       _ensureDeviceOperationCurrent(generation);
-      if (isH20Ready) {
+      if (isHomiReady) {
         _connectionNoticeTimer?.cancel();
         transientMessage = connectionReadyMessage;
         _connectionNoticeTimer = Timer(const Duration(seconds: 5), () {
@@ -2177,7 +2177,7 @@ class ConversationController extends ChangeNotifier
           : AsrMode.batchChunks;
       await _rememberMicrophone(device);
       _ensureDeviceOperationCurrent(generation);
-      transientMessage = isH20Ready ? connectionReadyMessage : 'Đã chọn micro.';
+      transientMessage = isHomiReady ? connectionReadyMessage : 'Đã chọn micro.';
       return const DeviceConnectionResult(DeviceConnectionOutcome.success);
     } catch (error) {
       return _deviceOperationFailure(error, generation);
@@ -2220,14 +2220,14 @@ class ConversationController extends ChangeNotifier
   }
 
   @override
-  Future<void> setH20HardwareTestMode(bool enabled) async {
-    if (enabled == h20HardwareTestModeEnabled) return;
-    if (!enabled && h20HardwareTestActive) {
-      await cancelH20HardwareTest();
+  Future<void> setHomiHardwareTestMode(bool enabled) async {
+    if (enabled == homiHardwareTestModeEnabled) return;
+    if (!enabled && homiHardwareTestActive) {
+      await cancelHomiHardwareTest();
     }
-    h20HardwareTestModeEnabled = enabled;
-    h20HardwareTestPhase = H20HardwareTestPhase.idle;
-    h20HardwareTestMessage = enabled
+    homiHardwareTestModeEnabled = enabled;
+    homiHardwareTestPhase = HomiHardwareTestPhase.idle;
+    homiHardwareTestMessage = enabled
         ? 'Chế độ kiểm tra cục bộ đã bật. Không gửi âm thanh lên cloud.'
         : null;
     notifyListeners();
@@ -2235,21 +2235,21 @@ class ConversationController extends ChangeNotifier
 
   /// Opens the verified HFP/SCO route and records locally. No repository or
   /// network API is touched. A second tap (or MAIN after ODM confirmation)
-  /// stops capture and immediately replays the local file through H20.
+  /// stops capture and immediately replays the local file through HM-D001.
   @override
-  Future<void> toggleH20OfflineRecordingTest() async {
-    if (h20HardwareTestPhase == H20HardwareTestPhase.recording) {
-      await stopAndReplayH20OfflineRecording();
+  Future<void> toggleHomiOfflineRecordingTest() async {
+    if (homiHardwareTestPhase == HomiHardwareTestPhase.recording) {
+      await stopAndReplayHomiOfflineRecording();
       return;
     }
-    await startH20OfflineRecording();
+    await startHomiOfflineRecording();
   }
 
-  Future<void> startH20OfflineRecording() async {
-    if (!h20HardwareTestModeEnabled) {
+  Future<void> startHomiOfflineRecording() async {
+    if (!homiHardwareTestModeEnabled) {
       throw StateError('Hãy bật chế độ kiểm tra phần cứng offline trước.');
     }
-    if (h20HardwareTestActive ||
+    if (homiHardwareTestActive ||
         phase == ConversationPhase.recording ||
         phase == ConversationPhase.processing) {
       return;
@@ -2261,9 +2261,9 @@ class ConversationController extends ChangeNotifier
       throw StateError('Hãy kết nối HFP của HM-D001 trước khi kiểm tra micro.');
     }
 
-    h20HardwareTestResult = null;
-    h20HardwareTestPhase = H20HardwareTestPhase.openingRoute;
-    h20HardwareTestMessage = 'Đang mở đường HFP/SCO hai chiều…';
+    homiHardwareTestResult = null;
+    homiHardwareTestPhase = HomiHardwareTestPhase.openingRoute;
+    homiHardwareTestMessage = 'Đang mở đường HFP/SCO hai chiều…';
     notifyListeners();
     try {
       await _playbackService.stop();
@@ -2277,40 +2277,40 @@ class ConversationController extends ChangeNotifier
         );
       }
       await _audioInput.start();
-      _h20HardwareAudioInputStarted = true;
-      h20HardwareTestPhase = H20HardwareTestPhase.recording;
-      h20HardwareTestMessage =
+      _homiHardwareAudioInputStarted = true;
+      homiHardwareTestPhase = HomiHardwareTestPhase.recording;
+      homiHardwareTestMessage =
           'Đang thu cục bộ từ ${route.inputDeviceName}. Bấm lại để dừng; tự dừng sau 5 giây.';
-      _h20HardwareRecordingTimer?.cancel();
-      _h20HardwareRecordingTimer = Timer(
+      _homiHardwareRecordingTimer?.cancel();
+      _homiHardwareRecordingTimer = Timer(
         const Duration(seconds: 5),
-        () => unawaited(stopAndReplayH20OfflineRecording()),
+        () => unawaited(stopAndReplayHomiOfflineRecording()),
       );
       unawaited(_syncAiv0AppState());
       notifyListeners();
     } catch (error) {
-      await _failH20HardwareTest(error);
+      await _failHomiHardwareTest(error);
       rethrow;
     }
   }
 
-  Future<void> stopAndReplayH20OfflineRecording() async {
-    if (h20HardwareTestPhase != H20HardwareTestPhase.recording ||
-        _h20HardwareStopInProgress) {
+  Future<void> stopAndReplayHomiOfflineRecording() async {
+    if (homiHardwareTestPhase != HomiHardwareTestPhase.recording ||
+        _homiHardwareStopInProgress) {
       return;
     }
-    _h20HardwareStopInProgress = true;
-    _h20HardwareRecordingTimer?.cancel();
-    _h20HardwareRecordingTimer = null;
+    _homiHardwareStopInProgress = true;
+    _homiHardwareRecordingTimer?.cancel();
+    _homiHardwareRecordingTimer = null;
     try {
       final capture = await _audioInput.stop();
-      _h20HardwareAudioInputStarted = false;
+      _homiHardwareAudioInputStarted = false;
       final routeBeforePlayback = hfpAudioStatus;
-      h20HardwareTestPhase = H20HardwareTestPhase.playing;
-      h20HardwareTestMessage = 'Đang phát lại bản ghi cục bộ qua loa HM-D001…';
+      homiHardwareTestPhase = HomiHardwareTestPhase.playing;
+      homiHardwareTestMessage = 'Đang phát lại bản ghi cục bộ qua loa HM-D001…';
       notifyListeners();
 
-      await _playH20TestUri(Uri.file(capture.filePath));
+      await _playHomiTestUri(Uri.file(capture.filePath));
       final routeAfterPlayback = hfpAudioStatus;
       final inputName =
           routeBeforePlayback.inputDeviceName ??
@@ -2318,7 +2318,7 @@ class ConversationController extends ChangeNotifier
       final outputName =
           routeAfterPlayback.outputDeviceName ??
           routeBeforePlayback.outputDeviceName;
-      h20HardwareTestResult = H20HardwareTestResult(
+      homiHardwareTestResult = HomiHardwareTestResult(
         completedAt: DateTime.now(),
         inputRouteVerified:
             routeBeforePlayback.routeActive && inputName != null,
@@ -2328,26 +2328,26 @@ class ConversationController extends ChangeNotifier
         inputDeviceName: inputName,
         outputDeviceName: outputName,
       );
-      h20HardwareTestPhase = H20HardwareTestPhase.completed;
-      h20HardwareTestMessage =
+      homiHardwareTestPhase = HomiHardwareTestPhase.completed;
+      homiHardwareTestMessage =
           'Đã thu và phát lại hoàn toàn offline. Hãy xác nhận bạn có nghe giọng từ loa HM-D001.';
       notifyListeners();
     } catch (error) {
-      await _failH20HardwareTest(error);
+      await _failHomiHardwareTest(error);
       rethrow;
     } finally {
-      _h20HardwareStopInProgress = false;
-      await _closeH20HardwareAudioRoute();
+      _homiHardwareStopInProgress = false;
+      await _closeHomiHardwareAudioRoute();
       unawaited(_syncAiv0AppState());
     }
   }
 
   @override
-  Future<void> playH20BundledSpeakerTest() async {
-    if (!h20HardwareTestModeEnabled) {
+  Future<void> playHomiBundledSpeakerTest() async {
+    if (!homiHardwareTestModeEnabled) {
       throw StateError('Hãy bật chế độ kiểm tra phần cứng offline trước.');
     }
-    if (h20HardwareTestActive ||
+    if (homiHardwareTestActive ||
         phase == ConversationPhase.recording ||
         phase == ConversationPhase.processing) {
       return;
@@ -2358,8 +2358,8 @@ class ConversationController extends ChangeNotifier
         supportsBrowserHfp) {
       throw StateError('Hãy kết nối HFP của HM-D001 trước khi kiểm tra loa.');
     }
-    h20HardwareTestPhase = H20HardwareTestPhase.openingRoute;
-    h20HardwareTestMessage = 'Đang mở HFP/SCO để kiểm tra loa…';
+    homiHardwareTestPhase = HomiHardwareTestPhase.openingRoute;
+    homiHardwareTestMessage = 'Đang mở HFP/SCO để kiểm tra loa…';
     notifyListeners();
     try {
       await _playbackService.stop();
@@ -2371,59 +2371,59 @@ class ConversationController extends ChangeNotifier
           'Android chưa xác nhận loa HM-D001 trên đường HFP/SCO.',
         );
       }
-      h20HardwareTestPhase = H20HardwareTestPhase.playing;
-      h20HardwareTestMessage = 'Đang phát file có sẵn trong APK qua HM-D001…';
+      homiHardwareTestPhase = HomiHardwareTestPhase.playing;
+      homiHardwareTestMessage = 'Đang phát file có sẵn trong APK qua HM-D001…';
       notifyListeners();
-      await _playH20TestUri(MediaAudioKeys.h20SpeakerTestUri);
+      await _playHomiTestUri(MediaAudioKeys.homiSpeakerTestUri);
       final route = hfp.status;
-      h20HardwareTestResult = H20HardwareTestResult(
+      homiHardwareTestResult = HomiHardwareTestResult(
         completedAt: DateTime.now(),
         inputRouteVerified: false,
         outputRouteVerified:
             route.routeActive && route.outputDeviceName != null,
         outputDeviceName: route.outputDeviceName,
       );
-      h20HardwareTestPhase = H20HardwareTestPhase.completed;
-      h20HardwareTestMessage =
+      homiHardwareTestPhase = HomiHardwareTestPhase.completed;
+      homiHardwareTestMessage =
           'Đã phát file offline. Hãy xác nhận âm thanh phát từ loa HM-D001.';
       notifyListeners();
     } catch (error) {
-      await _failH20HardwareTest(error);
+      await _failHomiHardwareTest(error);
       rethrow;
     } finally {
-      await _closeH20HardwareAudioRoute();
+      await _closeHomiHardwareAudioRoute();
       unawaited(_syncAiv0AppState());
     }
   }
 
   @override
-  void confirmH20PlaybackAudible(bool audible) {
-    final current = h20HardwareTestResult;
+  void confirmHomiPlaybackAudible(bool audible) {
+    final current = homiHardwareTestResult;
     if (current == null) return;
-    h20HardwareTestResult = current.copyWith(playbackAudible: audible);
-    h20HardwareTestMessage = audible
+    homiHardwareTestResult = current.copyWith(playbackAudible: audible);
+    homiHardwareTestMessage = audible
         ? 'Đã xác nhận: âm thanh nghe được từ loa HM-D001.'
         : 'Không nghe từ loa HM-D001. Chưa đạt; cần kiểm tra lại route HFP/SCO.';
     notifyListeners();
   }
 
-  Future<void> cancelH20HardwareTest() async {
-    _h20HardwareRecordingTimer?.cancel();
-    _h20HardwareRecordingTimer = null;
-    if (_h20HardwareAudioInputStarted) {
+  Future<void> cancelHomiHardwareTest() async {
+    _homiHardwareRecordingTimer?.cancel();
+    _homiHardwareRecordingTimer = null;
+    if (_homiHardwareAudioInputStarted) {
       await _audioInput.cancel().catchError((Object _) {});
-      _h20HardwareAudioInputStarted = false;
+      _homiHardwareAudioInputStarted = false;
     }
     await _playbackService.stop().catchError((Object _) {});
-    await _closeH20HardwareAudioRoute();
-    h20HardwareTestPhase = H20HardwareTestPhase.idle;
-    h20HardwareTestMessage = h20HardwareTestModeEnabled
+    await _closeHomiHardwareAudioRoute();
+    homiHardwareTestPhase = HomiHardwareTestPhase.idle;
+    homiHardwareTestMessage = homiHardwareTestModeEnabled
         ? 'Đã dừng kiểm tra cục bộ.'
         : null;
     if (!_disposed) notifyListeners();
   }
 
-  Future<void> _playH20TestUri(Uri uri) async {
+  Future<void> _playHomiTestUri(Uri uri) async {
     _useNormalPlaybackRate();
     final playback = _playbackService;
     final completion = playback is CompletionAwareAudioPlaybackService
@@ -2436,20 +2436,20 @@ class ConversationController extends ChangeNotifier
     if (completion != null) await completion;
   }
 
-  Future<void> _failH20HardwareTest(Object error) async {
-    _h20HardwareRecordingTimer?.cancel();
-    _h20HardwareRecordingTimer = null;
-    if (_h20HardwareAudioInputStarted) {
+  Future<void> _failHomiHardwareTest(Object error) async {
+    _homiHardwareRecordingTimer?.cancel();
+    _homiHardwareRecordingTimer = null;
+    if (_homiHardwareAudioInputStarted) {
       await _audioInput.cancel().catchError((Object _) {});
-      _h20HardwareAudioInputStarted = false;
+      _homiHardwareAudioInputStarted = false;
     }
-    h20HardwareTestPhase = H20HardwareTestPhase.error;
-    h20HardwareTestMessage = _friendlyError(error);
-    await _closeH20HardwareAudioRoute();
+    homiHardwareTestPhase = HomiHardwareTestPhase.error;
+    homiHardwareTestMessage = _friendlyError(error);
+    await _closeHomiHardwareAudioRoute();
     if (!_disposed) notifyListeners();
   }
 
-  Future<void> _closeH20HardwareAudioRoute() async {
+  Future<void> _closeHomiHardwareAudioRoute() async {
     if (_usingHfpRoute) await _stopHfpRoute();
   }
 
@@ -2516,7 +2516,7 @@ class ConversationController extends ChangeNotifier
       );
       return;
     }
-    // BLE is a separate H20 control transport. Its background scan/connect
+    // BLE is a separate HM-D001 control transport. Its background scan/connect
     // must not prevent Apple Speech (or the phone microphone) from starting.
     if (!_audioInput.isAvailable || isRecordingStartBlocked) {
       _setError('Nguồn âm thanh hiện chưa sẵn sàng.');
@@ -4556,7 +4556,7 @@ class ConversationController extends ChangeNotifier
       // every continuous turn negotiate Classic Bluetooth twice, invalidates
       // the playback preparation started alongside the backend request, and
       // closes the BLE window needed by the physical MAIN button. Output-only
-      // playback keeps the paired H20 on A2DP while BLE remains available; the
+      // playback keeps the paired HM-D001 on A2DP while BLE remains available; the
       // next recording turn will explicitly reopen its HFP microphone lease.
       final useContinuousHfpSession = _continuousHfpSessionActive;
       final useSelectedMediaOutput =
@@ -5084,7 +5084,7 @@ class ConversationController extends ChangeNotifier
     return true;
   }
 
-  void showH20ConnectionMessage(String message) {
+  void showHomiConnectionMessage(String message) {
     transientMessage = message;
     notifyListeners();
   }
@@ -5115,7 +5115,7 @@ class ConversationController extends ChangeNotifier
   Future<void> _stopAfterHfpRouteLoss() async {
     _handlingHfpRouteLoss = true;
     // Invalidate this turn immediately so a late translated clip cannot start
-    // on the phone after either native platform loses the selected H20 output.
+    // on the phone after either native platform loses the selected HM-D001 output.
     final cancellation = cancelCurrentMainAction();
     final generation = _conversationTurnGeneration;
     try {
@@ -5128,7 +5128,7 @@ class ConversationController extends ChangeNotifier
         notifyListeners();
       }
     } catch (error) {
-      debugPrint('HOMI H20 route-loss cleanup failed: $error');
+      debugPrint('HOMI HM-D001 route-loss cleanup failed: $error');
     } finally {
       _handlingHfpRouteLoss = false;
       if (!_disposed) notifyListeners();
@@ -5142,7 +5142,7 @@ class ConversationController extends ChangeNotifier
     final status = _hfpAudioControl?.status;
     final output = status?.outputPortType;
     // An older native bridge has no typed route metadata. Do not infer the
-    // selected H20 from a display name, which may differ between HFP and A2DP.
+    // selected HM-D001 from a display name, which may differ between HFP and A2DP.
     if (status?.routeSequence == null || output == null) return;
     if (output == 'builtInSpeaker' || output == 'builtInReceiver') {
       throw const HfpAudioException(
@@ -5249,7 +5249,7 @@ class ConversationController extends ChangeNotifier
     _partialSpeechEndpointTimer?.cancel();
     _offlineFallbackTimer?.cancel();
     _processingStageTimer?.cancel();
-    _h20HardwareRecordingTimer?.cancel();
+    _homiHardwareRecordingTimer?.cancel();
     _connectionNoticeTimer?.cancel();
     unawaited(_amplitudeSubscription?.cancel());
     unawaited(_batchChunkSubscription?.cancel());
@@ -5283,7 +5283,7 @@ class ConversationController extends ChangeNotifier
     unawaited(_aiv0StatusSubscription?.cancel());
     unawaited(_aiv0ButtonSubscription?.cancel());
     unawaited(_playbackPlayingSubscription?.cancel());
-    if (_h20HardwareAudioInputStarted) {
+    if (_homiHardwareAudioInputStarted) {
       unawaited(_audioInput.cancel().catchError((Object _) {}));
     }
     unawaited(_stopHfpRoute());

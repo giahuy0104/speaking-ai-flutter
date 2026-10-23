@@ -113,7 +113,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
         ?widget.connectionCoordinator?.bluetoothPower,
       ]),
       builder: (context, _) {
-        final h20State = controller.h20ConnectionState();
+        final homiState = controller.homiConnectionState();
         return DisplayLanguageScope(
           language: controller.displayLanguage,
           child: Builder(
@@ -190,15 +190,15 @@ class _SettingsSheetState extends State<SettingsSheet> {
                                       coordinator: coordinator,
                                       connection:
                                           HomiConnectionPresentation.from(
-                                            h20State,
-                                            isReady: h20State.isH20Ready,
+                                            homiState,
+                                            isReady: homiState.isHomiReady,
                                           ),
                                       microphoneNeedsConfirmation:
                                           controller
                                               .aiv0BleStatus
                                               .isConnected &&
                                           controller.usesHfpInput &&
-                                          !h20State.isH20Ready,
+                                          !homiState.isHomiReady,
                                       canConnect: _canUseBluetooth,
                                       onConnect: () =>
                                           unawaited(_connectHomi()),
@@ -211,8 +211,8 @@ class _SettingsSheetState extends State<SettingsSheet> {
                                   else
                                     _DeviceHeading(
                                       label: HomiConnectionPresentation.from(
-                                        h20State,
-                                        isReady: h20State.isH20Ready,
+                                        homiState,
+                                        isReady: homiState.isHomiReady,
                                       ).label(context),
                                     ),
                                 ],
@@ -220,7 +220,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
                             ),
                             const _SettingsDivider(),
                             _CompactSettingsSection(
-                              key: const Key('settings-audio-h20-section'),
+                              key: const Key('settings-audio-hm-d001-section'),
                               icon: Icons.headset_mic_outlined,
                               title: context.tr('Âm thanh & thiết bị', '音频与设备'),
                               children: <Widget>[_deviceDetails(context)],
@@ -581,7 +581,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
   }
 
   Widget _deviceDetails(BuildContext context) => HomiSurface(
-    key: const Key('settings-h20-group'),
+    key: const Key('settings-hm-d001-group'),
     padding: const EdgeInsets.all(12),
     color: Theme.of(context).colorScheme.surface,
     borderColor: Theme.of(context).colorScheme.outlineVariant,
@@ -825,7 +825,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
       });
 
   bool _isLikelyMicrophone(HfpAudioDevice device) =>
-      selectLikelyH20HfpDevice(<HfpAudioDevice>[
+      selectLikelyHomiHfpDevice(<HfpAudioDevice>[
         device,
       ], bleDeviceName: controller.aiv0BleStatus.deviceName) !=
       null;

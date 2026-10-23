@@ -80,7 +80,7 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.tap(find.byTooltip('Cài đặt'));
-      await tester.pump();
+      await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
       expect(find.text('Ngữ cảnh'), findsNothing);
       if (defaultTargetPlatform == TargetPlatform.iOS) {

@@ -143,8 +143,8 @@ void main() {
       );
       expect(setup.microphoneGranted, isTrue);
       expect(setup.bluetoothGranted, isTrue);
-      expect(setup.h20BleConnected, isTrue);
-      expect(setup.h20HfpConfigured, isTrue);
+      expect(setup.homiBleConnected, isTrue);
+      expect(setup.homiHfpConfigured, isTrue);
       await setup.onCompleteSetup();
       await _pumpAsync(tester);
       shell = tester.widget<HomeLearningShell>(find.byType(HomeLearningShell));
@@ -168,7 +168,7 @@ void main() {
       final app = await _pumpApp(tester);
       await app.emitBle('connected');
       await app.controller.connectHfpDevice(mic);
-      expect(app.controller.isH20Ready, isTrue);
+      expect(app.controller.isHomiReady, isTrue);
       final shell = tester.widget<HomeLearningShell>(
         find.byType(HomeLearningShell),
       );
@@ -206,7 +206,7 @@ void main() {
       expect(controls.history.first.input.protocol, 'observedHmD001');
       expect(messages, contains(contains('reason=parental_consent_missing')));
       expect(messages, contains(contains('result=unavailable')));
-      expect(messages, contains('H20 MAIN: main • ignored'));
+      expect(messages, contains('HM-D001 MAIN: main • ignored'));
       expect(app.speechCalls.where((c) => c.method == 'speech.start'), isEmpty);
       expect(app.hfpCalls.where((c) => c.method == 'startAudioRoute'), isEmpty);
       await app.close();
@@ -224,7 +224,7 @@ void main() {
       await _pumpAsync(tester);
       await app.emitBle('connected');
       expect((await app.controller.connectHfpDevice(mic)).succeeded, isTrue);
-      expect(app.controller.isH20Ready, isTrue);
+      expect(app.controller.isHomiReady, isTrue);
       // The initial connection round already elapsed. Keep the domain clock
       // deterministic while the existing Timer.periodic remains real Dart code.
       app.now = app.now.add(const Duration(seconds: 75));

@@ -174,7 +174,7 @@ class HfpAudioBridge(
                                     // disconnect from an earlier generation.
                                     if (isSelectedHeadsetAudioConnected()) return
                                     recoverUnexpectedAudioRoute(
-                                        "Selected H20 SCO audio disconnected",
+                                        "Selected HM-D001 SCO audio disconnected",
                                     )
                                 } else {
                                     refreshSelectedDeviceStatus()
@@ -194,7 +194,7 @@ class HfpAudioBridge(
                             pendingAudioRouteResult == null &&
                             (routeActive || audioModeOwned)
                         ) {
-                            interruptLostAudioRoute("Selected H20 profile disconnected")
+                            interruptLostAudioRoute("Selected HM-D001 profile disconnected")
                         } else {
                             refreshSelectedDeviceStatus()
                         }
@@ -220,13 +220,13 @@ class HfpAudioBridge(
                     ?: return@postDelayed
                 Log.i(
                     TAG,
-                    "Re-asserting H20 communication route after delayed SCO disconnect " +
+                    "Re-asserting HM-D001 communication route after delayed SCO disconnect " +
                         "generation=$generation",
                 )
                 runCatching {
                     audioManager.setCommunicationDevice(communicationDevice)
                 }.onFailure { error ->
-                    Log.w(TAG, "Unable to re-assert H20 communication route", error)
+                    Log.w(TAG, "Unable to re-assert HM-D001 communication route", error)
                 }
             },
             AUDIO_ROUTE_REASSERT_DELAY_MS,
@@ -235,7 +235,7 @@ class HfpAudioBridge(
 
     /**
      * Some Android Bluetooth stacks briefly move an active communication track
-     * back to the handset while SCO renegotiates. The H20 profile remains
+     * back to the handset while SCO renegotiates. The HM-D001 profile remains
      * connected and accepts setCommunicationDevice again within about a second.
      * Treat that window as recoverable so a transport wobble does not abort the
      * lesson or surface HFP_ROUTE_LOST to Flutter.
@@ -270,7 +270,7 @@ class HfpAudioBridge(
         )
         activeRouteRecoveryGeneration = generation
         activeRouteRecoveryReason = reason
-        Log.w(TAG, "$reason; re-asserting the connected H20 route")
+        Log.w(TAG, "$reason; re-asserting the connected HM-D001 route")
         pollActiveRouteRecovery(generation)
     }
 
@@ -291,13 +291,13 @@ class HfpAudioBridge(
         val confirmed = isSelectedCommunicationRouteConfirmed()
         when (recovery.poll(SystemClock.elapsedRealtime(), confirmed)) {
             HfpRouteReadiness.Result.READY -> {
-                Log.i(TAG, "H20 communication route recovered generation=$generation")
+                Log.i(TAG, "HM-D001 communication route recovered generation=$generation")
                 clearActiveRouteRecovery()
                 return
             }
             HfpRouteReadiness.Result.TIMED_OUT -> {
                 val lostReason = activeRouteRecoveryReason
-                    ?: "Selected H20 communication route was lost"
+                    ?: "Selected HM-D001 communication route was lost"
                 clearActiveRouteRecovery()
                 interruptLostAudioRoute(lostReason)
                 return
@@ -308,7 +308,7 @@ class HfpAudioBridge(
         val selected = selectedDevice
         if (selected == null || !isHeadsetConnected(selected)) {
             val lostReason = activeRouteRecoveryReason
-                ?: "Selected H20 profile disconnected during route recovery"
+                ?: "Selected HM-D001 profile disconnected during route recovery"
             clearActiveRouteRecovery()
             interruptLostAudioRoute(lostReason)
             return
@@ -318,7 +318,7 @@ class HfpAudioBridge(
                 audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
                 audioManager.setCommunicationDevice(communicationDevice)
             }.onFailure { error ->
-                Log.w(TAG, "Unable to re-assert active H20 communication route", error)
+                Log.w(TAG, "Unable to re-assert active HM-D001 communication route", error)
             }
         }
         routeHandler.postDelayed(
@@ -430,7 +430,7 @@ class HfpAudioBridge(
                     !isSelectedCommunicationRouteConfirmed()
                 ) {
                     recoverUnexpectedAudioRoute(
-                        "Selected H20 communication route was lost",
+                        "Selected HM-D001 communication route was lost",
                     )
                 }
             }
@@ -719,7 +719,7 @@ class HfpAudioBridge(
             selectedDevice = device
             phase = "ready"
             statusMessage = "HFP đã kết nối; mic Bluetooth sẵn sàng."
-            Log.i(TAG, "H20 HFP profile selected and connected")
+            Log.i(TAG, "HM-D001 HFP profile selected and connected")
             emitStatus()
             result.success(snapshot())
         } catch (error: SecurityException) {
@@ -781,7 +781,7 @@ class HfpAudioBridge(
         // SCO can disconnect independently and flip routeActive to false while
         // MODE_IN_COMMUNICATION remains set. Overwriting previousAudioMode on
         // the next retry would then make the communication stream permanent,
-        // which produces inconsistent volume on later H20 playback.
+        // which produces inconsistent volume on later HM-D001 playback.
         if (!audioModeOwned) {
             previousAudioMode = audioManager.mode
             audioModeOwned = true
@@ -866,7 +866,7 @@ class HfpAudioBridge(
         routeActive = true
         phase = "recording"
         statusMessage = "Đang dùng mic và loa HM-D001 trên đường HFP/SCO hai chiều."
-        Log.i(TAG, "H20 HFP/SCO route active")
+        Log.i(TAG, "HM-D001 HFP/SCO route active")
         emitStatus()
         routeHandler.postDelayed(
             {
@@ -907,7 +907,7 @@ class HfpAudioBridge(
             statusMessage = "Đang dùng mic và loa HM-D001 trên đường HFP/SCO hai chiều."
             Log.i(
                 TAG,
-                "H20 HFP/SCO route confirmed: id=${activeDevice?.id}, " +
+                "HM-D001 HFP/SCO route confirmed: id=${activeDevice?.id}, " +
                     "name=${activeDevice?.productName}, generation=$generation",
             )
             val status = snapshot()
@@ -1158,7 +1158,7 @@ class HfpAudioBridge(
         if (nameMatches.size == 1) return nameMatches.single()
 
         // Some OEMs redact AudioDeviceInfo.address. A single SCO endpoint is
-        // still deterministic only when the selected H20 is also the sole
+        // still deterministic only when the selected HM-D001 is also the sole
         // connected HEADSET profile device.
         val connected = connectedHeadsets()
         if (

@@ -8,7 +8,7 @@ import 'package:ai_speaking_flutter_app/core/device/main_button_coordinator.dart
 import 'package:ai_speaking_flutter_app/features/conversation/application/conversation_settings_port.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/data/demo_conversation_repository.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
-import 'package:ai_speaking_flutter_app/features/settings/presentation/h20_control_diagnostics_screen.dart';
+import 'package:ai_speaking_flutter_app/features/settings/presentation/homi_control_diagnostics_screen.dart';
 import 'package:ai_speaking_flutter_app/features/settings/presentation/settings_sheet.dart';
 import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
 import 'package:flutter/foundation.dart';
@@ -47,16 +47,16 @@ void main() {
             matching: find.byType(Scrollable),
           )
           .first;
-      final section = find.byKey(const Key('settings-audio-h20-section'));
+      final section = find.byKey(const Key('settings-audio-hm-d001-section'));
       await tester.scrollUntilVisible(section, 350, scrollable: scroll);
       await tester.tap(section);
       await tester.pumpAndSettle();
-      final button = find.byKey(const Key('open-h20-control-diagnostics'));
+      final button = find.byKey(const Key('open-hm-d001-control-diagnostics'));
       expect(
         button,
         platform == TargetPlatform.iOS ? findsOneWidget : findsNothing,
       );
-      expect(find.byType(H20ControlDiagnosticsScreen), findsNothing);
+      expect(find.byType(HomiControlDiagnosticsScreen), findsNothing);
       expect(fixture.controls.diagnosticsActive, isFalse);
       expect(fixture.controls.executeTests, isFalse);
       expect(fixture.mainCalls, 0);
@@ -83,7 +83,7 @@ void main() {
     await tester.pump();
     expect(
       find.descendant(
-        of: find.byKey(const Key('h20-last-button')),
+        of: find.byKey(const Key('hm-d001-last-button')),
         matching: find.text('UNKNOWN'),
       ),
       findsOneWidget,
@@ -106,15 +106,15 @@ void main() {
         null,
       ),
     );
-    await tester.tap(find.byKey(const Key('h20-copy-log')));
+    await tester.tap(find.byKey(const Key('hm-d001-copy-log')));
     await tester.pump();
     expect(copied, fixture.controls.exportLog());
     expect(copied, contains('raw=FE 02 7F 00'));
     expect(copied, isNot(contains('not-exported-device')));
-    await tester.tap(find.byKey(const Key('h20-clear-log')));
+    await tester.tap(find.byKey(const Key('hm-d001-clear-log')));
     await tester.pump();
     expect(fixture.controls.history, isEmpty);
-    expect(find.byKey(const Key('h20-no-events')), findsOneWidget);
+    expect(find.byKey(const Key('hm-d001-no-events')), findsOneWidget);
     await fixture.unmount(tester);
   });
 
@@ -124,7 +124,7 @@ void main() {
       final fixture = _Fixture(platform: 'ios');
       addTearDown(fixture.dispose);
       await fixture.mount(tester);
-      final simulated = find.byKey(const Key('h20-simulate-main-shortPress'));
+      final simulated = find.byKey(const Key('hm-d001-simulate-main-shortPress'));
       await tester.ensureVisible(simulated);
       await tester.tap(simulated);
       await tester.pump();
@@ -157,14 +157,14 @@ void main() {
           button: Aiv0Button.main,
           gesture: Aiv0ButtonGesture.shortPress,
           occurredAt: DateTime.now(),
-          protocol: 'observedV1',
+          protocol: 'observedHmD001',
           actionable: true,
         ),
       );
       await tester.pump();
       expect(find.text('Android: Chưa thử\niOS: Đã nhận'), findsOneWidget);
       expect(fixture.mainCalls, 0);
-      final probe = find.byKey(const Key('h20-probe-volumeUp-longPress'));
+      final probe = find.byKey(const Key('hm-d001-probe-volumeUp-longPress'));
       await tester.ensureVisible(probe);
       await tester.tap(probe);
       await tester.pump();
@@ -187,12 +187,12 @@ void main() {
     final fixture = _Fixture();
     addTearDown(fixture.dispose);
     await fixture.mount(tester);
-    final toggle = find.byKey(const Key('h20-execute-tests'));
+    final toggle = find.byKey(const Key('hm-d001-execute-tests'));
     await tester.ensureVisible(toggle);
     await tester.tap(toggle);
     await tester.pump();
     expect(fixture.controls.executeTests, isTrue);
-    final simulate = find.byKey(const Key('h20-simulate-main-shortPress'));
+    final simulate = find.byKey(const Key('hm-d001-simulate-main-shortPress'));
     await tester.ensureVisible(simulate);
     await tester.tap(simulate);
     await tester.pump();
@@ -233,11 +233,11 @@ void main() {
     expect(find.text('Chưa xác định (theo hệ điều hành)'), findsOneWidget);
     fixture.settings.audioStatus = const BluetoothAudioStatus(
       phase: BluetoothAudioConnectionPhase.ready,
-      audioRoute: 'BluetoothA2DP: H20',
+      audioRoute: 'BluetoothA2DP: HM-D001',
     );
     fixture.settings.notifyListeners();
     await tester.pump();
-    expect(find.text('BluetoothA2DP: H20'), findsOneWidget);
+    expect(find.text('BluetoothA2DP: HM-D001'), findsOneWidget);
     await fixture.unmount(tester);
   });
 
@@ -257,7 +257,7 @@ void main() {
           ).copyWith(textScaler: const TextScaler.linear(1.4)),
           child: child!,
         ),
-        home: H20ControlDiagnosticsScreen(
+        home: HomiControlDiagnosticsScreen(
           controller: fixture.settings,
           controls: fixture.controls,
         ),
@@ -275,7 +275,7 @@ void main() {
     );
     await tester.pump();
     await tester.ensureVisible(
-      find.byKey(const Key('h20-simulate-power-shortPress')),
+      find.byKey(const Key('hm-d001-simulate-power-shortPress')),
     );
     await tester.pump();
     expect(tester.takeException(), isNull);
@@ -304,7 +304,7 @@ class _Fixture {
     await tester.pumpWidget(
       MaterialApp(
         onGenerateRoute: createAppRouter().onGenerateRoute,
-        home: H20ControlDiagnosticsScreen(
+        home: HomiControlDiagnosticsScreen(
           controller: settings,
           controls: controls,
         ),
@@ -337,7 +337,7 @@ class _Settings extends ChangeNotifier implements ConversationSettingsPort {
   Aiv0BleStatus get aiv0BleStatus => const Aiv0BleStatus(
     phase: Aiv0BlePhase.connected,
     protocolConfirmed: false,
-    deviceName: 'H20',
+    deviceName: 'HM-D001',
     deviceId: 'local-device',
   );
   @override

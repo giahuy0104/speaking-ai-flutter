@@ -41,7 +41,7 @@ void main() {
     expect(taps, 1);
   });
 
-  testWidgets('shows HOMI progress while H20 transports are connecting', (
+  testWidgets('shows HOMI progress while HM-D001 transports are connecting', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -58,7 +58,7 @@ void main() {
     expect(find.byType(Image), findsOneWidget);
   });
 
-  testWidgets('shows success only after MAIN control and H20 mic connect', (
+  testWidgets('shows success only after MAIN control and HM-D001 mic connect', (
     tester,
   ) async {
     await tester.pumpWidget(

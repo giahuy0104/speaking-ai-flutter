@@ -160,7 +160,7 @@ void main() {
       await app.emitBle('connected');
       expect(app.hfpConnectCalls, 1);
       expect(app.controller.canUseAiv0Ble, isTrue);
-      expect(app.controller.isH20Ready, isFalse);
+      expect(app.controller.isHomiReady, isFalse);
       expect(find.text('Đang tìm thiết bị'), findsOneWidget);
       expect(find.byType(TopicLessonListScreen), findsNothing);
 
@@ -189,7 +189,7 @@ void main() {
         );
         await tester.pump();
       }
-      expect(app.controller.isH20Ready, isTrue);
+      expect(app.controller.isHomiReady, isTrue);
       expect(find.byKey(_dialog), findsNothing);
       expect(
         find.byType(TopicLessonListScreen, skipOffstage: false),
@@ -239,7 +239,7 @@ void main() {
         await _pumpAsync(tester);
       }
       expect(app.controller.canUseAiv0Ble, isTrue);
-      expect(app.controller.isH20Ready, isFalse);
+      expect(app.controller.isHomiReady, isFalse);
       expect(find.byKey(_dialog), findsNothing);
 
       await _tapSpeak(tester);

@@ -62,9 +62,7 @@ class AivoControlInput {
     deviceId: event.deviceId,
     uptimeMilliseconds: event.uptimeMilliseconds,
     rawPayload: event.rawDescription ?? event.rawHex,
-    protocol: event.isObservedH20Packet
-        ? 'observedV1'
-        : event.isObservedHmD001Packet
+    protocol: event.isObservedHmD001Packet
         ? 'observedHmD001'
         : event.isDraftPacket
         ? 'draft'

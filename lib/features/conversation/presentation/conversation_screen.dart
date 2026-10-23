@@ -114,7 +114,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
         final needsDeviceConnection =
             widget.ensureDeviceConnected != null &&
             !(widget.isDeviceConnectionReady?.call() ??
-                widget.controller.isH20Ready);
+                widget.controller.isHomiReady);
         return DisplayLanguageScope(
           language: widget.controller.displayLanguage,
           child: Scaffold(
@@ -126,8 +126,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
                 child: Column(
                   children: <Widget>[
                     ScenicAppHeader(
-                      isReady: widget.controller.isH20Ready,
-                      connectionState: widget.controller.h20ConnectionState(),
+                      isReady: widget.controller.isHomiReady,
+                      connectionState: widget.controller.homiConnectionState(),
                       onHistory: () =>
                           unawaited(_openOtherScreen(widget.onOpenHistory)),
                       onSettings: () =>
@@ -137,8 +137,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
                     ),
                     HomiConnectionNotice(
                       status: HomiConnectionPresentation.from(
-                        widget.controller.h20ConnectionState(),
-                        isReady: widget.controller.isH20Ready,
+                        widget.controller.homiConnectionState(),
+                        isReady: widget.controller.isHomiReady,
                       ),
                     ),
                     Expanded(

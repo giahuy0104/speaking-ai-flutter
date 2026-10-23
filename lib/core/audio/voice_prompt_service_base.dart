@@ -70,7 +70,7 @@ abstract interface class SpeechReadyCuePlayer {
 }
 
 /// Optional capability for prompts that must be distinguishable from lesson
-/// audio routed through a selected two-way H20 device.
+/// audio routed through a selected two-way HM-D001 device.
 abstract interface class PhoneSpeakerVoicePromptService {
   Future<void> speakAndWaitOnPhoneSpeaker(
     String text, {
@@ -78,7 +78,7 @@ abstract interface class PhoneSpeakerVoicePromptService {
   });
 }
 
-/// Plays a lesson prompt through the currently selected H20 output.
+/// Plays a lesson prompt through the currently selected HM-D001 output.
 ///
 /// On iOS the native bridge keeps the selected HFP route when it is available;
 /// ordinary media playback is only the disconnected-device fallback.

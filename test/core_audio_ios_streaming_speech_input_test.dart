@@ -411,7 +411,7 @@ void main() {
     expect(input.takeFallbackAudioCapture(), isNull);
   });
 
-  test('iOS MAIN releases the selected H20 HFP route after a turn', () async {
+  test('iOS MAIN releases the selected HM-D001 HFP route after a turn', () async {
     const methodChannel = MethodChannel('test_ios_native_hfp_route');
     final events = StreamController<dynamic>.broadcast();
     final route = _FakeHfpAudioControl();
@@ -434,7 +434,7 @@ void main() {
             events.add(<String, dynamic>{
               'type': 'speech.ready',
               'engine': 'speech_analyzer',
-              'audioRoute': 'in=[BluetoothHFP:H20]',
+              'audioRoute': 'in=[BluetoothHFP:HM-D001]',
             });
           });
           return true;
@@ -477,7 +477,7 @@ void main() {
     expect(route.status.routeActive, isFalse);
   });
 
-  test('iOS lesson requests English Apple Speech on the H20 route', () async {
+  test('iOS lesson requests English Apple Speech on the HM-D001 route', () async {
     const methodChannel = MethodChannel('test_ios_lesson_english_hfp');
     final events = StreamController<dynamic>.broadcast();
     final route = _FakeHfpAudioControl();
@@ -500,7 +500,7 @@ void main() {
               'type': 'speech.ready',
               'engine': 'sf_speech_recognizer',
               'locale': 'en-US',
-              'audioRoute': 'in=[BluetoothHFP:H20]',
+              'audioRoute': 'in=[BluetoothHFP:HM-D001]',
             });
           });
           return true;
@@ -598,7 +598,7 @@ void main() {
     expect(capture.recordedAudio?.recordingSampleRate, 16000);
   });
 
-  test('iOS scopes H20 HFP activation to each consecutive utterance', () async {
+  test('iOS scopes HM-D001 HFP activation to each consecutive utterance', () async {
     const methodChannel = MethodChannel('test_ios_hfp_route_reuse');
     final events = StreamController<dynamic>.broadcast();
     final route = _FakeHfpAudioControl();
@@ -613,7 +613,7 @@ void main() {
             events.add(<String, dynamic>{
               'type': 'speech.ready',
               'engine': 'sf_speech_recognizer',
-              'audioRoute': 'in=[BluetoothHFP:H20]',
+              'audioRoute': 'in=[BluetoothHFP:HM-D001]',
             });
           });
           return true;
@@ -663,7 +663,7 @@ void main() {
               events.add(<String, dynamic>{
                 'type': 'speech.ready',
                 'engine': 'sf_speech_recognizer',
-                'audioRoute': 'in=[BluetoothHFP:H20]',
+                'audioRoute': 'in=[BluetoothHFP:HM-D001]',
               });
             });
             return true;
@@ -716,7 +716,7 @@ void main() {
   );
 
   test(
-    'iOS continuous session re-arms an H20 route that dropped back to ready',
+    'iOS continuous session re-arms an HM-D001 route that dropped back to ready',
     () async {
       const methodChannel = MethodChannel('test_ios_continuous_route_blip');
       final events = StreamController<dynamic>.broadcast();
@@ -732,7 +732,7 @@ void main() {
               events.add(<String, dynamic>{
                 'type': 'speech.ready',
                 'engine': 'sf_speech_recognizer',
-                'audioRoute': 'in=[BluetoothHFP:H20]',
+                'audioRoute': 'in=[BluetoothHFP:HM-D001]',
               });
             });
             return true;
@@ -755,7 +755,7 @@ void main() {
       addTearDown(input.dispose);
 
       await input.beginContinuousHfpSession();
-      // A short H20 route blip: native reports the route again, but as
+      // A short HM-D001 route blip: native reports the route again, but as
       // "ready" rather than "recording".
       route.markActiveRouteReady();
       await input.startCommandRecognition();
@@ -767,7 +767,7 @@ void main() {
     },
   );
 
-  test('iOS re-arms an active H20 route left ready by another flow', () async {
+  test('iOS re-arms an active HM-D001 route left ready by another flow', () async {
     const methodChannel = MethodChannel('test_ios_hfp_route_rearm');
     final events = StreamController<dynamic>.broadcast();
     final route = _FakeHfpAudioControl();
@@ -782,7 +782,7 @@ void main() {
             events.add(<String, dynamic>{
               'type': 'speech.ready',
               'engine': 'sf_speech_recognizer',
-              'audioRoute': 'in=[BluetoothHFP:H20]',
+              'audioRoute': 'in=[BluetoothHFP:HM-D001]',
             });
           });
           return true;
@@ -814,7 +814,7 @@ void main() {
   });
 
   test(
-    'iOS lesson take re-arms a ready H20 route still held by the lesson prompt',
+    'iOS lesson take re-arms a ready HM-D001 route still held by the lesson prompt',
     () async {
       const methodChannel = MethodChannel('test_ios_hfp_route_rearm_shared');
       final events = StreamController<dynamic>.broadcast();
@@ -938,7 +938,7 @@ void main() {
             events.add(<String, dynamic>{
               'type': 'speech.ready',
               'engine': 'sf_speech_recognizer',
-              'audioRoute': 'in=[BluetoothHFP:H20]',
+              'audioRoute': 'in=[BluetoothHFP:HM-D001]',
             });
           });
           return true;
@@ -1191,7 +1191,7 @@ void main() {
           return true;
         case 'speech.start':
           // Route polling, engine retry and the first buffer can together
-          // take several seconds on an H20 HFP route.
+          // take several seconds on an HM-D001 HFP route.
           Timer(const Duration(seconds: 7), () {
             events.add(<String, dynamic>{
               'type': 'speech.ready',
@@ -1484,8 +1484,8 @@ class _FakeHfpAudioControl implements HfpAudioControl {
       StreamController<BluetoothAudioStatus>.broadcast(sync: true);
   BluetoothAudioStatus _status = const BluetoothAudioStatus(
     phase: BluetoothAudioConnectionPhase.ready,
-    deviceId: 'h20-hfp',
-    deviceName: 'H20',
+    deviceId: 'hm-d001-hfp',
+    deviceName: 'HM-D001',
     sampleRate: 16000,
   );
   int startRouteCount = 0;
@@ -1523,8 +1523,8 @@ class _FakeHfpAudioControl implements HfpAudioControl {
     await startGate;
     _status = const BluetoothAudioStatus(
       phase: BluetoothAudioConnectionPhase.recording,
-      deviceId: 'h20-hfp',
-      deviceName: 'H20',
+      deviceId: 'hm-d001-hfp',
+      deviceName: 'HM-D001',
       sampleRate: 16000,
       routeActive: true,
     );
@@ -1536,8 +1536,8 @@ class _FakeHfpAudioControl implements HfpAudioControl {
     stopRouteCount += 1;
     _status = const BluetoothAudioStatus(
       phase: BluetoothAudioConnectionPhase.ready,
-      deviceId: 'h20-hfp',
-      deviceName: 'H20',
+      deviceId: 'hm-d001-hfp',
+      deviceName: 'HM-D001',
       sampleRate: 16000,
     );
     _statuses.add(_status);
@@ -1546,8 +1546,8 @@ class _FakeHfpAudioControl implements HfpAudioControl {
   void markActiveRouteReady() {
     _status = const BluetoothAudioStatus(
       phase: BluetoothAudioConnectionPhase.ready,
-      deviceId: 'h20-hfp',
-      deviceName: 'H20',
+      deviceId: 'hm-d001-hfp',
+      deviceName: 'HM-D001',
       sampleRate: 16000,
       routeActive: true,
     );
