@@ -155,6 +155,52 @@ class _ConversationScreenState extends State<ConversationScreen> {
                             ),
                             child: Column(
                               children: <Widget>[
+                                if (widget
+                                    .controller
+                                    .supportsTranslationTargets)
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 16),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: <Widget>[
+                                        Text(context.tr('Dịch sang', '翻译成')),
+                                        const SizedBox(width: 12),
+                                        DropdownButton<
+                                          TranslationOutputLanguage
+                                        >(
+                                          key: const Key(
+                                            'translation-output-language',
+                                          ),
+                                          value:
+                                              widget.controller.outputLanguage,
+                                          onChanged:
+                                              widget.controller.isBusy ||
+                                                  widget
+                                                      .controller
+                                                      .sentenceQueueActive
+                                              ? null
+                                              : (language) {
+                                                  if (language != null) {
+                                                    widget.controller
+                                                        .setOutputLanguage(
+                                                          language,
+                                                        );
+                                                  }
+                                                },
+                                          items: [
+                                            for (final language
+                                                in TranslationOutputLanguage
+                                                    .values)
+                                              DropdownMenuItem(
+                                                value: language,
+                                                child: Text(language.label),
+                                              ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 VoiceHero(
                                   needsDeviceConnection: needsDeviceConnection,
                                   phase: widget.controller.phase,
@@ -192,7 +238,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                     padding: const EdgeInsets.only(bottom: 12),
                                     child: Text(
                                       '${previous.vietnameseText}\n'
-                                      '${previous.englishText}',
+                                      '${previous.displayedTranslation}',
                                     ),
                                   ),
                                 if (widget
@@ -206,6 +252,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                 ResultPanel(
                                   key: widget.resultPanelKey,
                                   result: widget.controller.result,
+                                  outputLanguage:
+                                      widget.controller.outputLanguage,
                                   onPlay: () =>
                                       unawaited(widget.controller.playResult()),
                                 ),

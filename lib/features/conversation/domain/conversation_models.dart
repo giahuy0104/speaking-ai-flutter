@@ -13,6 +13,26 @@ enum PracticeContext {
   final String label;
 }
 
+enum TranslationOutputLanguage {
+  english('en', 'Tiếng Anh', 'en-US'),
+  chinese('zh', 'Tiếng Trung', 'zh-CN'),
+  japanese('ja', 'Tiếng Nhật', 'ja-JP'),
+  korean('ko', 'Tiếng Hàn', 'ko-KR'),
+  french('fr', 'Tiếng Pháp', 'fr-FR');
+
+  const TranslationOutputLanguage(this.apiValue, this.label, this.speechLocale);
+
+  final String apiValue;
+  final String label;
+  final String speechLocale;
+
+  static TranslationOutputLanguage fromCode(Object? code) =>
+      TranslationOutputLanguage.values.firstWhere(
+        (language) => language.apiValue == code,
+        orElse: () => TranslationOutputLanguage.english,
+      );
+}
+
 enum AsrMode {
   androidStreaming('android_streaming', 'Chế độ tiêu chuẩn'),
   hfpStreaming('hfp_streaming', 'HFP streaming'),
@@ -155,6 +175,8 @@ class ConversationResult {
     required this.context,
     required this.vietnameseText,
     required this.englishText,
+    this.outputLanguage = TranslationOutputLanguage.english,
+    this.translatedText,
     required this.audioUri,
     required this.processingMode,
     required this.textSource,
@@ -181,6 +203,10 @@ class ConversationResult {
       ),
       vietnameseText: json['vietnameseText'] as String? ?? '',
       englishText: json['englishText'] as String? ?? '',
+      outputLanguage: TranslationOutputLanguage.fromCode(
+        json['targetLanguage'],
+      ),
+      translatedText: json['translatedText'] as String?,
       audioUri: rawAudioUrl == null
           ? null
           : backendBaseUri.resolve(rawAudioUrl),
@@ -205,6 +231,12 @@ class ConversationResult {
   final PracticeContext context;
   final String vietnameseText;
   final String englishText;
+  final TranslationOutputLanguage outputLanguage;
+  final String? translatedText;
+  String get displayedTranslation =>
+      outputLanguage == TranslationOutputLanguage.english
+      ? englishText
+      : translatedText ?? '';
   final Uri? audioUri;
   final String? audioSha256;
   final double? audioDurationSeconds;
@@ -242,6 +274,8 @@ class ConversationHistoryItem {
     required this.conversationId,
     required this.vietnameseText,
     required this.englishText,
+    this.outputLanguage = TranslationOutputLanguage.english,
+    this.translatedText,
     required this.createdAt,
     required this.qualityApproved,
     this.promotedToRule = false,
@@ -277,6 +311,10 @@ class ConversationHistoryItem {
       conversationId: json['conversationId'] as String? ?? '',
       vietnameseText: json['vietnameseText'] as String? ?? '',
       englishText: json['englishText'] as String? ?? '',
+      outputLanguage: TranslationOutputLanguage.fromCode(
+        json['targetLanguage'],
+      ),
+      translatedText: json['translatedText'] as String?,
       createdAt: (parsedCreatedAt ?? DateTime.fromMillisecondsSinceEpoch(0))
           .toLocal(),
       qualityApproved: json['qualityApproved'] as bool?,
@@ -306,6 +344,12 @@ class ConversationHistoryItem {
   final String conversationId;
   final String vietnameseText;
   final String englishText;
+  final TranslationOutputLanguage outputLanguage;
+  final String? translatedText;
+  String get displayedTranslation =>
+      outputLanguage == TranslationOutputLanguage.english
+      ? englishText
+      : translatedText ?? '';
   final DateTime createdAt;
   final bool? qualityApproved;
   final bool promotedToRule;
@@ -336,6 +380,8 @@ class ConversationHistoryItem {
       conversationId: conversationId,
       vietnameseText: vietnameseText,
       englishText: englishText,
+      outputLanguage: outputLanguage,
+      translatedText: translatedText,
       createdAt: createdAt,
       qualityApproved: approved,
       promotedToRule: learning?.promoted ?? promotedToRule,

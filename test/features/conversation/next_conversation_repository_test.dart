@@ -126,6 +126,69 @@ void main() {
     await repository.dispose();
   });
 
+  test(
+    'sends each selected language and skips English-only previews',
+    () async {
+      for (final language in TranslationOutputLanguage.values.where(
+        (language) => language != TranslationOutputLanguage.english,
+      )) {
+        var requests = 0;
+        final repository = NextConversationRepository(
+          config: config,
+          clientIdProvider: clientIdProvider,
+          client: MockClient((request) async {
+            requests++;
+            expect(request.url.path, '/api/conversation');
+            final body = jsonDecode(request.body) as Map<String, dynamic>;
+            expect(body['targetLanguage'], language.apiValue);
+            return http.Response(
+              jsonEncode(<String, dynamic>{
+                'conversationId': 'conv_${language.apiValue}',
+                'sessionId': 'sess_${language.apiValue}',
+                'context': 'home',
+                'vietnameseText': 'Con muốn uống nước.',
+                'englishText': '',
+                'targetLanguage': language.apiValue,
+                'translatedText': 'translation_${language.apiValue}',
+                'audioUrl': 'https://res.cloudinary.com/example/audio.mp3',
+              }),
+              200,
+              headers: const <String, String>{
+                'content-type': 'application/json',
+              },
+            );
+          }),
+        );
+        repository.setTranslationTarget(language);
+        expect(
+          await repository.previewStreamingText(
+            sourceText: 'Con muốn uống nước.',
+            context: PracticeContext.home,
+            childAge: 6,
+          ),
+          isNull,
+        );
+        final result = await repository.processStreamingText(
+          capture: const StreamingSpeechCapture(
+            sourceText: 'Con muốn uống nước.',
+            duration: Duration(seconds: 2),
+            inputLabel: 'Mic điện thoại',
+            confidence: null,
+            firstResultMs: 300,
+            finalAfterStopMs: 100,
+            asrMode: 'android_streaming',
+          ),
+          context: PracticeContext.home,
+          childAge: 6,
+          vadSilenceMs: 700,
+        );
+        expect(result.displayedTranslation, 'translation_${language.apiValue}');
+        expect(requests, 1);
+        await repository.dispose();
+      }
+    },
+  );
+
   test('rejects legacy Realtime locally without an HTTP request', () async {
     var requestCount = 0;
     final repository = NextConversationRepository(
@@ -416,6 +479,8 @@ void main() {
         expect(body, contains('name="clientId"'));
         expect(body, contains('android_test_device'));
         expect(body, contains('name="audio"; filename="utterance.wav"'));
+        expect(body, contains('name="targetLanguage"'));
+        expect(body, contains('\r\nfr\r\n'));
         expect(body, contains('direct_multipart'));
         expect(body, contains('"clientVadApplied":false'));
         return http.Response(
@@ -424,7 +489,9 @@ void main() {
             'sessionId': 'sess_direct',
             'context': 'home',
             'vietnameseText': 'Con muốn uống nước.',
-            'englishText': 'I want to drink water.',
+            'englishText': '',
+            'targetLanguage': 'fr',
+            'translatedText': 'Je voudrais boire de l’eau.',
             'audioUrl': '/api/audio/stream?text=water',
             'processingMode': 'ai',
             'textSource': 'cloudflare',
@@ -442,6 +509,7 @@ void main() {
         );
       }),
     );
+    repository.setTranslationTarget(TranslationOutputLanguage.french);
 
     final result = await repository.processAudio(
       capture: AudioCapture(
@@ -460,6 +528,7 @@ void main() {
 
     expect(requestCount, 1);
     expect(result.conversationId, 'conv_direct');
+    expect(result.displayedTranslation, 'Je voudrais boire de l’eau.');
     await repository.dispose();
   });
 
@@ -556,6 +625,7 @@ void main() {
             final body = jsonDecode(request.body) as Map<String, dynamic>;
             final benchmark = body['benchmark'] as Map<String, dynamic>;
             expect(body['mimeType'], 'audio/wav');
+            expect(body['targetLanguage'], 'ja');
             expect(benchmark['clientVadApplied'], isTrue);
             expect(benchmark['batchTransport'], 'streamed_pcm16_chunks');
             expect(benchmark['audioChunkCount'], 2);
@@ -584,7 +654,9 @@ void main() {
                 'sessionId': 'sess_batch',
                 'context': 'home',
                 'vietnameseText': 'Con muốn uống nước',
-                'englishText': 'Can I have some water, please?',
+                'englishText': '',
+                'targetLanguage': 'ja',
+                'translatedText': 'お水をください。',
                 'audioUrl': '/generated-audio/water.mp3',
                 'processingMode': 'rule',
                 'textSource': 'phrase_rule',
@@ -607,6 +679,7 @@ void main() {
         }),
       );
 
+      repository.setTranslationTarget(TranslationOutputLanguage.japanese);
       final upload = await repository.startBatchChunkUpload();
       upload.addAudioChunk(Uint8List(8000));
       upload.addAudioChunk(Uint8List(8000));
@@ -640,6 +713,7 @@ void main() {
       expect(uploadedSequences, <int>[0]);
       expect(finalized, isTrue);
       expect(result.asrMode, 'batch_chunks');
+      expect(result.displayedTranslation, 'お水をください。');
       await repository.dispose();
     },
   );
