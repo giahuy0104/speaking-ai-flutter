@@ -1,3 +1,6 @@
+import 'package:ai_speaking_flutter_app/app/di/settings_dependencies.dart';
+import 'package:ai_speaking_flutter_app/data/settings/stored_settings_repository.dart';
+import 'package:ai_speaking_flutter_app/presentation/settings/bloc/settings_bloc.dart';
 import 'dart:async';
 
 import 'package:ai_speaking_flutter_app/presentation/navigation/app_view_registry.dart';
@@ -23,9 +26,9 @@ import 'package:ai_speaking_flutter_app/features/listening/domain/listening_cont
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
 import 'package:ai_speaking_flutter_app/features/onboarding/application/onboarding_progress_store.dart';
 import 'package:ai_speaking_flutter_app/features/onboarding/presentation/user_onboarding_tour.dart';
-import 'package:ai_speaking_flutter_app/features/settings/application/parent_media_settings.dart';
-import 'package:ai_speaking_flutter_app/features/settings/presentation/history_sheet.dart';
-import 'package:ai_speaking_flutter_app/features/settings/presentation/settings_sheet.dart';
+import 'package:ai_speaking_flutter_app/data/settings/background_media_settings_store.dart';
+import 'package:ai_speaking_flutter_app/presentation/history/screen/history_screen.dart';
+import 'package:ai_speaking_flutter_app/presentation/settings/screen/settings_screen.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/application/vocabulary_audio_service.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/data/vocabulary_session_store.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/data/vocabulary_store.dart';
@@ -635,7 +638,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(mode.value, ThemeMode.dark);
     expect(
-      tester.widget<SettingsSheet>(find.byType(SettingsSheet)).themeMode,
+      tester.widget<SettingsScreen>(find.byType(SettingsScreen)).themeMode,
       ThemeMode.dark,
     );
     await tester.tap(find.byKey(const Key('appearance-settings-card')));
@@ -720,7 +723,7 @@ void main() {
     await tester.tap(find.byTooltip('Lịch sử gần đây'));
     await tester.pumpAndSettle();
 
-    expect(find.byType(HistorySheet), findsOneWidget);
+    expect(find.byType(HistoryScreen), findsOneWidget);
     expect(find.text('Không thể xác thực'), findsNothing);
     debugDefaultTargetPlatformOverride = null;
   });
@@ -782,7 +785,7 @@ void main() {
 
         final page = find.byKey(const Key('settings-page'));
         final route = ModalRoute.of(
-          tester.element(find.byType(SettingsSheet)),
+          tester.element(find.byType(SettingsScreen)),
         )!;
         expect(route, isA<MaterialPageRoute<void>>());
         expect(route.settings.name, '/settings');
@@ -1118,6 +1121,77 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     },
   );
+
+  for (final scenario in [
+    (enabled: false, interactive: true, keepsMic: true),
+    (enabled: true, interactive: true, keepsMic: false),
+    (enabled: true, interactive: false, keepsMic: true),
+  ]) {
+    testWidgets(
+      'SettingsBloc media policy enabled=${scenario.enabled} interactive=${scenario.interactive}',
+      (tester) async {
+        SharedPreferences.setMockInitialValues({});
+        debugDefaultTargetPlatformOverride = TargetPlatform.android;
+        addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        addTearDown(
+          () => tester.binding.handleAppLifecycleStateChanged(
+            AppLifecycleState.resumed,
+          ),
+        );
+        final session = _FakeScreenAwareBackgroundLearningSession(
+          screenInteractive: scenario.interactive,
+        );
+        final speech = _FakeStreamingSpeechInput();
+        final voice = VoiceNavigationController(speechInput: speech);
+        final controller = _controller();
+        final dependencies = SettingsDependencies(
+          repository: const StoredSettingsRepository(
+            mediaStore: _FakeParentMediaSettingsStore(false),
+          ),
+          validateAge: (value) => value,
+          onLanguageApplied: (_) {},
+          onChildAgeApplied: (_) {},
+        );
+        addTearDown(dependencies.dispose);
+        addTearDown(session.dispose);
+        addTearDown(voice.dispose);
+        addTearDown(controller.dispose);
+        await tester.pumpWidget(
+          _app(
+            controller,
+            settingsBloc: dependencies.bloc,
+            voiceNavigationController: voice,
+            backgroundLearningSession: session,
+            // This opposite fallback must not override the injected Bloc.
+            parentMediaSettingsStore: const _FakeParentMediaSettingsStore(true),
+          ),
+        );
+        await tester.pump();
+        expect(dependencies.bloc.state.stopMediaWhenBackgrounded, isFalse);
+        dependencies.bloc.add(
+          SettingsStopMediaWhenBackgroundedChanged(scenario.enabled),
+        );
+        await tester.pump();
+        expect(
+          dependencies.bloc.state.stopMediaWhenBackgrounded,
+          scenario.enabled,
+        );
+        expect(await voice.activateFromMainButton(), isTrue);
+        expect(voice.isListening, isTrue);
+        tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+        await tester.pump(const Duration(milliseconds: 400));
+        expect(voice.isListening, scenario.keepsMic);
+        expect(speech.cancelCount, scenario.keepsMic ? 0 : 1);
+        expect(session.screenStateReadCount, scenario.enabled ? 1 : 0);
+        tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        );
+        await tester.pump();
+        expect(tester.takeException(), isNull);
+        debugDefaultTargetPlatformOverride = null;
+      },
+    );
+  }
 
   testWidgets('keeps an explicit Android MAIN mic when the display is locked', (
     tester,
@@ -2632,6 +2706,7 @@ void _rebuildCountTests() {
 
 Widget _app(
   ConversationController controller, {
+  SettingsBloc? settingsBloc,
   Future<bool> Function()? ensureDeviceConnected,
   bool Function()? isDeviceConnectionReady,
   bool autoStartVoiceNavigation = false,
@@ -2660,6 +2735,7 @@ Widget _app(
   OnboardingProgressStore? onboardingStore,
 }) {
   final home = HomeLearningShell(
+    settingsBloc: settingsBloc,
     controller: controller,
     ensureDeviceConnected: ensureDeviceConnected,
     isDeviceConnectionReady: isDeviceConnectionReady,

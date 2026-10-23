@@ -84,7 +84,13 @@ stateDiagram-v2
 - `features/conversation/domain`: model và repository interface.
 - `features/conversation/data`: adapter cho API Next.js và demo adapter.
 - `features/conversation/presentation`: controller, màn hình và widget.
-- `features/settings`: cài đặt ngữ cảnh, ASR, VAD và lịch sử.
+- `presentation/settings/screen`: SettingsScreen dùng chung bố cục Android và chẩn đoán HOMI.
+- `presentation/settings/widgets`: các section, lựa chọn, thẻ trạng thái và phần điều khiển theo nền tảng.
+- `presentation/settings/bloc`: SettingsBloc/Event/State quản lý theme, ngôn ngữ, nhóm tuổi, ngưỡng im lặng VAD và tùy chọn dừng âm thanh nền. VAD chỉ giữ trong phiên; media dùng store/policy cũ qua repository và Home lifecycle.
+- `domain/settings`: contract SettingsRepository; `data/settings`: adapter các store hiện có.
+- `core/audio/background_media_policy.dart`: mặc định media theo nền tảng và policy lifecycle dùng chung; persistence tại `data/settings/background_media_settings_store.dart`. Không còn `features/settings`.
+- `presentation/history/{bloc,screen,widgets}`: HistoryBloc sở hữu tải/lọc/tìm/duyệt/xóa/phát và trạng thái thao tác; HistorySheet chỉ render và xác nhận. `app/di/history_dependencies.dart` inject ConversationHistoryPort hiện có, không tạo backend/audio mới. Xem [HistoryBloc](history-bloc.md).
+- Xem [SettingsBloc](settings-bloc.md) về phạm vi và cầu nối với controller cũ.
 - `android/...`: manifest quyền và native channel skeleton.
 
 Controller chỉ biết interface, nên thay nguồn âm thanh không làm thay đổi UI.

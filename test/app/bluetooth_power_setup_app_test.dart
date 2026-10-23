@@ -1,5 +1,11 @@
+import 'package:ai_speaking_flutter_app/presentation/history/bloc/history_bloc.dart';
+import 'package:ai_speaking_flutter_app/presentation/history/screen/history_screen.dart';
 import 'dart:async';
 import 'dart:io';
+import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_models.dart';
+import 'package:ai_speaking_flutter_app/presentation/settings/bloc/settings_bloc.dart';
+import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
+import 'package:ai_speaking_flutter_app/data/settings/stored_settings_repository.dart';
 import 'package:ai_speaking_flutter_app/app/di/app_dependencies.dart';
 import 'package:ai_speaking_flutter_app/presentation/app/bloc/app_bloc.dart';
 import 'package:ai_speaking_flutter_app/features/home/presentation/home_learning_shell.dart';
@@ -11,7 +17,7 @@ import 'package:ai_speaking_flutter_app/app/ai_speaking_app.dart';
 import 'package:ai_speaking_flutter_app/core/device/device_connection_coordinator.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_screen.dart';
 import 'package:ai_speaking_flutter_app/features/onboarding/presentation/startup_setup_screen.dart';
-import 'package:ai_speaking_flutter_app/features/settings/presentation/settings_sheet.dart';
+import 'package:ai_speaking_flutter_app/presentation/settings/screen/settings_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -23,6 +29,300 @@ import '../support/onboarding_actions.dart';
 
 void main() {
   final android = TargetPlatformVariant({TargetPlatform.android});
+
+  testWidgets(
+    'Settings history creates and disposes an injected sheet Bloc on each opening',
+    (tester) async {
+      final app = await _pumpApp(tester, surfaceSize: const Size(460, 900));
+      await app.openSettings();
+      final openHistory = find.text('Xem lịch sử gần đây');
+      await tester.ensureVisible(openHistory);
+      await tester.tap(openHistory);
+      // History may still be loading through the real app adapter. Verify
+      // sheet ownership without waiting on its looping loading animation.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.byType(HistoryScreen), findsOneWidget);
+      final consumer = find.byType(BlocConsumer<HistoryBloc, HistoryState>);
+      final first = tester.element(consumer).read<HistoryBloc>();
+      first.add(HistoryQueryChanged('test'));
+      await tester.pump();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(HistoryScreen),
+          matching: find.byTooltip('Đóng'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(first.isClosed, isTrue);
+      expect(find.byType(SettingsScreen), findsOneWidget);
+      await tester.ensureVisible(openHistory);
+      await tester.tap(openHistory);
+      // History may still be loading through the real app adapter. Verify
+      // sheet ownership without waiting on its looping loading animation.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      final second = tester.element(consumer).read<HistoryBloc>();
+      expect(second, isNot(same(first)));
+      expect(second.state.query, isEmpty);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(HistoryScreen),
+          matching: find.byTooltip('Đóng'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(second.isClosed, isTrue);
+      expect(tester.takeException(), isNull);
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  testWidgets(
+    'Settings audio options use Bloc while retaining VAD and persistence rules',
+    (tester) async {
+      final isIos = defaultTargetPlatform == TargetPlatform.iOS;
+      final savedMedia = !isIos;
+      final app = await _pumpApp(
+        tester,
+        surfaceSize: const Size(460, 900),
+        preferenceOverrides: {
+          'homi.parent.stop-media-when-backgrounded.v1': savedMedia,
+        },
+      );
+      final home = tester.widget<HomeLearningShell>(
+        find.byType(HomeLearningShell),
+      );
+      final bloc = home.settingsBloc!;
+      await _settleSettings(tester, bloc);
+      expect(bloc.state.vadSilenceMs, 700);
+      expect(bloc.state.stopMediaWhenBackgrounded, savedMedia);
+      await app.openSettings();
+      if (isIos) {
+        final media = find.byKey(
+          const Key('settings-stop-media-background-switch'),
+        );
+        await tester.ensureVisible(media);
+        await tester.tap(media);
+        await tester.pump();
+        await _settleSettings(tester, bloc);
+        expect(bloc.state.stopMediaWhenBackgrounded, !savedMedia);
+        expect(tester.widget<SwitchListTile>(media).value, !savedMedia);
+        final recognition = find.byKey(
+          const Key('settings-recognition-section'),
+        );
+        await tester.ensureVisible(recognition);
+        await tester.tap(
+          find.descendant(
+            of: recognition,
+            matching: find.text('Nhận dạng giọng nói'),
+          ),
+        );
+        await tester.pumpAndSettle();
+        final slider = find.byKey(const Key('settings-vad-silence-slider'));
+        await tester.ensureVisible(slider);
+        await tester.tapAt(tester.getCenter(slider));
+        await tester.pump();
+        expect(bloc.state.vadSilenceMs, isNot(700));
+        expect(home.controller.vadSilenceMs, bloc.state.vadSilenceMs);
+      } else {
+        // No new Android controls: existing caller is delegated into Bloc.
+        bloc.add(SettingsStopMediaWhenBackgroundedChanged(!savedMedia));
+        await tester.pump();
+        await _settleSettings(tester, bloc);
+      }
+      final preferences = await SharedPreferences.getInstance();
+      expect(
+        preferences.getBool('homi.parent.stop-media-when-backgrounded.v1'),
+        !savedMedia,
+      );
+      home.controller.setVadSilence(2000);
+      await tester.pump();
+      expect(bloc.state.vadSilenceMs, 1600);
+      expect(home.controller.vadSilenceMs, 1600);
+      home.controller.phase = ConversationPhase.processing;
+      home.controller.notifyListeners();
+      await tester.pump();
+      bloc.add(SettingsVadSilenceChanged(500));
+      await tester.pump();
+      expect(bloc.state.vadSilenceMs, 1600);
+      expect(home.controller.vadSilenceMs, 1600);
+      if (isIos) {
+        expect(
+          tester
+              .widget<Slider>(
+                find.byKey(const Key('settings-vad-silence-slider')),
+              )
+              .onChanged,
+          isNull,
+        );
+      }
+      home.controller.phase = ConversationPhase.idle;
+      home.controller.notifyListeners();
+      Navigator.of(tester.element(find.byType(SettingsScreen))).pop();
+      await tester.pumpAndSettle();
+      await app.openSettings();
+      expect(bloc.state.vadSilenceMs, 1600);
+      expect(bloc.state.stopMediaWhenBackgrounded, !savedMedia);
+      expect(tester.takeException(), isNull);
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
+  testWidgets(
+    'unified Settings retains iOS HFP picker and diagnostics',
+    (tester) async {
+      final app = await _pumpApp(tester, surfaceSize: const Size(460, 900));
+      app.hfpDevices = [
+        {'id': 'ios-hfp-1', 'name': 'HM-D001', 'isConnected': true},
+      ];
+      await app.openSettings();
+      final findHfp = find.text('Tìm HFP');
+      await tester.ensureVisible(findHfp);
+      await tester.tap(findHfp);
+      await tester.pumpAndSettle();
+      expect(find.text('Chọn thiết bị HFP'), findsOneWidget);
+      expect(find.text('HM-D001'), findsOneWidget);
+      expect(
+        app.hfpCalls.where((call) => call.method == 'findDevices'),
+        isNotEmpty,
+      );
+      final connects = app.hfpCalls
+          .where((call) => call.method == 'connect')
+          .length;
+      Navigator.of(tester.element(find.text('Chọn thiết bị HFP'))).pop();
+      await tester.pumpAndSettle();
+      expect(
+        app.hfpCalls.where((call) => call.method == 'connect').length,
+        connects,
+      );
+      final diagnostics = find.byKey(
+        const Key('open-hm-d001-control-diagnostics'),
+      );
+      await tester.ensureVisible(diagnostics);
+      await tester.tap(diagnostics);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('hm-d001-copy-log')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  testWidgets(
+    'SettingsBloc updates real Settings page, runtime and saved preferences',
+    (tester) async {
+      final app = await _pumpApp(tester, surfaceSize: const Size(460, 900));
+      final home = tester.widget<HomeLearningShell>(
+        find.byType(HomeLearningShell),
+      );
+      final bloc = BlocProvider.of<SettingsBloc>(
+        tester.element(find.byType(HomeLearningShell)),
+      );
+      final appBloc = BlocProvider.of<AppBloc>(
+        tester.element(find.byType(HomeLearningShell)),
+      );
+      // The language store uses a native file; let real IO complete outside the fake clock.
+      await _settleSettings(tester, bloc);
+      await tester.pumpAndSettle();
+      expect(home.settingsBloc, same(bloc));
+      expect(bloc.state.childAge, 6);
+      final connectCount = app.count('connect');
+      tester
+          .widget<ConversationScreen>(find.byType(ConversationScreen))
+          .onOpenSettings();
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<SettingsScreen>(find.byType(SettingsScreen)).settingsBloc,
+        same(bloc),
+      );
+      // Both platforms now use the same compact rows and choice dialogs.
+      await tester.tap(find.byKey(const Key('appearance-settings-card')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('theme-mode-dark')));
+      await tester.pumpAndSettle();
+      expect(bloc.state.themeMode, ThemeMode.dark);
+      expect(
+        tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
+        ThemeMode.dark,
+      );
+      expect(
+        Theme.of(tester.element(find.byType(SettingsScreen))).brightness,
+        Brightness.dark,
+      );
+
+      await tester.tap(find.byKey(const Key('settings-child-age-group')));
+      await tester.pumpAndSettle();
+      final age = find.byWidgetPredicate(
+        (widget) =>
+            widget is ChoiceChip &&
+            widget.key.toString().contains('settings-age-') &&
+            (widget.label as Text).data!.startsWith('8'),
+      );
+      await tester.ensureVisible(age);
+      await tester.tap(age);
+      await tester.pumpAndSettle();
+      expect(bloc.state.childAge, 8);
+      expect(home.controller.childAge, 8);
+      expect(appBloc.state.isReady, isTrue);
+
+      await tester.tap(find.byKey(const Key('settings-language-row')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('settings-language-zh-Hans')));
+      await tester.pumpAndSettle();
+      await _settleSettings(tester, bloc);
+      await tester.pumpAndSettle();
+      expect(bloc.state.displayLanguage, DisplayLanguage.simplifiedChinese);
+      expect(
+        home.controller.displayLanguage,
+        DisplayLanguage.simplifiedChinese,
+      );
+      expect(bloc.state.saving, isFalse);
+      expect(bloc.state.failures, isEmpty);
+      await tester.runAsync(() async {
+        const repository = StoredSettingsRepository();
+        expect(await repository.readTheme(), ThemeMode.dark);
+        expect(await repository.readChildAge(), 8);
+        expect(
+          await repository.readLanguage(),
+          DisplayLanguage.simplifiedChinese,
+        );
+      });
+      Navigator.of(tester.element(find.byType(SettingsScreen))).pop();
+      await tester.pumpAndSettle();
+      tester
+          .widget<ConversationScreen>(find.byType(ConversationScreen))
+          .onOpenSettings();
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<SettingsScreen>(find.byType(SettingsScreen)).settingsBloc,
+        same(bloc),
+      );
+      expect(bloc.state.childAge, 8);
+      expect(appBloc.state.isReady, isTrue);
+      expect(app.count('connect'), connectCount);
+      // Older callers still go through the controller adapter, with Bloc as owner.
+      home.controller.setDisplayLanguage(DisplayLanguage.vietnamese);
+      await tester.pump();
+      await _settleSettings(tester, bloc);
+      await tester.pumpAndSettle();
+      expect(bloc.state.displayLanguage, DisplayLanguage.vietnamese);
+      expect(home.controller.displayLanguage, DisplayLanguage.vietnamese);
+      await tester.runAsync(() async {
+        expect(
+          await const StoredSettingsRepository().readLanguage(),
+          DisplayLanguage.vietnamese,
+        );
+      });
+      expect(tester.takeException(), isNull);
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
 
   testWidgets(
     'AppBloc limited setup enters Home and reopening consent returns to onboarding',
@@ -653,7 +953,7 @@ void main() {
     (tester) async {
       final app = await _pumpApp(tester, bleConnected: true);
       await app.openSettings();
-      final sheet = tester.widget<SettingsSheet>(find.byType(SettingsSheet));
+      final sheet = tester.widget<SettingsScreen>(find.byType(SettingsScreen));
       expect(sheet.controller.aiv0BleStatus.isConnected, isTrue);
       expect(sheet.controller.homiConnectionState().isHomiReady, isFalse);
       // Background MAIN/HFP recovery must not open a system-pairing dialog.
@@ -707,7 +1007,7 @@ void main() {
       expect(app.count('scanClassic'), 1);
       expect(app.count('requestDualModeBond'), 1);
       expect(app.count('connect'), 1);
-      final sheet = tester.widget<SettingsSheet>(find.byType(SettingsSheet));
+      final sheet = tester.widget<SettingsScreen>(find.byType(SettingsScreen));
       expect(sheet.controller.aiv0BleStatus.isConnected, isTrue);
       expect(sheet.connectionCoordinator!.phase, DeviceConnectionPhase.failed);
       expect(sheet.controller.homiConnectionState().isHomiReady, isFalse);
@@ -866,6 +1166,21 @@ Future<void> _drainConnectionRound(WidgetTester tester) async {
   await tester.pump();
 }
 
+Future<void> _settleSettings(WidgetTester tester, SettingsBloc bloc) async {
+  // Native file IO and Bloc handlers use real IO and the widget fake clock,
+  // respectively. Drive both without waiting for a fake-zone future in runAsync.
+  for (var i = 0; i < 100; i++) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 10)),
+    );
+    await tester.pump();
+    if (!bloc.state.loading && !bloc.state.saving) return;
+  }
+  fail(
+    'Settings did not settle: loading=${bloc.state.loading}, saving=${bloc.state.saving}',
+  );
+}
+
 Future<_NativeApp> _pumpApp(
   WidgetTester tester, {
   String adapterState = 'poweredOn',
@@ -929,6 +1244,7 @@ class _NativeApp {
     'com.llfbandit.record/messages',
     'com.ryanheise.audio_session',
     'plugins.flutter.io/path_provider',
+    'plugins.flutter.io/local_auth',
   ];
   final WidgetTester tester;
   final supportDirectory = Directory.systemTemp.createTempSync(
@@ -972,6 +1288,7 @@ class _NativeApp {
         if (name == 'dexterous.com/flutter/local_notifications') {
           return call.method == 'show' ? null : true;
         }
+        if (name == 'plugins.flutter.io/local_auth') return true;
         if (name == 'plugins.flutter.io/path_provider') {
           return supportDirectory.path;
         }

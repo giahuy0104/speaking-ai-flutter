@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:ai_speaking_flutter_app/presentation/navigation/app_view_registry.dart';
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
-import 'package:ai_speaking_flutter_app/app/app_theme_mode.dart';
+import 'package:ai_speaking_flutter_app/data/settings/app_theme_mode_store.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
 import 'package:ai_speaking_flutter_app/core/device/aiv0_ble_control.dart';
@@ -10,7 +10,7 @@ import 'package:ai_speaking_flutter_app/core/device/device_connection_coordinato
 import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/data/demo_conversation_repository.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
-import 'package:ai_speaking_flutter_app/features/settings/presentation/settings_sheet.dart';
+import 'package:ai_speaking_flutter_app/presentation/settings/screen/settings_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -96,7 +96,7 @@ void main() {
             child: child!,
           ),
           home: Scaffold(
-            body: SettingsSheet(
+            body: SettingsScreen(
               controller: controller,
               connectionCoordinator: coordinator,
               themeMode: variant.mode == ThemeMode.light
@@ -157,6 +157,87 @@ void main() {
     });
   }
 
+  for (final language in DisplayLanguage.values) {
+    testWidgets(
+      'shared Settings screen stays usable at 200 percent text: ${language.code}',
+      (tester) async {
+        SharedPreferences.setMockInitialValues({});
+        tester.view.physicalSize = const Size(320, 568);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final controller = ConversationController(
+          audioInput: _FakeAudioInput(),
+          playbackService: const _FakePlaybackService(),
+          repository: const DemoConversationRepository(),
+          childAge: 6,
+        )..setDisplayLanguage(language);
+        addTearDown(controller.dispose);
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: buildAppTheme(),
+            darkTheme: buildDarkAppTheme(),
+            themeMode: language == DisplayLanguage.vietnamese
+                ? ThemeMode.light
+                : ThemeMode.dark,
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: const TextScaler.linear(2)),
+              child: child!,
+            ),
+            home: Scaffold(
+              body: SettingsScreen(
+                controller: controller,
+                onThemeModeChanged: (_) {},
+                onChildAgeChanged: controller.setChildAge,
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        // Both platforms use rows; there are no always-visible age/theme controls.
+        expect(find.byKey(const ValueKey('theme-mode-dark')), findsNothing);
+        final ageRow = find.byKey(const Key('settings-child-age-group'));
+        await tester.ensureVisible(ageRow);
+        await tester.tap(ageRow);
+        await tester.pumpAndSettle();
+        expect(find.byType(ChoiceChip), findsNWidgets(5));
+        expect(tester.takeException(), isNull);
+        Navigator.of(tester.element(find.byType(ChoiceChip).first)).pop();
+        await tester.pumpAndSettle();
+        final languageRow = find.byKey(const Key('settings-language-row'));
+        await tester.ensureVisible(languageRow);
+        await tester.tap(languageRow);
+        await tester.pumpAndSettle();
+        expect(
+          find.byKey(const ValueKey('settings-language-vi')),
+          findsOneWidget,
+        );
+        expect(
+          find.byKey(const ValueKey('settings-language-zh-Hans')),
+          findsOneWidget,
+        );
+        expect(tester.takeException(), isNull);
+        Navigator.of(
+          tester.element(find.byKey(const ValueKey('settings-language-vi'))),
+        ).pop();
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(find.byKey(const Key('settings-terms')));
+        expect(
+          find.byKey(const Key('settings-terms')).hitTestable(),
+          findsOneWidget,
+        );
+        expect(tester.takeException(), isNull);
+      },
+      variant: TargetPlatformVariant({
+        TargetPlatform.android,
+        TargetPlatform.iOS,
+      }),
+    );
+  }
+
   test('theme mode is persisted and restored', () async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     const store = AppThemeModeStore();
@@ -190,7 +271,7 @@ void main() {
           darkTheme: buildDarkAppTheme(),
           themeMode: value,
           home: Scaffold(
-            body: SettingsSheet(
+            body: SettingsScreen(
               controller: controller,
               themeMode: value,
               onThemeModeChanged: (nextMode) => mode.value = nextMode,
@@ -263,7 +344,7 @@ void main() {
             child: child!,
           ),
           home: Scaffold(
-            body: SettingsSheet(
+            body: SettingsScreen(
               controller: controller,
               onChildAgeChanged: (age) {
                 selectedAge = age;
@@ -331,7 +412,7 @@ void main() {
         onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: Scaffold(
-          body: SettingsSheet(
+          body: SettingsScreen(
             controller: controller,
             stopMediaWhenBackgrounded: true,
             onStopMediaWhenBackgroundedChanged: (_) {},
@@ -365,7 +446,7 @@ void main() {
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
         builder: _disableAnimations,
-        home: Scaffold(body: SettingsSheet(controller: controller)),
+        home: Scaffold(body: SettingsScreen(controller: controller)),
       ),
     );
     await tester.pump(const Duration(seconds: 5));
@@ -403,7 +484,7 @@ void main() {
           data: MediaQuery.of(context).copyWith(disableAnimations: true),
           child: child!,
         ),
-        home: Scaffold(body: SettingsSheet(controller: controller)),
+        home: Scaffold(body: SettingsScreen(controller: controller)),
       ),
     );
     await tester.pump(const Duration(seconds: 5));
@@ -416,7 +497,9 @@ void main() {
     debugDefaultTargetPlatformOverride = null;
   });
 
-  testWidgets('HM-D001 settings use one compact shared surface', (tester) async {
+  testWidgets('HM-D001 settings use one compact shared surface', (
+    tester,
+  ) async {
     await _usePhoneSurface(tester);
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
@@ -435,13 +518,15 @@ void main() {
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
         builder: _disableAnimations,
-        home: Scaffold(body: SettingsSheet(controller: controller)),
+        home: Scaffold(body: SettingsScreen(controller: controller)),
       ),
     );
     await tester.pump(const Duration(seconds: 5));
     await tester.pumpAndSettle();
     final settingsScroll = _settingsScrollable();
-    final audioSection = find.byKey(const Key('settings-audio-hm-d001-section'));
+    final audioSection = find.byKey(
+      const Key('settings-audio-hm-d001-section'),
+    );
     await tester.scrollUntilVisible(
       audioSection,
       260,
@@ -477,7 +562,7 @@ void main() {
       MaterialApp(
         onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
-        home: Scaffold(body: SettingsSheet(controller: controller)),
+        home: Scaffold(body: SettingsScreen(controller: controller)),
       ),
     );
     await tester.tap(find.byKey(const Key('settings-audio-hm-d001-section')));
@@ -517,7 +602,7 @@ void main() {
       MaterialApp(
         onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
-        home: Scaffold(body: SettingsSheet(controller: controller)),
+        home: Scaffold(body: SettingsScreen(controller: controller)),
       ),
     );
     await tester.tap(find.byKey(const Key('settings-audio-hm-d001-section')));
@@ -546,7 +631,7 @@ void main() {
         onGenerateRoute: createAppRouter().onGenerateRoute,
         theme: buildAppTheme(),
         home: Scaffold(
-          body: SettingsSheet(
+          body: SettingsScreen(
             controller: controller,
             privacyConsentGranted: true,
             onRevokePrivacyConsent: () async {},

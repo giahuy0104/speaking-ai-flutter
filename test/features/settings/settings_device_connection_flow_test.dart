@@ -12,7 +12,7 @@ import 'package:ai_speaking_flutter_app/core/device/device_connection_history.da
 import 'package:ai_speaking_flutter_app/core/device/device_connection_coordinator.dart';
 import 'package:ai_speaking_flutter_app/core/device/homi_connection_state.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/application/conversation_settings_port.dart';
-import 'package:ai_speaking_flutter_app/features/settings/presentation/settings_sheet.dart';
+import 'package:ai_speaking_flutter_app/presentation/settings/screen/settings_screen.dart';
 import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -59,7 +59,7 @@ void main() {
           debugShowCheckedModeBanner: false,
           theme: buildAppTheme(),
           home: Scaffold(
-            body: SettingsSheet(
+            body: SettingsScreen(
               controller: _Settings(),
               connectionCoordinator: coordinator,
             ),
@@ -445,7 +445,7 @@ void main() {
             debugShowCheckedModeBanner: false,
             theme: buildAppTheme(),
             home: Scaffold(
-              body: SettingsSheet(
+              body: SettingsScreen(
                 controller: controller,
                 connectionCoordinator: coordinator,
               ),
@@ -687,7 +687,7 @@ Future<void> _openSettings(
       onGenerateRoute: createAppRouter().onGenerateRoute,
       theme: buildAppTheme(),
       home: Scaffold(
-        body: SettingsSheet(
+        body: SettingsScreen(
           controller: controller,
           connectionCoordinator: coordinator,
         ),

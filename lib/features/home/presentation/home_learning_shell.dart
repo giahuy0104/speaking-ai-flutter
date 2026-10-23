@@ -1,3 +1,5 @@
+import '../../../presentation/settings/bloc/settings_bloc.dart';
+import '../../../domain/settings/settings_repository.dart';
 import 'dart:async';
 
 import '../../../core/device/device_connection_coordinator.dart';
@@ -29,7 +31,8 @@ import '../../listening/application/lesson_media_service.dart';
 import '../../onboarding/application/onboarding_progress_store.dart';
 import '../../onboarding/presentation/user_onboarding_tour.dart';
 import '../../../core/privacy/parental_gate.dart';
-import '../../settings/application/parent_media_settings.dart';
+import '../../../core/audio/background_media_policy.dart';
+import '../../../data/settings/background_media_settings_store.dart';
 import '../../vocabulary/data/minhqnd_dictionary_provider.dart';
 import '../../vocabulary/application/vocabulary_audio_service.dart';
 import '../../vocabulary/domain/vocabulary_entry.dart';
@@ -48,6 +51,7 @@ class HomeLearningShell extends StatefulWidget {
     this.voiceNavigationController,
     this.speakingSessionController,
     this.themeMode = ThemeMode.system,
+    this.settingsBloc,
     this.onThemeModeChanged,
     this.onChildAgeChanged,
     this.onActiveLearningExitCommitted,
@@ -86,6 +90,7 @@ class HomeLearningShell extends StatefulWidget {
   final VoiceNavigationController? voiceNavigationController;
   final MainSpeakingSessionController? speakingSessionController;
   final ThemeMode themeMode;
+  final SettingsBloc? settingsBloc;
   final ValueChanged<ThemeMode>? onThemeModeChanged;
   final ValueChanged<int>? onChildAgeChanged;
   final VoidCallback? onActiveLearningExitCommitted;
@@ -151,7 +156,10 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   late final BackgroundLearningSessionControl _backgroundLearningSession;
   final VocabularyActivationController _vocabularyActivationController =
       VocabularyActivationController();
-  bool _stopMediaWhenBackgrounded = defaultStopMediaWhenBackgrounded();
+  bool _legacyStopMediaWhenBackgrounded = defaultStopMediaWhenBackgrounded();
+  bool get _stopMediaWhenBackgrounded =>
+      widget.settingsBloc?.state.stopMediaWhenBackgrounded ??
+      _legacyStopMediaWhenBackgrounded;
   Future<void>? _backgroundMediaStopOperation;
   final VocabularyHomeNavigationController _vocabularyNavigationController =
       VocabularyHomeNavigationController();
@@ -354,15 +362,27 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   }
 
   Future<void> _loadParentMediaSettings() async {
+    final bloc = widget.settingsBloc;
+    if (bloc != null) {
+      await bloc.loadField(SettingsField.stopMediaWhenBackgrounded);
+      return;
+    }
     final enabled = await widget.parentMediaSettingsStore
         .readStopMediaWhenBackgrounded();
     if (!mounted || enabled == _stopMediaWhenBackgrounded) return;
-    setState(() => _stopMediaWhenBackgrounded = enabled);
+    setState(() => _legacyStopMediaWhenBackgrounded = enabled);
   }
 
   void _setStopMediaWhenBackgrounded(bool enabled) {
+    final bloc = widget.settingsBloc;
+    if (bloc != null) {
+      unawaited(
+        bloc.dispatch(SettingsStopMediaWhenBackgroundedChanged(enabled)),
+      );
+      return;
+    }
     if (enabled == _stopMediaWhenBackgrounded) return;
-    setState(() => _stopMediaWhenBackgrounded = enabled);
+    setState(() => _legacyStopMediaWhenBackgrounded = enabled);
     unawaited(
       widget.parentMediaSettingsStore
           .writeStopMediaWhenBackgrounded(enabled)
@@ -1694,6 +1714,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           name: AppRouteNames.settings,
           arguments: null,
           bindings: () => SettingsBindings(
+            settingsBloc: widget.settingsBloc,
             controller: widget.controller,
             connectionCoordinator: widget.connectionCoordinator,
             themeMode: widget.themeMode,

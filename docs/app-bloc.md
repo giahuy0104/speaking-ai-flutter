@@ -29,7 +29,7 @@ Ba file Bloc/Event/State dùng `part`/`part of`, cùng cách tổ chức DeviceB
 
 Trường kèm theo: `usageMode` full/limited, `privacyConsentGranted`, `failure` có kiểu. Full không tự đồng nghĩa quyền micro/Bluetooth đã được cấp. Snapshot bootstrap chỉ truyền kết quả kiểm tra profile, không lưu bản sao tuổi/settings vào AppState. Consent hợp lệ được ưu tiên hơn cờ limited cũ khi đọc storage, như trước.
 
-Đã bỏ bốn biến mutable ở widget: startupProfileLoading, privacyConsentGranted, limitedModeSelected, parentSetupCompleted. Các getter tương thích đọc từ AppBloc. Tuổi/chọn tuổi, theme, model consent, quyền OS, microphone, trạng thái DeviceBloc và feature controller vẫn giữ chủ sở hữu cũ.
+Đã bỏ bốn biến mutable ở widget: startupProfileLoading, privacyConsentGranted, limitedModeSelected, parentSetupCompleted. Các getter tương thích đọc từ AppBloc. Theme, ngôn ngữ, tuổi, ngưỡng VAD và tùy chọn dừng âm thanh nền đã chuyển sang [SettingsBloc](settings-bloc.md); tuổi đang chọn trong onboarding vẫn là draft ở view. Model consent, quyền OS, microphone, trạng thái DeviceBloc và feature controller giữ chủ sở hữu cũ. AppState không nhân bản các giá trị Settings.
 
 ## Event và thứ tự xử lý
 

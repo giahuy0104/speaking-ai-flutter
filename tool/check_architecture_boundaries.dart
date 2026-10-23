@@ -46,7 +46,12 @@ List<ArchitectureViolation> checkArchitectureBoundaries(Directory root) {
       );
     }
 
-    if (!source.startsWith('lib/features/')) continue;
+    if (!source.startsWith('lib/features/') &&
+        !source.startsWith('lib/presentation/') &&
+        !source.startsWith('lib/domain/') &&
+        !source.startsWith('lib/data/')) {
+      continue;
+    }
 
     if (source.contains('/presentation/') &&
         (RegExp(r'\bMethodChannel\s*\(').hasMatch(content) ||
@@ -196,7 +201,8 @@ bool _isForbiddenConversationPresentationDependency(
   final isolatedFeature =
       source.startsWith('lib/features/listening/') ||
       source.startsWith('lib/features/vocabulary/') ||
-      source.startsWith('lib/features/voice_navigation/');
+      source.startsWith('lib/features/voice_navigation/') ||
+      source.startsWith('lib/presentation/settings/');
   return isolatedFeature &&
       target.startsWith('lib/features/conversation/presentation/');
 }

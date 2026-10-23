@@ -1,3 +1,4 @@
+import '../settings/bloc/settings_bloc.dart';
 import 'dart:async';
 import 'package:ai_speaking_flutter_app/config/app_config.dart';
 import 'package:ai_speaking_flutter_app/core/audio/learning_audio_dependencies.dart';
@@ -287,10 +288,11 @@ class VocabularyPracticeBindings {
   final Key? key;
 }
 
-/// Existing live dependencies for SettingsSheet, supplied lazily by its owner.
+/// Existing live dependencies for SettingsScreen, supplied lazily by its owner.
 class SettingsBindings {
   const SettingsBindings({
     required this.controller,
+    this.settingsBloc,
     this.themeMode = ThemeMode.system,
     this.connectionCoordinator,
     this.onThemeModeChanged,
@@ -308,6 +310,7 @@ class SettingsBindings {
   });
 
   final ConversationSettingsPort controller;
+  final SettingsBloc? settingsBloc;
   final ThemeMode themeMode;
   final DeviceConnectionCoordinator? connectionCoordinator;
   final ValueChanged<ThemeMode>? onThemeModeChanged;

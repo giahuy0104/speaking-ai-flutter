@@ -1,3 +1,4 @@
+import 'package:ai_speaking_flutter_app/app/di/history_dependencies.dart';
 import 'package:ai_speaking_flutter_app/presentation/navigation/app_view_registry.dart';
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
@@ -6,7 +7,7 @@ import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_models.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_repository.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
-import 'package:ai_speaking_flutter_app/features/settings/presentation/history_sheet.dart';
+import 'package:ai_speaking_flutter_app/presentation/history/screen/history_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -34,7 +35,12 @@ void main() {
         MaterialApp(
           onGenerateRoute: createAppRouter().onGenerateRoute,
           theme: buildAppTheme(),
-          home: Scaffold(body: HistorySheet(controller: controller)),
+          home: Scaffold(
+            body: HistoryScreen(
+              createBloc: HistoryDependencies(history: controller).createBloc,
+              readLanguage: () => controller.displayLanguage,
+            ),
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -85,11 +91,16 @@ void main() {
         onGenerateRoute: createAppRouter().onGenerateRoute,
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
-        home: Scaffold(body: HistorySheet(controller: controller)),
+        home: Scaffold(
+          body: HistoryScreen(
+            createBloc: HistoryDependencies(history: controller).createBloc,
+            readLanguage: () => controller.displayLanguage,
+          ),
+        ),
       ),
     );
     await tester.pumpAndSettle();
-    final context = tester.element(find.byType(HistorySheet));
+    final context = tester.element(find.byType(HistoryScreen));
     await tester.runAsync(
       () => precacheImage(
         const AssetImage('assets/images/mascot/penguin-wave.png'),

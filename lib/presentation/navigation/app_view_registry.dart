@@ -1,3 +1,4 @@
+import 'package:ai_speaking_flutter_app/app/di/history_dependencies.dart';
 import 'package:flutter/material.dart';
 
 import 'package:ai_speaking_flutter_app/core/navigation/view_arguments/lesson_challenge_arguments.dart';
@@ -17,8 +18,8 @@ import 'package:ai_speaking_flutter_app/features/listening/presentation/song_kar
 import 'package:ai_speaking_flutter_app/features/listening/presentation/topic_lesson_list_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/topic_listening_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/v4_song_stage_screen.dart';
-import 'package:ai_speaking_flutter_app/features/settings/presentation/history_sheet.dart';
-import 'package:ai_speaking_flutter_app/features/settings/presentation/settings_sheet.dart';
+import 'package:ai_speaking_flutter_app/presentation/history/screen/history_screen.dart';
+import 'package:ai_speaking_flutter_app/presentation/settings/screen/settings_screen.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabulary_practice_screen.dart';
 
 import '../../core/navigation/app_router.dart';
@@ -227,7 +228,8 @@ AppRouter createAppRouter() => AppRouter({
     builder: (context, arguments, bindings) => Scaffold(
       key: const Key('settings-page'),
       body: SizedBox.expand(
-        child: SettingsSheet(
+        child: SettingsScreen(
+          settingsBloc: bindings.settingsBloc,
           controller: bindings.controller,
           themeMode: bindings.themeMode,
           connectionCoordinator: bindings.connectionCoordinator,
@@ -250,8 +252,11 @@ AppRouter createAppRouter() => AppRouter({
   ),
   AppRouteNames.history: AppRouteEntry<Null, HistoryBindings>(
     presentation: AppRoutePresentation.bottomSheet,
-    builder: (context, arguments, bindings) =>
-        HistorySheet(controller: bindings.controller, key: bindings.key),
+    builder: (context, arguments, bindings) => HistoryScreen(
+      createBloc: HistoryDependencies(history: bindings.controller).createBloc,
+      readLanguage: () => bindings.controller.displayLanguage,
+      key: bindings.key,
+    ),
   ),
   AppRouteNames.learningContinuation:
       AppRouteEntry<Null, LearningContinuationBindings>(

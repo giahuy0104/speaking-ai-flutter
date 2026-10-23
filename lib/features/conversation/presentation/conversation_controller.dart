@@ -79,6 +79,8 @@ class ConversationController extends ChangeNotifier
     OfflineEnglishVietnameseTranslator? offlineEnglishVietnameseTranslator,
     VietnameseTranscriptCorrector? vietnameseTranscriptCorrector,
     DisplayLanguageStore? displayLanguageStore,
+    this.onDisplayLanguageRequested,
+    this.onVadSilenceRequested,
     required int childAge,
     bool preferBleStreaming = true,
     bool realtimeBatchFallback = true,
@@ -336,6 +338,18 @@ class ConversationController extends ChangeNotifier
   final OfflineEnglishVietnameseTranslator? _offlineEnglishVietnameseTranslator;
   final VietnameseTranscriptCorrector? _vietnameseTranscriptCorrector;
   final DisplayLanguageStore? _displayLanguageStore;
+
+  /// Set only by the app's SettingsBloc adapter. Standalone legacy controllers
+  /// retain their existing store behavior.
+  final ValueChanged<DisplayLanguage>? onDisplayLanguageRequested;
+  final ValueChanged<int>? onVadSilenceRequested;
+
+  void applyDisplayLanguage(DisplayLanguage language) {
+    if (_disposed || displayLanguage == language) return;
+    displayLanguage = language;
+    notifyListeners();
+  }
+
   int _childAge;
   final bool _preferBleStreaming;
   final bool _realtimeBatchFallback;
@@ -875,6 +889,11 @@ class ConversationController extends ChangeNotifier
 
   @override
   void setDisplayLanguage(DisplayLanguage language) {
+    final delegate = onDisplayLanguageRequested;
+    if (delegate != null) {
+      delegate(language);
+      return;
+    }
     if (language == displayLanguage) {
       return;
     }
@@ -2189,7 +2208,9 @@ class ConversationController extends ChangeNotifier
           : AsrMode.batchChunks;
       await _rememberMicrophone(device);
       _ensureDeviceOperationCurrent(generation);
-      transientMessage = isHomiReady ? connectionReadyMessage : 'Đã chọn micro.';
+      transientMessage = isHomiReady
+          ? connectionReadyMessage
+          : 'Đã chọn micro.';
       return const DeviceConnectionResult(DeviceConnectionOutcome.success);
     } catch (error) {
       return _deviceOperationFailure(error, generation);
@@ -5054,7 +5075,18 @@ class ConversationController extends ChangeNotifier
 
   @override
   void setVadSilence(int milliseconds) {
-    if (isBusy) {
+    if (_disposed || isBusy) return;
+    final delegate = onVadSilenceRequested;
+    if (delegate != null) {
+      delegate(milliseconds);
+      return;
+    }
+    applyVadSilence(milliseconds);
+  }
+
+  /// Runtime projection from SettingsBloc; never dispatches back to the Bloc.
+  void applyVadSilence(int milliseconds) {
+    if (_disposed || isBusy) {
       return;
     }
     vadSilenceMs = milliseconds.clamp(400, 1600).toInt();

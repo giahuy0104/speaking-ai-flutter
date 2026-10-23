@@ -9,6 +9,9 @@ import '../presentation/device/bloc/device_bloc.dart';
 import '../presentation/device/device_microphone_sheet.dart';
 import 'di/device_dependencies.dart';
 import 'di/app_dependencies.dart';
+import 'di/settings_dependencies.dart';
+import '../presentation/settings/bloc/settings_bloc.dart';
+import '../domain/settings/settings_repository.dart';
 import '../presentation/app/bloc/app_bloc.dart';
 import 'device/legacy_device_connection_port.dart';
 
@@ -59,7 +62,6 @@ import '../features/onboarding/application/onboarding_progress_store.dart';
 import '../features/onboarding/application/parent_setup_progress_store.dart';
 import '../features/onboarding/presentation/startup_setup_screen.dart';
 import '../features/privacy/data/privacy_consent_store.dart';
-import '../features/settings/data/child_age_store.dart';
 import '../features/voice_navigation/application/main_speaking_fallback_flow.dart';
 import '../features/voice_navigation/application/main_assistant_session.dart';
 import '../features/voice_navigation/application/main_button_activation_policy.dart';
@@ -70,7 +72,6 @@ import '../features/voice_navigation/domain/homi_fallback_catalog.dart';
 import '../features/voice_navigation/presentation/main_voice_assistant_button.dart';
 import '../l10n/display_language.dart';
 import 'app_theme.dart';
-import 'app_theme_mode.dart';
 import 'device_connection_action_gate.dart';
 import 'device_connection_feedback_overlay.dart';
 import 'homi_battery_alert_policy.dart';
@@ -129,8 +130,6 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   DeviceAudioCache? _deviceAudioCache;
   ConversationRepository? _repository;
   final ClientIdentity _clientIdentity = ClientIdentity();
-  final AppThemeModeStore _themeModeStore = const AppThemeModeStore();
-  final ChildAgeStore _childAgeStore = const ChildAgeStore();
   final PrivacyConsentStore _privacyConsentStore = const PrivacyConsentStore();
   final ParentSetupProgressStore _parentSetupProgressStore =
       const ParentSetupProgressStore();
@@ -151,7 +150,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       GlobalKey<ScaffoldMessengerState>();
   final HomiBatteryNotifications _homiBatteryNotifications =
       HomiBatteryNotifications();
-  final HomiBatteryAlertPolicy _homiBatteryAlertPolicy = HomiBatteryAlertPolicy();
+  final HomiBatteryAlertPolicy _homiBatteryAlertPolicy =
+      HomiBatteryAlertPolicy();
   late final _MainOverlayNavigatorObserver _mainOverlayNavigatorObserver;
   final ActiveLearningModuleRegistry _activeLearningModules =
       ActiveLearningModuleRegistry();
@@ -163,8 +163,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   final MainSpeakingFallbackFlow _mainSpeakingFallbackFlow =
       MainSpeakingFallbackFlow();
   DeviceRegistrationService? _deviceRegistrationService;
-  ThemeMode _themeMode = ThemeMode.system;
-  bool _themeModeChangedByUser = false;
+  late final SettingsDependencies _settingsDependencies;
+  SettingsBloc get _settingsBloc => _settingsDependencies.bloc;
+  ThemeMode get _themeMode => _settingsBloc.state.themeMode;
   bool _isStartingMainSpeakingTurn = false;
   bool _isPreparingMainSpeakingHfpSession = false;
   bool _isFinishingMainSpeakingMode = false;
@@ -189,7 +190,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   bool get _privacyConsentGranted => _appBloc.state.privacyConsentGranted;
   bool get _limitedModeSelected => _appBloc.state.isLimited;
   bool get _parentSetupCompleted => _appBloc.state.isReady;
-  int? _childAge;
+  int? get _childAge => _settingsBloc.state.childAge;
   int? _pendingStartupAge;
   String? _startupPermissionError;
   DateTime? _lastAiv0AutoConnectAttempt;
@@ -481,6 +482,16 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       },
     );
     _config = AppConfig.fromEnvironment();
+    _settingsDependencies = SettingsDependencies(
+      validateAge: _validChildAge,
+      canChangeVad: () => _controller?.isBusy != true,
+      onVadApplied: (value) => _controller?.applyVadSilence(value),
+      onLanguageApplied: (value) => _controller?.applyDisplayLanguage(value),
+      onChildAgeApplied: (value) {
+        _pendingStartupAge = value;
+        if (value != null) _propagateChildAge(value);
+      },
+    );
     _appDependencies =
         widget.appDependenciesFactory?.call(
           initialize: _loadStartupProfile,
@@ -539,6 +550,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     // Build the lightweight runtime before the first frame so the real home
     // screen appears immediately on both Android and web.
     _createRuntime();
+    unawaited(_settingsBloc.loadField(SettingsField.language));
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startBackgroundStartup();
       unawaited(_initializeStartupSetup());
@@ -679,7 +691,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         _runStartupTask(() async {
           await AssetListeningContentRepository().load();
         }),
-        _runStartupTask(_loadThemeMode),
+        _runStartupTask(() => _settingsBloc.loadField(SettingsField.theme)),
         _runStartupTask(_precacheHomeAssets),
       ]),
     );
@@ -703,7 +715,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         AndroidOfflineSpeechModelConsent.undecided;
     try {
       final values = await Future.wait<Object?>(<Future<Object?>>[
-        _childAgeStore.read(),
+        _readSettingsChildAge(),
         _privacyConsentStore.readGranted(),
         _privacyConsentStore.readLimitedMode(),
         _parentSetupProgressStore.isComplete(),
@@ -723,9 +735,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       debugPrint('Could not load startup privacy/profile state: $error');
     }
     if (!mounted) return empty;
-    if (storedAge != null) _propagateChildAge(storedAge);
     setState(() {
-      _childAge = storedAge;
       _pendingStartupAge = storedAge;
       _offlineSpeechModelConsent = storedOfflineSpeechModelConsent;
     });
@@ -777,27 +787,16 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     _webBatchStreamingSpeechInput?.setChildAge(age);
   }
 
-  void _setChildAge(int age) {
+  Future<int?> _readSettingsChildAge() async {
+    await _settingsBloc.loadField(SettingsField.childAge);
+    return _settingsBloc.state.childAge;
+  }
+
+  Future<void> _setChildAge(int age) async {
     final validAge = _validChildAge(age);
-    if (validAge == null) {
-      return;
-    }
-    _propagateChildAge(validAge);
-    if (mounted) {
-      setState(() {
-        _childAge = validAge;
-        _pendingStartupAge = validAge;
-      });
-    } else {
-      _childAge = validAge;
-      _pendingStartupAge = validAge;
-    }
-    unawaited(
-      _childAgeStore.write(validAge).catchError((Object error) {
-        debugPrint('Could not persist child age: $error');
-      }),
-    );
-    unawaited(_warmTopicImagesWhenIdle());
+    if (validAge == null || !mounted) return;
+    await _settingsBloc.dispatch(SettingsChildAgeChanged(validAge));
+    if (mounted) unawaited(_warmTopicImagesWhenIdle());
   }
 
   Future<void> _completeParentSetup() async {
@@ -810,7 +809,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         _controller?.isHomiReady != true) {
       return;
     }
-    _setChildAge(age);
+    await _setChildAge(age);
+    if (!mounted) return;
     await _parentSetupProgressStore.markComplete();
     if (!mounted) {
       return;
@@ -1052,7 +1052,10 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       );
     }
     await _privacyConsentStore.revoke();
-    await _childAgeStore.clear();
+    await _settingsBloc.dispatch(SettingsChildAgeCleared());
+    if (_settingsBloc.state.failures.containsKey(SettingsField.childAge)) {
+      throw StateError('Could not clear the saved child profile.');
+    }
     await _parentSetupProgressStore.clear();
     await _clientIdentity.resetClientId();
     await _voiceNavigationController?.pause();
@@ -1064,7 +1067,6 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     setState(() {
       _microphonePermissionGranted = false;
       _bluetoothPermissionGranted = false;
-      _childAge = null;
       _pendingStartupAge = null;
       _startupPermissionError = null;
     });
@@ -2045,7 +2047,10 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
             critical: action == HomiBatteryAction.chargeCritical,
           );
           unawaited(
-            _homiBatteryNotifications.show(percent: percent, language: language),
+            _homiBatteryNotifications.show(
+              percent: percent,
+              language: language,
+            ),
           );
         case HomiBatteryAction.disconnectDepleted:
           _showHomiBatteryNotice(
@@ -2264,7 +2269,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
           ble.status.deviceName ?? controller.aiv0BleStatus.deviceName,
     );
     if (selected) {
-      debugPrint('Connected iOS HM-D001 HFP microphone selected automatically.');
+      debugPrint(
+        'Connected iOS HM-D001 HFP microphone selected automatically.',
+      );
     }
     return selected;
   }
@@ -2670,7 +2677,10 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       vietnameseTranscriptCorrector: supportsNativeSpeech
           ? AssetVietnameseTranscriptCorrector()
           : null,
-      displayLanguageStore: const DisplayLanguageStore(),
+      onVadSilenceRequested: (value) =>
+          unawaited(_settingsBloc.dispatch(SettingsVadSilenceChanged(value))),
+      onDisplayLanguageRequested: (value) =>
+          unawaited(_settingsBloc.dispatch(SettingsLanguageChanged(value))),
       childAge: _config.childAge,
       preferBleStreaming: _config.preferBleStreaming,
       realtimeBatchFallback: _config.realtimeBatchFallback,
@@ -2838,31 +2848,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     }
   }
 
-  Future<void> _loadThemeMode() async {
-    final storedMode = await _themeModeStore.read();
-    if (!mounted || _themeModeChangedByUser || storedMode == _themeMode) {
-      return;
-    }
-    setState(() => _themeMode = storedMode);
-  }
-
-  void _setThemeMode(ThemeMode mode) {
-    _themeModeChangedByUser = true;
-    if (mode == _themeMode) {
-      unawaited(
-        _themeModeStore.write(mode).catchError((Object error) {
-          debugPrint('Cannot persist app theme mode: $error');
-        }),
-      );
-      return;
-    }
-    setState(() => _themeMode = mode);
-    unawaited(
-      _themeModeStore.write(mode).catchError((Object error) {
-        debugPrint('Cannot persist app theme mode: $error');
-      }),
-    );
-  }
+  void _setThemeMode(ThemeMode mode) =>
+      unawaited(_settingsBloc.dispatch(SettingsThemeChanged(mode)));
 
   Future<bool> _activateMainAssistant({
     String? inputLabelOverride,
@@ -3005,7 +2992,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     } catch (error) {
       _androidMainHfpRouteHeld = false;
       await route.stopAudioRoute().catchError((Object _) {});
-      debugPrint('MAIN did not start because HM-D001 HFP was unavailable: $error');
+      debugPrint(
+        'MAIN did not start because HM-D001 HFP was unavailable: $error',
+      );
       return false;
     }
   }
@@ -3853,6 +3842,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   @override
   void dispose() {
     unawaited(_appDependencies.dispose());
+    unawaited(_settingsDependencies.dispose());
     unawaited(_onboardingDevice?.dispose());
     _deviceAttemptGeneration += 1;
     _deviceAttemptCancelled.complete();
@@ -3895,8 +3885,17 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   @override
   Widget build(BuildContext context) => BlocProvider<AppBloc>.value(
     value: _appBloc,
-    child: BlocBuilder<AppBloc, AppState>(
-      builder: (context, state) => _buildApp(context),
+    child: BlocProvider<SettingsBloc>.value(
+      value: _settingsBloc,
+      child: BlocBuilder<AppBloc, AppState>(
+        builder: (context, state) => BlocBuilder<SettingsBloc, SettingsState>(
+          buildWhen: (previous, next) =>
+              previous.themeMode != next.themeMode ||
+              previous.displayLanguage != next.displayLanguage ||
+              previous.childAge != next.childAge,
+          builder: (context, settings) => _buildApp(context),
+        ),
+      ),
     ),
   );
 
@@ -4003,6 +4002,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
               config: _config,
               child: PwaInstallGate(
                 child: HomeLearningShell(
+                  settingsBloc: _settingsBloc,
                   controller: controller,
                   config: _config,
                   connectionCoordinator: _requiresLearningDevice

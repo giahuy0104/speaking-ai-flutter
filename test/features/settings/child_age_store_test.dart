@@ -1,4 +1,4 @@
-import 'package:ai_speaking_flutter_app/features/settings/data/child_age_store.dart';
+import 'package:ai_speaking_flutter_app/data/settings/child_age_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

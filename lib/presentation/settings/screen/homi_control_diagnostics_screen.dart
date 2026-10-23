@@ -8,7 +8,7 @@ import '../../../core/audio/audio_input.dart';
 import '../../../core/device/aiv0_ble_control.dart';
 import '../../../core/device/aivo_control_dispatcher.dart';
 import '../../../core/device/device_display_name.dart';
-import '../../conversation/application/conversation_settings_port.dart';
+import '../../../features/conversation/application/conversation_settings_port.dart';
 
 /// Button diagnostics only: never exports voice, ASR or API diagnostics.
 class HomiControlDiagnosticsScreen extends StatefulWidget {
@@ -128,7 +128,10 @@ class _HomiControlDiagnosticsScreenState
                 ]),
                 _section(context, 'Sự kiện cuối cùng', [
                   if (last == null)
-                    const Text('Chưa có sự kiện.', key: Key('hm-d001-no-events'))
+                    const Text(
+                      'Chưa có sự kiện.',
+                      key: Key('hm-d001-no-events'),
+                    )
                   else ...[
                     _field(
                       'Nút',

@@ -6,7 +6,7 @@ import 'package:ai_speaking_flutter_app/app/scenic_app_header.dart';
 import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_control.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabulary_home_screen.dart';
 import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
-import 'package:ai_speaking_flutter_app/features/settings/presentation/settings_sheet.dart';
+import 'package:ai_speaking_flutter_app/presentation/settings/screen/settings_screen.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_screen.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/presentation/main_voice_assistant_button.dart';
@@ -100,7 +100,7 @@ void main() {
           .widget<ConversationScreen>(find.byType(ConversationScreen))
           .onOpenSettings();
       await tester.pumpAndSettle();
-      expect(find.byType(SettingsSheet), findsOneWidget);
+      expect(find.byType(SettingsScreen), findsOneWidget);
       expect(find.byKey(const Key('settings-page')), findsOneWidget);
       expect(find.byType(BottomSheet), findsNothing);
       expect(find.byType(MainVoiceAssistantButton), findsNothing);
@@ -118,7 +118,7 @@ void main() {
       await tester.ensureVisible(find.byTooltip('Đóng'));
       await tester.tap(find.byTooltip('Đóng'));
       await tester.pumpAndSettle();
-      expect(find.byType(SettingsSheet), findsNothing);
+      expect(find.byType(SettingsScreen), findsNothing);
       await tester.pump(const Duration(seconds: 15));
       await _pumpAsync(tester);
       expect(app.hfpConnectCalls, connectsAfterDeselect);
