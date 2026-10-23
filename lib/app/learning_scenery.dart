@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'app_theme.dart';
 import 'mascot_assets.dart';
 
 const learningSceneryAsset = MascotAssets.scenery;
@@ -42,17 +41,17 @@ class LearningScenery extends StatelessWidget {
                 end: Alignment.bottomCenter,
                 colors: <Color>[
                   if (isDark)
-                    AppColors.darkCanvas.withValues(alpha: 0.82)
+                    const Color(0xFF091126).withValues(alpha: 0.72)
                   else
                     Colors.white.withValues(alpha: overlayOpacity),
                   if (isDark)
-                    AppColors.darkSurface.withValues(alpha: 0.76)
+                    const Color(0xFF0E1630).withValues(alpha: 0.48)
                   else
-                    Colors.white.withValues(alpha: overlayOpacity * 0.55),
+                    Colors.transparent,
                   if (isDark)
-                    AppColors.darkCanvas.withValues(alpha: 0.92)
+                    const Color(0xFF0A1127).withValues(alpha: 0.78)
                   else
-                    Colors.white.withValues(alpha: overlayOpacity * 0.35),
+                    const Color(0xFFFFFDF7).withValues(alpha: 0.08),
                 ],
                 stops: const <double>[0, 0.48, 1],
               ),
@@ -67,18 +66,18 @@ class LearningScenery extends StatelessWidget {
 
 BoxDecoration scenicPanelDecoration({
   double radius = 28,
-  Color color = const Color(0xFAFFFEFD),
-  Color borderColor = AppColors.mintBorder,
+  Color color = const Color(0xF7FFFDF8),
+  Color borderColor = const Color(0x66FFFFFF),
 }) {
   return BoxDecoration(
     color: color,
     borderRadius: BorderRadius.circular(radius),
     border: Border.all(color: borderColor, width: 1.4),
-    boxShadow: <BoxShadow>[
+    boxShadow: const <BoxShadow>[
       BoxShadow(
-        color: AppColors.primaryNavy.withValues(alpha: 0.09),
-        blurRadius: 18,
-        offset: const Offset(0, 8),
+        color: Color(0x24142451),
+        blurRadius: 24,
+        offset: Offset(0, 10),
       ),
     ],
   );

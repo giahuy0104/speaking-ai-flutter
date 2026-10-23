@@ -19,7 +19,3 @@ Future<String?> loadPlatformClientId() async {
   web.window.localStorage.setItem(_storageKey, clientId);
   return clientId;
 }
-
-Future<void> resetPlatformClientId() async {
-  web.window.localStorage.removeItem(_storageKey);
-}

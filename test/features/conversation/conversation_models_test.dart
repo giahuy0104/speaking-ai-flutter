@@ -3,51 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('reads all output languages while old responses remain English', () {
-    for (final language in TranslationOutputLanguage.values) {
-      final translated = language == TranslationOutputLanguage.english
-          ? 'I need water.'
-          : 'Bản dịch ${language.apiValue}';
-      final result = ConversationResult.fromJson(<String, dynamic>{
-        'conversationId': 'conv_${language.apiValue}',
-        'sessionId': 'sess_${language.apiValue}',
-        'context': 'home',
-        'vietnameseText': 'Con cần nước.',
-        'englishText': language == TranslationOutputLanguage.english
-            ? translated
-            : '',
-        'targetLanguage': language.apiValue,
-        'translatedText': language == TranslationOutputLanguage.english
-            ? null
-            : translated,
-      }, backendBaseUri: Uri.parse('https://api.example.com'));
-      expect(result.outputLanguage, language);
-      expect(result.displayedTranslation, translated);
-    }
-
-    final oldResult = ConversationResult.fromJson(<String, dynamic>{
-      'conversationId': 'old',
-      'sessionId': 'old',
-      'englishText': 'Old English result.',
-    }, backendBaseUri: Uri.parse('https://api.example.com'));
-    expect(oldResult.outputLanguage, TranslationOutputLanguage.english);
-    expect(oldResult.displayedTranslation, 'Old English result.');
-  });
-
-  test('history retains translated text and stored audio URL', () {
-    final item = ConversationHistoryItem.fromJson(<String, dynamic>{
-      'conversationId': 'conv_zh',
-      'targetLanguage': 'zh',
-      'translatedText': '我想喝水。',
-      'audioUrl': 'https://res.cloudinary.com/example/audio/zh.mp3',
-      'createdAt': '2026-10-23T00:00:00Z',
-    }, backendBaseUri: Uri.parse('https://api.example.com'));
-    expect(item.outputLanguage, TranslationOutputLanguage.chinese);
-    expect(item.displayedTranslation, '我想喝水。');
-    expect(item.audioUri?.host, 'res.cloudinary.com');
-    expect(item.copyWithReview(true).displayedTranslation, '我想喝水。');
-  });
-
   test(
     'only Cloudflare Batch Chunks is selectable as the backend ASR path',
     () {
@@ -57,8 +12,6 @@ void main() {
   );
 
   test('resolves a relative audio URL against the backend', () {
-    final checksum = List<String>.filled(64, 'a').join();
-    final dynamicKey = List<String>.filled(64, 'b').join();
     final result = ConversationResult.fromJson(<String, dynamic>{
       'conversationId': 'conv_1',
       'sessionId': 'sess_1',
@@ -69,9 +22,6 @@ void main() {
       'processingMode': 'rule',
       'textSource': 'phrase_rule',
       'audioSource': 'cache',
-      'audioSha256': checksum.toUpperCase(),
-      'audioDurationSeconds': 1.25,
-      'dynamicAudioKey': dynamicKey,
       'asrMode': 'batch_chunks',
       'latency': <String, dynamic>{
         'asrMs': 10,
@@ -86,25 +36,6 @@ void main() {
       Uri.parse('https://api.example.com/api/audio/stream?text=pencil'),
     );
     expect(result.context, PracticeContext.school);
-    expect(result.audioSha256, checksum);
-    expect(result.audioDurationSeconds, 1.25);
-    expect(result.dynamicAudioKey, dynamicKey);
-  });
-
-  test('rejects malformed dynamic audio metadata', () {
-    final result = ConversationResult.fromJson(<String, dynamic>{
-      'conversationId': 'conv_bad_audio_metadata',
-      'sessionId': 'sess_bad_audio_metadata',
-      'context': 'home',
-      'audioSha256': 'not-a-checksum',
-      'audioDurationSeconds': 120,
-      'dynamicAudioKey': 'not-a-key',
-      'latency': <String, dynamic>{},
-    }, backendBaseUri: Uri.parse('https://api.example.com'));
-
-    expect(result.audioSha256, isNull);
-    expect(result.audioDurationSeconds, isNull);
-    expect(result.dynamicAudioKey, isNull);
   });
 
   test('history converts timestamps to local time and keeps metadata', () {

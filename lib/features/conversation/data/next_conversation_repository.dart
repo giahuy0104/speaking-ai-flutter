@@ -8,7 +8,6 @@ import 'package:crypto/crypto.dart' as crypto;
 import 'package:http/http.dart' as http;
 
 import '../../../config/app_config.dart';
-import '../../../core/auth/installation_authenticated_client.dart';
 import '../../../core/audio/audio_input.dart';
 import '../../../core/audio/offline_intent_recognizer.dart';
 import '../../../core/audio/pcm16_speech_trimmer.dart';
@@ -23,40 +22,22 @@ class NextConversationRepository
     implements
         ConversationRepository,
         UserAudioArchiveRepository,
-        UserAudioHistoryPlaybackRepository,
         ChunkedConversationRepository,
         RealtimeConversationRepository,
-        OfflineIntentCatalogRepository,
-        TranslationTargetRepository {
+        OfflineIntentCatalogRepository {
   NextConversationRepository({
     required AppConfig config,
     required Future<String> Function() clientIdProvider,
-    Future<void> Function()? clientIdResetter,
     http.Client? client,
   }) : _config = config,
-       _client =
-           client ??
-           InstallationAuthenticatedClient(
-             config: config,
-             clientIdProvider: clientIdProvider,
-             clientIdResetter: clientIdResetter,
-           ),
+       _client = client ?? http.Client(),
        _ownsClient = client == null,
-       _clientIdProvider = clientIdProvider;
+       _clientId = clientIdProvider();
 
   final AppConfig _config;
   final http.Client _client;
   final bool _ownsClient;
-  final Future<String> Function() _clientIdProvider;
-  TranslationOutputLanguage _translationTarget =
-      TranslationOutputLanguage.english;
-
-  @override
-  void setTranslationTarget(TranslationOutputLanguage language) {
-    _translationTarget = language;
-  }
-
-  Future<String> get _clientId => _clientIdProvider();
+  final Future<String> _clientId;
   Future<OfflineIntentManifest>? _offlineIntentManifest;
 
   @override
@@ -176,7 +157,6 @@ class NextConversationRepository
         http.MultipartRequest('POST', _config.resolve('/api/conversation'))
           ..fields['clientId'] = clientId
           ..fields['context'] = context.apiValue
-          ..fields['targetLanguage'] = _translationTarget.apiValue
           ..fields['childAge'] = childAge.toString()
           ..fields['benchmark'] = jsonEncode(<String, dynamic>{
             ...benchmark.toJson(),
@@ -245,7 +225,6 @@ class NextConversationRepository
     final body = jsonEncode(<String, dynamic>{
       'clientId': clientId,
       'context': context.apiValue,
-      'targetLanguage': _translationTarget.apiValue,
       'childAge': childAge,
       'asrMode': 'batch_chunks',
       'mimeType': capture.mimeType,
@@ -319,9 +298,7 @@ class NextConversationRepository
       uploadToken: audioSession.uploadToken,
       supportsChunkChecksum: audioSession.supportsChunkChecksum,
       supportsMissingChunkRecovery: audioSession.supportsMissingChunkRecovery,
-      supportsBatchPrefetch:
-          audioSession.supportsBatchPrefetch &&
-          _translationTarget == TranslationOutputLanguage.english,
+      supportsBatchPrefetch: audioSession.supportsBatchPrefetch,
       uploadProtocolVersion: audioSession.uploadProtocolVersion,
     );
   }
@@ -356,76 +333,50 @@ class NextConversationRepository
       bluetoothAudioInput: capture.isBluetoothInput,
       initialNoiseRms: capture.initialNoiseRms,
     );
-    final uri = _config.resolve('/api/conversation');
-    final body = jsonEncode(<String, dynamic>{
-      'clientId': clientId,
-      'context': context.apiValue,
-      'targetLanguage': _translationTarget.apiValue,
-      'childAge': childAge,
-      'sourceText': capture.sourceText,
-      'asrMode': capture.asrMode,
-      'benchmark': <String, dynamic>{
-        ...benchmark.toJson(),
-        if (capture.confidence != null) 'asrConfidence': capture.confidence,
-        if (capture.firstResultMs != null)
-          'asrFirstDeltaMs': capture.firstResultMs,
-        'asrFinalAfterStopMs': capture.finalAfterStopMs,
-        if (capture.realtimeSessionCreateMs != null)
-          'realtimeSessionCreateMs': capture.realtimeSessionCreateMs,
-        if (capture.realtimeWebSocketConnectMs != null)
-          'realtimeWebSocketConnectMs': capture.realtimeWebSocketConnectMs,
-        if (capture.realtimeWebSocketOpenAfterRecordingMs != null)
-          'realtimeWebSocketOpenAfterRecordingMs':
-              capture.realtimeWebSocketOpenAfterRecordingMs,
-        if (capture.realtimeChunkDurationMs != null)
-          'realtimeChunkDurationMs': capture.realtimeChunkDurationMs,
-        if (capture.workerAsrPilotRttMs != null)
-          'workerAsrPilotRttMs': capture.workerAsrPilotRttMs,
-        if (capture.workerAsrPilotAsrMs != null)
-          'workerAsrPilotAsrMs': capture.workerAsrPilotAsrMs,
-        if (capture.workerAsrPilotAudioBytes != null)
-          'workerAsrPilotAudioBytes': capture.workerAsrPilotAudioBytes,
-        if (capture.extraBenchmark != null) ...capture.extraBenchmark!,
-      },
-    });
-    Object? lastError;
+    final response = await _client
+        .post(
+          _config.resolve('/api/conversation'),
+          headers: const <String, String>{'content-type': 'application/json'},
+          body: jsonEncode(<String, dynamic>{
+            'clientId': clientId,
+            'context': context.apiValue,
+            'childAge': childAge,
+            'sourceText': capture.sourceText,
+            'asrMode': capture.asrMode,
+            'benchmark': <String, dynamic>{
+              ...benchmark.toJson(),
+              if (capture.confidence != null)
+                'asrConfidence': capture.confidence,
+              if (capture.firstResultMs != null)
+                'asrFirstDeltaMs': capture.firstResultMs,
+              'asrFinalAfterStopMs': capture.finalAfterStopMs,
+              if (capture.realtimeSessionCreateMs != null)
+                'realtimeSessionCreateMs': capture.realtimeSessionCreateMs,
+              if (capture.realtimeWebSocketConnectMs != null)
+                'realtimeWebSocketConnectMs':
+                    capture.realtimeWebSocketConnectMs,
+              if (capture.realtimeWebSocketOpenAfterRecordingMs != null)
+                'realtimeWebSocketOpenAfterRecordingMs':
+                    capture.realtimeWebSocketOpenAfterRecordingMs,
+              if (capture.realtimeChunkDurationMs != null)
+                'realtimeChunkDurationMs': capture.realtimeChunkDurationMs,
+              if (capture.workerAsrPilotRttMs != null)
+                'workerAsrPilotRttMs': capture.workerAsrPilotRttMs,
+              if (capture.workerAsrPilotAsrMs != null)
+                'workerAsrPilotAsrMs': capture.workerAsrPilotAsrMs,
+              if (capture.workerAsrPilotAudioBytes != null)
+                'workerAsrPilotAudioBytes': capture.workerAsrPilotAudioBytes,
+              if (capture.extraBenchmark != null) ...capture.extraBenchmark!,
+            },
+          }),
+        )
+        .timeout(const Duration(seconds: 20));
+    final json = _decodeResponse(response);
 
-    // This endpoint does not yet expose an idempotency contract. Retry only
-    // responses which explicitly say the request was deferred/rate-limited;
-    // transport failures, timeouts and generic 5xx responses may have committed
-    // a conversation already and must not create duplicate history entries.
-    for (var attempt = 1; attempt <= 3; attempt += 1) {
-      try {
-        final response = await _client
-            .post(
-              uri,
-              headers: const <String, String>{
-                'content-type': 'application/json',
-              },
-              body: body,
-            )
-            .timeout(const Duration(seconds: 20));
-        return ConversationResult.fromJson(
-          _decodeResponse(response),
-          backendBaseUri: _config.backendBaseUri,
-        );
-      } catch (error) {
-        lastError = error;
-        if (!_isSafeStreamingTextRetry(error) || attempt == 3) {
-          rethrow;
-        }
-      }
-
-      await Future<void>.delayed(
-        _conversationRetryDelay(
-          error: lastError,
-          attempt: attempt,
-          baseMs: 250,
-        ),
-      );
-    }
-
-    throw StateError('Unreachable streaming-text retry state.');
+    return ConversationResult.fromJson(
+      json,
+      backendBaseUri: _config.backendBaseUri,
+    );
   }
 
   @override
@@ -512,7 +463,6 @@ class NextConversationRepository
     required PracticeContext context,
     required int childAge,
   }) async {
-    if (_translationTarget != TranslationOutputLanguage.english) return null;
     final clientId = await _clientId;
     final response = await _client
         .post(
@@ -538,9 +488,6 @@ class NextConversationRepository
       audioUri: rawAudioUrl == null
           ? null
           : _config.backendBaseUri.resolve(rawAudioUrl),
-      audioSha256: _readBackendAudioSha256(json),
-      audioDurationSeconds: _readBackendAudioDuration(json),
-      dynamicAudioKey: _readBackendDynamicAudioKey(json),
     );
   }
 
@@ -555,7 +502,6 @@ class NextConversationRepository
     String? previousPrefetchId,
     Map<String, dynamic>? benchmark,
   }) async {
-    if (_translationTarget != TranslationOutputLanguage.english) return null;
     final response = await _client
         .post(
           _config.resolve('/api/audio-sessions/$audioSessionId/preview'),
@@ -604,9 +550,6 @@ class NextConversationRepository
         audioUri: rawAudioUrl is String && rawAudioUrl.isNotEmpty
             ? _config.backendBaseUri.resolve(rawAudioUrl)
             : null,
-        audioSha256: _readBackendAudioSha256(json),
-        audioDurationSeconds: _readBackendAudioDuration(json),
-        dynamicAudioKey: _readBackendDynamicAudioKey(json),
       ),
     );
   }
@@ -614,13 +557,11 @@ class NextConversationRepository
   Future<_AudioSessionDescriptor> _createAudioSession({
     String encoding = 'pcm_s16le',
   }) async {
-    final clientId = await _clientId;
     final response = await _client
         .post(
           _config.resolve('/api/audio-sessions'),
           headers: const <String, String>{'content-type': 'application/json'},
           body: jsonEncode(<String, dynamic>{
-            'clientId': clientId,
             'protocolVersion': 2,
             'audio': <String, dynamic>{
               'encoding': encoding,
@@ -1132,28 +1073,6 @@ class NextConversationRepository
   }
 
   @override
-  Future<Uri> fetchUserAudioPlaybackUri(String conversationId) async {
-    final clientId = await _clientId;
-    final uri = _config
-        .resolve(
-          '/api/conversations/${Uri.encodeComponent(conversationId)}/user-audio',
-        )
-        .replace(queryParameters: <String, String>{'clientId': clientId});
-    final response = await _client
-        .get(uri)
-        .timeout(const Duration(seconds: 10));
-    final json = _decodeResponse(response);
-    final rawAudioUrl = json['audioUrl'];
-    if (rawAudioUrl is! String || rawAudioUrl.trim().isEmpty) {
-      throw const ConversationApiException(
-        'Backend không trả về đường dẫn bản ghi âm.',
-        errorCode: 'USER_AUDIO_URL_MISSING',
-      );
-    }
-    return _config.backendBaseUri.resolve(rawAudioUrl);
-  }
-
-  @override
   Future<void> deleteHistoryItem(String conversationId) async {
     final clientId = await _clientId;
     final uri = _config
@@ -1162,7 +1081,6 @@ class NextConversationRepository
           queryParameters: <String, String>{
             'conversationId': conversationId,
             'clientId': clientId,
-            'deleteRelatedData': 'true',
           },
         );
     final response = await _client
@@ -1176,12 +1094,7 @@ class NextConversationRepository
     final clientId = await _clientId;
     final uri = _config
         .resolve('/api/history')
-        .replace(
-          queryParameters: <String, String>{
-            'clientId': clientId,
-            'deleteRelatedData': 'true',
-          },
-        );
+        .replace(queryParameters: <String, String>{'clientId': clientId});
     final response = await _client
         .delete(uri)
         .timeout(const Duration(seconds: 10));
@@ -1230,7 +1143,6 @@ class NextConversationRepository
       throw ConversationApiException(
         '${message ?? 'Backend trả về lỗi ${response.statusCode}.'}$supportCode',
         statusCode: response.statusCode,
-        requestId: requestId,
         errorCode: errorCode,
         details: details,
         retryAfter: _parseRetryAfter(response.headers['retry-after']),
@@ -3034,12 +2946,10 @@ class ConversationApiException
     implements
         Exception,
         CodedConversationException,
-        ConversationFailureDiagnostics,
         RetryableConversationException {
   const ConversationApiException(
     this.message, {
     this.statusCode,
-    this.requestId,
     this.errorCode,
     this.details,
     this.retryAfter,
@@ -3047,10 +2957,7 @@ class ConversationApiException
 
   @override
   final String message;
-  @override
   final int? statusCode;
-  @override
-  final String? requestId;
   @override
   final String? errorCode;
   final Map<String, dynamic>? details;
@@ -3075,33 +2982,6 @@ bool _isRetryableConversationRequest(Object error) {
     return true;
   }
   return error is RetryableConversationException && error.isRetryable;
-}
-
-bool _isSafeStreamingTextRetry(Object error) {
-  if (error is! ConversationApiException) return false;
-  return error.statusCode == 425 ||
-      error.statusCode == 429 ||
-      (error.statusCode == 409 && error.errorCode == 'RATE_LIMITED');
-}
-
-String? _readBackendAudioSha256(Map<String, dynamic> json) {
-  final value = json['audioSha256'] ?? json['sha256'];
-  return value is String && RegExp(r'^[a-fA-F0-9]{64}$').hasMatch(value)
-      ? value.toLowerCase()
-      : null;
-}
-
-double? _readBackendAudioDuration(Map<String, dynamic> json) {
-  final value = json['audioDurationSeconds'] ?? json['durationSeconds'];
-  final duration = value is num ? value.toDouble() : null;
-  return duration != null && duration > 0 && duration <= 45 ? duration : null;
-}
-
-String? _readBackendDynamicAudioKey(Map<String, dynamic> json) {
-  final value = json['dynamicAudioKey'] ?? json['audioKey'];
-  return value is String && RegExp(r'^[a-fA-F0-9]{64}$').hasMatch(value)
-      ? value.toLowerCase()
-      : null;
 }
 
 final math.Random _conversationRetryRandom = math.Random();
