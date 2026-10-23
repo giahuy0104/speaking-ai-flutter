@@ -1,3 +1,4 @@
+import '../../offline/bloc/offline_service_bloc.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../app/app_theme.dart';
@@ -11,10 +12,12 @@ import 'settings_status_tile.dart';
 class SettingsRecognitionSection extends StatelessWidget {
   const SettingsRecognitionSection({
     required this.controller,
+    required this.createOfflineBloc,
     this.vadSilenceMs,
     this.onVadChanged,
     super.key,
   });
+  final OfflineServiceBloc Function() createOfflineBloc;
   final int? vadSilenceMs;
   final ValueChanged<int>? onVadChanged;
   int get _vadSilenceMs => vadSilenceMs ?? controller.vadSilenceMs;
@@ -109,7 +112,7 @@ class SettingsRecognitionSection extends StatelessWidget {
           ),
         if (isAndroid || isIOS) ...<Widget>[
           const SizedBox(height: 10),
-          const SettingsOfflineLanguagePacksCard(),
+          SettingsOfflineLanguagePacksCard(createBloc: createOfflineBloc),
         ],
         const SizedBox(height: 12),
         Column(

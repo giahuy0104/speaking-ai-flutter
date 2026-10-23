@@ -83,3 +83,7 @@ Test bổ sung khóa mặc định/giới hạn/busy/reset của VAD, store key 
 ## Module Lịch sử độc lập
 
 HistorySheet đã chuyển sang `presentation/history/screen`, widget con ở `presentation/history/widgets`, state nghiệp vụ thuộc HistoryBloc/Event/State và DI tại app/di/history_dependencies.dart. Settings vẫn mở bottom sheet như trước, nhưng phải inject factory Bloc. Xem [HistoryBloc](history-bloc.md).
+
+## Quản lý gói offline
+
+SettingsOfflineLanguagePacksCard đã chuyển toàn bộ state nghiệp vụ sang OfflineServiceBloc riêng; SettingsBloc không ôm trạng thái tải model. Factory qua SettingsScreen → SettingsRecognitionSection → card, service/Bloc tạo qua OfflineDependencies. Xem [OfflineServiceBloc](offline-service-bloc.md).

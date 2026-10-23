@@ -1,3 +1,5 @@
+import '../../../app/di/offline_dependencies.dart';
+import '../../offline/bloc/offline_service_bloc.dart';
 import 'package:ai_speaking_flutter_app/app/di/history_dependencies.dart';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
@@ -21,6 +23,7 @@ import '../widgets/settings_recognition_section.dart';
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({
     required this.controller,
+    this.createOfflineBloc = OfflineDependencies.createPlatformBloc,
     this.settingsBloc,
     this.themeMode = ThemeMode.system,
     this.connectionCoordinator,
@@ -39,6 +42,7 @@ class SettingsScreen extends StatefulWidget {
   });
 
   final ConversationSettingsPort controller;
+  final OfflineServiceBloc Function() createOfflineBloc;
   final SettingsBloc? settingsBloc;
   final DeviceConnectionCoordinator? connectionCoordinator;
   final ThemeMode themeMode;
@@ -226,6 +230,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                         const SizedBox(height: 12),
                         SettingsRecognitionSection(
+                          createOfflineBloc: widget.createOfflineBloc,
                           controller: controller,
                           vadSilenceMs: _vadSilenceMs,
                           onVadChanged: _changeVad,

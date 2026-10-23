@@ -163,3 +163,5 @@ Các hạng mục production còn lại:
 Màn hình chính không hiển thị latency, source rule/AI hay benchmark. Các dữ liệu
 này vẫn được gửi về backend để dashboard/admin so sánh web với Flutter. Trẻ chỉ
 thấy hành động cần làm và kết quả giao tiếp.
+
+- `domain/offline/offline_service.dart` + `data/offline/platform_offline_service.dart`: contract và adapter điều phối gói offline cho Settings. `presentation/offline/bloc` giữ state/event; `app/di/offline_dependencies.dart` tạo scope. Xem [OfflineServiceBloc](offline-service-bloc.md).
