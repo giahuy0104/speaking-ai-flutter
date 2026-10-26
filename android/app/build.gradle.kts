@@ -86,6 +86,7 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.17")
     implementation("androidx.work:work-runtime:2.11.1")
+    implementation("com.google.mlkit:translate:17.0.3")
     // Vosk uses JNA to enter libvosk. Select the Android AAR explicitly;
     // resolving the default JAR can leave native initialization blocked on
     // some OEM builds even when the .so files happen to be packaged.

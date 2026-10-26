@@ -215,7 +215,7 @@ void main() {
   );
 
   test(
-    'explicit opt-out is respected, including while a status query is pending',
+    'Android prepares Topic after a previously declined optional choice',
     () async {
       final consent = _Consent()
         ..value = AndroidOfflineSpeechModelConsent.declined;
@@ -225,15 +225,8 @@ void main() {
         consentStore: consent,
       );
       await service.prepare();
-      expect(models.checks, 0);
-      consent.value = AndroidOfflineSpeechModelConsent.allowed;
-      models.gate = Completer<void>();
-      final pending = service.prepare();
-      await Future<void>.delayed(Duration.zero);
-      consent.value = AndroidOfflineSpeechModelConsent.declined;
-      models.gate!.complete();
-      await pending;
-      expect(models.downloads, isEmpty);
+      expect(models.downloads, ['en-US']);
+      expect(consent.writes, 0);
     },
   );
 

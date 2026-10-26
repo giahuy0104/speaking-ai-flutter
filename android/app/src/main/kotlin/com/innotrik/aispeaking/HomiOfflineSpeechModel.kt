@@ -14,6 +14,11 @@ import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import com.google.android.gms.tasks.Tasks
+import com.google.mlkit.common.model.DownloadConditions
+import com.google.mlkit.common.model.RemoteModelManager
+import com.google.mlkit.nl.translate.TranslateLanguage
+import com.google.mlkit.nl.translate.TranslateRemoteModel
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
@@ -497,4 +502,53 @@ class HomiOfflineSpeechModelDownloadWorker(
 
     private class InvalidModelArchiveException(message: String) : IOException(message)
     private class DownloadPausedException(message: String) : IOException(message)
+}
+
+/** Schedules the ML Kit models used by Vietnamese-to-English offline translation. */
+object HomiOfflineTranslationModel {
+    private const val workName = "homi.offline-translation.vi-en"
+
+    fun scheduleDownload(context: Context) {
+        val request =
+            OneTimeWorkRequestBuilder<HomiOfflineTranslationModelDownloadWorker>()
+                .setConstraints(
+                    Constraints.Builder()
+                        .setRequiredNetworkType(NetworkType.UNMETERED)
+                        .setRequiresStorageNotLow(true)
+                        .build(),
+                )
+                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
+                .build()
+        WorkManager.getInstance(context.applicationContext).enqueueUniqueWork(
+            workName,
+            ExistingWorkPolicy.KEEP,
+            request,
+        )
+    }
+}
+
+class HomiOfflineTranslationModelDownloadWorker(
+    appContext: Context,
+    workerParameters: WorkerParameters,
+) : Worker(appContext, workerParameters) {
+    override fun doWork(): Result {
+        if (!HomiOfflineSpeechModel.hasValidatedWifi(applicationContext)) {
+            return Result.retry()
+        }
+        return try {
+            val manager = RemoteModelManager.getInstance()
+            val conditions = DownloadConditions.Builder().requireWifi().build()
+            for (language in listOf(TranslateLanguage.VIETNAMESE, TranslateLanguage.ENGLISH)) {
+                if (isStopped) return Result.retry()
+                val model = TranslateRemoteModel.Builder(language).build()
+                if (!Tasks.await(manager.isModelDownloaded(model), 30, TimeUnit.SECONDS)) {
+                    Tasks.await(manager.download(model, conditions), 8, TimeUnit.MINUTES)
+                }
+            }
+            Result.success()
+        } catch (error: Exception) {
+            Log.w("HomiOfflineTranslation", "ML Kit model preparation deferred", error)
+            Result.retry()
+        }
+    }
 }

@@ -58,6 +58,11 @@ class ConversationController extends ChangeNotifier
         LearningAudioDependencies,
         MainAssistantAudioState {
   static const double translatedSpeechPlaybackRate = 0.80;
+  static const _offlineDataUnavailableCode =
+      'OFFLINE_LANGUAGE_DATA_UNAVAILABLE';
+  static const _offlineTargetUnavailableCode = 'OFFLINE_TARGET_UNAVAILABLE';
+  static const _offlineDataUnavailableMessage =
+      'Gói nói và dịch tiếng Anh offline chưa sẵn sàng. HOMI sẽ tải khi có Wi-Fi.';
   static const String connectionReadyMessage =
       'Thiết bị HOMI đã kết nối. Sẵn sàng học cùng bé!';
 
@@ -3799,6 +3804,11 @@ class ConversationController extends ChangeNotifier
               reason: 'network_transport_unavailable',
               useDeviceTtsForExact: useAndroidOfflineAudio,
             );
+      if (!hasNetworkTransport &&
+          useAndroidOfflineAudio &&
+          offlineFirstResult == null) {
+        throw _offlineUnavailableException();
+      }
       final Future<ConversationResult> resultFuture;
       if (offlineFirstResult != null) {
         // Do not create an HTTP request after the OS has already reported that
@@ -4083,6 +4093,12 @@ class ConversationController extends ChangeNotifier
                   expectedGeneration: generation,
                 );
           if (!current()) throw StateError('cancelled');
+          if (!online &&
+              !_isWebRuntime &&
+              defaultTargetPlatform == TargetPlatform.android &&
+              offline == null) {
+            throw _offlineUnavailableException();
+          }
           final translated =
               offline ??
               await _useOfflineResultWhenBackendIsUnavailable(
@@ -4198,8 +4214,12 @@ class ConversationController extends ChangeNotifier
       );
       _lastTurnEndReason = ConversationTurnEndReason.failed;
       _setError(
-        'Câu ${failure.index + 1}/${sentences.length}: '
-        '${audioFailure ? "Không thể phát âm thanh" : "Không thể dịch câu"}.',
+        cause is PlatformException &&
+                (cause.code == _offlineDataUnavailableCode ||
+                    cause.code == _offlineTargetUnavailableCode)
+            ? _friendlyError(cause)
+            : 'Câu ${failure.index + 1}/${sentences.length}: '
+                  '${audioFailure ? "Không thể phát âm thanh" : "Không thể dịch câu"}.',
       );
     } finally {
       await cache.close().catchError((Object _) {});
@@ -5215,6 +5235,14 @@ class ConversationController extends ChangeNotifier
   }
 
   String _friendlyError(Object error) {
+    if (error is PlatformException) {
+      if (error.code == _offlineDataUnavailableCode) {
+        return _offlineDataUnavailableMessage;
+      }
+      if (error.code == _offlineTargetUnavailableCode) {
+        return 'Ngôn ngữ này cần Internet để dịch. Bạn hãy kết nối mạng rồi thử lại nhé.';
+      }
+    }
     if (error is TimeoutException) {
       return 'Kết nối backend quá chậm. Vui lòng thử lại.';
     }
@@ -5231,6 +5259,12 @@ class ConversationController extends ChangeNotifier
     }
     return error.toString().replaceFirst('Exception: ', '');
   }
+
+  PlatformException _offlineUnavailableException() => PlatformException(
+    code: outputLanguage == TranslationOutputLanguage.english
+        ? _offlineDataUnavailableCode
+        : _offlineTargetUnavailableCode,
+  );
 
   @override
   void dispose() {

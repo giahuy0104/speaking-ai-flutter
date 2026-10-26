@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/services.dart';
 
 import '../domain/device/device_connection.dart';
 import '../presentation/device/bloc/device_bloc.dart';
@@ -131,6 +132,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       const ParentSetupProgressStore();
   final AndroidOfflineSpeechModelConsentStore _offlineSpeechModelConsentStore =
       const SharedPreferencesAndroidOfflineSpeechModelConsentStore();
+  final AndroidOfflineSpeechModelService _androidOfflineSpeechModelService =
+      const MethodChannelAndroidOfflineSpeechModelService();
   late final AndroidOfflineSpeechModelCoordinator
   _offlineSpeechModelCoordinator = AndroidOfflineSpeechModelCoordinator(
     consentStore: _offlineSpeechModelConsentStore,
@@ -535,10 +538,12 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       unawaited(_initializeStartupSetup());
       if (_supportsOfflineLanguagePacks) {
         unawaited(_prepareOfflineLanguageModels());
-        _offlineSpeechModelTimer = Timer.periodic(
-          const Duration(seconds: 30),
-          (_) => unawaited(_prepareOfflineLanguageModels()),
-        );
+        if (!isAndroidRuntime) {
+          _offlineSpeechModelTimer = Timer.periodic(
+            const Duration(seconds: 30),
+            (_) => unawaited(_prepareOfflineLanguageModels()),
+          );
+        }
       }
     });
   }
@@ -585,10 +590,41 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     unawaited(_topicOfflineModelPreparation.prepare());
   }
 
+  Future<bool> _androidOfflineLanguageReady() async {
+    final speech = await _androidOfflineSpeechModelService.status(
+      locale: 'vi-VN',
+    );
+    return speech.state == AndroidOfflineSpeechModelState.installed &&
+        await _offlineTranslator.modelsReady();
+  }
+
   Future<void> _prepareOfflineLanguageModels() async {
     if (!_supportsOfflineLanguagePacks ||
         _offlineSpeechModelPreparationRunning ||
         _offlineSpeechModelPreparationFinished) {
+      return;
+    }
+    if (isAndroidRuntime) {
+      _offlineSpeechModelPreparationRunning = true;
+      try {
+        final status = await _androidOfflineSpeechModelService.status(
+          locale: 'vi-VN',
+        );
+        if (status.state != AndroidOfflineSpeechModelState.installed &&
+            status.state != AndroidOfflineSpeechModelState.pending &&
+            status.state != AndroidOfflineSpeechModelState.unavailable) {
+          await _androidOfflineSpeechModelService.requestDownload(
+            locale: 'vi-VN',
+          );
+        }
+        await const MethodChannel(
+          'homi_offline_speech',
+        ).invokeMethod<void>('translation.scheduleDownload');
+      } catch (error) {
+        debugPrint('Android offline language setup deferred: $error');
+      } finally {
+        _offlineSpeechModelPreparationRunning = false;
+      }
       return;
     }
     if (_offlineSpeechModelConsent !=
@@ -598,22 +634,10 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     _offlineSpeechModelPreparationRunning = true;
     try {
       var speechReady = true;
-      if (isAndroidRuntime) {
-        final speechResults =
-            await Future.wait<AndroidOfflineSpeechModelPreparationResult>([
-              _offlineSpeechModelCoordinator.prepare(locale: 'en-US'),
-              _offlineSpeechModelCoordinator.prepare(locale: 'vi-VN'),
-            ]);
-        speechReady = speechResults.every(
-          (result) =>
-              result == AndroidOfflineSpeechModelPreparationResult.ready,
-        );
-      } else {
-        for (final locale in const <String>['vi-VN', 'en-US']) {
-          speechReady =
-              await _appleOfflineSpeechAssetService.prepareLocale(locale) &&
-              speechReady;
-        }
+      for (final locale in const <String>['vi-VN', 'en-US']) {
+        speechReady =
+            await _appleOfflineSpeechAssetService.prepareLocale(locale) &&
+            speechReady;
       }
 
       // Speech preparation can wait for an Apple locale download. Honour a
@@ -3965,6 +3989,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
               child: PwaInstallGate(
                 child: HomeLearningShell(
                   onReady: _onHomeReady,
+                  offlineLanguageReady: isAndroidRuntime
+                      ? _androidOfflineLanguageReady
+                      : null,
                   controller: controller,
                   config: _config,
                   connectionCoordinator: _requiresLearningDevice
@@ -4046,7 +4073,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
                       ? _startupPermissionError
                       : _deviceIssueMessage(deviceState!.issue!),
                   androidOfflineEnglishModelOptionAvailable:
-                      _supportsOfflineLanguagePacks &&
+                      _usesIosHfpLifecycle &&
                       _privacyConsentGranted &&
                       !_limitedModeSelected,
                   androidOfflineEnglishModelDownloadAllowed:

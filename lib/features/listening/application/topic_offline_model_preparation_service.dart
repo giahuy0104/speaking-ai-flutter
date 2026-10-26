@@ -42,8 +42,9 @@ class TopicOfflineModelPreparationService {
 
   Future<void> _prepare() async {
     try {
-      if (await _consentStore.read() ==
-              AndroidOfflineSpeechModelConsent.declined ||
+      if ((isIos &&
+              await _consentStore.read() ==
+                  AndroidOfflineSpeechModelConsent.declined) ||
           _disposed) {
         _stopRetry();
         return;
@@ -60,10 +61,7 @@ class TopicOfflineModelPreparationService {
           status.state == AndroidOfflineSpeechModelState.unavailable) {
         return;
       }
-      // Recheck after the async query: Settings may have cancelled downloads.
-      if (await _consentStore.read() ==
-              AndroidOfflineSpeechModelConsent.declined ||
-          _disposed) {
+      if (_disposed) {
         return;
       }
       // Scheduling while offline is intentional. No model bytes are fetched
