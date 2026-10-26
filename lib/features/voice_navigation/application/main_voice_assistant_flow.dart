@@ -1274,7 +1274,7 @@ class MainVoiceAssistantFlow {
     final activeCommand = _resolveActiveCommand(normalized);
     if (activeCommand == null &&
         MasterNavigationContract.matches('CONTINUE_GLOBAL', normalized) &&
-        (_isWaitingChoiceNode(_activeVoiceNode) ||
+        ((_activeVoiceNode?.isWaitingForChoice ?? false) ||
             (_activeVoiceSelection?.isMainVoiceChoice ?? false))) {
       return MainVoiceAssistantTurn(
         promptText: _activeVoicePrompt ?? activeLearningPrompt,
@@ -2104,16 +2104,6 @@ class MainVoiceAssistantFlow {
     }
     return null;
   }
-
-  static bool _isWaitingChoiceNode(ActiveLearningVoiceNode? node) => const {
-    ActiveLearningVoiceNode.vocabularyMenu,
-    ActiveLearningVoiceNode.parentAlternatives,
-    ActiveLearningVoiceNode.starAlternatives,
-    ActiveLearningVoiceNode.reviewAlternatives,
-    ActiveLearningVoiceNode.todayEnd,
-    ActiveLearningVoiceNode.blockEnd,
-    ActiveLearningVoiceNode.listEnd,
-  }.contains(node);
 
   static bool _isTranslationChoice(String normalized) =>
       MasterNavigationContract.matches('OPEN_TRANSLATE', normalized) ||

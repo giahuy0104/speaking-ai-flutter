@@ -449,8 +449,17 @@ class AivoControlDispatcher extends ChangeNotifier {
       return _mainResult(await onPause(mainInput));
     }
     if (intent == AivoControlIntent.assistantOrResume) {
-      if (registry.isActiveModulePaused && (canResume?.call() ?? true)) {
-        final owner = registry.controller;
+      final owner = registry.controller;
+      final waitingForChoice =
+          (owner is ActiveLearningVoiceContext &&
+              (owner as ActiveLearningVoiceContext)
+                  .mainVoiceNode
+                  .isWaitingForChoice) ||
+          (owner is ActiveLearningVoiceSelectionContext &&
+              (owner as ActiveLearningVoiceSelectionContext).isMainVoiceChoice);
+      if (registry.isActiveModulePaused &&
+          !waitingForChoice &&
+          (canResume?.call() ?? true)) {
         final result = await registry.execute(ActiveLearningCommand.resume);
         if (_disposed ||
             ticket != _generation ||

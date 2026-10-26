@@ -49,6 +49,19 @@ enum ActiveLearningVoiceNode {
   listEnd,
 }
 
+extension ActiveLearningVoiceNodeChoice on ActiveLearningVoiceNode {
+  bool get isWaitingForChoice => switch (this) {
+    ActiveLearningVoiceNode.vocabularyMenu ||
+    ActiveLearningVoiceNode.parentAlternatives ||
+    ActiveLearningVoiceNode.starAlternatives ||
+    ActiveLearningVoiceNode.reviewAlternatives ||
+    ActiveLearningVoiceNode.todayEnd ||
+    ActiveLearningVoiceNode.blockEnd ||
+    ActiveLearningVoiceNode.listEnd => true,
+    _ => false,
+  };
+}
+
 abstract interface class ActiveLearningVoiceContext {
   ActiveLearningVoiceNode get mainVoiceNode;
   String get mainVoicePrompt;
