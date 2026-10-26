@@ -219,6 +219,7 @@ AppRouter createAppRouter() => AppRouter({
           announceIntro: arguments.announceIntro,
           announceResume: arguments.announceResume,
           onRequestVoiceChoice: bindings.onRequestVoiceChoice,
+          onPrepareContinue: bindings.onPrepareContinue,
           key: bindings.key,
         ),
       ),

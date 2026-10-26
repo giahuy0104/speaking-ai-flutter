@@ -1896,6 +1896,27 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                   vocabularyAudioService: _vocabularyAudioService,
                   fixedPromptAudioService: _fixedPromptAudioService,
                   onRequestVoiceChoice: widget.onRequestVoiceChoice,
+                  onPrepareContinue: () async {
+                    final timer = Stopwatch()..start();
+                    final next = switch (session.mode) {
+                      VocabularyPracticeMode.today =>
+                        await widget.sessionStore.prepareTodayReplay(
+                          widget.store,
+                        ),
+                      VocabularyPracticeMode.review =>
+                        await widget.sessionStore.prepareReview(
+                          widget.store,
+                          forceNextGroup: true,
+                        ),
+                    };
+                    debugPrint(
+                      'HOMI vocabulary continuation: '
+                      'mode=${session.mode.name} '
+                      'hasNext=${next != null} '
+                      'elapsedMs=${timer.elapsedMilliseconds}',
+                    );
+                    return next;
+                  },
                 ),
               ),
             );

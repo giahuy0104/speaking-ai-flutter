@@ -56,6 +56,7 @@ class VocabularyPracticeScreen extends StatefulWidget {
     this.announceIntro = true,
     this.announceResume = false,
     this.onRequestVoiceChoice,
+    this.onPrepareContinue,
     super.key,
   });
 
@@ -80,6 +81,7 @@ class VocabularyPracticeScreen extends StatefulWidget {
     String? noSpeechExitPrompt,
   })?
   onRequestVoiceChoice;
+  final Future<VocabularyPracticeSession?> Function()? onPrepareContinue;
 
   @override
   State<VocabularyPracticeScreen> createState() =>
@@ -112,7 +114,9 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   bool _completed = false;
   bool _todayEnViCompleted = false;
   bool _exiting = false;
+  bool _continuationPending = false;
   bool _reviewHasMore = true;
+  bool _todayReplayAvailable = true;
   int _invalidResponseCount = 0;
   late bool _resumeAnnouncementPending;
   String _message = '';
@@ -305,7 +309,9 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   @override
   String get mainVoicePrompt => _completed
       ? (_isToday
-            ? VocabularyFlowV3.todayCompletion
+            ? _todayReplayAvailable
+                  ? VocabularyFlowV3.todayCompletion
+                  : VocabularyFlowV3.todayQueueEmpty
             : _reviewHasMore
             ? VocabularyFlowV3.reviewGroupCompletion
             : VocabularyFlowV3.reviewCycleFinished)
@@ -998,7 +1004,7 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     if (!mounted) {
       return const ActiveLearningCommandResult.unavailable();
     }
-    if (_loading || _exiting) {
+    if (_loading || _exiting || _continuationPending) {
       return const ActiveLearningCommandResult.busy();
     }
     if (command == ActiveLearningCommand.vocabularyRoot) {
@@ -1027,10 +1033,12 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     }
     if (_completed) {
       _paused = false;
-      if (_isToday && command == ActiveLearningCommand.resume) {
+      if (command == ActiveLearningCommand.resume &&
+          (_isToday || _reviewHasMore)) {
         // MAIN resumes a paused owner automatically after a silent command
-        // window. Completion is a waiting-for-choice state, not replay consent.
-        setState(() => _message = VocabularyFlowV3.todayCompletion);
+        // window. Completion is a waiting-for-choice state, not consent to
+        // start the next Review block.
+        setState(() => _message = mainVoicePrompt);
         return const ActiveLearningCommandResult.handled();
       }
       if (command == ActiveLearningCommand.vocabularyParentAdded) {
@@ -1042,18 +1050,20 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
         return const ActiveLearningCommandResult.handled();
       }
       if (_isToday &&
+          _todayReplayAvailable &&
           (command == ActiveLearningCommand.vocabularyPracticeAgain ||
               command == ActiveLearningCommand.restart ||
               command == ActiveLearningCommand.replayCurrent)) {
-        _finish(VocabularyPracticeResult.continueLearning);
-        return const ActiveLearningCommandResult.handled();
+        return await _continueLearning()
+            ? const ActiveLearningCommandResult.handled()
+            : const ActiveLearningCommandResult.busy();
       }
-      if ((command == ActiveLearningCommand.resume ||
-              command == ActiveLearningCommand.nextItem) &&
+      if (command == ActiveLearningCommand.nextItem &&
           !_isToday &&
           _reviewHasMore) {
-        _finish(VocabularyPracticeResult.continueLearning);
-        return const ActiveLearningCommandResult.handled();
+        return await _continueLearning()
+            ? const ActiveLearningCommandResult.handled()
+            : const ActiveLearningCommandResult.busy();
       }
       if (!_isToday &&
           !_reviewHasMore &&
@@ -1138,6 +1148,105 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
 
   void _finish(VocabularyPracticeResult result) {
     Navigator.of(context).pop(result);
+  }
+
+  Future<bool> _continueLearning() async {
+    if (!mounted || _exiting || _continuationPending) return false;
+    final prepare = widget.onPrepareContinue;
+    if (prepare == null) {
+      _finish(VocabularyPracticeResult.continueLearning);
+      return true;
+    }
+    setState(() {
+      _continuationPending = true;
+      _message = 'Đang mở nội dung tiếp theo...';
+    });
+    try {
+      final next = await prepare();
+      if (!mounted || _exiting) return false;
+      if (next == null) {
+        setState(() {
+          _continuationPending = false;
+          _reviewHasMore = false;
+          _todayReplayAvailable = false;
+          _message = _isToday
+              ? VocabularyFlowV3.todayQueueEmpty
+              : VocabularyFlowV3.reviewCycleFinished;
+        });
+        return true;
+      }
+      final all = await widget.store.read();
+      if (!mounted || _exiting) return false;
+      final byId = <String, VocabularyEntry>{
+        for (final entry in all) entry.id: entry,
+      };
+      final entries = next.entryIds
+          .map((id) => byId[id])
+          .whereType<VocabularyEntry>()
+          .toList(growable: false);
+      if (entries.isEmpty) {
+        if (next.mode == VocabularyPracticeMode.review) {
+          await widget.sessionStore.endReviewSession();
+        } else {
+          await widget.sessionStore.clearActive();
+        }
+        if (!mounted || _exiting) return false;
+        setState(() {
+          _continuationPending = false;
+          _reviewHasMore = false;
+          _todayReplayAvailable = false;
+          _message = _isToday
+              ? VocabularyFlowV3.todayQueueEmpty
+              : VocabularyFlowV3.reviewCycleFinished;
+        });
+        return true;
+      }
+      _generation += 1;
+      _recordingEndpointDetector.cancel();
+      _cancelIosRecordingListeners();
+      _praiseFireworksTimer?.cancel();
+      setState(() {
+        _session = next;
+        _entries = entries;
+        _index = next.currentIndex.clamp(0, entries.length - 1);
+        _attemptNumber = 1;
+        _cueCursor = _index;
+        _busy = false;
+        _recording = false;
+        _recordingStartPending = false;
+        _recordingProcessing = false;
+        _capturePending = false;
+        _paused = false;
+        _pausedAfterNoResponse = false;
+        _completed = false;
+        _todayEnViCompleted = false;
+        _reviewHasMore = true;
+        _todayReplayAvailable = true;
+        _invalidResponseCount = 0;
+        _resumeAnnouncementPending = false;
+        _praiseFireworksVisible = false;
+        _userDraggingReview = false;
+        _continuationPending = false;
+        _message = _isToday
+            ? VocabularyFlowV3.todayIntro
+            : 'Bạn nghe kỹ rồi nói lại nhé.';
+      });
+      _followCurrentReviewEntry();
+      if (widget.autoStart) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && !_completed) unawaited(_startCurrent());
+        });
+      }
+      return true;
+    } catch (error) {
+      if (mounted && !_exiting) {
+        setState(() {
+          _continuationPending = false;
+          _message = _friendlyError(error);
+        });
+      }
+      return false;
+    }
   }
 
   @override
@@ -1581,7 +1690,7 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   }
 
   Widget _buildCompletionActions(BuildContext context) {
-    final canContinue = _isToday || _reviewHasMore;
+    final canContinue = _isToday ? _todayReplayAvailable : _reviewHasMore;
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 560),
       child: Row(
@@ -1589,7 +1698,9 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
           Expanded(
             child: OutlinedButton(
               key: const Key('vocabulary-other-content'),
-              onPressed: () => _finish(VocabularyPracticeResult.otherContent),
+              onPressed: _continuationPending
+                  ? null
+                  : () => _finish(VocabularyPracticeResult.otherContent),
               child: const Text('Học nội dung khác'),
             ),
           ),
@@ -1598,8 +1709,9 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
             Expanded(
               child: FilledButton(
                 key: const Key('vocabulary-continue-learning'),
-                onPressed: () =>
-                    _finish(VocabularyPracticeResult.continueLearning),
+                onPressed: _continuationPending
+                    ? null
+                    : () => unawaited(_continueLearning()),
                 child: Text(_isToday ? 'Học lại' : 'Học tiếp'),
               ),
             ),

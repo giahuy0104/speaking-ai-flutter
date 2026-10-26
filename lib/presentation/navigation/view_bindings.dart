@@ -265,6 +265,7 @@ class VocabularyPracticeBindings {
     this.samplePause = const Duration(seconds: 2),
     this.autoStart = true,
     this.onRequestVoiceChoice,
+    this.onPrepareContinue,
     this.key,
   });
 
@@ -284,6 +285,7 @@ class VocabularyPracticeBindings {
     String? noSpeechExitPrompt,
   })?
   onRequestVoiceChoice;
+  final Future<VocabularyPracticeSession?> Function()? onPrepareContinue;
   final Key? key;
 }
 

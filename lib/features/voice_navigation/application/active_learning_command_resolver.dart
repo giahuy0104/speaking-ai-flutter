@@ -183,7 +183,7 @@ class ActiveLearningCommandResolver {
       },
       ActiveLearningVoiceNode.blockEnd => <String, ActiveLearningCommand>{
         'OTHER_CONTENT': ActiveLearningCommand.exitToHome,
-        'CONTINUE_BLOCK': ActiveLearningCommand.resume,
+        'CONTINUE_BLOCK': ActiveLearningCommand.nextItem,
       },
       _ => <String, ActiveLearningCommand>{
         // "Tiếp theo" exists in both NEXT_ITEM and ACTIVE_RESUME in the

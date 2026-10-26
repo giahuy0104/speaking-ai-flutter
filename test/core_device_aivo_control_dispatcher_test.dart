@@ -174,6 +174,44 @@ void main() {
       expect(mainCalls, 0);
     },
   );
+  for (final node in [
+    ActiveLearningVoiceNode.blockEnd,
+    ActiveLearningVoiceNode.reviewAlternatives,
+  ]) {
+    test('first physical MAIN after silence asks the Review $node choice', () async {
+      final review = _ChoiceModule(node)..paused = true;
+      registry.register(review);
+
+      expect(
+        await controls.dispatch(
+          input(
+            Aiv0Button.main,
+            Aiv0ButtonGesture.shortPress,
+            source: AivoControlSource.ble,
+            sequence: 26,
+          ),
+        ),
+        AivoControlStatus.accepted,
+      );
+      expect(mainCalls, 1);
+      expect(review.commands, isEmpty);
+    });
+  }
+
+  test('paused Review item still resumes on MAIN', () async {
+    final review = _ChoiceModule(ActiveLearningVoiceNode.review)..paused = true;
+    registry.register(review);
+
+    expect(
+      await controls.dispatch(
+        input(Aiv0Button.main, Aiv0ButtonGesture.shortPress),
+      ),
+      AivoControlStatus.accepted,
+    );
+    expect(mainCalls, 0);
+    expect(review.commands, [ActiveLearningCommand.resume]);
+  });
+
   test(
     'physical LONG suppresses trailing SHORT until matching RELEASE',
     () async {
@@ -727,4 +765,18 @@ class _Module implements ActiveLearningModuleController {
     if (command == gatedCommand) await commandGate?.future;
     return const ActiveLearningCommandResult.handled();
   }
+}
+
+class _ChoiceModule extends _Module implements ActiveLearningVoiceContext {
+  _ChoiceModule(this.mainVoiceNode);
+
+  @override
+  final ActiveLearningVoiceNode mainVoiceNode;
+
+  @override
+  String get mainVoicePrompt => 'Bạn muốn học nội dung khác hay học tiếp?';
+
+  @override
+  ActiveLearningModuleKind get moduleKind =>
+      ActiveLearningModuleKind.vocabulary;
 }
