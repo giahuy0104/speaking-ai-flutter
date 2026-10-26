@@ -12,12 +12,10 @@ void main() {
     ) async {
       final apple = _AppleAssets()..state = terminalState;
       final android = _Models();
-      final consent = _Consent();
       final service = TopicOfflineModelPreparationService(
         isIos: true,
         appleService: apple,
         service: android,
-        consentStore: consent,
       );
       addTearDown(service.dispose);
       await service.prepare();
@@ -25,7 +23,6 @@ void main() {
       expect(apple.calls, 1);
       expect(android.checks, 0);
       expect(android.downloads, isEmpty);
-      expect(consent.writes, 0);
       // Re-entry/resume revalidates: Apple may have evicted unused assets.
       await service.prepare();
       expect(apple.calls, 2);
@@ -40,7 +37,6 @@ void main() {
         final service = TopicOfflineModelPreparationService(
           isIos: true,
           appleService: apple,
-          consentStore: _Consent(),
         );
         addTearDown(service.dispose);
         await service.prepare();
@@ -62,7 +58,6 @@ void main() {
       final service = TopicOfflineModelPreparationService(
         isIos: true,
         appleService: apple,
-        consentStore: _Consent(),
       );
       addTearDown(service.dispose);
       final first = service.prepare();
@@ -74,43 +69,24 @@ void main() {
     },
   );
 
-  testWidgets(
-    'iOS failure is silent and retries; opting out prevents further work',
-    (tester) async {
-      final apple = _AppleAssets()..fail = true;
-      final consent = _Consent();
-      final service = TopicOfflineModelPreparationService(
-        isIos: true,
-        appleService: apple,
-        consentStore: consent,
-      );
-      addTearDown(service.dispose);
-      await service.prepare();
-      apple.fail = false;
-      apple.state = 'waitingForWifi';
-      await tester.pump(const Duration(seconds: 30));
-      expect(apple.calls, 2);
-      consent.value = AndroidOfflineSpeechModelConsent.declined;
-      await tester.pump(const Duration(seconds: 30));
-      await tester.pump(const Duration(seconds: 30));
-      expect(apple.calls, 2);
-    },
-  );
-
-  testWidgets('iOS explicit opt-out skips preparation from first Home', (
+  testWidgets('iOS failure is silent and retries while the app remains open', (
     tester,
   ) async {
-    final apple = _AppleAssets();
+    final apple = _AppleAssets()..fail = true;
     final service = TopicOfflineModelPreparationService(
       isIos: true,
       appleService: apple,
-      consentStore: _Consent()
-        ..value = AndroidOfflineSpeechModelConsent.declined,
     );
     addTearDown(service.dispose);
     await service.prepare();
-    await tester.pump(const Duration(minutes: 1));
-    expect(apple.calls, 0);
+    apple.fail = false;
+    apple.state = 'waitingForWifi';
+    await tester.pump(const Duration(seconds: 30));
+    expect(apple.calls, 2);
+    apple.state = 'installed';
+    await tester.pump(const Duration(seconds: 30));
+    await tester.pump(const Duration(seconds: 30));
+    expect(apple.calls, 3);
   });
 
   testWidgets(
@@ -122,7 +98,6 @@ void main() {
       final service = TopicOfflineModelPreparationService(
         isIos: true,
         appleService: apple,
-        consentStore: _Consent(),
       );
       final pending = service.prepare();
       await tester.pump();
@@ -135,32 +110,20 @@ void main() {
     },
   );
 
-  test(
-    'default Home preparation schedules only English without changing global consent',
-    () async {
-      final models = _Models();
-      final consent = _Consent();
-      final service = TopicOfflineModelPreparationService(
-        service: models,
-        consentStore: consent,
-      );
-      await service.prepare();
-      expect(models.downloads, ['en-US']);
-      expect(consent.value, AndroidOfflineSpeechModelConsent.undecided);
-      expect(consent.writes, 0);
-      // Native job is pending, including when waiting for Wi-Fi; resume does not
-      // start a second job or need a screen to stay mounted.
-      await service.prepare();
-      expect(models.downloads, hasLength(1));
-    },
-  );
+  test('default Home preparation schedules only English', () async {
+    final models = _Models();
+    final service = TopicOfflineModelPreparationService(service: models);
+    await service.prepare();
+    expect(models.downloads, ['en-US']);
+    // Native job is pending, including when waiting for Wi-Fi; resume does not
+    // start a second job or need a screen to stay mounted.
+    await service.prepare();
+    expect(models.downloads, hasLength(1));
+  });
 
   test('concurrent Home and resume checks share one operation', () async {
     final models = _Models()..gate = Completer<void>();
-    final service = TopicOfflineModelPreparationService(
-      service: models,
-      consentStore: _Consent(),
-    );
+    final service = TopicOfflineModelPreparationService(service: models);
     final first = service.prepare();
     final second = service.prepare();
     await Future<void>.delayed(Duration.zero);
@@ -177,10 +140,7 @@ void main() {
   ]) {
     test('$state does not schedule a download', () async {
       final models = _Models()..state = state;
-      final service = TopicOfflineModelPreparationService(
-        service: models,
-        consentStore: _Consent(),
-      );
+      final service = TopicOfflineModelPreparationService(service: models);
       await service.prepare();
       expect(models.downloads, isEmpty);
     });
@@ -188,10 +148,7 @@ void main() {
 
   test('failed scheduling is silent and can retry on resume', () async {
     final models = _Models()..fail = true;
-    final service = TopicOfflineModelPreparationService(
-      service: models,
-      consentStore: _Consent(),
-    );
+    final service = TopicOfflineModelPreparationService(service: models);
     await service.prepare();
     models.fail = false;
     await service.prepare();
@@ -203,10 +160,7 @@ void main() {
     () async {
       final models = _Models()
         ..state = AndroidOfflineSpeechModelState.installed;
-      final service = TopicOfflineModelPreparationService(
-        service: models,
-        consentStore: _Consent(),
-      );
+      final service = TopicOfflineModelPreparationService(service: models);
       await service.prepare();
       models.state = AndroidOfflineSpeechModelState.missing;
       await service.prepare();
@@ -215,29 +169,10 @@ void main() {
   );
 
   test(
-    'Android prepares Topic after a previously declined optional choice',
-    () async {
-      final consent = _Consent()
-        ..value = AndroidOfflineSpeechModelConsent.declined;
-      final models = _Models();
-      final service = TopicOfflineModelPreparationService(
-        service: models,
-        consentStore: consent,
-      );
-      await service.prepare();
-      expect(models.downloads, ['en-US']);
-      expect(consent.writes, 0);
-    },
-  );
-
-  test(
     'dispose suppresses late scheduling without cancelling the native job',
     () async {
       final models = _Models()..gate = Completer<void>();
-      final service = TopicOfflineModelPreparationService(
-        service: models,
-        consentStore: _Consent(),
-      );
+      final service = TopicOfflineModelPreparationService(service: models);
       final pending = service.prepare();
       await Future<void>.delayed(Duration.zero);
       service.dispose();
@@ -279,19 +214,6 @@ class _Models implements AndroidOfflineSpeechModelService {
   @override
   Future<void> cancelDownload() async {
     cancellations++;
-  }
-}
-
-class _Consent implements AndroidOfflineSpeechModelConsentStore {
-  AndroidOfflineSpeechModelConsent value =
-      AndroidOfflineSpeechModelConsent.undecided;
-  int writes = 0;
-  @override
-  Future<AndroidOfflineSpeechModelConsent> read() async => value;
-  @override
-  Future<void> write(AndroidOfflineSpeechModelConsent consent) async {
-    writes++;
-    value = consent;
   }
 }
 

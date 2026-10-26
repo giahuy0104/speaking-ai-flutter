@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/application/offline_language_service.dart';
 import 'package:flutter/foundation.dart';
@@ -145,6 +147,23 @@ void main() {
     await translator.close();
   });
 
+  test('iOS queues both downloads before the first one finishes', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+
+    final gate = Completer<void>();
+    final adapter = _FakeTranslationAdapter(vietnameseDownloadGate: gate);
+    final translator = MlKitOfflineVietnameseEnglishTranslator(
+      adapter: adapter,
+    );
+    final pending = translator.downloadModels();
+    await Future<void>.delayed(Duration.zero);
+    expect(adapter.downloads, <String>['vi:wifi', 'en:wifi']);
+    gate.complete();
+    expect(await pending, isTrue);
+    await translator.close();
+  });
+
   test('iOS translates both directions using installed native packs', () async {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
@@ -242,36 +261,39 @@ void main() {
     await translator.close();
   });
 
-  test('Apple speech assets are prepared for the requested locale', () async {
-    const channel = MethodChannel('test_apple_speech_assets');
-    MethodCall? received;
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, (call) async {
-          received = call;
-          return true;
-        });
-    addTearDown(() {
+  test(
+    'Apple speech assets are prepared without requesting recognition access',
+    () async {
+      const channel = MethodChannel('test_apple_speech_assets');
+      MethodCall? received;
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, null);
-    });
+          .setMockMethodCallHandler(channel, (call) async {
+            received = call;
+            return 'installed';
+          });
+      addTearDown(() {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null);
+      });
 
-    expect(
-      await const AppleOfflineSpeechAssetService(
-        channel: channel,
-      ).prepareLocale('en-US'),
-      isTrue,
-    );
-    expect(received?.method, 'speech.prepareLocale');
-    expect(received?.arguments, containsPair('locale', 'en-US'));
-    expect(received?.arguments, containsPair('requireOnDevice', true));
-  });
+      expect(
+        await const AppleOfflineSpeechAssetService(
+          channel: channel,
+        ).prepareBackgroundLocale('vi-VN'),
+        'installed',
+      );
+      expect(received?.method, 'speech.prepareBackgroundAssets');
+      expect(received?.arguments, containsPair('locale', 'vi-VN'));
+    },
+  );
 }
 
 class _FakeTranslationAdapter implements OfflineTranslationAdapter {
-  _FakeTranslationAdapter({Set<String>? installed})
+  _FakeTranslationAdapter({Set<String>? installed, this.vietnameseDownloadGate})
     : installed = installed ?? <String>{};
 
   final Set<String> installed;
+  final Completer<void>? vietnameseDownloadGate;
   final List<String> downloads = <String>[];
   final List<String> translatedTexts = <String>[];
   bool closed = false;
@@ -286,6 +308,7 @@ class _FakeTranslationAdapter implements OfflineTranslationAdapter {
     required bool wifiOnly,
   }) async {
     downloads.add('$languageCode:${wifiOnly ? 'wifi' : 'any'}');
+    if (languageCode == 'vi') await vietnameseDownloadGate?.future;
     installed.add(languageCode);
     return true;
   }

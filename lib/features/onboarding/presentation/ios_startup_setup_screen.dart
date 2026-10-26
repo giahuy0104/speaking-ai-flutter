@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -37,9 +36,6 @@ class IosStartupSetupScreen extends StatefulWidget {
     required this.onCompleteSetup,
     this.allowPhoneMicFallback = false,
     this.allowBleOnlySetup = false,
-    this.androidOfflineEnglishModelOptionAvailable = false,
-    this.androidOfflineEnglishModelDownloadAllowed = false,
-    this.onAndroidOfflineEnglishModelDownloadChanged,
     this.onChooseHomiMicrophone,
     this.onOpenBluetoothSettings,
     this.homiDeviceName,
@@ -81,10 +77,6 @@ class IosStartupSetupScreen extends StatefulWidget {
   final Future<void> Function()? onOpenBluetoothSettings;
   final ValueChanged<int> onAgeSelected;
   final Future<void> Function() onCompleteSetup;
-  final bool androidOfflineEnglishModelOptionAvailable;
-  final bool androidOfflineEnglishModelDownloadAllowed;
-  final Future<void> Function(bool)?
-  onAndroidOfflineEnglishModelDownloadChanged;
   final String? permissionError;
 
   @override
@@ -497,28 +489,6 @@ class _IosStartupSetupScreenState extends State<IosStartupSetupScreen>
                 ),
               ),
             ],
-            if (widget.androidOfflineEnglishModelOptionAvailable) ...<Widget>[
-              const SizedBox(height: 14),
-              Material(
-                color: Colors.transparent,
-                child: SwitchListTile.adaptive(
-                  // Keep the legacy key so existing automation does not lose
-                  // the control while its scope expands to both platforms.
-                  key: const Key('startup-android-offline-english-model'),
-                  contentPadding: EdgeInsets.zero,
-                  value: widget.androidOfflineEnglishModelDownloadAllowed,
-                  onChanged: _choiceInProgress
-                      ? null
-                      : _setAndroidOfflineEnglishModelDownload,
-                  secondary: const Icon(Icons.download_for_offline_rounded),
-                  title: Text(
-                    !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
-                        ? 'Cho phép chuẩn bị giọng nói offline'
-                        : 'Cho phép tải dữ liệu giọng nói và dịch offline',
-                  ),
-                ),
-              ),
-            ],
             const SizedBox(height: 16),
             _DeviceChoiceCard(
               key: const Key('startup-hm-d001-choice'),
@@ -706,19 +676,6 @@ class _IosStartupSetupScreenState extends State<IosStartupSetupScreen>
         const Duration(seconds: 20),
         onTimeout: () => false,
       );
-    } finally {
-      if (mounted) setState(() => _choiceInProgress = false);
-    }
-  }
-
-  Future<void> _setAndroidOfflineEnglishModelDownload(bool enabled) async {
-    final update = widget.onAndroidOfflineEnglishModelDownloadChanged;
-    if (update == null) {
-      return;
-    }
-    setState(() => _choiceInProgress = true);
-    try {
-      await update(enabled);
     } finally {
       if (mounted) setState(() => _choiceInProgress = false);
     }

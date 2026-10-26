@@ -417,12 +417,13 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       result(false)
     case "speech.prepare":
       prepare(locale: Self.defaultLocale, result: result)
-    case "speech.prepareTopicAssets":
+    case "speech.prepareTopicAssets", "speech.prepareBackgroundAssets":
       // Keep asset warm-up separate from prepareBestEngine: no permission dialog,
       // prepared-engine mutation or cancellation of an active MAIN/lesson turn.
       Task { @IOSNativeWorkActor [weak self] in
         guard let self else { result("unavailable"); return }
-        let locale = Locale(identifier: "en-US")
+        let arguments = call.arguments as? [String: Any]
+        let locale = Self.locale(from: arguments?["locale"] ?? "en-US")
         if #available(iOS 26.0, *),
           await IOSSpeechAnalyzerSession.supports(locale: locale)
         {
@@ -436,9 +437,6 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
           result(self.onDeviceLegacyRecognizer(locale: locale) != nil ? "installed" : "unavailable")
         }
       }
-    case "speech.prepareLocale":
-      let arguments = call.arguments as? [String: Any]
-      prepare(locale: Self.locale(from: arguments?["locale"]), result: result)
     case "speech.start":
       let arguments = call.arguments as? [String: Any]
       let turnId = (arguments?["turnId"] as? NSNumber)?.intValue
@@ -1968,7 +1966,7 @@ private final class IOSSpeechAnalyzerSession {
   private static func backgroundWifiAvailable() async -> Bool {
     await withCheckedContinuation { continuation in
       let monitor = NWPathMonitor()
-      let queue = DispatchQueue(label: "homi.topic.assets.network")
+      let queue = DispatchQueue(label: "homi.speech.assets.network")
       // The first update is asynchronous. A bounded fallback prevents a stuck
       // network monitor from holding Dart's single-flight preparation forever.
       var finished = false

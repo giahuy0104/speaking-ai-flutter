@@ -16,17 +16,13 @@ class TopicOfflineModelPreparationService {
         const AppleOfflineSpeechAssetService(),
     AndroidOfflineSpeechModelService service =
         const MethodChannelAndroidOfflineSpeechModelService(),
-    AndroidOfflineSpeechModelConsentStore consentStore =
-        const SharedPreferencesAndroidOfflineSpeechModelConsentStore(),
   }) : _appleService = appleService,
-       _service = service,
-       _consentStore = consentStore;
+       _service = service;
 
   final bool isIos;
   final AppleOfflineSpeechAssetService _appleService;
   Timer? _retryTimer;
   final AndroidOfflineSpeechModelService _service;
-  final AndroidOfflineSpeechModelConsentStore _consentStore;
   Future<void>? _pending;
   bool _disposed = false;
 
@@ -42,10 +38,7 @@ class TopicOfflineModelPreparationService {
 
   Future<void> _prepare() async {
     try {
-      if ((isIos &&
-              await _consentStore.read() ==
-                  AndroidOfflineSpeechModelConsent.declined) ||
-          _disposed) {
+      if (_disposed) {
         _stopRetry();
         return;
       }

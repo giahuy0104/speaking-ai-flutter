@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:ai_speaking_flutter_app/app/ai_speaking_app.dart';
+import 'package:ai_speaking_flutter_app/config/app_config.dart';
 import 'package:ai_speaking_flutter_app/features/home/presentation/home_learning_shell.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/android_offline_speech_model_service.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/topic_listening_screen.dart';
@@ -26,6 +27,40 @@ void main() {
     expect(find.byType(HomeLearningShell), findsNothing);
     await native.close();
   }, variant: ios);
+
+  testWidgets(
+    'iOS completed setup starts Vietnamese speech and translation downloads despite an old opt-out',
+    (tester) async {
+      final native = await _launch(
+        tester,
+        consent: AndroidOfflineSpeechModelConsent.declined,
+        fullConsent: true,
+      );
+      expect(
+        native.backgroundSpeechCalls.single.arguments,
+        containsPair('locale', 'vi-VN'),
+      );
+      expect(
+        native.backgroundSpeechCalls.single.method,
+        'speech.prepareBackgroundAssets',
+      );
+      expect(
+        native.translationDownloads.map(
+          (call) => (call.arguments as Map)['model'],
+        ),
+        ['vi', 'en'],
+      );
+      expect(
+        native.translationDownloads.every(
+          (call) => (call.arguments as Map)['wifi'] == true,
+        ),
+        isTrue,
+      );
+      expect(native.topicCalls, hasLength(1));
+      await native.close();
+    },
+    variant: ios,
+  );
 
   testWidgets(
     'iOS Home stays interactive during installation and Topic has no download UI',
@@ -81,21 +116,17 @@ void main() {
   );
 
   testWidgets(
-    'iOS cold start respects persisted opt-out and resume rechecks changed choice',
+    'iOS cold start ignores the removed opt-out and rechecks on resume',
     (tester) async {
       final native = await _launch(
         tester,
         consent: AndroidOfflineSpeechModelConsent.declined,
       );
       expect(find.byType(HomeLearningShell), findsOneWidget);
+      expect(native.topicCalls, hasLength(1));
       await native.resume();
       await tester.pump(const Duration(seconds: 31));
-      expect(native.topicCalls, isEmpty);
-      // Persisted choice changes through the same store Settings uses.
-      await const SharedPreferencesAndroidOfflineSpeechModelConsentStore()
-          .write(AndroidOfflineSpeechModelConsent.undecided);
-      await native.resume();
-      expect(native.topicCalls, hasLength(1));
+      expect(native.topicCalls, hasLength(2));
       expect(native.translationDownloads, isEmpty);
       await native.close();
     },
@@ -128,21 +159,19 @@ void main() {
   );
 
   testWidgets(
-    'iOS explicit opt-out stops deferred checks and app disposal stops retries',
+    'iOS legacy opt-out does not stop deferred checks; disposal stops retries',
     (tester) async {
-      final native = await _launch(tester, prepare: () async => 'pending');
+      final native = await _launch(
+        tester,
+        consent: AndroidOfflineSpeechModelConsent.declined,
+        prepare: () async => 'pending',
+      );
       expect(native.topicCalls, hasLength(1));
-      await const SharedPreferencesAndroidOfflineSpeechModelConsentStore()
-          .write(AndroidOfflineSpeechModelConsent.declined);
       await tester.pump(const Duration(seconds: 65));
-      expect(native.topicCalls, hasLength(1));
-      await const SharedPreferencesAndroidOfflineSpeechModelConsentStore()
-          .write(AndroidOfflineSpeechModelConsent.undecided);
-      await native.resume();
-      expect(native.topicCalls, hasLength(2));
+      expect(native.topicCalls, hasLength(3));
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump(const Duration(seconds: 65));
-      expect(native.topicCalls, hasLength(2));
+      expect(native.topicCalls, hasLength(3));
       await native.close();
     },
     variant: ios,
@@ -152,11 +181,12 @@ void main() {
 Future<_NativeAssets> _launch(
   WidgetTester tester, {
   bool setupComplete = true,
+  bool fullConsent = false,
   AndroidOfflineSpeechModelConsent consent =
       AndroidOfflineSpeechModelConsent.undecided,
   Future<String> Function()? prepare,
 }) async {
-  tester.view.physicalSize = const Size(390, 844);
+  tester.view.physicalSize = const Size(430, 844);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
@@ -165,15 +195,30 @@ Future<_NativeAssets> _launch(
     if (setupComplete) 'homi.parent-setup.version': 1,
     'innotrik.user-onboarding.version': 1,
     'homi.parental-privacy-consent.version': 3,
-    // Default local test builds lack production privacy URLs. The existing
-    // browse-only mode still opens Home; production defines use the grant above.
-    'homi.parental-privacy-consent.limited-mode': true,
+    // Most cases use browse-only mode; the automatic-download case supplies
+    // complete privacy configuration below.
+    'homi.parental-privacy-consent.limited-mode': !fullConsent,
     'homi.offline-language-packs-consent.v2': consent.name,
   });
   final native = _NativeAssets(tester, prepare ?? () async => 'installed');
   native.install();
   addTearDown(native.close);
-  await tester.pumpWidget(const AiSpeakingApp());
+  await tester.pumpWidget(
+    AiSpeakingApp(
+      config: fullConsent
+          ? AppConfig(
+              backendBaseUri: Uri.parse('https://example.com'),
+              useDemoBackend: true,
+              childAge: 6,
+              privacyPolicyUri: Uri.parse('https://example.com/privacy'),
+              termsUri: Uri.parse('https://example.com/terms'),
+              supportUri: Uri.parse('https://example.com/support'),
+              aiSubprocessors: 'HOMI backend',
+              dataRetentionSummary: 'Audio được xóa sau 24 giờ.',
+            )
+          : null,
+    ),
+  );
   await tester.pumpAndSettle();
   return native;
 }
@@ -185,7 +230,9 @@ class _NativeAssets {
   final WidgetTester tester;
   final Future<String> Function() prepare;
   final topicCalls = <MethodCall>[];
+  final backgroundSpeechCalls = <MethodCall>[];
   final translationDownloads = <MethodCall>[];
+  final installedTranslationModels = <String>{};
   final directory = Directory.systemTemp.createTempSync('homi-topic-app-');
   static const channels = [
     'ailingo_aiv0_ble_control',
@@ -215,15 +262,29 @@ class _NativeAssets {
             return call.method == 'show' ? null : true;
           }
           if (name == 'google_mlkit_on_device_translator') {
-            if (call.arguments is Map &&
-                (call.arguments as Map)['task'] == 'download') {
+            final args = call.arguments is Map ? call.arguments as Map : null;
+            if (args?['task'] == 'download') {
               translationDownloads.add(call);
+              installedTranslationModels.add(args!['model'] as String);
+              return 'success';
             }
-            return false;
+            if (args?['task'] == 'check') {
+              return installedTranslationModels.contains(args!['model']);
+            }
+            return null;
           }
           if (call.method == 'speech.prepareTopicAssets') {
             topicCalls.add(call);
             return prepare();
+          }
+          if (call.method == 'speech.prepareBackgroundAssets') {
+            backgroundSpeechCalls.add(call);
+            return 'installed';
+          }
+          if (call.method == 'speech.prepareLocale') {
+            throw StateError(
+              'Automatic preparation must not request Speech permission',
+            );
           }
           return switch (call.method) {
             'initialize' ||

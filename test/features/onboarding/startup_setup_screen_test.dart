@@ -371,7 +371,6 @@ void main() {
               privacyPolicyUri: Uri.parse('https://example.com/privacy'),
               termsUri: Uri.parse('https://example.com/terms'),
               supportUri: Uri.parse('https://example.com/support'),
-              androidOfflineEnglishModelOptionAvailable: true,
               onGrantPrivacyConsent: () async {
                 setState(() => privacyConsentGranted = true);
               },
@@ -427,6 +426,10 @@ void main() {
       expect(find.byKey(const Key('startup-setup-hm-d001')), findsNothing);
       expect(find.textContaining('HM-D001'), findsNothing);
       expect(find.textContaining('HFP'), findsNothing);
+      expect(
+        find.byKey(const Key('startup-android-offline-english-model')),
+        findsNothing,
+      );
       await tester.ensureVisible(
         find.byKey(const Key('startup-request-permissions')),
       );
@@ -439,10 +442,6 @@ void main() {
       expect(find.text('Cấp quyền cho HOMI'), findsNothing);
       expect(
         find.byKey(const Key('startup-request-permissions')),
-        findsNothing,
-      );
-      expect(
-        find.byKey(const Key('startup-android-offline-english-model')),
         findsNothing,
       );
 
