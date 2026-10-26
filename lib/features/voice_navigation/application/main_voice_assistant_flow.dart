@@ -1272,7 +1272,8 @@ class MainVoiceAssistantFlow {
       );
     }
     final activeCommand = _resolveActiveCommand(normalized);
-    if (MasterNavigationContract.matches('CONTINUE_GLOBAL', normalized) &&
+    if (activeCommand == null &&
+        MasterNavigationContract.matches('CONTINUE_GLOBAL', normalized) &&
         (_isWaitingChoiceNode(_activeVoiceNode) ||
             (_activeVoiceSelection?.isMainVoiceChoice ?? false))) {
       return MainVoiceAssistantTurn(

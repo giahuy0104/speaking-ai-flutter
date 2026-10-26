@@ -894,6 +894,114 @@ void main() {
     variant: TargetPlatformVariant.only(TargetPlatform.android),
   );
 
+  testWidgets(
+    'Review block waits after a silent MAIN resume and continues only on choice',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      const store = VocabularyStore();
+      const sessions = VocabularySessionStore();
+      for (var index = 0; index < 7; index += 1) {
+        await store.upsertLessonSentence(
+          lessonCode: 'L01',
+          sentenceId: 'S$index',
+          english: 'Word $index',
+          vietnamese: 'Từ $index',
+          collection: VocabularyCollection.review,
+          source: VocabularySource.topicCore,
+        );
+      }
+      final prepared = (await sessions.prepareReview(store))!;
+      expect(prepared.entryIds, hasLength(5));
+      final session = prepared.copyWith(currentIndex: 4);
+      await sessions.saveActive(session);
+      final registry = ActiveLearningModuleRegistry();
+      final media = _FakeLessonMediaService();
+      addTearDown(registry.dispose);
+      addTearDown(media.close);
+      VocabularyPracticeResult? result;
+      final continuePreparation = Completer<VocabularyPracticeSession?>();
+
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: MaterialApp(
+            onGenerateRoute: createAppRouter().onGenerateRoute,
+            theme: buildAppTheme(),
+            home: Builder(
+              builder: (context) => FilledButton(
+                onPressed: () async {
+                  result = await Navigator.of(context).push(
+                    MaterialPageRoute<VocabularyPracticeResult>(
+                      builder: (_) => VocabularyPracticeScreen(
+                        language: DisplayLanguage.vietnamese,
+                        childAge: 6,
+                        session: session,
+                        store: store,
+                        sessionStore: sessions,
+                        mediaService: media,
+                        attemptEvaluator: _QueuedAttemptEvaluator(
+                          <LessonAttemptOutcome>[LessonAttemptOutcome.good],
+                        ),
+                        voicePromptService: _FakeVoicePromptService(),
+                        samplePause: Duration.zero,
+                        autoStart: false,
+                        onPrepareContinue: () => continuePreparation.future,
+                      ),
+                    ),
+                  );
+                },
+                child: const Text('Open Review'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Open Review'));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const Key('vocabulary-practice-main-action')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const Key('vocabulary-practice-main-action')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text(VocabularyFlowV3.reviewGroupCompletion), findsOneWidget);
+      expect(
+        find.byKey(const Key('vocabulary-continue-learning')),
+        findsOneWidget,
+      );
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      final silentResume = await registry.execute(ActiveLearningCommand.resume);
+      await tester.pumpAndSettle();
+      expect(silentResume.wasHandled, isTrue);
+      expect(result, isNull);
+      expect(find.text(VocabularyFlowV3.reviewGroupCompletion), findsOneWidget);
+      expect(
+        find.byKey(const Key('vocabulary-continue-learning')),
+        findsOneWidget,
+      );
+
+      final pendingChoice = registry.execute(ActiveLearningCommand.nextItem);
+      await tester.pump();
+      expect(result, isNull);
+      expect(find.text('Đang mở nội dung tiếp theo...'), findsOneWidget);
+      final next = await sessions.prepareReview(store, forceNextGroup: true);
+      continuePreparation.complete(next);
+      final explicitChoice = await pendingChoice;
+      await tester.pumpAndSettle();
+      expect(explicitChoice.wasHandled, isTrue);
+      expect(result, isNull);
+      expect(find.text(VocabularyFlowV3.reviewGroupCompletion), findsNothing);
+      expect(find.text('1/5'), findsOneWidget);
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
   testWidgets('Review localizes tap recording labels in Chinese', (
     tester,
   ) async {

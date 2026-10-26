@@ -627,8 +627,27 @@ void main() {
     );
     expect(
       resolver.resolve('Tiếp theo', node: ActiveLearningVoiceNode.blockEnd),
-      ActiveLearningCommand.resume,
+      ActiveLearningCommand.nextItem,
     );
+    expect(
+      resolver.resolve('Học tiếp', node: ActiveLearningVoiceNode.blockEnd),
+      ActiveLearningCommand.nextItem,
+    );
+  });
+
+  test('Review block end accepts Học tiếp as an explicit choice', () async {
+    final flow = MainVoiceAssistantFlow()
+      ..beginActiveLearning(
+        kind: ActiveLearningModuleKind.vocabulary,
+        voiceContext: const _VoiceContext(
+          ActiveLearningVoiceNode.blockEnd,
+          'Bạn muốn học nội dung khác hay học tiếp?',
+        ),
+      );
+
+    final continueTurn = await flow.handle('Học tiếp');
+    expect(continueTurn.activeLearningCommand, ActiveLearningCommand.nextItem);
+    expect(continueTurn.continueListening, isFalse);
   });
 
   test('unsupported activity commands cannot escape to generic grammar', () {
