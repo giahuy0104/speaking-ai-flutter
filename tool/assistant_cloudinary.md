@@ -1,4 +1,8 @@
-# Assistant audio on Cloudinary
+# Historical assistant-only Cloudinary migration
+
+This is the record of the assistant-only migration. It is superseded by the
+[all-audio migration](audio_cloudinary_migration.md) on 2026-10-22. The statements
+below about other audio packs remaining bundled describe the old configuration.
 
 Only `assets/data/assistant_core_audio.json` is migrated. Its `url` fields
 are the delivery URLs consumed by both assistant playback implementations.

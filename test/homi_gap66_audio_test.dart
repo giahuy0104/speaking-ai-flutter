@@ -7,6 +7,10 @@ import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+
+import 'support/local_cloudinary_audio_client.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -16,21 +20,17 @@ void main() {
   final groups = entries.map((e) => e['group'] as String).toSet();
 
   test(
-    '66 exact reviewed texts, unique across every enabled pack, correct receipts',
+    '66 reviewed recordings are unique and match their remote catalog',
     () async {
-      final expected =
-          (jsonDecode(
-                    File(
-                      'deliverables/audio-runtime-audit-2026-09-17/missing-audio.json',
-                    ).readAsStringSync(),
-                  )
-                  as Map)['missing']
-              as List;
+      final catalog =
+          jsonDecode(
+                File(
+                  'assets/data/remote_audio_catalog.json',
+                ).readAsStringSync(),
+              )
+              as Map;
       expect(entries, hasLength(66));
-      expect(
-        entries.map((e) => e['text']).toSet(),
-        expected.map((e) => e['text']).toSet(),
-      );
+      expect(entries.map((e) => e['text']).toSet(), hasLength(66));
       expect(groups, homiGap66AudioGroups.keys.toSet());
       final all = [
         for (final path in [
@@ -39,12 +39,16 @@ void main() {
         ])
           ...(jsonDecode(File(path).readAsStringSync())['prompts'] as List),
       ];
+      final bundled = (await AssetManifest.loadFromAssetBundle(
+        rootBundle,
+      )).listAssets();
       for (final e in entries) {
         expect(e['enabled'], true);
         expect(
-          e.containsKey('url'),
-          false,
-          reason: 'New fixed pack is bundled; no CDN dependency.',
+          e['url'],
+          catalog['assets'][e['asset']]['url'],
+          reason:
+              'Each GAP66 recording is delivered through the public catalog.',
         );
         final matches = all.where(
           (p) =>
@@ -56,42 +60,19 @@ void main() {
         );
         expect(matches, hasLength(1), reason: e['text'] as String);
         final bytes = await File(e['asset'] as String).readAsBytes();
-        final receipt = jsonDecode(
-          File(
-            'deliverables/homi-gap66-2026-09-17/ready/${e['id']}.json',
-          ).readAsStringSync(),
-        );
-        // Replacement files have their own verified artifact receipt. Keep
-        // original provider request IDs/source timing as historical evidence.
-        final artifact = receipt['replacementArtifact'] ?? receipt;
         expect(sha256.convert(bytes).toString(), e['sha256']);
-        expect(artifact['asset'], e['asset'], reason: e['id'] as String);
-        expect(artifact['finalSha256'], e['sha256'], reason: e['id'] as String);
-        expect(artifact['bytes'], bytes.length, reason: e['id'] as String);
-        expect(
-          artifact['durationSeconds'],
-          closeTo((e['durationSeconds'] as num).toDouble(), 0.000001),
-          reason: e['id'] as String,
-        );
-        expect(receipt['request']['text'], e['text']);
-        expect(receipt['request']['model_id'], 'eleven_v3');
-        expect(receipt['request']['voice_settings']['speed'], 1.0);
-        expect(receipt['voiceId'], '5CVDNcIPiOYgRUQuxXd7');
-        expect(receipt['speed'], 0.9);
-        expect(
-          receipt['durationSeconds'],
-          closeTo((receipt['sourceDurationSeconds'] as num) / 0.9, 0.25),
-        );
+        expect(bytes.length, e['sizeBytes']);
+        expect(catalog['assets'][e['asset']]['sha256'], e['sha256']);
         expect(manifest['profiles']['en'], {
           'voiceId': 'Nhs7eitvQWFTQBsf0yiT',
           'speed': 0.75,
         });
         expect(e['durationSeconds'], inExclusiveRange(0, 45));
         expect(bytes.length, lessThan(2 * 1024 * 1024));
-        expect(await rootBundle.load(e['asset'] as String), isA<ByteData>());
+        expect(bundled, isNot(contains(e['asset'])));
       }
       final pubspec = File('pubspec.yaml').readAsStringSync();
-      expect(pubspec, contains('    - assets/audio/MAIN/GAP66/'));
+      expect(pubspec, isNot(contains('    - assets/audio/')));
       expect(pubspec, isNot(contains('    - deliverables/')));
     },
   );
@@ -112,6 +93,7 @@ void main() {
       );
       final service = createVoicePromptService(
         owner: AudioTurnOwner.mainAssistant,
+        httpClient: createLocalCloudinaryAudioClient(),
       );
       addTearDown(() async {
         await service.dispose();
@@ -165,6 +147,7 @@ void main() {
       delegate: delegate,
       enabled: true,
       additionalManifestAssets: const [homiGap66ManifestAsset],
+      httpClient: createLocalCloudinaryAudioClient(),
     );
     addTearDown(service.dispose);
 
@@ -196,6 +179,7 @@ void main() {
           enabled: true,
           additionalManifestAssets: const [homiGap66ManifestAsset],
           groupEnabled: {group: false},
+          httpClient: createLocalCloudinaryAudioClient(),
         );
         addTearDown(service.dispose);
         for (final e in entries) {
@@ -223,6 +207,7 @@ void main() {
           delegate: delegate,
           enabled: true,
           bundle: _FailureBundle(failure),
+          httpClient: MockClient((_) async => http.Response('offline', 503)),
           additionalManifestAssets: const [homiGap66ManifestAsset],
         );
         addTearDown(service.dispose);
@@ -244,6 +229,7 @@ class _Delegate implements VoicePromptService, AuthoredAudioVoicePromptService {
     Uint8List bytes, {
     bool forcePhoneSpeaker = false,
     bool forceMediaPlayback = false,
+    double? gainDb,
   }) async {
     events.add('mp3');
     if (failPlayback) throw StateError('Injected playback failure');

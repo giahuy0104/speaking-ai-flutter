@@ -1,0 +1,20 @@
+{
+  "signature": "8cdc7dc8c61cef9aa024908e745f4861b720df4f9c5f84981d444a7d96c740ec",
+  "request": {
+    "text": "Online Words",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "2490d3d3f1c896cf7a382d564c5fb5119f39b50e8c75b3fce3d059ba16da1933",
+  "requestId": "Wi76Ko9uYqtLMuLhHtnZ",
+  "createdAt": "2026-09-15T23:28:26.504Z"
+}

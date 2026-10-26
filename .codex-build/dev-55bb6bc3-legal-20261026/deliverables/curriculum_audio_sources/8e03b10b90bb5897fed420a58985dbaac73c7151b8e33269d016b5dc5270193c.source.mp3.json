@@ -1,0 +1,20 @@
+{
+  "signature": "8e03b10b90bb5897fed420a58985dbaac73c7151b8e33269d016b5dc5270193c",
+  "request": {
+    "text": "Which Animal?.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "da4dddeb3a42c695bb696120d9e6f6a73055dd88ae700cc254bd114ebbb707e3",
+  "requestId": "F1rNhLRVZQ38ghtEFlhQ",
+  "createdAt": "2026-09-15T23:23:48.155Z"
+}

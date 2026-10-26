@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T10\\C67-L3-M12_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-M12",
+  "sourceText": "Xe đạp: Bike hay Cartoons?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Xe đạp:",
+      "text": "Xe đạp:",
+      "spoken_text": "Xe đạp:",
+      "input_index": 66
+    },
+    {
+      "language": "en",
+      "source_text": "Bike",
+      "text": "Bike",
+      "spoken_text": "Bike",
+      "input_index": 67
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 68
+    },
+    {
+      "language": "en",
+      "source_text": "Cartoons?",
+      "text": "Cartoons?",
+      "spoken_text": "Cartoons?",
+      "input_index": 69
+    }
+  ],
+  "sourceSha256": "ca24aa54bf0ff4538e7bce88662c82af4d546d7ec2bfd93a33c2ef68515fff09",
+  "id": "LESSON-68053DFAAFC2366FFC6D3FBC",
+  "text": "Xe đạp: Bike hay Cartoons?",
+  "asset": "assets/audio/CURRICULUM/68053dfaafc2366ffc6d3fbc.vi.v1.mp3",
+  "sha256": "ca24aa54bf0ff4538e7bce88662c82af4d546d7ec2bfd93a33c2ef68515fff09",
+  "durationSeconds": 3.524354
+}

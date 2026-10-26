@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T04-B01\\C67-L2-T04-B01-Q01_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-T04-B01-Q01",
+  "sourceText": "Táo: Apples hay Bananas?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Táo:",
+      "spoken_text": "Táo:",
+      "input_index": 0
+    },
+    {
+      "language": "en",
+      "text": "Apples",
+      "spoken_text": "Apples",
+      "input_index": 1
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 2
+    },
+    {
+      "language": "en",
+      "text": "Bananas?",
+      "spoken_text": "Bananas?",
+      "input_index": 3
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-37A0B5DACD10792D4B0B46A4",
+  "text": "Táo: Apples hay Bananas?",
+  "asset": "assets/audio/CURRICULUM/37a0b5dacd10792d4b0b46a4.vi.v1.mp3",
+  "sha256": "e10e2aaa242b78304671dd20004f3090356014118061f57814d0a14f783e4afb",
+  "durationSeconds": 3.570563
+}

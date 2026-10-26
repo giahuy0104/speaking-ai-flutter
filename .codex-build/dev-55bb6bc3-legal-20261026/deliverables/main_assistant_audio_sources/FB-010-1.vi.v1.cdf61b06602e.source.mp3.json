@@ -1,0 +1,20 @@
+{
+  "id": "FB-010-1",
+  "signature": "cdf61b06602ea97e161c8b84f4e5c036521dceed06dc63db66b2e9eabbecc920",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn nói “luyện lại từ đầu” hoặc “bài tiếp theo”.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:11:13.294Z",
+  "requestId": "ojRSITdITpkcturPlCXT",
+  "characterCost": "26",
+  "sourceSha256": "e8e6d7c472717f1a93d156d881763c43630db51c704ee13b749d199d3db19cee"
+}

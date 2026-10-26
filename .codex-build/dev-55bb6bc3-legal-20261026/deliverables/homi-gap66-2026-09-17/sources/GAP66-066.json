@@ -1,0 +1,21 @@
+{
+  "id": "GAP66-066",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình chưa hiểu. Mình đã luyện xong rồi. Bạn muốn học phần Ba mẹ đã thêm hay Ngôi sao?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "zHtVg3Z1QiM49Arh2saL",
+  "historyItemId": "3gWudnuzAmzY0FWWoR3y",
+  "characterCost": "47",
+  "createdAt": "2026-09-17T14:27:04.969Z",
+  "sourceSha256": "4ffe35ffe461b973882dcda1cd65a62b480b9b3e24f59c8f9a085a88e41ba7d6"
+}

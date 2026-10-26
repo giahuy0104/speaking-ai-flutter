@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T07-B01\\C810-L3-T07-B01-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T07-B01-Q03",
+  "sourceText": "Đồ chơi: Toy hay Price?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Đồ chơi:",
+      "spoken_text": "Đồ chơi:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Toy",
+      "spoken_text": "Toy",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Price?",
+      "spoken_text": "Price?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-B7076912942311715D215EFE",
+  "text": "Đồ chơi: Toy hay Price?",
+  "asset": "assets/audio/CURRICULUM/b7076912942311715d215efe.vi.v1.mp3",
+  "sha256": "724afabad0ab48f3a70893933ae3844081445fc0e4651d1bc2bc803daa18772e",
+  "durationSeconds": 3.675261
+}

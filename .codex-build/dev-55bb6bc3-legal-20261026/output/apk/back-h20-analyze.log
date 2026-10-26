@@ -1,0 +1,6 @@
+Analyzing 8 items...                                            
+
+   info - Statements in an if should be enclosed in a block. Try wrapping the statement in a block - lib\features\vocabulary\presentation\vocabulary_home_screen.dart:1850:7 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block. Try wrapping the statement in a block - lib\features\vocabulary\presentation\vocabulary_home_screen.dart:2092:7 - curly_braces_in_flow_control_structures
+
+2 issues found. (ran in 7.6s)

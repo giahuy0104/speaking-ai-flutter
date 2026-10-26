@@ -1,0 +1,22 @@
+{
+  "number": 17,
+  "id": "VOCAB50-017",
+  "text": "Mình đã luyện xong rồi. Bạn muốn học phần Ba mẹ đã thêm hay Ngôi sao?",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current",
+  "file": "audio/VOCAB50-017.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "b1397dbbd637eb211b7f38490745156f1357bfb1f571a54f42a7c47f1bdb2f79",
+  "bytes": 81964,
+  "sourceDurationSeconds": 4.56,
+  "durationSeconds": 5.061723,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "dVedhUuLYOdNFvTbyvnE",
+  "characterCost": "38",
+  "createdAt": "2026-09-16T03:20:24.837Z"
+}

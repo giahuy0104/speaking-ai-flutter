@@ -1,0 +1,146 @@
+{
+  "at": "2026-09-17T14:27:17.742Z",
+  "count": 5,
+  "receipts": [
+    {
+      "id": "GAP66-005",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Bắt đầu Level 1. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "kz1gC7UYvk8pfegwLoZG",
+      "historyItemId": "R9yOQhrpG9Byj9xpvuG5",
+      "characterCost": "29",
+      "createdAt": "2026-09-17T14:24:10.649Z",
+      "sourceSha256": "49a2358036e550c8db5fbd4a0b51a0d16dd1471b19a1acce14cacfb27d42a29f",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-005.vi.v1.mp3",
+      "finalSha256": "c287462b8a96ace50d2cb322bf71bbfaf6e1e3dba7afbd8bf1d52bb6d7e9dcb1",
+      "sourceDurationSeconds": 4.24,
+      "durationSeconds": 4.703107,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 76530
+    },
+    {
+      "id": "GAP66-006",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Bắt đầu Level 2. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "slcJrinME4bkL8YGH2MQ",
+      "historyItemId": "2Ytns09EAhJj498alEYD",
+      "characterCost": "29",
+      "createdAt": "2026-09-17T14:24:22.652Z",
+      "sourceSha256": "752b7dbcdd08ac58cd92ae315b3dd642cb2cd24def84d6e42118d4788d68ccc8",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-006.vi.v1.mp3",
+      "finalSha256": "22ca530bd0ff04d26c587679d6c178b056b7d55b7a78d79e670de20aa11314ed",
+      "sourceDurationSeconds": 4.16,
+      "durationSeconds": 4.603333,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 74858
+    },
+    {
+      "id": "GAP66-007",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Bắt đầu Level 3. Có 4 Chủ đề. Bạn chọn Chủ đề số mấy?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "LCn35Cvk2HvkQzQZNW1g",
+      "historyItemId": "mAXlaTp2gYyaHdlJXevm",
+      "characterCost": "29",
+      "createdAt": "2026-09-17T14:24:25.542Z",
+      "sourceSha256": "ff43021df56d2466c65e7a7c15a878699f4da454f2515cedc6e700625c048a48",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-007.vi.v1.mp3",
+      "finalSha256": "d58ab6acadc6229c2def868bd4e253db26154c65c2b518c7cf5eecec52521260",
+      "sourceDurationSeconds": 4.24,
+      "durationSeconds": 4.693719,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 76112
+    },
+    {
+      "id": "GAP66-062",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Có 3 Chủ đề. Bạn chọn Chủ đề số mấy?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "oBIDB0alxqNAcul5Zuyo",
+      "historyItemId": "8r9a25pmGKVIVLwAMl2J",
+      "characterCost": "29",
+      "createdAt": "2026-09-17T14:26:53.817Z",
+      "sourceSha256": "049a1dc600b6f95dc6078af3adff9ca5a409322f9a3cc9715673b6fd07d52514",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-062.vi.v1.mp3",
+      "finalSha256": "42398798aca6b91f75ef27d833a0736c5adad6cea17c1779f2879f13bdf2e3e4",
+      "sourceDurationSeconds": 3.76,
+      "durationSeconds": 4.165283,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 67753
+    },
+    {
+      "id": "GAP66-063",
+      "provider": "elevenlabs",
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "request": {
+        "text": "Mình chưa hiểu. Có 4 Chủ đề. Bạn chọn Chủ đề số mấy?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75,
+          "speed": 1
+        }
+      },
+      "requestId": "nuJwXzfqfpl4ovACbmGK",
+      "historyItemId": "AB3irB4lzyq2roCDVHds",
+      "characterCost": "29",
+      "createdAt": "2026-09-17T14:26:55.958Z",
+      "sourceSha256": "191430c0242857eef2f6ab752639e8d2dfcf7aa1ba77f8d4bd9b13a41dce7f27",
+      "asset": "assets/audio/MAIN/GAP66/GAP66-063.vi.v1.mp3",
+      "finalSha256": "b75be7ecf41adbf45e610428a197634a85322b22b91e8e81094f9b07bb6344d6",
+      "sourceDurationSeconds": 3.52,
+      "durationSeconds": 3.901293,
+      "speed": 0.9,
+      "speedMethod": "ffmpeg-atempo",
+      "bytes": 63573
+    }
+  ]
+}

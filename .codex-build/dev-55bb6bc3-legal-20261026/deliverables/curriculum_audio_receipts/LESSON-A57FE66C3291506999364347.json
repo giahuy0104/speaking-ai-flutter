@@ -1,0 +1,63 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T07-B03\\C1112-L3-T07-B03-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T07-B03-Q07",
+  "sourceText": "HOMI nói: Are you free Saturday? Hôm đó bạn bận. Sorry, I'm busy hay Sounds good?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "HOMI nói:",
+      "spoken_text": "HOMI nói:",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Are you free Saturday?",
+      "spoken_text": "Are you free Saturday?",
+      "input_index": 39
+    },
+    {
+      "language": "vi",
+      "text": "Hôm đó bạn bận.",
+      "spoken_text": "Hôm đó bạn bận.",
+      "input_index": 40
+    },
+    {
+      "language": "en",
+      "text": "Sorry, I'm busy",
+      "spoken_text": "Sorry, I'm busy",
+      "input_index": 41
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "Sounds good?",
+      "spoken_text": "Sounds good?",
+      "input_index": 43
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-A57FE66C3291506999364347",
+  "text": "HOMI nói: Are you free Saturday? Hôm đó bạn bận. Sorry, I'm busy hay Sounds good?",
+  "asset": "assets/audio/CURRICULUM/a57fe66c3291506999364347.vi.v1.mp3",
+  "sha256": "ec2e504e80405ab486a3582538e0ddaba74b49dc3915d7eb66032d8a569ef049",
+  "durationSeconds": 7.749819
+}

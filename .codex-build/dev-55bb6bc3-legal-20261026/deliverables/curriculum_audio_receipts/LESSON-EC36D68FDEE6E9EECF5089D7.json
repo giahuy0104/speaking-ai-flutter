@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T10-B01\\C1315-L3-T10-B01-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T10-B01-Q07",
+  "sourceText": "Bạn muốn nói 'Mình muốn học lập trình.' Hoàn thành câu: I want to... learn coding hay join a club?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói 'Mình muốn học lập trình.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Mình muốn học lập trình.' Hoàn thành câu:",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "I want to... learn coding",
+      "spoken_text": "I want to... learn coding",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "join a club?",
+      "spoken_text": "join a club?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-EC36D68FDEE6E9EECF5089D7",
+  "text": "Bạn muốn nói 'Mình muốn học lập trình.' Hoàn thành câu: I want to... learn coding hay join a club?",
+  "asset": "assets/audio/CURRICULUM/ec36d68fdee6e9eecf5089d7.vi.v1.mp3",
+  "sha256": "e878b6d30b4043746213bfe270f5c6eac28508d4439ea0ff90aa6c9e0d0a9785",
+  "durationSeconds": 10.1339
+}

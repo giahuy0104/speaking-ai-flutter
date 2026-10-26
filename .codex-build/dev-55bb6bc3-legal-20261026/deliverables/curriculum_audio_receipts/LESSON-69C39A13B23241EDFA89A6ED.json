@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T01-B01\\C67-L1-T01-B01-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T01-B01-Q04",
+  "sourceText": "Bàn học: Desk hay Elephant?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bàn học:",
+      "spoken_text": "Bàn học:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Desk",
+      "spoken_text": "Desk",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Elephant?",
+      "spoken_text": "Elephant?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-69C39A13B23241EDFA89A6ED",
+  "text": "Bàn học: Desk hay Elephant?",
+  "asset": "assets/audio/CURRICULUM/69c39a13b23241edfa89a6ed.vi.v1.mp3",
+  "sha256": "d4523552ea6c3870cce33cb18138bce421b1ea5fa2cd50f998c6fab9b61da806",
+  "durationSeconds": 3.60288
+}

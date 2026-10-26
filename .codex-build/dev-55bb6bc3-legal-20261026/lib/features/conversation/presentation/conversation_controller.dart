@@ -1,0 +1,5807 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:math' as math;
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../core/audio/adaptive_voice_activity_detector.dart';
+import '../../../core/audio/audio_input.dart';
+import '../../../core/audio/audio_playback_service.dart';
+import '../../../core/audio/catalog/media_audio_keys.dart';
+import '../../../core/audio/hfp_audio_control.dart';
+import '../../../core/audio/learning_audio_dependencies.dart';
+import '../../../core/audio/main_assistant_audio_state.dart';
+import '../../../core/audio/offline_intent_recognizer.dart';
+import '../../../core/audio/realtime_fallback_buffer.dart';
+import '../../../core/audio/streaming_speech_input.dart';
+import '../../../core/audio/sentence_audio_cache.dart';
+import '../../../core/audio/voice_prompt_service.dart';
+import '../../../core/device/aiv0_ble_control.dart';
+import '../../../core/device/homi_connection_state.dart';
+import '../../../core/device/device_connection_history.dart';
+import '../../../core/device/device_display_name.dart';
+import '../../../core/device/main_button_coordinator.dart';
+import '../../../l10n/display_language.dart';
+import '../application/conversation_settings_port.dart';
+import '../application/conversation_recording_endpoint_policy.dart';
+import '../application/continuous_translation_session.dart';
+import '../application/sentence_queue.dart';
+import '../application/offline_language_service.dart';
+import '../application/vietnamese_transcript_corrector.dart';
+import '../domain/conversation_models.dart';
+import '../domain/conversation_audio_keys.dart';
+import '../domain/conversation_repository.dart';
+import '../domain/speech_gated_batch_upload_session.dart';
+
+export '../application/conversation_settings_port.dart'
+    show
+        HomiHardwareTestPhase,
+        HomiHardwareTestResult,
+        DeviceConnectionOutcome,
+        DeviceConnectionResult,
+        DeviceConnectionBusyException;
+
+enum ConversationTurnEndReason {
+  completed,
+  noSpeech,
+  tooShort,
+  commandHandled,
+  failed,
+}
+
+class ConversationController extends ChangeNotifier
+    implements
+        ConversationSettingsPort,
+        LearningAudioDependencies,
+        MainAssistantAudioState {
+  static const double translatedSpeechPlaybackRate = 0.80;
+  static const String connectionReadyMessage =
+      'Thiết bị HOMI đã kết nối. Sẵn sàng học cùng bé!';
+
+  ConversationController({
+    required AudioInput audioInput,
+    StreamingSpeechInput? streamingSpeechInput,
+    HfpAudioControl? hfpAudioControl,
+    HfpAudioControl Function()? learningAudioRouteControlFactory,
+    AudioTurnCoordinator? audioTurnCoordinator,
+    Aiv0BleControl? aiv0BleControl,
+    DeviceConnectionHistoryStore? deviceConnectionHistoryStore,
+    Future<SharedPreferences> Function()? deviceConnectionPreferences,
+    required AudioPlaybackService playbackService,
+    VoicePromptService? voicePromptService,
+    required ConversationRepository repository,
+    OfflineIntentRecognizer? offlineIntentRecognizer,
+    OfflineVietnameseSpeechRecognizer? offlineVietnameseSpeechRecognizer,
+    OfflineVietnameseEnglishTranslator? offlineVietnameseEnglishTranslator,
+    OfflineEnglishVietnameseTranslator? offlineEnglishVietnameseTranslator,
+    VietnameseTranscriptCorrector? vietnameseTranscriptCorrector,
+    DisplayLanguageStore? displayLanguageStore,
+    required int childAge,
+    bool preferBleStreaming = true,
+    bool realtimeBatchFallback = true,
+    int realtimeFallbackBufferBytes = 15 * 1024 * 1024,
+    AsrMode? initialAsrMode,
+    bool? webRuntimeOverride,
+    Duration? adaptiveWebUploadDelay,
+    Duration audioPreparationTimeout = const Duration(seconds: 8),
+    Duration cancellationBarrierTimeout = const Duration(milliseconds: 1500),
+    bool recordAndroidAudioForArchive = false,
+    bool Function()? voiceDataProcessingAllowed,
+    Future<bool> Function()? networkTransportAvailable,
+    Future<void> Function()? beforeRecordingStart,
+    bool Function(String recognizedText)? recognizedSpeechCommandMatcher,
+    Future<void> Function(String recognizedText)? onRecognizedSpeechCommand,
+  }) : _audioInput = audioInput,
+       _bluetoothAudioControl = audioInput is BluetoothAudioInputControl
+           ? audioInput as BluetoothAudioInputControl
+           : null,
+       _streamingSpeechInput = streamingSpeechInput,
+       _hfpAudioControl = hfpAudioControl,
+       _learningAudioRouteControlFactory = learningAudioRouteControlFactory,
+       _audioTurnCoordinator = audioTurnCoordinator,
+       _aiv0BleControl = aiv0BleControl,
+       _deviceHistory =
+           deviceConnectionHistoryStore ??
+           DeviceConnectionHistoryStore(
+             preferences: deviceConnectionPreferences,
+           ),
+       _devicePreferences =
+           deviceConnectionPreferences ?? SharedPreferences.getInstance,
+       _playbackService = playbackService,
+       _voicePromptService = voicePromptService,
+       _repository = repository,
+       _offlineIntentRecognizer = offlineIntentRecognizer,
+       _offlineVietnameseSpeechRecognizer = offlineVietnameseSpeechRecognizer,
+       _offlineVietnameseEnglishTranslator = offlineVietnameseEnglishTranslator,
+       _offlineEnglishVietnameseTranslator = offlineEnglishVietnameseTranslator,
+       _vietnameseTranscriptCorrector = vietnameseTranscriptCorrector,
+       _displayLanguageStore = displayLanguageStore,
+       _childAge = childAge,
+       _preferBleStreaming = preferBleStreaming,
+       _realtimeBatchFallback = realtimeBatchFallback,
+       _isWebRuntime = webRuntimeOverride ?? kIsWeb,
+       _hfpInputSelected = initialAsrMode == AsrMode.hfpStreaming,
+       _adaptiveWebUploadDelay = adaptiveWebUploadDelay ?? Duration.zero,
+       _audioPreparationTimeout = audioPreparationTimeout,
+       _cancellationBarrierTimeout = cancellationBarrierTimeout,
+       _recordAndroidAudioForArchive = recordAndroidAudioForArchive,
+       _voiceDataProcessingAllowed = voiceDataProcessingAllowed,
+       _networkTransportAvailable = networkTransportAvailable,
+       _beforeRecordingStart = beforeRecordingStart,
+       _recognizedSpeechCommandMatcher = recognizedSpeechCommandMatcher,
+       _onRecognizedSpeechCommand = onRecognizedSpeechCommand,
+       _realtimeFallbackBuffer = RealtimeFallbackBuffer(
+         maxBytes: realtimeFallbackBufferBytes > 0
+             ? realtimeFallbackBufferBytes
+             : 15 * 1024 * 1024,
+       ),
+       asrMode = initialAsrMode == AsrMode.hfpStreaming
+           ? (hfpAudioControl?.usesBrowserAudioInput ?? false)
+                 ? AsrMode.batchChunks
+                 : AsrMode.androidStreaming
+           : initialAsrMode ??
+                 (streamingSpeechInput == null
+                     ? AsrMode.batchChunks
+                     : AsrMode.androidStreaming) {
+    _continuousTranslationSession = ContinuousTranslationSession(
+      runtime: _ConversationContinuousTranslationRuntime(this),
+    );
+    _streamingCompletionSubscription = streamingSpeechInput?.completed.listen((
+      _,
+    ) {
+      if (!_usingStreamingSpeech ||
+          _streamingSpeechTurnGeneration != _conversationTurnGeneration) {
+        return;
+      }
+      // Apple can publish its final/error before speech.start acknowledges.
+      // Retain the terminal event until this turn owns the recording state.
+      _nativeSpeechCompletedGeneration = _conversationTurnGeneration;
+      if (phase == ConversationPhase.recording && !_stopInProgress) {
+        unawaited(stopRecording(manual: false));
+      }
+    });
+    _partialTextSubscription = streamingSpeechInput?.partialText.listen(
+      _onPartialText,
+    );
+    // The recognizer's own endpointer is more reliable than the RMS VAD, which
+    // background noise can keep "active" after the child has finished.
+    final speechEndpointInput = streamingSpeechInput is SpeechEndpointInput
+        ? streamingSpeechInput as SpeechEndpointInput
+        : null;
+    _speechEndedSubscription = speechEndpointInput?.speechEnded.listen((_) {
+      if (phase == ConversationPhase.recording &&
+          _usingStreamingSpeech &&
+          _stopOnSilence &&
+          !_stopInProgress) {
+        unawaited(stopRecording(manual: false));
+      }
+    });
+    final nativeDiagnostics = streamingSpeechInput is NativeSpeechDiagnostics
+        ? streamingSpeechInput as NativeSpeechDiagnostics
+        : null;
+    nativeSpeechDiagnostic = nativeDiagnostics?.nativeSpeechDiagnostic;
+    if (nativeSpeechDiagnostic != null) {
+      _nativeSpeechDiagnosticLog.add(nativeSpeechDiagnostic!);
+    }
+    _nativeSpeechDiagnosticSubscription = nativeDiagnostics
+        ?.nativeSpeechDiagnostics
+        .listen((diagnostic) {
+          nativeSpeechDiagnostic = diagnostic;
+          final currentTurnId = diagnostic.turnId;
+          final previousTurnId = _nativeSpeechDiagnosticLog.isEmpty
+              ? null
+              : _nativeSpeechDiagnosticLog.last.turnId;
+          if (currentTurnId != null &&
+              previousTurnId != null &&
+              currentTurnId != previousTurnId) {
+            _nativeSpeechDiagnosticLog.clear();
+          }
+          _nativeSpeechDiagnosticLog.add(diagnostic);
+          if (_nativeSpeechDiagnosticLog.length > 200) {
+            _nativeSpeechDiagnosticLog.removeRange(
+              0,
+              _nativeSpeechDiagnosticLog.length - 200,
+            );
+          }
+          if (!_disposed) notifyListeners();
+        });
+    final bluetoothControl = _bluetoothAudioControl;
+    if (bluetoothControl != null) {
+      _bluetoothStatusSubscription = bluetoothControl.bluetoothStatusChanges
+          .listen((_) {
+            if (!_disposed) {
+              notifyListeners();
+            }
+          });
+      unawaited(
+        bluetoothControl.initializeBluetooth().catchError((Object error) {
+          debugPrint('INNOTRIK BLE initialization failed: $error');
+        }),
+      );
+    }
+    final hfpControl = _hfpAudioControl;
+    if (hfpControl != null) {
+      _hfpStatusSubscription = hfpControl.statusChanges.listen((status) {
+        _handleIosSelectedMediaOutputStatus(status);
+        final selectedMicrophoneLost =
+            _hfpInputSelected && !status.isConnected && !status.isBusy;
+        final hasHfpActivity =
+            _preparingMicrophone ||
+            _continuousHfpSessionActive ||
+            phase == ConversationPhase.recording ||
+            phase == ConversationPhase.processing;
+        if (!kIsWeb &&
+            (defaultTargetPlatform == TargetPlatform.android ||
+                defaultTargetPlatform == TargetPlatform.iOS) &&
+            ((selectedMicrophoneLost && hasHfpActivity) ||
+                (_usingHfpRoute &&
+                    _playbackPlaying &&
+                    !status.routeActive &&
+                    !status.isBusy)) &&
+            !_handlingHfpRouteLoss) {
+          unawaited(_stopAfterHfpRouteLoss());
+        }
+        // Retain the selected input intent across physical disconnection.
+        // Only explicit deselection may enable handset-microphone use again.
+        if (!_disposed) {
+          notifyListeners();
+        }
+      });
+      unawaited(
+        hfpControl.initialize().catchError((Object error) {
+          debugPrint('HFP initialization failed: $error');
+        }),
+      );
+    }
+    final aiv0Control = _aiv0BleControl;
+    if (aiv0Control != null) {
+      if (aiv0Control.status.isConnected) {
+        _lastKnownHomiBleId = aiv0Control.status.deviceId;
+      }
+      _aiv0StatusSubscription = aiv0Control.statusStream.listen((status) {
+        if (status.isConnected && status.deviceId != null) {
+          _lastKnownHomiBleId = status.deviceId;
+          if (!sameConnectionDeviceId(
+            status.deviceId,
+            _lastObservedBleConnectionId,
+          )) {
+            _lastObservedBleConnectionId = status.deviceId;
+            unawaited(_rememberBleConnection(status));
+          }
+        } else {
+          _lastObservedBleConnectionId = null;
+        }
+        if (!_disposed) notifyListeners();
+      });
+      _aiv0ButtonSubscription = aiv0Control.buttonEvents.listen(
+        _onAiv0ButtonEvent,
+      );
+      unawaited(
+        aiv0Control.initialize().catchError((Object error) {
+          debugPrint('AIV0 BLE Control initialization failed: $error');
+        }),
+      );
+    }
+    _playbackPlayingSubscription = playbackService.playingStream
+        .distinct()
+        .listen((playing) {
+          _playbackPlaying = playing;
+          unawaited(_syncAiv0AppState());
+          if (!_disposed) notifyListeners();
+        });
+    if (displayLanguageStore != null) {
+      unawaited(_loadDisplayLanguage());
+    }
+    unawaited(initializeDeviceConnectionPreferences());
+    unawaited(_primeVietnameseTranscriptCorrector());
+    unawaited(_primeExactIntentCatalog());
+  }
+
+  final AudioInput _audioInput;
+  final BluetoothAudioInputControl? _bluetoothAudioControl;
+  final StreamingSpeechInput? _streamingSpeechInput;
+  final HfpAudioControl? _hfpAudioControl;
+  final HfpAudioControl Function()? _learningAudioRouteControlFactory;
+  final AudioTurnCoordinator? _audioTurnCoordinator;
+  final Aiv0BleControl? _aiv0BleControl;
+  final DeviceConnectionHistoryStore _deviceHistory;
+  final Future<SharedPreferences> Function() _devicePreferences;
+  static const _hfpOptOutKey = 'homi.device-connection.hfp-auto-disabled.v1';
+  static const _bleOptOutKey = 'homi.device-connection.ble-auto-disabled.v1';
+  Future<void>? _devicePreferencesInitialization;
+  Future<void> _devicePreferencesWrite = Future<void>.value();
+  bool _automaticHfpDisabled = false;
+  bool _automaticBleDisabled = false;
+  bool _explicitDeviceRetryRequested = false;
+  int _deviceOperationGeneration = 0;
+  int? _activeDeviceOperation;
+  int? _automaticDeviceOperation;
+  ConnectionDeviceRecord? _lastConnectedBleDevice;
+  ConnectionDeviceRecord? _lastConnectedMicrophone;
+  String? _rememberingBleId;
+  String? _lastObservedBleConnectionId;
+  String? _lastKnownHomiBleId;
+  Future<void>? _deviceCancellation;
+  String? _confirmedMicrophoneId;
+  String? _confirmedMicrophoneBleId;
+  final AudioPlaybackService _playbackService;
+  final VoicePromptService? _voicePromptService;
+  final ConversationRepository _repository;
+  final OfflineIntentRecognizer? _offlineIntentRecognizer;
+  final OfflineVietnameseSpeechRecognizer? _offlineVietnameseSpeechRecognizer;
+  final OfflineVietnameseEnglishTranslator? _offlineVietnameseEnglishTranslator;
+  final OfflineEnglishVietnameseTranslator? _offlineEnglishVietnameseTranslator;
+  final VietnameseTranscriptCorrector? _vietnameseTranscriptCorrector;
+  final DisplayLanguageStore? _displayLanguageStore;
+  int _childAge;
+  final bool _preferBleStreaming;
+  final bool _realtimeBatchFallback;
+  final bool _isWebRuntime;
+  final Duration _adaptiveWebUploadDelay;
+  final Duration _audioPreparationTimeout;
+  final Duration _cancellationBarrierTimeout;
+  final bool _recordAndroidAudioForArchive;
+  final bool Function()? _voiceDataProcessingAllowed;
+  final Future<bool> Function()? _networkTransportAvailable;
+  final Future<void> Function()? _beforeRecordingStart;
+  final bool Function(String recognizedText)? _recognizedSpeechCommandMatcher;
+  final Future<void> Function(String recognizedText)?
+  _onRecognizedSpeechCommand;
+  Future<MainButtonActionResult> Function(MainButtonInputEvent event)?
+  _mainButtonDispatcher;
+  Future<MainButtonActionResult> Function(Aiv0ButtonEvent event)?
+  _hardwareControlDispatcher;
+  final RealtimeFallbackBuffer _realtimeFallbackBuffer;
+  final AdaptiveVoiceActivityDetector _voiceActivityDetector =
+      AdaptiveVoiceActivityDetector();
+  late final ContinuousTranslationSession _continuousTranslationSession;
+
+  StreamSubscription<double>? _amplitudeSubscription;
+  StreamSubscription<BluetoothAudioStatus>? _bluetoothStatusSubscription;
+  StreamSubscription<BluetoothAudioStatus>? _hfpStatusSubscription;
+  StreamSubscription<Aiv0BleStatus>? _aiv0StatusSubscription;
+  StreamSubscription<Aiv0ButtonEvent>? _aiv0ButtonSubscription;
+  StreamSubscription<bool>? _playbackPlayingSubscription;
+  StreamSubscription<void>? _streamingCompletionSubscription;
+  StreamSubscription<String>? _partialTextSubscription;
+  StreamSubscription<String>? _speechEndedSubscription;
+  StreamSubscription<NativeSpeechDiagnostic>?
+  _nativeSpeechDiagnosticSubscription;
+  StreamSubscription<Uint8List>? _batchChunkSubscription;
+  StreamSubscription<ConversationPreview>? _batchPreviewSubscription;
+  StreamSubscription<Uint8List>? _realtimeChunkSubscription;
+  StreamSubscription<String>? _realtimePartialSubscription;
+  StreamSubscription<OfflineIntentHypothesis>?
+  _offlineIntentHypothesisSubscription;
+  Timer? _partialPreviewTimer;
+  Timer? _partialSpeechEndpointTimer;
+  Timer? _silenceTimer;
+  Timer? _noSpeechTimer;
+  Timer? _maximumDurationTimer;
+  Timer? _offlineFallbackTimer;
+  Timer? _processingStageTimer;
+  Timer? _homiHardwareRecordingTimer;
+  Timer? _connectionNoticeTimer;
+  DateTime? _recordingStartedAt;
+  DateTime? _stoppedAt;
+  DateTime? _responseReceivedAt;
+  DateTime? _lastVoiceActiveAt;
+  String _latestEndpointTranscript = '';
+  bool _stopInProgress = false;
+  bool _speechDetected = false;
+  bool _stopOnSilence = true;
+  bool _speakNoSpeechPrompt = true;
+  ConversationTurnEndReason? _lastTurnEndReason;
+  bool _noisyRecording = false;
+  bool _usingStreamingSpeech = false;
+  int? _streamingSpeechTurnGeneration;
+  int? _nativeSpeechCompletedGeneration;
+  String? _pendingStreamingPartialText;
+  bool _usingRecordedAudioSpeech = false;
+  bool _usingHfpRoute = false;
+  bool _handlingHfpRouteLoss = false;
+  Object? _iosMediaPlaybackToken;
+  int? _iosMediaPlaybackTurnGeneration;
+  int? _iosMediaOutputRouteSequence;
+  bool _iosMediaOutputSawBluetooth = false;
+  bool _continuousHfpSessionActive = false;
+  bool _hfpInputSelected;
+  bool _preparingMicrophone = false;
+  Future<void>? _pendingHfpStartOperation;
+  bool _usingRealtimeTranscription = false;
+  bool _usingOfflineIntent = false;
+  bool _playbackPlaying = false;
+  bool _homiHardwareAudioInputStarted = false;
+  bool _homiHardwareStopInProgress = false;
+  BatchChunkUploadSession? _batchChunkUpload;
+  SpeechGatedBatchUploadSession? _batchSpeechGate;
+  _AdaptiveWebChunkUpload? _adaptiveWebUpload;
+  RealtimeTranscriptionSession? _realtimeSession;
+  Future<void>? _realtimeConnectionFuture;
+  int _realtimeConnectionGeneration = 0;
+  OfflineIntentManifest? _offlineIntentManifest;
+  Map<String, OfflineIntentDefinition> _offlineIntentByContextAndText =
+      const <String, OfflineIntentDefinition>{};
+  Map<String, OfflineIntentDefinition> _offlineIntentByContextAndId =
+      const <String, OfflineIntentDefinition>{};
+  OfflineIntentGate? _offlineIntentGate;
+  OfflineIntentDecision? _offlineIntentDecision;
+  int? _offlineIntentFirstResultMs;
+  bool _disposed = false;
+  int _previewGeneration = 0;
+  int _conversationTurnGeneration = 0;
+  SentenceQueue<(ConversationResult, Uri?)>? _sentenceQueue;
+  SentenceAudioCache? _sentenceAudioCache;
+  final List<ConversationResult> _sentenceResults = [];
+  List<ConversationResult> get sentenceResults =>
+      List.unmodifiable(_sentenceResults);
+  String? sentenceProgress;
+  bool get sentenceQueueActive => _sentenceQueue != null;
+
+  void _cancelSentenceQueue() {
+    _sentenceQueue?.cancel();
+    _sentenceQueue = null;
+    sentenceProgress = null;
+    final cache = _sentenceAudioCache;
+    _sentenceAudioCache = null;
+    if (cache != null) {
+      unawaited(cache.close().catchError((Object _) {}));
+    }
+  }
+
+  String? _lastPreviewText;
+  ConversationPreview? _preview;
+  Uri? _preferredPlaybackUri;
+  Uri? _speculativePreloadUri;
+  final List<Aiv0ButtonEvent> _aiv0ButtonEventLog = <Aiv0ButtonEvent>[];
+  String _aiv0MainDispatchStatus = 'Chưa nhận lệnh MAIN vật lý.';
+  DateTime? _aiv0MainDispatchAt;
+  final List<NativeSpeechDiagnostic> _nativeSpeechDiagnosticLog =
+      <NativeSpeechDiagnostic>[];
+
+  @override
+  ConversationPhase phase = ConversationPhase.idle;
+  ConversationProcessingStage processingStage =
+      ConversationProcessingStage.recognizing;
+  PracticeContext context = PracticeContext.home;
+  @override
+  AsrMode asrMode;
+  @override
+  int vadSilenceMs = 700;
+  double amplitude = 0;
+  ConversationResult? result;
+  bool? qualityApproved;
+  String? errorMessage;
+  String? transientMessage;
+  @override
+  DisplayLanguage displayLanguage = DisplayLanguage.vietnamese;
+  TranslationOutputLanguage outputLanguage = TranslationOutputLanguage.english;
+  bool get supportsTranslationTargets =>
+      _repository is TranslationTargetRepository;
+  bool bleDiagnosticRunning = false;
+  @override
+  bool homiHardwareTestModeEnabled = false;
+  @override
+  HomiHardwareTestPhase homiHardwareTestPhase = HomiHardwareTestPhase.idle;
+  @override
+  HomiHardwareTestResult? homiHardwareTestResult;
+  @override
+  String? homiHardwareTestMessage;
+  @override
+  NativeSpeechDiagnostic? nativeSpeechDiagnostic;
+
+  @override
+  int get childAge => _childAge;
+
+  void setChildAge(int age) {
+    if (_childAge == age) {
+      return;
+    }
+    _childAge = age;
+    notifyListeners();
+  }
+
+  Future<void> _loadDisplayLanguage() async {
+    final stored = await _displayLanguageStore!.read();
+    if (_disposed || stored == displayLanguage) {
+      return;
+    }
+    displayLanguage = stored;
+    notifyListeners();
+  }
+
+  Future<void> _primeVietnameseTranscriptCorrector() async {
+    final corrector = _vietnameseTranscriptCorrector;
+    if (corrector == null) {
+      return;
+    }
+    try {
+      await corrector.warmUp();
+    } catch (error) {
+      // A bad optional pack must not block recording or translation. The
+      // normal transcript continues through the existing backend/offline path.
+      debugPrint(
+        'Vietnamese transcript correction preload was skipped: $error',
+      );
+    }
+  }
+
+  Future<void> _primeExactIntentCatalog() async {
+    // Web Batch Chunks has no local transcript to match while recording. The
+    // backend performs the exact lookup after ASR, so downloading the catalog
+    // during PWA startup only delays the first microphone interaction.
+    if (_isWebRuntime) {
+      return;
+    }
+    final catalog = _repository is OfflineIntentCatalogRepository
+        ? _repository as OfflineIntentCatalogRepository
+        : null;
+    if (catalog == null) {
+      return;
+    }
+    try {
+      final manifest = await catalog.fetchOfflineIntentManifest();
+      if (!_disposed) {
+        _setOfflineIntentManifest(manifest);
+      }
+    } catch (error) {
+      debugPrint('Exact-rule catalog preload was skipped: $error');
+    }
+  }
+
+  String _normalizeExactText(String value) {
+    return value
+        .trim()
+        .toLowerCase()
+        .replaceAll(RegExp(r'[\.,!?;:"“”‘’…()\-_/]+'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
+
+  String _exactIntentKey(String contextValue, String normalizedText) =>
+      '$contextValue\u0000$normalizedText';
+
+  void _setOfflineIntentManifest(OfflineIntentManifest manifest) {
+    final byContextAndText = <String, OfflineIntentDefinition>{};
+    final byContextAndId = <String, OfflineIntentDefinition>{};
+    for (final item in manifest.items) {
+      for (final contextValue in item.contexts) {
+        byContextAndId.putIfAbsent(
+          _exactIntentKey(contextValue, item.id),
+          () => item,
+        );
+        for (final sample in item.samples) {
+          final normalized = _normalizeExactText(sample);
+          if (normalized.isEmpty) continue;
+          byContextAndText.putIfAbsent(
+            _exactIntentKey(contextValue, normalized),
+            () => item,
+          );
+        }
+      }
+    }
+    _offlineIntentManifest = manifest;
+    _offlineIntentByContextAndText =
+        Map<String, OfflineIntentDefinition>.unmodifiable(byContextAndText);
+    _offlineIntentByContextAndId =
+        Map<String, OfflineIntentDefinition>.unmodifiable(byContextAndId);
+  }
+
+  OfflineIntentDefinition? _findLocalExactIntent(
+    String sourceText,
+    PracticeContext targetContext,
+  ) {
+    final normalized = _normalizeExactText(sourceText);
+    if (normalized.isEmpty) {
+      return null;
+    }
+    return _offlineIntentByContextAndText[_exactIntentKey(
+      targetContext.apiValue,
+      normalized,
+    )];
+  }
+
+  bool _applyLocalExactPreview(
+    String sourceText, {
+    required PracticeContext targetContext,
+  }) {
+    if (outputLanguage != TranslationOutputLanguage.english) return false;
+    final exact = _findLocalExactIntent(sourceText, targetContext);
+    if (exact == null || exact.englishText.trim().isEmpty) {
+      return false;
+    }
+    _preview = ConversationPreview(
+      sourceText: sourceText.trim(),
+      englishText: exact.englishText.trim(),
+      textSource: 'device_exact_rule',
+      audioUri: exact.audioUri,
+    );
+    unawaited(
+      _playbackService.preload(exact.audioUri).catchError((Object error) {
+        debugPrint('Local exact-rule audio preload was skipped: $error');
+      }),
+    );
+    return true;
+  }
+
+  ConversationResult? _localExactFallbackResult(
+    StreamingSpeechCapture capture, {
+    bool useDeviceTts = false,
+  }) {
+    final exact = _findLocalExactIntent(capture.sourceText, context);
+    if (exact == null || exact.englishText.trim().isEmpty) {
+      return null;
+    }
+    return ConversationResult(
+      // Empty backend identities deliberately disable archive, telemetry and
+      // review writes for a result that exists only on this device.
+      conversationId: '',
+      sessionId: '',
+      context: context,
+      vietnameseText: capture.sourceText.trim(),
+      englishText: exact.englishText.trim(),
+      // A transport-level offline decision must not retain the authored
+      // network URL. Backend outages discovered after a healthy transport
+      // check may still reuse an already cached/playing exact-rule clip.
+      audioUri: useDeviceTts ? null : exact.audioUri,
+      processingMode: 'offline_fallback',
+      textSource: 'device_exact_rule_fallback',
+      audioSource: useDeviceTts ? 'device_tts' : 'device_exact_rule',
+      asrMode: capture.asrMode,
+      latency: const ConversationLatency(
+        asrMs: 0,
+        llmMs: 0,
+        ttsMs: 0,
+        timeToFirstAudioMs: 0,
+      ),
+    );
+  }
+
+  ConversationResult _offlineTranslationResult(
+    StreamingSpeechCapture capture,
+    String englishText,
+  ) {
+    return ConversationResult(
+      conversationId: '',
+      sessionId: '',
+      context: context,
+      vietnameseText: capture.sourceText.trim(),
+      englishText: englishText.trim(),
+      // There is no remote audio URL while offline. The controller speaks the
+      // English result with the device TTS after applying this result.
+      audioUri: null,
+      processingMode: 'offline_translation',
+      textSource: 'mlkit_on_device_translation',
+      audioSource: 'device_tts',
+      asrMode: capture.asrMode,
+      latency: const ConversationLatency(
+        asrMs: 0,
+        llmMs: 0,
+        ttsMs: 0,
+        timeToFirstAudioMs: 0,
+      ),
+    );
+  }
+
+  Future<StreamingSpeechCapture?> _resolveOfflineVietnameseCapture({
+    required StreamingSpeechCapture? capture,
+    required AudioCapture? audioCapture,
+  }) async {
+    if (capture != null && capture.sourceText.trim().isNotEmpty) {
+      return capture;
+    }
+    final recognizer = _offlineVietnameseSpeechRecognizer;
+    if (recognizer == null || audioCapture == null) {
+      return null;
+    }
+    final transcript = await recognizer.recognize(audioCapture);
+    return _correctVietnameseCapture(
+      StreamingSpeechCapture(
+        sourceText: transcript.text,
+        alternatives: transcript.alternatives,
+        duration: audioCapture.duration,
+        inputLabel: audioCapture.inputLabel,
+        confidence: transcript.confidence,
+        firstResultMs: null,
+        finalAfterStopMs: 0,
+        asrMode: 'vosk_offline_vi',
+        isBluetoothInput: audioCapture.isBluetoothInput,
+        initialNoiseRms: audioCapture.initialNoiseRms,
+        recordedAudio: audioCapture,
+      ),
+    );
+  }
+
+  Future<StreamingSpeechCapture> _correctVietnameseCapture(
+    StreamingSpeechCapture capture,
+  ) async {
+    final corrector = _vietnameseTranscriptCorrector;
+    if (corrector == null || capture.sourceText.trim().isEmpty) {
+      return capture;
+    }
+    try {
+      final correction = await corrector.correct(
+        primaryText: capture.sourceText,
+        alternatives: capture.alternatives,
+      );
+      if (!correction.wasCorrected) {
+        return capture;
+      }
+      debugPrint(
+        'Applied an exact on-device Vietnamese transcript correction.',
+      );
+      return StreamingSpeechCapture(
+        sourceText: correction.correctedText,
+        duration: capture.duration,
+        inputLabel: capture.inputLabel,
+        confidence: capture.confidence,
+        firstResultMs: capture.firstResultMs,
+        finalAfterStopMs: capture.finalAfterStopMs,
+        asrMode: capture.asrMode,
+        isBluetoothInput: capture.isBluetoothInput,
+        initialNoiseRms: capture.initialNoiseRms,
+        realtimeSessionCreateMs: capture.realtimeSessionCreateMs,
+        realtimeWebSocketConnectMs: capture.realtimeWebSocketConnectMs,
+        realtimeWebSocketOpenAfterRecordingMs:
+            capture.realtimeWebSocketOpenAfterRecordingMs,
+        realtimeChunkDurationMs: capture.realtimeChunkDurationMs,
+        workerAsrPilotRttMs: capture.workerAsrPilotRttMs,
+        workerAsrPilotAsrMs: capture.workerAsrPilotAsrMs,
+        workerAsrPilotAudioBytes: capture.workerAsrPilotAudioBytes,
+        alternatives: capture.alternatives,
+        extraBenchmark: <String, dynamic>{
+          ...?capture.extraBenchmark,
+          'transcriptCorrectionApplied': true,
+          'transcriptCorrectionSource': 'device_exact_dictionary',
+        },
+        recordedAudio: capture.recordedAudio,
+      );
+    } catch (error) {
+      // A missing or malformed optional dictionary must never block speech.
+      debugPrint('Vietnamese transcript correction was skipped: $error');
+      return capture;
+    }
+  }
+
+  Future<ConversationResult> _useOfflineResultWhenBackendIsUnavailable({
+    required Future<ConversationResult> backendResult,
+    required StreamingSpeechCapture? capture,
+    required AudioCapture? audioCapture,
+    int? expectedGeneration,
+  }) async {
+    try {
+      return await backendResult;
+    } catch (error, stackTrace) {
+      if (expectedGeneration != null &&
+          (_disposed || expectedGeneration != _conversationTurnGeneration)) {
+        Error.throwWithStackTrace(error, stackTrace);
+      }
+      final isRetryable =
+          error is TimeoutException ||
+          error is http.ClientException ||
+          (error is RetryableConversationException && error.isRetryable);
+      if (!isRetryable) {
+        Error.throwWithStackTrace(error, stackTrace);
+      }
+
+      final offlineResult = await _tryOfflineConversationResult(
+        capture: capture,
+        audioCapture: audioCapture,
+        reason: error,
+        expectedGeneration: expectedGeneration,
+      );
+      if (offlineResult != null) return offlineResult;
+      Error.throwWithStackTrace(error, stackTrace);
+    }
+  }
+
+  Future<ConversationResult?> _tryOfflineConversationResult({
+    required StreamingSpeechCapture? capture,
+    required AudioCapture? audioCapture,
+    required Object reason,
+    bool useDeviceTtsForExact = false,
+    int? expectedGeneration,
+  }) async {
+    if (outputLanguage != TranslationOutputLanguage.english) return null;
+    try {
+      final offlineCapture = await _resolveOfflineVietnameseCapture(
+        capture: capture,
+        audioCapture: audioCapture,
+      );
+      if (offlineCapture == null ||
+          (expectedGeneration != null &&
+              (_disposed ||
+                  expectedGeneration != _conversationTurnGeneration))) {
+        return null;
+      }
+
+      final exactFallback = _localExactFallbackResult(
+        offlineCapture,
+        useDeviceTts: useDeviceTtsForExact,
+      );
+      if (exactFallback != null) {
+        debugPrint('Using on-device exact conversation rule: $reason');
+        transientMessage = reason == 'network_transport_unavailable'
+            ? 'Đang ngoại tuyến. Ứng dụng đang dùng câu trả lời có sẵn trên thiết bị.'
+            : 'Dịch vụ đang tạm gián đoạn. Ứng dụng đang dùng câu trả lời có sẵn trên thiết bị.';
+        return exactFallback;
+      }
+
+      final translator = _offlineVietnameseEnglishTranslator;
+      if (translator == null) return null;
+      final englishText = await translator.translate(offlineCapture.sourceText);
+      if (expectedGeneration != null &&
+          (_disposed || expectedGeneration != _conversationTurnGeneration)) {
+        return null;
+      }
+      if (englishText.trim().isEmpty) return null;
+      debugPrint('Using on-device conversation translation: $reason');
+      transientMessage =
+          'Đang ngoại tuyến. Bản dịch được xử lý trực tiếp trên thiết bị.';
+      return _offlineTranslationResult(offlineCapture, englishText);
+    } catch (offlineError) {
+      debugPrint(
+        'On-device conversation fallback was unavailable: $offlineError',
+      );
+      return null;
+    }
+  }
+
+  Future<bool> _hasNetworkTransport() async {
+    final checker = _networkTransportAvailable;
+    if (checker == null) return true;
+    try {
+      return await checker();
+    } catch (error) {
+      debugPrint('Network transport check was skipped: $error');
+      return true;
+    }
+  }
+
+  @override
+  void setDisplayLanguage(DisplayLanguage language) {
+    if (language == displayLanguage) {
+      return;
+    }
+    displayLanguage = language;
+    notifyListeners();
+    final store = _displayLanguageStore;
+    if (store != null) {
+      unawaited(
+        store.write(language).catchError((Object error) {
+          debugPrint('Cannot persist display language: $error');
+        }),
+      );
+    }
+  }
+
+  void setOutputLanguage(TranslationOutputLanguage language) {
+    if (language == outputLanguage ||
+        !supportsTranslationTargets ||
+        isBusy ||
+        sentenceQueueActive) {
+      return;
+    }
+    (_repository as TranslationTargetRepository).setTranslationTarget(language);
+    outputLanguage = language;
+    _previewGeneration += 1;
+    _preview = null;
+    _preferredPlaybackUri = result?.audioUri;
+    _speculativePreloadUri = null;
+    notifyListeners();
+  }
+
+  @override
+  String get inputLabel {
+    if (usesHfpInput || _usingHfpRoute) {
+      final name = hfpAudioStatus.deviceName?.trim();
+      if (supportsBrowserHfp) {
+        return name == null || name.isEmpty
+            ? 'Mic HFP Web'
+            : 'Mic HFP Web • $name';
+      }
+      return name == null || name.isEmpty
+          ? 'Mic HM-D001 qua HFP'
+          : 'Mic HFP • $name';
+    }
+    if (!_isWebRuntime && asrMode == AsrMode.androidStreaming) {
+      return _audioInput.isBluetooth ? _audioInput.label : 'Mic điện thoại';
+    }
+    return _usingStreamingSpeech ||
+            (phase == ConversationPhase.idle &&
+                asrMode == AsrMode.androidStreaming)
+        ? _streamingSpeechInput?.label ?? _audioInput.label
+        : _audioInput.label;
+  }
+
+  bool get supportsAndroidStreaming => _streamingSpeechInput != null;
+  BluetoothAudioStatus get bluetoothAudioStatus =>
+      _bluetoothAudioControl?.bluetoothStatus ??
+      const BluetoothAudioStatus(
+        phase: BluetoothAudioConnectionPhase.unsupported,
+      );
+  bool get supportsInnotrikBle => bluetoothAudioStatus.isBridgeSupported;
+  bool get canUseInnotrikBle => bluetoothAudioStatus.isConnected;
+  @override
+  BluetoothAudioStatus get hfpAudioStatus =>
+      _hfpAudioControl?.status ??
+      const BluetoothAudioStatus(
+        phase: BluetoothAudioConnectionPhase.unsupported,
+        sampleRate: 16000,
+      );
+
+  /// Shared native route owner used by listening lessons so their prompt audio
+  /// and recorder select the same HM-D001 input as the conversation flow.
+  HfpAudioControl? get learningAudioRouteControl => _hfpAudioControl;
+
+  /// Creates an isolated lesson owner backed by the process-wide HFP route
+  /// coordinator. Tests and legacy callers without a factory keep the previous
+  /// shared control behavior.
+  @override
+  HfpAudioControl? createLearningAudioRouteControl() =>
+      _learningAudioRouteControlFactory?.call() ?? _hfpAudioControl;
+
+  @override
+  AudioTurnCoordinator? get audioTurnCoordinator => _audioTurnCoordinator;
+
+  @override
+  StreamingSpeechInput? get learningSpeechInput => _streamingSpeechInput;
+
+  /// Reuses the app's single Apple Speech event stream for listening lessons.
+  /// A second bridge listener would race MAIN for the same native events.
+  IOSStreamingSpeechInput? get iosLessonSpeechInput =>
+      _streamingSpeechInput is IOSStreamingSpeechInput
+      ? _streamingSpeechInput
+      : null;
+  bool get supportsHfp => hfpAudioStatus.isBridgeSupported;
+  bool get canUseHfp =>
+      hfpAudioStatus.isConnected || hfpAudioStatus.deviceId != null;
+  bool get hasSelectedHfpInput => hfpAudioStatus.deviceId != null;
+  bool get isHomiReady => homiConnectionState().isHomiReady;
+  bool get isHomiAudioReady => homiConnectionState().isHomiAudioReady;
+
+  /// Recover only the control peripheral associated with the live microphone.
+  /// A disconnected status may contain another failed connection's device ID.
+  String? get verifiedHomiBleDeviceId =>
+      isHomiAudioReady ? _knownHomiBleId : null;
+  @override
+  Aiv0BleStatus get aiv0BleStatus =>
+      _aiv0BleControl?.status ?? const Aiv0BleStatus.disabled();
+  bool get supportsAiv0Ble => aiv0BleStatus.phase != Aiv0BlePhase.disabled;
+  @override
+  bool get canUseAiv0Ble => aiv0BleStatus.isConnected;
+  @override
+  HomiConnectionState homiConnectionState({bool mainTurnActive = false}) =>
+      HomiConnectionState.from(
+        hfpStatus: hfpAudioStatus,
+        bleStatus: aiv0BleStatus,
+        hfpInputSelected: _hfpInputSelected,
+        mainTurnActive: mainTurnActive,
+        hfpMatchesHomi: _microphoneMatchesHomi(
+          hfpAudioStatus.deviceId,
+          _knownHomiBleId,
+        ),
+      );
+  @override
+  List<Aiv0ButtonEvent> get aiv0ButtonEventLog =>
+      List<Aiv0ButtonEvent>.unmodifiable(_aiv0ButtonEventLog);
+  @override
+  String get aiv0MainDispatchStatus => _aiv0MainDispatchStatus;
+  @override
+  DateTime? get aiv0MainDispatchAt => _aiv0MainDispatchAt;
+  @override
+  List<NativeSpeechDiagnostic> get nativeSpeechDiagnosticLog =>
+      List<NativeSpeechDiagnostic>.unmodifiable(_nativeSpeechDiagnosticLog);
+  @override
+  bool get supportsBrowserHfp =>
+      (_hfpAudioControl?.usesBrowserAudioInput ?? false) &&
+      _audioInput is ChunkedAudioInput;
+  bool get isBrowserHfpMode => supportsBrowserHfp && _hfpInputSelected;
+  @override
+  bool get usesHfpInput => _hfpInputSelected;
+  bool get _usesNativeUtteranceScopedHfpCapture =>
+      usesHfpInput &&
+      _streamingSpeechInput is HfpRouteOwningStreamingSpeechInput;
+  bool get isBluetoothInput =>
+      usesHfpInput || _usingHfpRoute || _audioInput.isBluetooth;
+  bool get isInputAvailable => _audioInput.isAvailable;
+  bool get isRecording => phase == ConversationPhase.recording;
+  @override
+  bool get isPlaybackPlaying => _playbackPlaying;
+  @override
+  bool get isPreparingMicrophone => _preparingMicrophone;
+  bool get isContinuousHfpSessionActive => _continuousHfpSessionActive;
+  ConversationTurnEndReason? get lastTurnEndReason => _lastTurnEndReason;
+  bool get homiHardwareTestActive =>
+      homiHardwareTestPhase == HomiHardwareTestPhase.openingRoute ||
+      homiHardwareTestPhase == HomiHardwareTestPhase.recording ||
+      homiHardwareTestPhase == HomiHardwareTestPhase.playing;
+  bool get isRecordingStartBlocked =>
+      _preparingMicrophone ||
+      _handlingHfpRouteLoss ||
+      _stopInProgress ||
+      _continuousTranslationSession.isRecordingStartPending ||
+      _pendingHfpStartOperation != null ||
+      bleDiagnosticRunning ||
+      homiHardwareTestActive ||
+      hfpAudioStatus.isBusy ||
+      phase == ConversationPhase.recording ||
+      phase == ConversationPhase.processing;
+  @override
+  bool get isBusy =>
+      isDeviceConnectionBusy ||
+      isRecordingStartBlocked ||
+      aiv0BleStatus.phase == Aiv0BlePhase.scanning ||
+      aiv0BleStatus.phase == Aiv0BlePhase.connecting;
+
+  void setMainButtonDispatcher(
+    Future<MainButtonActionResult> Function(MainButtonInputEvent event)?
+    dispatcher,
+  ) {
+    _mainButtonDispatcher = dispatcher;
+  }
+
+  void setHardwareControlDispatcher(
+    Future<MainButtonActionResult> Function(Aiv0ButtonEvent event)? dispatcher,
+  ) {
+    _hardwareControlDispatcher = dispatcher;
+  }
+
+  /// Opens one HFP route for a hands-free translation session.
+  ///
+  /// BLE MAIN is an independent best-effort control transport. Some HM-D001/iOS
+  /// combinations temporarily lose BLE while HFP capture is active, so waiting
+  /// for BLE here would make microphone preparation block for several seconds
+  /// without improving the audio route.
+  Future<bool> beginContinuousHfpSession() async {
+    if (_disposed || _handlingHfpRouteLoss) return false;
+    final speechInput = _streamingSpeechInput;
+    if (_continuousHfpSessionActive) return true;
+    if (!usesHfpInput ||
+        !hfpAudioStatus.isConnected ||
+        speechInput is! ContinuousHfpSessionStreamingSpeechInput) {
+      recordAiv0MainDiagnostic(
+        'MAIN_CONTINUOUS_HFP_SKIPPED',
+        values: <String, Object?>{
+          'usesHfpInput': usesHfpInput,
+          'supportsSessionLease':
+              speechInput is ContinuousHfpSessionStreamingSpeechInput,
+        },
+      );
+      return false;
+    }
+    final activeSpeechInput = speechInput as StreamingSpeechInput;
+    final continuousInput =
+        activeSpeechInput as ContinuousHfpSessionStreamingSpeechInput;
+
+    try {
+      recordAiv0MainDiagnostic('MAIN_CONTINUOUS_HFP_PREPARE_STARTED');
+
+      // MAIN command recognition owns an utterance-scoped HFP lease. Release
+      // it before waiting for BLE; otherwise iOS cannot restore GATT/Notify and
+      // the wait itself would keep the transport permanently unavailable.
+      await activeSpeechInput.cancel();
+      recordAiv0MainDiagnostic('MAIN_CONTINUOUS_HFP_PREVIOUS_CAPTURE_RELEASED');
+
+      if (!aiv0BleStatus.isConnected) {
+        recordAiv0MainDiagnostic(
+          'MAIN_CONTINUOUS_HFP_BLE_UNAVAILABLE_AT_OPEN',
+          values: <String, Object?>{
+            'blePhase': aiv0BleStatus.phase.name,
+            'peripheralState': aiv0BleStatus.peripheralState ?? '',
+            'notify': aiv0BleStatus.mainNotificationState ?? '',
+          },
+        );
+      }
+
+      await continuousInput.beginContinuousHfpSession();
+      _continuousHfpSessionActive =
+          continuousInput.isContinuousHfpSessionActive;
+      if (_continuousHfpSessionActive) {
+        _setPlaybackCommunicationRoute(true);
+        recordAiv0MainDiagnostic('MAIN_CONTINUOUS_HFP_OPENED');
+        notifyListeners();
+      }
+      return _continuousHfpSessionActive;
+    } catch (error) {
+      recordAiv0MainDiagnostic(
+        'MAIN_CONTINUOUS_HFP_OPEN_FAILED',
+        message: '$error',
+      );
+      await endContinuousHfpSession();
+      return false;
+    }
+  }
+
+  Future<void> endContinuousHfpSession() async {
+    final speechInput = _streamingSpeechInput;
+    final continuousInput =
+        speechInput is ContinuousHfpSessionStreamingSpeechInput
+        ? speechInput as ContinuousHfpSessionStreamingSpeechInput
+        : null;
+    final hadSession =
+        _continuousHfpSessionActive ||
+        (continuousInput?.isContinuousHfpSessionActive ?? false);
+    _continuousHfpSessionActive = false;
+    if (continuousInput != null) {
+      await continuousInput.endContinuousHfpSession().catchError((
+        Object error,
+      ) {
+        debugPrint('Cannot close continuous HFP session: $error');
+      });
+    }
+    if (hadSession) {
+      _setPlaybackCommunicationRoute(false);
+      recordAiv0MainDiagnostic('MAIN_CONTINUOUS_HFP_CLOSED');
+      if (!_disposed) notifyListeners();
+    }
+  }
+
+  Future<({String englishText, String vietnameseText})> translateVocabulary(
+    String sourceText,
+  ) async {
+    final normalized = sourceText.trim();
+    if (normalized.isEmpty) {
+      throw ArgumentError.value(
+        sourceText,
+        'sourceText',
+        'Từ không được trống.',
+      );
+    }
+    if (isBusy) {
+      throw StateError('Hãy hoàn tất lượt giao tiếp trước khi thêm từ vựng.');
+    }
+
+    final containsVietnamese = _looksLikeVietnameseVocabularyInput(normalized);
+    if (containsVietnamese) {
+      final translator = _offlineVietnameseEnglishTranslator;
+      if (translator == null) {
+        throw StateError('Chưa có bộ dịch Việt–Anh trên thiết bị.');
+      }
+      final english = (await translator.translate(normalized)).trim();
+      if (english.isEmpty) {
+        throw StateError('Bộ dịch trên thiết bị chưa trả về tiếng Anh.');
+      }
+      return (englishText: english, vietnameseText: normalized);
+    }
+
+    final translator = _offlineEnglishVietnameseTranslator;
+    if (translator == null) {
+      throw StateError('Chưa có bộ dịch Anh–Việt trên thiết bị.');
+    }
+    final vietnamese = (await translator.translate(normalized)).trim();
+    if (vietnamese.isEmpty) {
+      throw StateError('Bộ dịch trên thiết bị chưa trả về tiếng Việt.');
+    }
+    return (englishText: normalized, vietnameseText: vietnamese);
+  }
+
+  bool _looksLikeVietnameseVocabularyInput(String value) {
+    if (RegExp(
+      r'[ăâđêôơưáàảãạấầẩẫậắằẳẵặéèẻẽẹếềểễệíìỉĩịóòỏõọốồổỗộớờởỡợúùủũụứừửữựýỳỷỹỵ]',
+      caseSensitive: false,
+    ).hasMatch(value)) {
+      return true;
+    }
+
+    final tokens = value
+        .toLowerCase()
+        .replaceAll(RegExp(r"[^a-z0-9']+"), ' ')
+        .trim()
+        .split(' ')
+        .where((token) => token.isNotEmpty)
+        .toSet();
+    if (tokens.isEmpty) return false;
+
+    // ASCII-only Vietnamese is common on parent keyboards. Keep the fallback
+    // deliberately conservative: ambiguous words such as "me", "to", "ban"
+    // and "con" do not decide the language on their own.
+    const strongVietnameseTokens = <String>{
+      'anh',
+      'ba',
+      'banh',
+      'bo',
+      'but',
+      'cam',
+      'chao',
+      'chi',
+      'cho',
+      'chuoi',
+      'com',
+      'dep',
+      'dinh',
+      'dua',
+      'em',
+      'gia',
+      'giao',
+      'hom',
+      'khong',
+      'lop',
+      'meo',
+      'minh',
+      'muon',
+      'nha',
+      'nuoc',
+      'ong',
+      'pho',
+      'qua',
+      'rat',
+      'sach',
+      'sua',
+      'tao',
+      'thich',
+      'toi',
+      'troi',
+      'truong',
+      'vui',
+      'xin',
+      'yeu',
+    };
+    return tokens.any(strongVietnameseTokens.contains);
+  }
+
+  Future<void> onPrimaryAction() =>
+      _continuousTranslationSession.onPrimaryAction();
+
+  /// Starts a single-sentence turn immediately when the child presses down.
+  /// Silence cannot finish the turn while the button is still held; the
+  /// existing maximum recording timer remains the safety limit.
+  Future<void> startPushToTalk() =>
+      _continuousTranslationSession.startPushToTalk();
+
+  /// Finishes and translates the sentence on pointer-up. If the microphone is
+  /// still opening, [startPushToTalk] observes the released state and stops as
+  /// soon as the recorder becomes ready.
+  Future<void> stopPushToTalk() =>
+      _continuousTranslationSession.stopPushToTalk();
+
+  @override
+  bool get isDeviceConnectionBusy =>
+      _activeDeviceOperation != null || _deviceCancellation != null;
+
+  @override
+  bool get automaticHfpSelectionAllowed => !_automaticHfpDisabled;
+
+  @override
+  bool get automaticBleConnectionAllowed => !_automaticBleDisabled;
+
+  @override
+  ConnectionDeviceRecord? get lastConnectedBleDevice => _lastConnectedBleDevice;
+
+  @override
+  ConnectionDeviceRecord? get lastConnectedMicrophone =>
+      _lastConnectedMicrophone;
+
+  Future<void> initializeDeviceConnectionPreferences() =>
+      _devicePreferencesInitialization ??= _loadDeviceConnectionPreferences();
+
+  Future<void> _loadDeviceConnectionPreferences() async {
+    try {
+      final preferences = await _devicePreferences();
+      _automaticHfpDisabled = preferences.getBool(_hfpOptOutKey) ?? false;
+      _automaticBleDisabled = preferences.getBool(_bleOptOutKey) ?? false;
+      _lastConnectedBleDevice = await _deviceHistory.readBle();
+      _lastConnectedMicrophone = await _deviceHistory.readMicrophone();
+    } catch (_) {
+      // A device remains usable if local storage is unavailable.
+    }
+    if (!_disposed) notifyListeners();
+  }
+
+  Future<void> _saveDeviceConnectionPreferences() {
+    final hfpDisabled = _automaticHfpDisabled;
+    final bleDisabled = _automaticBleDisabled;
+    final operation = _devicePreferencesWrite.then((_) async {
+      final preferences = await _devicePreferences();
+      await preferences.setBool(_hfpOptOutKey, hfpDisabled);
+      await preferences.setBool(_bleOptOutKey, bleDisabled);
+    });
+    _devicePreferencesWrite = operation.catchError((Object _) {});
+    return _devicePreferencesWrite;
+  }
+
+  /// Explicit Connect/Retry reverses a deliberate opt-out. Cancelling a current
+  /// attempt does not call this method and therefore does not change policy.
+  Future<void> resumeAutomaticDeviceConnection() async {
+    await initializeDeviceConnectionPreferences();
+    _automaticBleDisabled = false;
+    _automaticHfpDisabled = false;
+    _explicitDeviceRetryRequested = true;
+    await _saveDeviceConnectionPreferences();
+    if (!_disposed) notifyListeners();
+  }
+
+  bool _microphoneMatchesCurrentHomi(String? microphoneId) {
+    return aiv0BleStatus.isConnected &&
+        _microphoneMatchesHomi(microphoneId, aiv0BleStatus.deviceId);
+  }
+
+  String? get _knownHomiBleId => aiv0BleStatus.isConnected
+      ? aiv0BleStatus.deviceId
+      : _lastKnownHomiBleId ??
+            _lastConnectedBleDevice?.id ??
+            _confirmedMicrophoneBleId ??
+            _lastConnectedMicrophone?.bleDeviceId;
+
+  bool _microphoneMatchesHomi(String? microphoneId, String? bleId) {
+    if (bleId == null || microphoneId == null) return false;
+    if (sameConnectionDeviceId(microphoneId, bleId)) return true;
+    if (sameConnectionDeviceId(microphoneId, _confirmedMicrophoneId) &&
+        sameConnectionDeviceId(bleId, _confirmedMicrophoneBleId)) {
+      return true;
+    }
+    final remembered = _lastConnectedMicrophone;
+    return remembered != null &&
+        sameConnectionDeviceId(microphoneId, remembered.id) &&
+        sameConnectionDeviceId(bleId, remembered.bleDeviceId);
+  }
+
+  @override
+  bool requiresHomiMicrophoneConfirmation(HfpAudioDevice device) =>
+      aiv0BleStatus.isConnected &&
+      aiv0BleStatus.deviceId != null &&
+      isRecognizedHomiMicrophoneName(device.name) &&
+      !_microphoneMatchesCurrentHomi(device.id);
+
+  Future<void> _rememberBleConnection(Aiv0BleStatus status) async {
+    final id = status.deviceId;
+    if (!status.isConnected ||
+        id == null ||
+        id.isEmpty ||
+        _rememberingBleId == id) {
+      return;
+    }
+    _rememberingBleId = id;
+    _lastKnownHomiBleId = id;
+    try {
+      await initializeDeviceConnectionPreferences();
+      if (_disposed ||
+          !aiv0BleStatus.isConnected ||
+          !sameConnectionDeviceId(aiv0BleStatus.deviceId, id)) {
+        return;
+      }
+      final record = ConnectionDeviceRecord(
+        id: id,
+        name: status.deviceName ?? '',
+        transport: ConnectionDeviceTransport.ble,
+        connectedAt: DateTime.now().toUtc(),
+        platform: _isWebRuntime ? 'web' : defaultTargetPlatform.name,
+      );
+      _lastConnectedBleDevice = record;
+      await _deviceHistory.saveBle(record).catchError((Object _) {});
+      if (!_disposed) notifyListeners();
+    } finally {
+      if (_rememberingBleId == id) _rememberingBleId = null;
+    }
+  }
+
+  Future<void> _rememberMicrophone(HfpAudioDevice device) async {
+    final status = hfpAudioStatus;
+    if (!status.isConnected || status.deviceId == null) return;
+    final record = ConnectionDeviceRecord(
+      id: status.deviceId!,
+      name: status.deviceName?.trim().isNotEmpty == true
+          ? status.deviceName!.trim()
+          : device.name.trim(),
+      transport: ConnectionDeviceTransport.hfp,
+      connectedAt: DateTime.now().toUtc(),
+      platform: _isWebRuntime ? 'web' : defaultTargetPlatform.name,
+      bleDeviceId: _microphoneMatchesHomi(status.deviceId, _knownHomiBleId)
+          ? _knownHomiBleId
+          : null,
+    );
+    _lastConnectedMicrophone = record;
+    await _deviceHistory.saveMicrophone(record).catchError((Object _) {});
+    if (!_disposed) notifyListeners();
+  }
+
+  int? _beginDeviceOperation({bool automatic = false}) {
+    if (_disposed || isBusy || isPlaybackPlaying) return null;
+    final generation = ++_deviceOperationGeneration;
+    _activeDeviceOperation = generation;
+    if (automatic) _automaticDeviceOperation = generation;
+    notifyListeners();
+    return generation;
+  }
+
+  bool _deviceOperationCurrent(int generation) =>
+      !_disposed &&
+      generation == _deviceOperationGeneration &&
+      _activeDeviceOperation == generation;
+
+  void _ensureDeviceOperationCurrent(int generation) {
+    if (!_deviceOperationCurrent(generation)) {
+      throw const _DeviceConnectionCancelledException();
+    }
+  }
+
+  void _finishDeviceOperation(int generation) {
+    if (_activeDeviceOperation == generation) _activeDeviceOperation = null;
+    if (_automaticDeviceOperation == generation) {
+      _automaticDeviceOperation = null;
+    }
+    if (!_disposed) notifyListeners();
+  }
+
+  DeviceConnectionResult _deviceOperationFailure(Object error, int generation) {
+    if (!_deviceOperationCurrent(generation) ||
+        error is _DeviceConnectionCancelledException) {
+      return const DeviceConnectionResult(DeviceConnectionOutcome.cancelled);
+    }
+    transientMessage = _friendlyError(error);
+    return DeviceConnectionResult(
+      DeviceConnectionOutcome.failed,
+      message: transientMessage,
+    );
+  }
+
+  @override
+  Future<List<Aiv0BleDevice>> scanAiv0Devices() async {
+    final control = _aiv0BleControl;
+    if (control == null) return const [];
+    final generation = _beginDeviceOperation();
+    if (generation == null) throw const DeviceConnectionBusyException();
+    transientMessage = 'Đang tìm thiết bị Bluetooth…';
+    try {
+      await initializeDeviceConnectionPreferences();
+      _ensureDeviceOperationCurrent(generation);
+      final devices = await control.scan(timeout: const Duration(seconds: 8));
+      _ensureDeviceOperationCurrent(generation);
+      transientMessage = devices.isEmpty
+          ? 'Không tìm thấy thiết bị. Hãy bật thiết bị và đặt gần điện thoại.'
+          : null;
+      return devices;
+    } catch (error) {
+      if (_deviceOperationCurrent(generation)) {
+        transientMessage = _friendlyError(error);
+      }
+      rethrow;
+    } finally {
+      _finishDeviceOperation(generation);
+    }
+  }
+
+  @override
+  Future<DeviceConnectionResult> connectAiv0Device(Aiv0BleDevice device) async {
+    final control = _aiv0BleControl;
+    if (control == null) {
+      return const DeviceConnectionResult(DeviceConnectionOutcome.unavailable);
+    }
+    final generation = _beginDeviceOperation();
+    if (generation == null) {
+      return const DeviceConnectionResult(DeviceConnectionOutcome.busy);
+    }
+    transientMessage = 'Đang xác nhận kết nối thiết bị…';
+    try {
+      await initializeDeviceConnectionPreferences();
+      _ensureDeviceOperationCurrent(generation);
+      _automaticBleDisabled = false;
+      await _saveDeviceConnectionPreferences();
+      _ensureDeviceOperationCurrent(generation);
+      await control.connect(device.id);
+      _ensureDeviceOperationCurrent(generation);
+      if (!aiv0BleStatus.isConnected ||
+          !sameConnectionDeviceId(aiv0BleStatus.deviceId, device.id)) {
+        return const DeviceConnectionResult(DeviceConnectionOutcome.failed);
+      }
+      await _rememberBleConnection(aiv0BleStatus);
+      _ensureDeviceOperationCurrent(generation);
+      transientMessage = aiv0BleStatus.protocolConfirmed
+          ? 'BLE Control AIV0 đã kết nối; MAIN đã sẵn sàng.'
+          : 'BLE Control đã kết nối; MAIN Raw Hex đã sẵn sàng.';
+      await _syncAiv0AppState();
+      return const DeviceConnectionResult(DeviceConnectionOutcome.success);
+    } catch (error) {
+      return _deviceOperationFailure(error, generation);
+    } finally {
+      _finishDeviceOperation(generation);
+    }
+  }
+
+  @override
+  Future<DeviceConnectionResult> disconnectAiv0Device() async {
+    final control = _aiv0BleControl;
+    if (control == null) {
+      return const DeviceConnectionResult(DeviceConnectionOutcome.unavailable);
+    }
+    final generation = _beginDeviceOperation();
+    if (generation == null) {
+      return const DeviceConnectionResult(DeviceConnectionOutcome.busy);
+    }
+    try {
+      await initializeDeviceConnectionPreferences();
+      _ensureDeviceOperationCurrent(generation);
+      _automaticBleDisabled = true;
+      await _saveDeviceConnectionPreferences();
+      _ensureDeviceOperationCurrent(generation);
+      await control.disconnect();
+      _ensureDeviceOperationCurrent(generation);
+      transientMessage = 'Đã ngắt kết nối thiết bị.';
+      return DeviceConnectionResult(
+        aiv0BleStatus.isConnected
+            ? DeviceConnectionOutcome.failed
+            : DeviceConnectionOutcome.success,
+      );
+    } catch (error) {
+      return _deviceOperationFailure(error, generation);
+    } finally {
+      _finishDeviceOperation(generation);
+    }
+  }
+
+  @override
+  Future<void> cancelManualDeviceConnection() {
+    _explicitDeviceRetryRequested = false;
+    _deviceOperationGeneration += 1;
+    _activeDeviceOperation = null;
+    _automaticDeviceOperation = null;
+    return _cancelPendingDeviceOperations(includeBle: true);
+  }
+
+  Future<void> _cancelPendingDeviceOperations({required bool includeBle}) {
+    final previous = _deviceCancellation;
+    if (previous != null) return previous;
+    final ble = _aiv0BleControl;
+    final hfp = _hfpAudioControl;
+    final cancellations = <Future<void>>[
+      if (includeBle && ble is MethodChannelAiv0BleControl)
+        ble.cancelConnectionAttempt(),
+      if (hfp is HfpConnectionAttemptControl)
+        (hfp as HfpConnectionAttemptControl).cancelConnectionAttempt(),
+    ];
+    final cancellation = Future.wait(
+      cancellations.map((operation) => operation.catchError((Object _) {})),
+    ).then<void>((_) {});
+    _deviceCancellation = cancellation;
+    if (!_disposed) notifyListeners();
+    return cancellation.whenComplete(() {
+      if (identical(_deviceCancellation, cancellation)) {
+        _deviceCancellation = null;
+      }
+      if (!_disposed) notifyListeners();
+    });
+  }
+
+  Future<void> markParentDiagnosticsOpened() async {
+    try {
+      await _aiv0BleControl?.markParentDiagnosticsOpened();
+      if (!_disposed) notifyListeners();
+    } catch (error) {
+      // This marker is diagnostic-only and must never block the protected
+      // Parent area if an older native build does not expose it yet.
+      debugPrint('Parent BLE/HFP diagnostic marker unavailable: $error');
+    }
+  }
+
+  void _onAiv0ButtonEvent(Aiv0ButtonEvent event) {
+    if (_disposed) return;
+    _aiv0ButtonEventLog.insert(0, event);
+    if (_aiv0ButtonEventLog.length > 80) {
+      _aiv0ButtonEventLog.removeRange(80, _aiv0ButtonEventLog.length);
+    }
+    final hardwareDispatcher = _hardwareControlDispatcher;
+    if (hardwareDispatcher != null) {
+      unawaited(() async {
+        try {
+          final result = await hardwareDispatcher(event);
+          if (_disposed) return;
+          _recordAiv0MainDispatch(
+            '${event.button.name} • ${result.name}',
+            stage: 'CONTROL_DART_DISPATCH_COMPLETED',
+            values: {
+              'source': event.transportSource ?? 'ble',
+              'result': result.name,
+            },
+          );
+          if (event.isActionable) {
+            await _syncAiv0AppState(
+              sequence: event.sequence ?? 0,
+              resultCode: event.isDuplicate
+                  ? Aiv0AppResult.duplicate
+                  : switch (result) {
+                      MainButtonActionResult.accepted => Aiv0AppResult.accepted,
+                      MainButtonActionResult.busy => Aiv0AppResult.busy,
+                      MainButtonActionResult.ignored => Aiv0AppResult.noResult,
+                    },
+            );
+          }
+        } catch (_) {
+          if (!_disposed) {
+            _recordAiv0MainDispatch(
+              'control dispatch failed',
+              stage: 'CONTROL_DART_DISPATCH_ERROR',
+            );
+          }
+        }
+      }());
+      return;
+    }
+    if (!event.isActionable) {
+      _recordAiv0MainDispatch(
+        'raw nhận được nhưng chưa hỗ trợ • ${event.rawHex}',
+        stage: 'MAIN_DART_UNSUPPORTED_RAW',
+        values: _mainDiagnosticValues(event: event),
+      );
+      transientMessage =
+          'Đã nhận raw hex chưa hỗ trợ từ HM-D001: ${event.rawHex}.';
+      notifyListeners();
+      return;
+    }
+    _recordAiv0MainDispatch(
+      'received • seq=${event.sequence ?? 0} • '
+      '${event.isDuplicate ? 'duplicate' : 'actionable'}',
+      stage: 'MAIN_DART_RECEIVED',
+      values: _mainDiagnosticValues(event: event),
+    );
+    unawaited(
+      _handleAiv0ButtonEvent(event).catchError((Object error) async {
+        _recordAiv0MainDispatch(
+          'error • ${_friendlyError(error)}',
+          stage: 'MAIN_DART_DISPATCH_ERROR',
+          values: _mainDiagnosticValues(event: event),
+        );
+        transientMessage = _friendlyError(error);
+        if (!_disposed) notifyListeners();
+        await _syncAiv0AppState(
+          resultCode: Aiv0AppResult.internalError,
+          sequence: event.sequence ?? 0,
+        );
+      }),
+    );
+  }
+
+  Future<void> _handleAiv0ButtonEvent(Aiv0ButtonEvent event) async {
+    final sequence = event.sequence ?? 0;
+    if (event.isDuplicate) {
+      _recordAiv0MainDispatch(
+        'duplicate ignored • seq=$sequence',
+        stage: 'MAIN_DART_DUPLICATE_IGNORED',
+        values: _mainDiagnosticValues(event: event),
+      );
+      await _syncAiv0AppState(
+        resultCode: Aiv0AppResult.duplicate,
+        sequence: sequence,
+      );
+      return;
+    }
+    if (event.button != Aiv0Button.main) {
+      transientMessage =
+          'Đã bỏ qua mã nút chưa hỗ trợ: ${event.rawHex}. V1 chỉ dùng MAIN.';
+      notifyListeners();
+      return;
+    }
+
+    final gesture = switch (event.gesture) {
+      Aiv0ButtonGesture.shortPress => MainButtonGesture.shortPress,
+      Aiv0ButtonGesture.longPress => MainButtonGesture.longPress,
+      Aiv0ButtonGesture.release => MainButtonGesture.release,
+      Aiv0ButtonGesture.unknown => null,
+    };
+    if (gesture == null) return;
+
+    final inputEvent = MainButtonInputEvent(
+      source: MainButtonSource.ble,
+      gesture: gesture,
+      sequence: event.sequence,
+    );
+    _recordAiv0MainDispatch(
+      'dispatching • ${gesture.name} • seq=$sequence',
+      stage: 'MAIN_DART_DISPATCH_STARTED',
+      values: _mainDiagnosticValues(event: event),
+    );
+    final dispatcher = _mainButtonDispatcher;
+    final result = dispatcher == null
+        ? gesture == MainButtonGesture.shortPress
+              ? await handleBleMainShortPress(inputEvent)
+              : MainButtonActionResult.ignored
+        : await dispatcher(inputEvent);
+    _recordAiv0MainDispatch(
+      '${result.name} • seq=$sequence',
+      stage: 'MAIN_DART_DISPATCH_COMPLETED',
+      values: <String, Object?>{
+        ..._mainDiagnosticValues(event: event),
+        'result': result.name,
+      },
+    );
+    await _syncAiv0AppState(
+      resultCode: switch (result) {
+        MainButtonActionResult.accepted => Aiv0AppResult.accepted,
+        MainButtonActionResult.busy => Aiv0AppResult.busy,
+        MainButtonActionResult.ignored => Aiv0AppResult.noResult,
+      },
+      sequence: sequence,
+    );
+  }
+
+  Map<String, Object?> _mainDiagnosticValues({Aiv0ButtonEvent? event}) =>
+      <String, Object?>{
+        if (event != null) ...<String, Object?>{
+          'sequence': event.sequence ?? 0,
+          'gesture': event.gesture.name,
+          'duplicate': event.isDuplicate,
+          'rawHex': event.rawHex,
+          'transportSource': event.transportSource ?? 'ble',
+        },
+        'conversationPhase': phase.name,
+        'processingStage': processingStage.name,
+        'preparingMicrophone': _preparingMicrophone,
+        'recordingStartPending':
+            _continuousTranslationSession.isRecordingStartPending,
+        'stopInProgress': _stopInProgress,
+        'playbackPlaying': _playbackPlaying,
+      };
+
+  void _recordAiv0MainDispatch(
+    String status, {
+    String stage = 'MAIN_DART_STATUS',
+    Map<String, Object?> values = const <String, Object?>{},
+  }) {
+    _aiv0MainDispatchStatus = status;
+    _aiv0MainDispatchAt = DateTime.now();
+    debugPrint('HM-D001 MAIN: $status');
+    recordAiv0MainDiagnostic(stage, message: status, values: values);
+    if (!_disposed) {
+      notifyListeners();
+    }
+  }
+
+  /// Records the app coordinator boundary in the same native timeline as BLE,
+  /// HFP and Apple Speech. This is intentionally best-effort and never blocks a
+  /// physical MAIN action.
+  void recordAiv0MainDiagnostic(
+    String stage, {
+    String? message,
+    Map<String, Object?> values = const <String, Object?>{},
+  }) {
+    final control = _aiv0BleControl;
+    if (control is! MethodChannelAiv0BleControl) return;
+    unawaited(
+      control
+          .recordMainDiagnostic(
+            stage: stage,
+            message: message,
+            values: <String, Object?>{..._mainDiagnosticValues(), ...values},
+          )
+          .catchError((Object error) {
+            debugPrint('Cannot append MAIN diagnostic: $error');
+          }),
+    );
+  }
+
+  /// Preserves the V1 physical MAIN short-press behavior. The coordinator uses
+  /// this after normalizing screen and BLE events through one policy.
+  Future<MainButtonActionResult> handleBleMainShortPress(
+    MainButtonInputEvent event,
+  ) async {
+    if (event.source != MainButtonSource.ble ||
+        event.gesture != MainButtonGesture.shortPress) {
+      return MainButtonActionResult.ignored;
+    }
+    if (homiHardwareTestModeEnabled) {
+      if (homiHardwareTestPhase == HomiHardwareTestPhase.playing ||
+          homiHardwareTestPhase == HomiHardwareTestPhase.openingRoute) {
+        return MainButtonActionResult.busy;
+      }
+      await toggleHomiOfflineRecordingTest();
+      return MainButtonActionResult.accepted;
+    }
+    if (phase == ConversationPhase.processing || _preparingMicrophone) {
+      return MainButtonActionResult.busy;
+    }
+    if (_playbackPlaying) await _playbackService.stop();
+    if (phase == ConversationPhase.recording) {
+      await stopRecording(manual: true);
+    } else {
+      await startRecording();
+    }
+    return MainButtonActionResult.accepted;
+  }
+
+  /// Stops the current conversation-owned activity without starting a new one.
+  ///
+  /// A long MAIN press is a cancellation boundary: an unfinished recording is
+  /// discarded instead of finalized, and a late backend result is ignored.
+  Future<MainButtonActionResult> stopCurrentMainAction() async {
+    if (homiHardwareTestPhase == HomiHardwareTestPhase.recording) {
+      await stopAndReplayHomiOfflineRecording();
+      return MainButtonActionResult.accepted;
+    }
+    if (homiHardwareTestPhase == HomiHardwareTestPhase.openingRoute ||
+        homiHardwareTestPhase == HomiHardwareTestPhase.playing) {
+      await cancelHomiHardwareTest();
+      return MainButtonActionResult.accepted;
+    }
+    return cancelCurrentMainAction();
+  }
+
+  /// Cancels the current conversation turn without translating it.
+  ///
+  /// Used by D10/E04 for single-sentence and continuous translation. Increasing
+  /// the generation also makes any already-running backend response harmless.
+  Future<MainButtonActionResult> cancelCurrentMainAction() async {
+    final pendingRecordingStart =
+        _continuousTranslationSession.pendingRecordingStart;
+    final pendingHfpStart = _pendingHfpStartOperation;
+    final wasPreparingMicrophone = _preparingMicrophone;
+    final hadActivity =
+        wasPreparingMicrophone ||
+        pendingHfpStart != null ||
+        phase != ConversationPhase.idle ||
+        _playbackPlaying ||
+        _stopInProgress;
+
+    _conversationTurnGeneration += 1;
+    _cancelSentenceQueue();
+    _streamingSpeechTurnGeneration = null;
+    _nativeSpeechCompletedGeneration = null;
+    _pendingStreamingPartialText = null;
+    _preparingMicrophone = false;
+    _continuousTranslationSession.cancelInteraction();
+    _partialPreviewTimer?.cancel();
+    _partialSpeechEndpointTimer?.cancel();
+    _previewGeneration += 1;
+    _silenceTimer?.cancel();
+    _noSpeechTimer?.cancel();
+    _maximumDurationTimer?.cancel();
+    _offlineFallbackTimer?.cancel();
+    _offlineFallbackTimer = null;
+    _processingStageTimer?.cancel();
+    await _amplitudeSubscription?.cancel();
+    _amplitudeSubscription = null;
+    await _batchPreviewSubscription?.cancel();
+    _batchPreviewSubscription = null;
+    _realtimeFallbackBuffer.clear();
+
+    if (pendingHfpStart != null) {
+      // `_usingHfpRoute` is set only after start completes. Stop the pending
+      // request directly so its Dart/native generations are invalidated even
+      // while that flag is still false.
+      await _hfpAudioControl?.stopAudioRoute().catchError((Object _) {});
+    }
+    if (wasPreparingMicrophone) {
+      await _streamingSpeechInput?.cancel().catchError((Object _) {});
+      await _audioInput.cancel().catchError((Object _) {});
+    }
+
+    if (phase == ConversationPhase.recording && !_stopInProgress) {
+      _stopInProgress = true;
+      final previousSpeakNoSpeechPrompt = _speakNoSpeechPrompt;
+      _speakNoSpeechPrompt = false;
+      try {
+        await _finishNoSpeechTurn(inputAlreadyStopped: false);
+      } finally {
+        _speakNoSpeechPrompt = previousSpeakNoSpeechPrompt;
+      }
+    }
+
+    await _voicePromptService?.stop().catchError((Object _) {});
+    await _playbackService.stop().catchError((Object _) {});
+    await _stopHfpRoute();
+
+    final cancellationBarriers = await Future.wait<bool>([
+      _waitForCancellationBarrier(pendingRecordingStart),
+      _waitForCancellationBarrier(pendingHfpStart),
+    ]);
+    transientMessage = null;
+    errorMessage = null;
+    amplitude = 0;
+    _preview = null;
+    _preferredPlaybackUri = null;
+    _speculativePreloadUri = null;
+    _lastTurnEndReason = ConversationTurnEndReason.commandHandled;
+    phase = ConversationPhase.idle;
+    _stopInProgress = false;
+    unawaited(_syncAiv0AppState());
+    notifyListeners();
+    if (cancellationBarriers.any((settled) => !settled)) {
+      return MainButtonActionResult.busy;
+    }
+    return hadActivity
+        ? MainButtonActionResult.accepted
+        : MainButtonActionResult.ignored;
+  }
+
+  Future<bool> _waitForCancellationBarrier(Future<void>? operation) async {
+    if (operation == null) return true;
+    try {
+      await operation.timeout(_cancellationBarrierTimeout);
+      return true;
+    } on TimeoutException {
+      return false;
+    } catch (_) {
+      // A cancellation error means the old operation has settled as intended.
+      return true;
+    }
+  }
+
+  /// Backward-compatible name retained for the single-sentence MAIN flow.
+  Future<MainButtonActionResult> cancelSingleSentenceMainAction() =>
+      cancelCurrentMainAction();
+
+  Aiv0AppState get _currentAiv0AppState {
+    if (homiHardwareTestPhase == HomiHardwareTestPhase.recording) {
+      return Aiv0AppState.recording;
+    }
+    if (homiHardwareTestPhase == HomiHardwareTestPhase.playing) {
+      return Aiv0AppState.playing;
+    }
+    if (homiHardwareTestPhase == HomiHardwareTestPhase.error) {
+      return Aiv0AppState.error;
+    }
+    if (_playbackPlaying) return Aiv0AppState.playing;
+    return switch (phase) {
+      ConversationPhase.recording => Aiv0AppState.recording,
+      ConversationPhase.processing => Aiv0AppState.processing,
+      ConversationPhase.ready => Aiv0AppState.ready,
+      ConversationPhase.error => Aiv0AppState.error,
+      _ => Aiv0AppState.idle,
+    };
+  }
+
+  Future<void> _syncAiv0AppState({
+    Aiv0AppResult resultCode = Aiv0AppResult.accepted,
+    int sequence = 0,
+  }) async {
+    final control = _aiv0BleControl;
+    if (control == null || !control.status.isConnected) return;
+    try {
+      await control.sendAppState(
+        state: _currentAiv0AppState,
+        result: resultCode,
+        sequence: sequence,
+      );
+    } catch (error) {
+      debugPrint('Cannot send AIV0 APP State: $error');
+    }
+  }
+
+  @override
+  Future<List<BluetoothAudioDevice>> scanInnotrikDevices() async {
+    final control = _bluetoothAudioControl;
+    if (control == null || isBusy) {
+      return const <BluetoothAudioDevice>[];
+    }
+    transientMessage = 'Đang quét thiết bị INNOTRIK ở gần…';
+    notifyListeners();
+    try {
+      final devices = await control.scanBluetoothDevices();
+      transientMessage = devices.isEmpty
+          ? 'Không tìm thấy INNOTRIK. Hãy bật thiết bị và đặt gần điện thoại.'
+          : null;
+      notifyListeners();
+      return devices;
+    } catch (error) {
+      transientMessage = _friendlyError(error);
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> connectInnotrikDevice(BluetoothAudioDevice device) async {
+    final control = _bluetoothAudioControl;
+    if (control == null || isBusy) {
+      return;
+    }
+    final name = localizedDeviceName(
+      device.name,
+      displayLanguage,
+      deviceId: device.id,
+    );
+    transientMessage = displayLanguage.choose(
+      'Đang kết nối $name…',
+      '正在连接 $name…',
+    );
+    notifyListeners();
+    try {
+      await control.connectBluetoothDevice(device.id);
+      asrMode = AsrMode.deviceStreaming;
+      transientMessage =
+          'Đã kết nối Mic INNOTRIK. BLE streaming đã sẵn sàng để thử.';
+      notifyListeners();
+    } catch (error) {
+      transientMessage = _friendlyError(error);
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  Future<void> disconnectInnotrikDevice() async {
+    if (isBusy) {
+      return;
+    }
+    await _bluetoothAudioControl?.disconnectBluetoothDevice();
+    if (asrMode == AsrMode.deviceStreaming) {
+      asrMode = supportsAndroidStreaming
+          ? AsrMode.androidStreaming
+          : AsrMode.batchChunks;
+    }
+    transientMessage = 'Đã ngắt Mic INNOTRIK; ứng dụng sẽ dùng mic điện thoại.';
+    notifyListeners();
+  }
+
+  @override
+  Future<List<HfpAudioDevice>> findHfpDevices() async {
+    final control = _hfpAudioControl;
+    if (control == null) return const <HfpAudioDevice>[];
+    final generation = _beginDeviceOperation();
+    if (generation == null) throw const DeviceConnectionBusyException();
+    transientMessage = 'Đang tìm micro đã kết nối…';
+    try {
+      await initializeDeviceConnectionPreferences();
+      _ensureDeviceOperationCurrent(generation);
+      final devices = await control.findDevices();
+      _ensureDeviceOperationCurrent(generation);
+      transientMessage = devices.isEmpty
+          ? 'Không tìm thấy micro Bluetooth.'
+          : null;
+      return devices;
+    } catch (error) {
+      if (_deviceOperationCurrent(generation)) {
+        transientMessage = _friendlyError(error);
+      }
+      rethrow;
+    } finally {
+      _finishDeviceOperation(generation);
+    }
+  }
+
+  /// Selects a recognized candidate without claiming a name proves it is the
+  /// same physical HOMI. Differing IDs require a saved parent confirmation.
+  Future<bool> autoConnectHomiHfp({
+    String? bleDeviceName,
+    bool requireConnected = false,
+  }) async {
+    final control = _hfpAudioControl;
+    if (control == null || supportsBrowserHfp) return false;
+    final generation = _beginDeviceOperation(automatic: true);
+    if (generation == null) return false;
+    try {
+      await initializeDeviceConnectionPreferences();
+      _ensureDeviceOperationCurrent(generation);
+      if (!automaticHfpSelectionAllowed || !automaticBleConnectionAllowed) {
+        return false;
+      }
+      if (!_explicitDeviceRetryRequested &&
+          _hfpInputSelected &&
+          hfpAudioStatus.deviceId != null &&
+          hfpAudioStatus.isConnected) {
+        // A manually chosen working microphone remains the parent's choice.
+        return homiConnectionState().hfpMatchesHomi;
+      }
+      _explicitDeviceRetryRequested = false;
+      final devices = await control.findDevices();
+      _ensureDeviceOperationCurrent(generation);
+      final remembered = _lastConnectedMicrophone;
+      final device = selectLikelyHomiHfpDevice(
+        devices,
+        bleDeviceName: bleDeviceName,
+        bleDeviceId: aiv0BleStatus.deviceId,
+        preferredDeviceId:
+            sameConnectionDeviceId(
+              remembered?.bleDeviceId,
+              aiv0BleStatus.deviceId,
+            )
+            ? remembered?.id
+            : null,
+        connectedOnly: requireConnected,
+      );
+      if (device == null) return false;
+      await control.connect(device);
+      _ensureDeviceOperationCurrent(generation);
+      if (!hfpAudioStatus.isConnected ||
+          !sameConnectionDeviceId(hfpAudioStatus.deviceId, device.id)) {
+        return false;
+      }
+      _hfpInputSelected = true;
+      asrMode = supportsAndroidStreaming
+          ? AsrMode.androidStreaming
+          : AsrMode.batchChunks;
+      await _rememberMicrophone(device);
+      _ensureDeviceOperationCurrent(generation);
+      if (isHomiReady) {
+        _connectionNoticeTimer?.cancel();
+        transientMessage = connectionReadyMessage;
+        _connectionNoticeTimer = Timer(const Duration(seconds: 5), () {
+          if (_disposed || transientMessage != connectionReadyMessage) return;
+          transientMessage = null;
+          notifyListeners();
+        });
+      }
+      return true;
+    } catch (error) {
+      if (_deviceOperationCurrent(generation)) {
+        debugPrint('Automatic HOMI microphone selection was skipped: $error');
+      }
+      return false;
+    } finally {
+      _finishDeviceOperation(generation);
+    }
+  }
+
+  /// Cancels only the current automatic round and leaves retry preferences
+  /// unchanged. A late discovery/connect cannot commit selection or history.
+  Future<void> cancelAutomaticHfpSelection() {
+    if (_automaticDeviceOperation == null) {
+      return _deviceCancellation ?? Future<void>.value();
+    }
+    _deviceOperationGeneration += 1;
+    _activeDeviceOperation = null;
+    _automaticDeviceOperation = null;
+    return _cancelPendingDeviceOperations(includeBle: false);
+  }
+
+  @override
+  Future<DeviceConnectionResult> connectHfpDevice(
+    HfpAudioDevice device, {
+    bool confirmHomiAssociation = false,
+  }) async {
+    final control = _hfpAudioControl;
+    if (control == null) {
+      return const DeviceConnectionResult(DeviceConnectionOutcome.unavailable);
+    }
+    final generation = _beginDeviceOperation();
+    if (generation == null) {
+      return const DeviceConnectionResult(DeviceConnectionOutcome.busy);
+    }
+    transientMessage = 'Đang kết nối micro…';
+    final associationBleId = aiv0BleStatus.isConnected
+        ? aiv0BleStatus.deviceId
+        : null;
+    try {
+      await initializeDeviceConnectionPreferences();
+      _ensureDeviceOperationCurrent(generation);
+      _automaticHfpDisabled = false;
+      _explicitDeviceRetryRequested = false;
+      await _saveDeviceConnectionPreferences();
+      _ensureDeviceOperationCurrent(generation);
+      await control.connect(device);
+      _ensureDeviceOperationCurrent(generation);
+      if (!hfpAudioStatus.isConnected ||
+          !sameConnectionDeviceId(hfpAudioStatus.deviceId, device.id)) {
+        return const DeviceConnectionResult(DeviceConnectionOutcome.failed);
+      }
+      if (confirmHomiAssociation &&
+          isRecognizedHomiMicrophoneName(device.name) &&
+          associationBleId != null &&
+          sameConnectionDeviceId(associationBleId, aiv0BleStatus.deviceId)) {
+        _confirmedMicrophoneId = hfpAudioStatus.deviceId;
+        _confirmedMicrophoneBleId = associationBleId;
+      }
+      _hfpInputSelected = true;
+      asrMode = supportsAndroidStreaming
+          ? AsrMode.androidStreaming
+          : AsrMode.batchChunks;
+      await _rememberMicrophone(device);
+      _ensureDeviceOperationCurrent(generation);
+      transientMessage = isHomiReady ? connectionReadyMessage : 'Đã chọn micro.';
+      return const DeviceConnectionResult(DeviceConnectionOutcome.success);
+    } catch (error) {
+      return _deviceOperationFailure(error, generation);
+    } finally {
+      _finishDeviceOperation(generation);
+    }
+  }
+
+  @override
+  Future<DeviceConnectionResult> disconnectHfpDevice() async {
+    final control = _hfpAudioControl;
+    if (control == null) {
+      return const DeviceConnectionResult(DeviceConnectionOutcome.unavailable);
+    }
+    final generation = _beginDeviceOperation();
+    if (generation == null) {
+      return const DeviceConnectionResult(DeviceConnectionOutcome.busy);
+    }
+    try {
+      await initializeDeviceConnectionPreferences();
+      _ensureDeviceOperationCurrent(generation);
+      _automaticHfpDisabled = true;
+      _hfpInputSelected = false;
+      await _saveDeviceConnectionPreferences();
+      _ensureDeviceOperationCurrent(generation);
+      await control.disconnect();
+      _ensureDeviceOperationCurrent(generation);
+      if (asrMode == AsrMode.hfpStreaming) {
+        asrMode = supportsAndroidStreaming
+            ? AsrMode.androidStreaming
+            : AsrMode.batchChunks;
+      }
+      transientMessage = 'Đã bỏ chọn micro; ứng dụng sẽ dùng mic điện thoại.';
+      return const DeviceConnectionResult(DeviceConnectionOutcome.success);
+    } catch (error) {
+      return _deviceOperationFailure(error, generation);
+    } finally {
+      _finishDeviceOperation(generation);
+    }
+  }
+
+  @override
+  Future<void> setHomiHardwareTestMode(bool enabled) async {
+    if (enabled == homiHardwareTestModeEnabled) return;
+    if (!enabled && homiHardwareTestActive) {
+      await cancelHomiHardwareTest();
+    }
+    homiHardwareTestModeEnabled = enabled;
+    homiHardwareTestPhase = HomiHardwareTestPhase.idle;
+    homiHardwareTestMessage = enabled
+        ? 'Chế độ kiểm tra cục bộ đã bật. Không gửi âm thanh lên cloud.'
+        : null;
+    notifyListeners();
+  }
+
+  /// Opens the verified HFP/SCO route and records locally. No repository or
+  /// network API is touched. A second tap (or MAIN after ODM confirmation)
+  /// stops capture and immediately replays the local file through HM-D001.
+  @override
+  Future<void> toggleHomiOfflineRecordingTest() async {
+    if (homiHardwareTestPhase == HomiHardwareTestPhase.recording) {
+      await stopAndReplayHomiOfflineRecording();
+      return;
+    }
+    await startHomiOfflineRecording();
+  }
+
+  Future<void> startHomiOfflineRecording() async {
+    if (!homiHardwareTestModeEnabled) {
+      throw StateError('Hãy bật chế độ kiểm tra phần cứng offline trước.');
+    }
+    if (homiHardwareTestActive ||
+        phase == ConversationPhase.recording ||
+        phase == ConversationPhase.processing) {
+      return;
+    }
+    final hfp = _hfpAudioControl;
+    if (hfp == null ||
+        (!hfp.status.isConnected && hfp.status.deviceId == null) ||
+        supportsBrowserHfp) {
+      throw StateError('Hãy kết nối HFP của HM-D001 trước khi kiểm tra micro.');
+    }
+
+    homiHardwareTestResult = null;
+    homiHardwareTestPhase = HomiHardwareTestPhase.openingRoute;
+    homiHardwareTestMessage = 'Đang mở đường HFP/SCO hai chiều…';
+    notifyListeners();
+    try {
+      await _playbackService.stop();
+      await hfp.startAudioRoute();
+      _usingHfpRoute = true;
+      _setPlaybackCommunicationRoute(true);
+      final route = hfp.status;
+      if (!route.routeActive || route.inputDeviceName == null) {
+        throw StateError(
+          'Android chưa xác nhận micro HM-D001 trên đường HFP/SCO.',
+        );
+      }
+      await _audioInput.start();
+      _homiHardwareAudioInputStarted = true;
+      homiHardwareTestPhase = HomiHardwareTestPhase.recording;
+      homiHardwareTestMessage =
+          'Đang thu cục bộ từ ${route.inputDeviceName}. Bấm lại để dừng; tự dừng sau 5 giây.';
+      _homiHardwareRecordingTimer?.cancel();
+      _homiHardwareRecordingTimer = Timer(
+        const Duration(seconds: 5),
+        () => unawaited(stopAndReplayHomiOfflineRecording()),
+      );
+      unawaited(_syncAiv0AppState());
+      notifyListeners();
+    } catch (error) {
+      await _failHomiHardwareTest(error);
+      rethrow;
+    }
+  }
+
+  Future<void> stopAndReplayHomiOfflineRecording() async {
+    if (homiHardwareTestPhase != HomiHardwareTestPhase.recording ||
+        _homiHardwareStopInProgress) {
+      return;
+    }
+    _homiHardwareStopInProgress = true;
+    _homiHardwareRecordingTimer?.cancel();
+    _homiHardwareRecordingTimer = null;
+    try {
+      final capture = await _audioInput.stop();
+      _homiHardwareAudioInputStarted = false;
+      final routeBeforePlayback = hfpAudioStatus;
+      homiHardwareTestPhase = HomiHardwareTestPhase.playing;
+      homiHardwareTestMessage = 'Đang phát lại bản ghi cục bộ qua loa HM-D001…';
+      notifyListeners();
+
+      await _playHomiTestUri(Uri.file(capture.filePath));
+      final routeAfterPlayback = hfpAudioStatus;
+      final inputName =
+          routeBeforePlayback.inputDeviceName ??
+          routeAfterPlayback.inputDeviceName;
+      final outputName =
+          routeAfterPlayback.outputDeviceName ??
+          routeBeforePlayback.outputDeviceName;
+      homiHardwareTestResult = HomiHardwareTestResult(
+        completedAt: DateTime.now(),
+        inputRouteVerified:
+            routeBeforePlayback.routeActive && inputName != null,
+        outputRouteVerified:
+            routeAfterPlayback.routeActive && outputName != null,
+        recordedDuration: capture.duration,
+        inputDeviceName: inputName,
+        outputDeviceName: outputName,
+      );
+      homiHardwareTestPhase = HomiHardwareTestPhase.completed;
+      homiHardwareTestMessage =
+          'Đã thu và phát lại hoàn toàn offline. Hãy xác nhận bạn có nghe giọng từ loa HM-D001.';
+      notifyListeners();
+    } catch (error) {
+      await _failHomiHardwareTest(error);
+      rethrow;
+    } finally {
+      _homiHardwareStopInProgress = false;
+      await _closeHomiHardwareAudioRoute();
+      unawaited(_syncAiv0AppState());
+    }
+  }
+
+  @override
+  Future<void> playHomiBundledSpeakerTest() async {
+    if (!homiHardwareTestModeEnabled) {
+      throw StateError('Hãy bật chế độ kiểm tra phần cứng offline trước.');
+    }
+    if (homiHardwareTestActive ||
+        phase == ConversationPhase.recording ||
+        phase == ConversationPhase.processing) {
+      return;
+    }
+    final hfp = _hfpAudioControl;
+    if (hfp == null ||
+        (!hfp.status.isConnected && hfp.status.deviceId == null) ||
+        supportsBrowserHfp) {
+      throw StateError('Hãy kết nối HFP của HM-D001 trước khi kiểm tra loa.');
+    }
+    homiHardwareTestPhase = HomiHardwareTestPhase.openingRoute;
+    homiHardwareTestMessage = 'Đang mở HFP/SCO để kiểm tra loa…';
+    notifyListeners();
+    try {
+      await _playbackService.stop();
+      await hfp.startAudioRoute();
+      _usingHfpRoute = true;
+      _setPlaybackCommunicationRoute(true);
+      if (!hfp.status.routeActive || hfp.status.outputDeviceName == null) {
+        throw StateError(
+          'Android chưa xác nhận loa HM-D001 trên đường HFP/SCO.',
+        );
+      }
+      homiHardwareTestPhase = HomiHardwareTestPhase.playing;
+      homiHardwareTestMessage = 'Đang phát file có sẵn trong APK qua HM-D001…';
+      notifyListeners();
+      await _playHomiTestUri(MediaAudioKeys.homiSpeakerTestUri);
+      final route = hfp.status;
+      homiHardwareTestResult = HomiHardwareTestResult(
+        completedAt: DateTime.now(),
+        inputRouteVerified: false,
+        outputRouteVerified:
+            route.routeActive && route.outputDeviceName != null,
+        outputDeviceName: route.outputDeviceName,
+      );
+      homiHardwareTestPhase = HomiHardwareTestPhase.completed;
+      homiHardwareTestMessage =
+          'Đã phát file offline. Hãy xác nhận âm thanh phát từ loa HM-D001.';
+      notifyListeners();
+    } catch (error) {
+      await _failHomiHardwareTest(error);
+      rethrow;
+    } finally {
+      await _closeHomiHardwareAudioRoute();
+      unawaited(_syncAiv0AppState());
+    }
+  }
+
+  @override
+  void confirmHomiPlaybackAudible(bool audible) {
+    final current = homiHardwareTestResult;
+    if (current == null) return;
+    homiHardwareTestResult = current.copyWith(playbackAudible: audible);
+    homiHardwareTestMessage = audible
+        ? 'Đã xác nhận: âm thanh nghe được từ loa HM-D001.'
+        : 'Không nghe từ loa HM-D001. Chưa đạt; cần kiểm tra lại route HFP/SCO.';
+    notifyListeners();
+  }
+
+  Future<void> cancelHomiHardwareTest() async {
+    _homiHardwareRecordingTimer?.cancel();
+    _homiHardwareRecordingTimer = null;
+    if (_homiHardwareAudioInputStarted) {
+      await _audioInput.cancel().catchError((Object _) {});
+      _homiHardwareAudioInputStarted = false;
+    }
+    await _playbackService.stop().catchError((Object _) {});
+    await _closeHomiHardwareAudioRoute();
+    homiHardwareTestPhase = HomiHardwareTestPhase.idle;
+    homiHardwareTestMessage = homiHardwareTestModeEnabled
+        ? 'Đã dừng kiểm tra cục bộ.'
+        : null;
+    if (!_disposed) notifyListeners();
+  }
+
+  Future<void> _playHomiTestUri(Uri uri) async {
+    _useNormalPlaybackRate();
+    final playback = _playbackService;
+    final completion = playback is CompletionAwareAudioPlaybackService
+        ? (playback as CompletionAwareAudioPlaybackService)
+              .completionStream
+              .first
+              .timeout(const Duration(seconds: 20), onTimeout: () {})
+        : null;
+    await playback.play(uri);
+    if (completion != null) await completion;
+  }
+
+  Future<void> _failHomiHardwareTest(Object error) async {
+    _homiHardwareRecordingTimer?.cancel();
+    _homiHardwareRecordingTimer = null;
+    if (_homiHardwareAudioInputStarted) {
+      await _audioInput.cancel().catchError((Object _) {});
+      _homiHardwareAudioInputStarted = false;
+    }
+    homiHardwareTestPhase = HomiHardwareTestPhase.error;
+    homiHardwareTestMessage = _friendlyError(error);
+    await _closeHomiHardwareAudioRoute();
+    if (!_disposed) notifyListeners();
+  }
+
+  Future<void> _closeHomiHardwareAudioRoute() async {
+    if (_usingHfpRoute) await _stopHfpRoute();
+  }
+
+  @override
+  Future<void> testInnotrikMicrophone() async {
+    if (!canUseInnotrikBle || isBusy || _audioInput is! ChunkedAudioInput) {
+      return;
+    }
+    bleDiagnosticRunning = true;
+    transientMessage =
+        'Kiểm tra Mic INNOTRIK trong 4 giây: hãy nói một câu rõ ràng…';
+    notifyListeners();
+    try {
+      await _playbackService.stop();
+      if (_audioInput is BluetoothCapturePolicy) {
+        (_audioInput as BluetoothCapturePolicy).requireBluetoothCaptureOnce();
+      }
+      await _audioInput.startChunked();
+      await Future<void>.delayed(const Duration(seconds: 4));
+      final capture = await _audioInput.stop();
+      final status = bluetoothAudioStatus;
+      if ((capture.streamedAudioBytes ?? 0) < 8000) {
+        throw StateError('Audio giải mã quá ngắn để xác nhận mic hoạt động.');
+      }
+      transientMessage =
+          'Mic INNOTRIK đạt kiểm tra: ${status.packetCount} gói, '
+          '${(capture.streamedAudioBytes ?? 0) ~/ 1024} KB PCM. '
+          'Đang phát lại bản ghi.';
+      notifyListeners();
+      _useNormalPlaybackRate();
+      await _playbackService.play(Uri.file(capture.filePath));
+    } catch (error) {
+      await _audioInput.cancel().catchError((Object _) {});
+      transientMessage =
+          'Kiểm tra Mic INNOTRIK thất bại: ${_friendlyError(error)}';
+      notifyListeners();
+      rethrow;
+    } finally {
+      bleDiagnosticRunning = false;
+      if (!_disposed) {
+        notifyListeners();
+      }
+    }
+  }
+
+  Future<void> startRecording({
+    Duration noSpeechTimeout = const Duration(seconds: 3),
+    bool speakNoSpeechPrompt = true,
+    bool stopOnSilence = true,
+  }) => _continuousTranslationSession.startRecording(
+    noSpeechTimeout: noSpeechTimeout,
+    speakNoSpeechPrompt: speakNoSpeechPrompt,
+    stopOnSilence: stopOnSilence,
+  );
+
+  Future<void> _startRecordingInternal({
+    Duration noSpeechTimeout = const Duration(seconds: 3),
+    bool speakNoSpeechPrompt = true,
+    bool stopOnSilence = true,
+  }) async {
+    if (!(_voiceDataProcessingAllowed?.call() ?? true)) {
+      _setError(
+        'Giọng nói đang tắt. Phụ huynh cần đồng ý xử lý dữ liệu và cấp quyền micro trong Cài đặt.',
+      );
+      return;
+    }
+    // BLE is a separate HM-D001 control transport. Its background scan/connect
+    // must not prevent Apple Speech (or the phone microphone) from starting.
+    if (!_audioInput.isAvailable || isRecordingStartBlocked) {
+      _setError('Nguồn âm thanh hiện chưa sẵn sàng.');
+      return;
+    }
+    if (usesHfpInput && !hfpAudioStatus.isConnected) {
+      _setError('Hãy tìm và kết nối thiết bị HFP trước khi bắt đầu nói.');
+      return;
+    }
+    final turnGeneration = ++_conversationTurnGeneration;
+    _cancelSentenceQueue();
+    _sentenceResults.clear();
+    _streamingSpeechTurnGeneration = null;
+    _nativeSpeechCompletedGeneration = null;
+    _pendingStreamingPartialText = null;
+
+    bool recordingStartCancelled() =>
+        _disposed || turnGeneration != _conversationTurnGeneration;
+
+    Future<bool> abandonCancelledRecordingStart() async {
+      if (!recordingStartCancelled()) return false;
+      await _streamingSpeechInput?.cancel().catchError((Object _) {});
+      await _audioInput.cancel().catchError((Object _) {});
+      await _stopHfpRoute();
+      return true;
+    }
+
+    try {
+      _preparingMicrophone = true;
+      notifyListeners();
+      await _beforeRecordingStart?.call();
+      if (await abandonCancelledRecordingStart()) return;
+      final userGesturePlayback = _playbackService;
+      if (userGesturePlayback is UserGestureAudioPlaybackService) {
+        await (userGesturePlayback as UserGestureAudioPlaybackService)
+            .unlockForUserGesture();
+        if (await abandonCancelledRecordingStart()) return;
+      }
+      await _playbackService.stop();
+      if (await abandonCancelledRecordingStart()) return;
+      final readyCuePlayer = _voicePromptService;
+      final cueBeforeStart =
+          !_isWebRuntime && defaultTargetPlatform == TargetPlatform.iOS;
+      if (cueBeforeStart && readyCuePlayer is SpeechReadyCuePlayer) {
+        await (readyCuePlayer as SpeechReadyCuePlayer).playSpeechReadyCue();
+        if (await abandonCancelledRecordingStart()) return;
+      }
+      if (await abandonCancelledRecordingStart()) return;
+      errorMessage = null;
+      transientMessage = null;
+      qualityApproved = null;
+      _processingStageTimer?.cancel();
+      processingStage = ConversationProcessingStage.recognizing;
+      _speechDetected = false;
+      _stopOnSilence = stopOnSilence;
+      _speakNoSpeechPrompt = speakNoSpeechPrompt;
+      _lastTurnEndReason = null;
+      _noisyRecording = false;
+      _voiceActivityDetector.reset();
+      _lastVoiceActiveAt = null;
+      _latestEndpointTranscript = '';
+      _partialSpeechEndpointTimer?.cancel();
+      _stopInProgress = false;
+      _realtimeConnectionGeneration += 1;
+      _realtimeConnectionFuture = null;
+      _realtimeFallbackBuffer.clear();
+      // Native Android/iOS speech has one recognition path. HFP is an audio
+      // source, never a separate ASR mode. Only explicitly fallback-capable
+      // platforms may send failed native recognition audio to cloud ASR.
+      if (!_isWebRuntime && _streamingSpeechInput != null) {
+        asrMode = AsrMode.androidStreaming;
+      }
+      final preferAvailableBle =
+          (_isWebRuntime || _streamingSpeechInput == null) &&
+          _preferBleStreaming &&
+          _audioInput.isBluetooth &&
+          _audioInput is ChunkedAudioInput;
+      if (preferAvailableBle && asrMode == AsrMode.androidStreaming) {
+        asrMode = AsrMode.deviceStreaming;
+      } else if (!preferAvailableBle && asrMode == AsrMode.deviceStreaming) {
+        asrMode = _streamingSpeechInput == null
+            ? AsrMode.batchChunks
+            : AsrMode.androidStreaming;
+      }
+      _usingHfpRoute = false;
+      _usingStreamingSpeech =
+          (asrMode == AsrMode.androidStreaming ||
+              asrMode == AsrMode.hfpStreaming) &&
+          _streamingSpeechInput != null &&
+          !isBrowserHfpMode;
+      _usingRecordedAudioSpeech = false;
+      _usingRealtimeTranscription = false;
+      _usingOfflineIntent = false;
+      _offlineIntentDecision = null;
+      _offlineIntentFirstResultMs = null;
+      _offlineIntentGate = null;
+      _offlineFallbackTimer?.cancel();
+      _offlineFallbackTimer = null;
+      amplitude = 0;
+      _previewGeneration += 1;
+      _partialPreviewTimer?.cancel();
+      _lastPreviewText = null;
+      _preview = null;
+      _preferredPlaybackUri = null;
+      _speculativePreloadUri = null;
+      await _batchChunkSubscription?.cancel();
+      _batchChunkSubscription = null;
+      await _batchPreviewSubscription?.cancel();
+      _batchPreviewSubscription = null;
+      final previousAdaptiveWebUpload = _adaptiveWebUpload;
+      _adaptiveWebUpload = null;
+      if (previousAdaptiveWebUpload != null) {
+        await previousAdaptiveWebUpload.discard();
+      }
+      final previousBatchUpload = _batchChunkUpload;
+      _batchChunkUpload = null;
+      _batchSpeechGate = null;
+      if (previousBatchUpload != null) {
+        await previousBatchUpload
+            .discard(reason: 'superseded')
+            .catchError((Object _) {});
+      }
+      await _realtimeChunkSubscription?.cancel();
+      _realtimeChunkSubscription = null;
+      await _realtimePartialSubscription?.cancel();
+      _realtimePartialSubscription = null;
+      await _offlineIntentHypothesisSubscription?.cancel();
+      _offlineIntentHypothesisSubscription = null;
+      await _offlineIntentRecognizer?.cancel().catchError((Object _) {});
+      final previousRealtimeSession = _realtimeSession;
+      _realtimeSession = null;
+      if (previousRealtimeSession != null) {
+        await previousRealtimeSession.discard().catchError((Object _) {});
+      }
+      if (await abandonCancelledRecordingStart()) return;
+
+      if (_usingStreamingSpeech) {
+        try {
+          final streamingInputOwnsHfpRoute =
+              _streamingSpeechInput is HfpRouteOwningStreamingSpeechInput;
+          if (_hfpInputSelected &&
+              !supportsBrowserHfp &&
+              !streamingInputOwnsHfpRoute) {
+            await _startHfpRouteWithTimeout(
+              expectedTurnGeneration: turnGeneration,
+            );
+            if (await abandonCancelledRecordingStart()) return;
+            _usingHfpRoute = true;
+            _setPlaybackCommunicationRoute(true);
+          }
+          // Android can optionally record the turn once with HOMI's recorder,
+          // then feed the same WAV to SpeechRecognizer. This avoids competing
+          // microphone consumers and guarantees an archive file, at the cost
+          // of starting recognition after the child finishes speaking.
+          final recordedAudioRecognizer =
+              _recordAndroidAudioForArchive &&
+                  _streamingSpeechInput is RecordedAudioStreamingSpeechInput
+              ? _streamingSpeechInput! as RecordedAudioStreamingSpeechInput
+              : null;
+          final hasRecordedAudioPipeline =
+              !_isWebRuntime &&
+              recordedAudioRecognizer != null &&
+              _audioInput is ChunkedAudioInput;
+          final canRecognizeRecordedAudio =
+              hasRecordedAudioPipeline &&
+              await recordedAudioRecognizer.supportsRecordedAudioRecognition();
+          if (await abandonCancelledRecordingStart()) return;
+          if (canRecognizeRecordedAudio) {
+            _usingStreamingSpeech = false;
+            _usingRecordedAudioSpeech = true;
+            await _audioInput.startChunked();
+          } else {
+            // The fast online path is transcript-first on every supported
+            // Android version. A false recorded-audio capability commonly
+            // means the device is online (file injection is reserved for the
+            // offline path), not that native live recognition is unavailable.
+            // Starting Batch Chunks here added an audio-session round trip and
+            // bypassed SpeechRecognizer even though it was ready.
+            _streamingSpeechTurnGeneration = turnGeneration;
+            await _streamingSpeechInput!.start();
+          }
+          if (await abandonCancelledRecordingStart()) return;
+        } catch (error) {
+          if (await abandonCancelledRecordingStart()) return;
+          _streamingSpeechTurnGeneration = null;
+          _nativeSpeechCompletedGeneration = null;
+          _pendingStreamingPartialText = null;
+          final permissionFailure =
+              error is StreamingSpeechInputException &&
+              (error.code == 'SPEECH_PERMISSION_DENIED' ||
+                  error.code == 'MICROPHONE_PERMISSION_DENIED' ||
+                  error.code == 'MICROPHONE_PERMISSION_PENDING');
+          if (permissionFailure ||
+              (usesHfpInput &&
+                  (_isHfpRouteLoss(error) || !hfpAudioStatus.isConnected))) {
+            await _stopHfpRoute();
+            rethrow;
+          }
+          _usingStreamingSpeech = false;
+          _usingRecordedAudioSpeech = false;
+          final supportsBatchFallback =
+              _streamingSpeechInput is BatchFallbackCapableNativeSpeechInput;
+          if (!_isWebRuntime &&
+              _streamingSpeechInput != null &&
+              !supportsBatchFallback) {
+            await _stopHfpRoute();
+            asrMode = AsrMode.androidStreaming;
+            debugPrint('Android native recognition start failed: $error');
+            if (error is StreamingSpeechInputException) rethrow;
+            throw const StreamingSpeechInputException(
+              'Chế độ tiêu chuẩn chưa sẵn sàng. Hãy kiểm tra quyền micro hoặc kết nối HM-D001 rồi thử lại.',
+              code: 'ANDROID_STANDARD_RECOGNITION_UNAVAILABLE',
+            );
+          }
+          asrMode = AsrMode.batchChunks;
+          transientMessage =
+              'Apple Speech chưa sẵn sàng; đang ghi âm bằng Cloudflare/Batch dự phòng.';
+          await _startBatchRecording();
+          if (await abandonCancelledRecordingStart()) return;
+        }
+      } else if (isBrowserHfpMode && _audioInput is ChunkedAudioInput) {
+        try {
+          await _startHfpRouteWithTimeout(
+            expectedTurnGeneration: turnGeneration,
+          );
+          if (await abandonCancelledRecordingStart()) return;
+          _usingHfpRoute = true;
+          _setPlaybackCommunicationRoute(true);
+          await _startAdaptiveWebRecording();
+          if (await abandonCancelledRecordingStart()) return;
+        } catch (_) {
+          await _stopHfpRoute();
+          rethrow;
+        }
+      } else if (usesHfpInput &&
+          !supportsAndroidStreaming &&
+          _audioInput is ChunkedAudioInput) {
+        try {
+          await _startHfpRouteWithTimeout(
+            expectedTurnGeneration: turnGeneration,
+          );
+          if (await abandonCancelledRecordingStart()) return;
+          _usingHfpRoute = true;
+          _setPlaybackCommunicationRoute(true);
+          await _startBatchRecording();
+          if (await abandonCancelledRecordingStart()) return;
+        } catch (_) {
+          await _stopHfpRoute();
+          rethrow;
+        }
+      } else if (asrMode == AsrMode.openAiRealtime ||
+          asrMode == AsrMode.deviceStreaming) {
+        if (asrMode == AsrMode.deviceStreaming) {
+          if (_audioInput is BluetoothCapturePolicy) {
+            (_audioInput as BluetoothCapturePolicy)
+                .requireBluetoothCaptureOnce();
+          }
+          await _startBleHybridRecording();
+        } else {
+          await _startRealtimeRecordingWithBatchFallback();
+        }
+      } else if (_isWebRuntime && _audioInput is ChunkedAudioInput) {
+        await _startAdaptiveWebRecording();
+      } else {
+        await _startBatchRecording();
+      }
+
+      if (await abandonCancelledRecordingStart()) return;
+
+      if (!cueBeforeStart && readyCuePlayer is SpeechReadyCuePlayer) {
+        await (readyCuePlayer as SpeechReadyCuePlayer).playSpeechReadyCue();
+        if (await abandonCancelledRecordingStart()) return;
+      }
+      _recordingStartedAt = DateTime.now();
+      phase = ConversationPhase.recording;
+      _preparingMicrophone = false;
+      unawaited(_syncAiv0AppState());
+      _listenToAmplitude(
+        _usingStreamingSpeech
+            ? _streamingSpeechInput!.amplitudeDbfs
+            : _audioInput.amplitudeDbfs,
+      );
+      _maximumDurationTimer = Timer(
+        const Duration(seconds: 12),
+        () => unawaited(stopRecording(manual: false)),
+      );
+      _noSpeechTimer = Timer(noSpeechTimeout, () {
+        if (phase == ConversationPhase.recording && !_speechDetected) {
+          unawaited(stopRecording(manual: false));
+        }
+      });
+      notifyListeners();
+      final pendingPartial = _pendingStreamingPartialText;
+      _pendingStreamingPartialText = null;
+      if (pendingPartial != null) _onPartialText(pendingPartial);
+      if (_usingStreamingSpeech &&
+          _nativeSpeechCompletedGeneration == turnGeneration) {
+        unawaited(stopRecording(manual: false));
+      }
+    } catch (error) {
+      if (recordingStartCancelled()) return;
+      _streamingSpeechTurnGeneration = null;
+      _nativeSpeechCompletedGeneration = null;
+      _pendingStreamingPartialText = null;
+      _preparingMicrophone = false;
+      _setError(_friendlyError(error));
+    }
+  }
+
+  Future<void> _startBleHybridRecording() async {
+    final chunkedInput = _audioInput is ChunkedAudioInput ? _audioInput : null;
+    final catalog = _repository is OfflineIntentCatalogRepository
+        ? _repository as OfflineIntentCatalogRepository
+        : null;
+    final recognizer = _offlineIntentRecognizer;
+
+    if (chunkedInput == null ||
+        catalog == null ||
+        recognizer == null ||
+        !await recognizer.checkAvailability()) {
+      transientMessage =
+          'ASR offline BLE chưa sẵn sàng; đang gửi Batch Chunks qua Cloudflare.';
+      await _startBatchRecording();
+      return;
+    }
+
+    try {
+      final manifest = await catalog.fetchOfflineIntentManifest();
+      if (manifest.items.isEmpty) {
+        throw StateError('Backend chưa có offline intent manifest.');
+      }
+      _setOfflineIntentManifest(manifest);
+      _offlineIntentGate = OfflineIntentGate(manifest.policy);
+      _offlineIntentDecision = null;
+      _offlineIntentHypothesisSubscription = recognizer.hypotheses.listen(
+        _onOfflineIntentHypothesis,
+        onError: (Object error) {
+          debugPrint('BLE offline intent failed: $error');
+          _markOfflineBatchFallback();
+        },
+      );
+      await recognizer.start(manifest: manifest);
+      _realtimeChunkSubscription = chunkedInput.audioChunks.listen(
+        (bytes) {
+          _realtimeFallbackBuffer.add(bytes);
+          recognizer.addAudioChunk(bytes);
+          _realtimeSession?.addAudioChunk(bytes);
+        },
+        onError: (Object error) {
+          debugPrint('BLE hybrid audio stream failed: $error');
+          _markOfflineBatchFallback(audioStreamFailed: true);
+        },
+      );
+      await chunkedInput.startChunked();
+      _usingOfflineIntent = true;
+      transientMessage =
+          'BLE offline đang nghe; câu lạ sẽ được gửi Batch Chunks qua Cloudflare.';
+    } catch (error) {
+      await _offlineIntentHypothesisSubscription?.cancel();
+      _offlineIntentHypothesisSubscription = null;
+      await _realtimeChunkSubscription?.cancel();
+      _realtimeChunkSubscription = null;
+      await recognizer.cancel().catchError((Object _) {});
+      await chunkedInput.cancel().catchError((Object _) {});
+      _usingOfflineIntent = false;
+      _offlineIntentGate = null;
+      _offlineIntentDecision = null;
+      _realtimeFallbackBuffer.clear();
+      transientMessage =
+          'ASR offline BLE chưa sẵn sàng; đang gửi Batch Chunks qua Cloudflare.';
+      await _startBatchRecording();
+    }
+  }
+
+  void _onOfflineIntentHypothesis(OfflineIntentHypothesis hypothesis) {
+    if (!_usingOfflineIntent || phase != ConversationPhase.recording) {
+      return;
+    }
+    _registerSpeechDetection(confirmDetector: true);
+    final decision = _offlineIntentGate?.evaluate(hypothesis);
+    if (decision == null) {
+      return;
+    }
+    _offlineIntentDecision = decision;
+    final startedAt = _recordingStartedAt;
+    _offlineIntentFirstResultMs ??= startedAt == null
+        ? null
+        : DateTime.now().difference(startedAt).inMilliseconds;
+    _offlineFallbackTimer?.cancel();
+    _offlineFallbackTimer = null;
+
+    final definition =
+        _offlineIntentByContextAndId[_exactIntentKey(
+          context.apiValue,
+          decision.hypothesis.intentId,
+        )];
+    if (definition != null) {
+      _preview = ConversationPreview(
+        sourceText: decision.hypothesis.transcript.trim(),
+        englishText: definition.englishText,
+        textSource: 'offline_intent',
+        audioUri: definition.audioUri,
+      );
+      unawaited(_playbackService.preload(definition.audioUri));
+    }
+    notifyListeners();
+  }
+
+  void _scheduleOfflineFallback() {
+    if (!_usingOfflineIntent ||
+        _offlineIntentDecision != null ||
+        _offlineFallbackTimer != null) {
+      return;
+    }
+    final delay = _offlineIntentManifest?.policy.earlyFallbackMs ?? 800;
+    _offlineFallbackTimer = Timer(Duration(milliseconds: delay), () {
+      _offlineFallbackTimer = null;
+      if (_offlineIntentDecision == null &&
+          phase == ConversationPhase.recording) {
+        _markOfflineBatchFallback();
+      }
+    });
+  }
+
+  void _markOfflineBatchFallback({bool audioStreamFailed = false}) {
+    if (!_usingOfflineIntent || _offlineIntentDecision != null) {
+      return;
+    }
+    if (audioStreamFailed) {
+      // A broken chunk stream may only contain part of the utterance. Clearing
+      // it forces the safe full-file upload path at stop instead of sending a
+      // truncated Batch Chunks session.
+      _realtimeFallbackBuffer.clear();
+    }
+    transientMessage = audioStreamFailed
+        ? 'Luồng BLE bị gián đoạn; sẽ gửi file ghi âm đầy đủ qua Cloudflare.'
+        : 'Câu chưa đủ chắc chắn; sẽ gửi Batch Chunks qua Cloudflare khi dừng.';
+    if (!_disposed) {
+      notifyListeners();
+    }
+  }
+
+  Future<void> _startRealtimeRecordingWithBatchFallback() async {
+    final chunkedInput = _audioInput is ChunkedAudioInput ? _audioInput : null;
+    final realtimeRepository = _repository is RealtimeConversationRepository
+        ? _repository as RealtimeConversationRepository
+        : null;
+
+    if (chunkedInput == null || realtimeRepository == null) {
+      transientMessage = 'Chế độ AI chưa khả dụng; đang dùng xử lý dự phòng.';
+      await _startBatchRecording();
+      return;
+    }
+
+    final recordingStartedAt = DateTime.now();
+    final connectionGeneration = ++_realtimeConnectionGeneration;
+    _realtimeChunkSubscription = chunkedInput.audioChunks.listen(
+      (bytes) {
+        final realtimeSession = _realtimeSession;
+        if (realtimeSession == null || _realtimeBatchFallback) {
+          _realtimeFallbackBuffer.add(bytes);
+        }
+        realtimeSession?.addAudioChunk(bytes);
+      },
+      onError: (Object error) {
+        debugPrint('Legacy Realtime audio stream failed: $error');
+      },
+    );
+
+    final connectionFuture = _connectRealtimeInBackground(
+      repository: realtimeRepository,
+      connectionGeneration: connectionGeneration,
+      recordingStartedAt: recordingStartedAt,
+    );
+    _realtimeConnectionFuture = connectionFuture;
+    unawaited(
+      connectionFuture.whenComplete(() {
+        if (identical(_realtimeConnectionFuture, connectionFuture)) {
+          _realtimeConnectionFuture = null;
+        }
+      }),
+    );
+
+    try {
+      await chunkedInput.startChunked();
+    } catch (error) {
+      _realtimeConnectionGeneration += 1;
+      _realtimeConnectionFuture = null;
+      await _realtimeChunkSubscription?.cancel();
+      _realtimeChunkSubscription = null;
+      await _realtimePartialSubscription?.cancel();
+      _realtimePartialSubscription = null;
+      final session = _realtimeSession;
+      _realtimeSession = null;
+      await chunkedInput.cancel().catchError((Object _) {});
+      if (session != null) {
+        await session.discard().catchError((Object _) {});
+      }
+      _usingRealtimeTranscription = false;
+      _realtimeFallbackBuffer.clear();
+      transientMessage = 'Chế độ AI chưa sẵn sàng; đang dùng xử lý dự phòng.';
+      await _startBatchRecording();
+    }
+  }
+
+  Future<void> _connectRealtimeInBackground({
+    required RealtimeConversationRepository repository,
+    required int connectionGeneration,
+    required DateTime recordingStartedAt,
+  }) async {
+    RealtimeTranscriptionSession? session;
+    try {
+      session = await repository.startRealtimeTranscription(
+        audioInputLabel: _audioInput.label,
+        bluetoothAudioInput: _audioInput.isBluetooth,
+      );
+      if (_disposed || connectionGeneration != _realtimeConnectionGeneration) {
+        await session.discard().catchError((Object _) {});
+        return;
+      }
+
+      session.markRecordingStarted(recordingStartedAt);
+      _realtimeSession = session;
+      _realtimeFallbackBuffer.replay(session.addAudioChunk);
+      if (!_realtimeBatchFallback) {
+        _realtimeFallbackBuffer.clear();
+      }
+      _usingRealtimeTranscription = true;
+      _realtimePartialSubscription = session.partialText.listen(
+        _onPartialText,
+        onError: (Object error) {
+          debugPrint('Legacy Realtime transcript failed: $error');
+        },
+      );
+    } catch (error) {
+      await session?.discard().catchError((Object _) {});
+      if (_disposed || connectionGeneration != _realtimeConnectionGeneration) {
+        return;
+      }
+      _usingRealtimeTranscription = false;
+      transientMessage =
+          'Realtime chưa kết nối; âm thanh vẫn được giữ để dùng Batch Chunks.';
+      if (!_disposed) {
+        notifyListeners();
+      }
+      debugPrint('Legacy Realtime background connection failed: $error');
+    }
+  }
+
+  Future<void> _startBatchRecording() async {
+    final chunkedInput = _audioInput is ChunkedAudioInput ? _audioInput : null;
+    final chunkedRepository = _repository is ChunkedConversationRepository
+        ? _repository as ChunkedConversationRepository
+        : null;
+
+    if (chunkedInput == null || chunkedRepository == null) {
+      await _audioInput.start();
+      return;
+    }
+
+    final gatedUpload = SpeechGatedBatchUploadSession();
+    _batchSpeechGate = gatedUpload;
+    try {
+      _batchChunkSubscription = chunkedInput.audioChunks.listen(
+        gatedUpload.addAudioChunk,
+        onError: (Object error) {
+          debugPrint('Batch audio stream failed: $error');
+        },
+      );
+      final inputStart = chunkedInput.startChunked();
+      final uploadStart = chunkedRepository.startBatchChunkUpload().then((
+        session,
+      ) {
+        gatedUpload.attachDelegate(session);
+        _batchChunkUpload = gatedUpload;
+      });
+      await Future.wait<void>(<Future<void>>[inputStart, uploadStart]);
+    } catch (error) {
+      await _batchChunkSubscription?.cancel();
+      _batchChunkSubscription = null;
+      _batchChunkUpload = null;
+      _batchSpeechGate = null;
+      await chunkedInput.cancel().catchError((Object _) {});
+      await gatedUpload.discard().catchError((Object _) {});
+      transientMessage =
+          'Batch Chunks chưa sẵn sàng; đang dùng upload file dự phòng.';
+      await _audioInput.start();
+    }
+  }
+
+  Future<void> _startAdaptiveWebRecording() async {
+    final chunkedInput = _audioInput is ChunkedAudioInput ? _audioInput : null;
+    final chunkedRepository = _repository is ChunkedConversationRepository
+        ? _repository as ChunkedConversationRepository
+        : null;
+    if (chunkedInput == null || chunkedRepository == null) {
+      await _audioInput.start();
+      return;
+    }
+
+    final upload = _AdaptiveWebChunkUpload(
+      repository: chunkedRepository,
+      promotionDelay: _adaptiveWebUploadDelay,
+    );
+    upload.configureSpeculativePreview(context: context, childAge: _childAge);
+    _adaptiveWebUpload = upload;
+    _batchPreviewSubscription = upload.speculativePreviews.listen(
+      _onSpeculativeBatchPreview,
+      onError: (Object error) {
+        debugPrint('Speculative Web preview failed: $error');
+      },
+    );
+    _batchChunkSubscription = chunkedInput.audioChunks.listen(
+      upload.addAudioChunk,
+      onError: (Object error) {
+        debugPrint('Adaptive Web audio stream failed: $error');
+      },
+    );
+    upload.schedulePromotion();
+
+    try {
+      await chunkedInput.startChunked();
+    } catch (_) {
+      await _batchChunkSubscription?.cancel();
+      _batchChunkSubscription = null;
+      await _batchPreviewSubscription?.cancel();
+      _batchPreviewSubscription = null;
+      _adaptiveWebUpload = null;
+      await upload.discard();
+      rethrow;
+    }
+  }
+
+  void _beginProcessingStages() {
+    _processingStageTimer?.cancel();
+    processingStage = ConversationProcessingStage.recognizing;
+    _processingStageTimer = Timer(const Duration(milliseconds: 700), () {
+      if (_disposed || phase != ConversationPhase.processing) {
+        return;
+      }
+      processingStage = ConversationProcessingStage.translating;
+      notifyListeners();
+    });
+  }
+
+  void _registerSpeechDetection({
+    bool confirmDetector = false,
+    bool keepSilenceTimer = false,
+  }) {
+    if (confirmDetector) {
+      _voiceActivityDetector.confirmSpeech();
+    }
+    final firstSpeechFrame = !_speechDetected;
+    _speechDetected = true;
+    _batchSpeechGate?.markSpeechDetected();
+    _adaptiveWebUpload?.markSpeculativeSpeechDetected();
+    _noSpeechTimer?.cancel();
+    _noSpeechTimer = null;
+    if (!keepSilenceTimer) {
+      _silenceTimer?.cancel();
+      _silenceTimer = null;
+    }
+    if (firstSpeechFrame) {
+      _scheduleOfflineFallback();
+    }
+  }
+
+  void _listenToAmplitude(Stream<double> amplitudeStream) {
+    _amplitudeSubscription?.cancel();
+    _amplitudeSubscription = amplitudeStream.listen((dbfs) {
+      if (phase != ConversationPhase.recording) {
+        return;
+      }
+
+      amplitude = ((dbfs + 60) / 48).clamp(0.0, 1.0).toDouble();
+      final startedAt = _recordingStartedAt;
+      final activity = _voiceActivityDetector.addSample(
+        dbfs,
+        elapsed: startedAt == null
+            ? Duration.zero
+            : DateTime.now().difference(startedAt),
+      );
+      _noisyRecording = _noisyRecording || activity.noisyEnvironment;
+      if (activity.speechStarted) {
+        _registerSpeechDetection();
+      }
+      if (activity.voiceActive) {
+        _lastVoiceActiveAt = DateTime.now();
+        _batchSpeechGate?.markVoiceActive();
+        _adaptiveWebUpload?.markSpeculativeVoiceActive();
+        _silenceTimer?.cancel();
+        _silenceTimer = null;
+      } else if (_stopOnSilence &&
+          _speechDetected &&
+          !activity.isCalibrating &&
+          _silenceTimer == null) {
+        _batchSpeechGate?.markVoiceInactive();
+        _adaptiveWebUpload?.markSpeculativeVoiceInactive();
+        // RMS marks the real end of speech, so it waits the full configured
+        // silence; the word-count window only offsets lagging partials.
+        final quietWindow = _usingStreamingSpeech
+            ? Duration(milliseconds: vadSilenceMs)
+            : _translationQuietWindow();
+        _silenceTimer = Timer(
+          quietWindow,
+          () => unawaited(stopRecording(manual: false)),
+        );
+      }
+      notifyListeners();
+    }, onError: (Object error) => _setError(_friendlyError(error)));
+  }
+
+  void _onPartialText(String sourceText) {
+    if (_preparingMicrophone &&
+        _usingStreamingSpeech &&
+        _streamingSpeechTurnGeneration == _conversationTurnGeneration) {
+      _pendingStreamingPartialText = sourceText;
+      return;
+    }
+    if (phase != ConversationPhase.recording ||
+        (!_usingStreamingSpeech && !_usingRealtimeTranscription)) {
+      return;
+    }
+    final normalized = sourceText.trim().replaceAll(RegExp(r'\s+'), ' ');
+    if (normalized.isEmpty) {
+      return;
+    }
+    _latestEndpointTranscript = normalized;
+    // A native partial is strong speech evidence even when the child says only
+    // one word (for example "apple"). Some Android recognizers stop emitting
+    // RMS updates before they publish a delayed final result, so arm the quiet
+    // endpoint before applying the stricter preview threshold below.
+    // Partials trail the audio by about a second, so once RMS has tracked this
+    // voice a late partial must not restart RMS's quiet window.
+    _registerSpeechDetection(
+      confirmDetector: true,
+      keepSilenceTimer: _lastVoiceActiveAt != null,
+    );
+    _schedulePartialSpeechEndpoint();
+    if (normalized.length < 5 || normalized.split(' ').length < 2) {
+      return;
+    }
+    if (_matchesRecognizedSpeechCommand(normalized) && !_stopInProgress) {
+      // Android can recognize "Dừng lại" before the platform emits its final
+      // result. Seal this turn immediately so ambient audio is not kept alive.
+      unawaited(stopRecording(manual: false));
+      return;
+    }
+    _partialPreviewTimer?.cancel();
+    final generation = _previewGeneration;
+    final previewContext = context;
+    if (_applyLocalExactPreview(normalized, targetContext: previewContext)) {
+      _lastPreviewText = normalized;
+      return;
+    }
+    _partialPreviewTimer = Timer(const Duration(milliseconds: 300), () {
+      if (_lastPreviewText == normalized) {
+        return;
+      }
+      _lastPreviewText = normalized;
+      unawaited(
+        _loadPartialPreview(
+          normalized,
+          previewContext: previewContext,
+          generation: generation,
+        ),
+      );
+    });
+  }
+
+  void _schedulePartialSpeechEndpoint() {
+    _partialSpeechEndpointTimer?.cancel();
+    if (!_stopOnSilence || !_usingStreamingSpeech) return;
+    // Short answers need less trailing silence; longer sentences retain room
+    // for natural pauses. Live RMS activity still cancels/defer this endpoint.
+    final quietWindow = _translationQuietWindow();
+    _partialSpeechEndpointTimer = Timer(
+      quietWindow,
+      _finishStablePartialAfterQuietWindow,
+    );
+  }
+
+  Duration _translationQuietWindow() =>
+      _usingStreamingSpeech && _latestEndpointTranscript.isNotEmpty
+      ? ConversationRecordingEndpointPolicy.quietWindow(
+          _latestEndpointTranscript,
+          baseSilenceMs: vadSilenceMs,
+        )
+      : Duration(milliseconds: (vadSilenceMs - 150).clamp(400, 700).toInt());
+
+  void _finishStablePartialAfterQuietWindow() {
+    _partialSpeechEndpointTimer = null;
+    if (phase != ConversationPhase.recording ||
+        !_usingStreamingSpeech ||
+        !_stopOnSilence ||
+        !_speechDetected ||
+        _stopInProgress) {
+      return;
+    }
+    final lastVoiceActiveAt = _lastVoiceActiveAt;
+    if (lastVoiceActiveAt != null) {
+      // Same silence as the RMS endpoint, so a hesitation is not cut here.
+      final requiredQuiet = Duration(milliseconds: vadSilenceMs);
+      final quietFor = DateTime.now().difference(lastVoiceActiveAt);
+      if (quietFor < requiredQuiet) {
+        _partialSpeechEndpointTimer = Timer(
+          requiredQuiet - quietFor,
+          _finishStablePartialAfterQuietWindow,
+        );
+        return;
+      }
+    }
+    unawaited(stopRecording(manual: false));
+  }
+
+  void _onSpeculativeBatchPreview(ConversationPreview preview) {
+    if (sentenceQueueActive ||
+        outputLanguage != TranslationOutputLanguage.english ||
+        !_isWebRuntime ||
+        (phase != ConversationPhase.recording &&
+            phase != ConversationPhase.processing) ||
+        preview.englishText.trim().isEmpty) {
+      return;
+    }
+    _preview = preview;
+    final audioUri = preview.audioUri;
+    if (audioUri != null) {
+      _preferredPlaybackUri = audioUri;
+      _speculativePreloadUri = audioUri;
+      final preload = _playbackService.preload(audioUri).catchError((
+        Object error,
+      ) {
+        debugPrint('Speculative Web audio preload was skipped: $error');
+      });
+      // Browser preload assigns the source to the persistent HTMLAudioElement
+      // synchronously before this future first yields. Finalization only reuses
+      // this source when the committed result returns the exact same URI.
+      unawaited(preload);
+    }
+  }
+
+  Future<void> _loadPartialPreview(
+    String sourceText, {
+    required PracticeContext previewContext,
+    required int generation,
+  }) async {
+    if (outputLanguage != TranslationOutputLanguage.english) return;
+    try {
+      final preview = await _repository.previewStreamingText(
+        sourceText: sourceText,
+        context: previewContext,
+        childAge: _childAge,
+      );
+      if (preview == null ||
+          preview.audioUri == null ||
+          generation != _previewGeneration ||
+          phase != ConversationPhase.recording ||
+          context != previewContext) {
+        return;
+      }
+      _preview = preview;
+      await _playbackService.preload(preview.audioUri!);
+    } catch (error) {
+      debugPrint('Partial rule preload was skipped: $error');
+    }
+  }
+
+  Future<void> stopRecording({required bool manual}) =>
+      _continuousTranslationSession.stopRecording(manual: manual);
+
+  Future<void> _stopRecordingInternal({required bool manual}) async {
+    if (phase != ConversationPhase.recording || _stopInProgress) {
+      return;
+    }
+    final turnGeneration = _conversationTurnGeneration;
+    final resultBeforeTurn = result;
+    var publishedResultForTurn = false;
+    _stopInProgress = true;
+    _adaptiveWebUpload?.markStopRequested(manual: manual);
+    _partialPreviewTimer?.cancel();
+    _partialSpeechEndpointTimer?.cancel();
+    _previewGeneration += 1;
+    _silenceTimer?.cancel();
+    _noSpeechTimer?.cancel();
+    _maximumDurationTimer?.cancel();
+    _offlineFallbackTimer?.cancel();
+    _offlineFallbackTimer = null;
+    await _amplitudeSubscription?.cancel();
+    final nativeSpeechCompleted =
+        _usingStreamingSpeech &&
+        _nativeSpeechCompletedGeneration == turnGeneration;
+    _stoppedAt = DateTime.now();
+    _responseReceivedAt = null;
+    _AdaptiveWebChunkUpload? stoppedAdaptiveWebUpload;
+    String? handledSpeechCommand;
+
+    try {
+      final startedAt = _recordingStartedAt;
+      final elapsed = startedAt == null
+          ? Duration.zero
+          : _stoppedAt!.difference(startedAt);
+      // The UI may only now have become ready after native recognition ended.
+      // Read its actual transcript/error instead of rejecting that final from
+      // the UI clock or missed RMS samples.
+      if (elapsed < const Duration(milliseconds: 450) &&
+          !nativeSpeechCompleted) {
+        _realtimeConnectionGeneration += 1;
+        _realtimeConnectionFuture = null;
+        if (_usingStreamingSpeech) {
+          await _streamingSpeechInput!.cancel();
+        } else {
+          await _audioInput.cancel();
+        }
+        await _batchChunkSubscription?.cancel();
+        _batchChunkSubscription = null;
+        final adaptiveWebUpload = _adaptiveWebUpload;
+        _adaptiveWebUpload = null;
+        if (adaptiveWebUpload != null) {
+          await adaptiveWebUpload.discard();
+        }
+        await _realtimeChunkSubscription?.cancel();
+        _realtimeChunkSubscription = null;
+        await _realtimePartialSubscription?.cancel();
+        _realtimePartialSubscription = null;
+        await _offlineIntentHypothesisSubscription?.cancel();
+        _offlineIntentHypothesisSubscription = null;
+        await _offlineIntentRecognizer?.cancel().catchError((Object _) {});
+        final realtimeSession = _realtimeSession;
+        _realtimeSession = null;
+        if (realtimeSession != null) {
+          await realtimeSession.discard().catchError((Object _) {});
+        }
+        final batchUpload = _batchChunkUpload;
+        _batchChunkUpload = null;
+        _batchSpeechGate = null;
+        if (batchUpload != null) {
+          await batchUpload
+              .discard(reason: 'recording_too_short')
+              .catchError((Object _) {});
+        }
+        phase = ConversationPhase.idle;
+        _lastTurnEndReason = ConversationTurnEndReason.tooShort;
+        unawaited(_syncAiv0AppState());
+        transientMessage = 'Hãy nói lâu hơn một chút nhé.';
+        _stopInProgress = false;
+        notifyListeners();
+        return;
+      }
+
+      // Cloud ASR inputs can still return PCM bytes when the selected
+      // microphone is muted, disconnected, too far away or only captures
+      // background noise. Never upload an unconfirmed cloud recording: ASR
+      // could otherwise produce a confident-looking hallucination. Preserve
+      // the existing manual-stop behavior for Android SpeechRecognizer, which
+      // has its own transcript/confidence checks.
+      if (!_speechDetected &&
+          !nativeSpeechCompleted &&
+          (!(_usingStreamingSpeech || _usingRecordedAudioSpeech) || !manual)) {
+        await _finishNoSpeechTurn(inputAlreadyStopped: false);
+        return;
+      }
+
+      StreamingSpeechCapture? streamingCapture;
+      AudioCapture? audioCapture;
+      BatchChunkUploadSession? realtimeFallbackUpload;
+      BatchChunkUploadSession? adaptiveWebUpload;
+      var recognizerReportedNoSpeech = false;
+      if (_usingStreamingSpeech) {
+        try {
+          streamingCapture = await _streamingSpeechInput!.stop();
+          audioCapture = streamingCapture.recordedAudio;
+        } catch (error) {
+          if (_isNoSpeechRecognitionError(error)) {
+            recognizerReportedNoSpeech = true;
+          } else {
+            _usingStreamingSpeech = false;
+            final fallbackAudio =
+                _streamingSpeechInput
+                        is BatchFallbackCapableNativeSpeechInput &&
+                    _streamingSpeechInput is NativeSpeechFallbackAudioProvider
+                ? (_streamingSpeechInput! as NativeSpeechFallbackAudioProvider)
+                      .takeFallbackAudioCapture()
+                : null;
+            if (fallbackAudio != null) {
+              audioCapture = fallbackAudio;
+              asrMode = AsrMode.batchChunks;
+              transientMessage =
+                  'Apple Speech bị gián đoạn; đang gửi bản ghi cục bộ qua Cloudflare/Batch dự phòng.';
+            } else if (!_isWebRuntime && _streamingSpeechInput != null) {
+              asrMode = AsrMode.androidStreaming;
+              throw StreamingSpeechInputException(
+                _streamingSpeechInput is BatchFallbackCapableNativeSpeechInput
+                    ? 'Apple Speech bị gián đoạn và không giữ được bản ghi dự phòng. Hãy nói lại câu vừa rồi.'
+                    : 'Chế độ tiêu chuẩn bị gián đoạn. Hãy nói lại câu vừa rồi.',
+                code:
+                    _streamingSpeechInput
+                        is BatchFallbackCapableNativeSpeechInput
+                    ? 'IOS_NATIVE_RECOGNITION_INTERRUPTED'
+                    : 'ANDROID_STANDARD_RECOGNITION_INTERRUPTED',
+              );
+            }
+            if (fallbackAudio == null) {
+              asrMode = AsrMode.batchChunks;
+              throw StreamingSpeechInputException(
+                'Nhận diện trực tiếp bị gián đoạn. Ứng dụng đã chuyển sang Cloudflare Batch Chunks; hãy nói lại câu vừa rồi.',
+                code: 'STREAMING_FAILED_USE_BATCH',
+              );
+            }
+          }
+        }
+        if ((usesHfpInput || _usingHfpRoute) && streamingCapture != null) {
+          streamingCapture = StreamingSpeechCapture(
+            sourceText: streamingCapture.sourceText,
+            duration: streamingCapture.duration,
+            inputLabel: inputLabel,
+            confidence: streamingCapture.confidence,
+            firstResultMs: streamingCapture.firstResultMs,
+            finalAfterStopMs: streamingCapture.finalAfterStopMs,
+            asrMode: streamingCapture.asrMode,
+            isBluetoothInput: true,
+            initialNoiseRms: streamingCapture.initialNoiseRms,
+            realtimeSessionCreateMs: streamingCapture.realtimeSessionCreateMs,
+            realtimeWebSocketConnectMs:
+                streamingCapture.realtimeWebSocketConnectMs,
+            realtimeWebSocketOpenAfterRecordingMs:
+                streamingCapture.realtimeWebSocketOpenAfterRecordingMs,
+            realtimeChunkDurationMs: streamingCapture.realtimeChunkDurationMs,
+            workerAsrPilotRttMs: streamingCapture.workerAsrPilotRttMs,
+            workerAsrPilotAsrMs: streamingCapture.workerAsrPilotAsrMs,
+            workerAsrPilotAudioBytes: streamingCapture.workerAsrPilotAudioBytes,
+            alternatives: streamingCapture.alternatives,
+            extraBenchmark: streamingCapture.extraBenchmark,
+            recordedAudio: streamingCapture.recordedAudio,
+          );
+        }
+      } else {
+        final adaptiveUpload = _adaptiveWebUpload;
+        _adaptiveWebUpload = null;
+        stoppedAdaptiveWebUpload = adaptiveUpload;
+        adaptiveUpload?.markSpeculativeVoiceInactive();
+        final promotionReady = adaptiveUpload?.waitUntilPromoted();
+        final audioStop = _audioInput.stop();
+        audioCapture = await audioStop;
+        if (promotionReady != null) {
+          await promotionReady;
+        }
+        // PhoneMicrophoneInput.stop() has now emitted its final PCM frame.
+        // Snapshot it before sealing the adaptive upload so prefetch covers the
+        // real end of the utterance rather than the earlier VAD transition.
+        adaptiveUpload?.requestTerminalSpeculativePreview();
+        if (adaptiveUpload != null) {
+          adaptiveWebUpload = await adaptiveUpload.stopAndTakeSession();
+        }
+        if (_usingHfpRoute) {
+          audioCapture = AudioCapture(
+            filePath: audioCapture.filePath,
+            mimeType: audioCapture.mimeType,
+            duration: audioCapture.duration,
+            inputLabel: inputLabel,
+            isBluetoothInput: true,
+            initialNoiseRms: audioCapture.initialNoiseRms,
+            streamHeaderBytes: audioCapture.streamHeaderBytes,
+            streamedAudioBytes: audioCapture.streamedAudioBytes,
+            recordingSampleRate: audioCapture.recordingSampleRate,
+            dataBytes: audioCapture.dataBytes,
+          );
+        }
+        if (_usingRecordedAudioSpeech) {
+          final recognizer =
+              _streamingSpeechInput is RecordedAudioStreamingSpeechInput
+              ? _streamingSpeechInput! as RecordedAudioStreamingSpeechInput
+              : null;
+          if (recognizer == null) {
+            throw const StreamingSpeechInputException(
+              'Bộ nhận diện bản ghi âm Android không còn sẵn sàng.',
+              code: 'RECORDED_AUDIO_RECOGNIZER_MISSING',
+            );
+          }
+          try {
+            streamingCapture = await recognizer.recognizeRecordedAudio(
+              audioCapture,
+            );
+          } catch (error) {
+            if (_isNoSpeechRecognitionError(error)) {
+              recognizerReportedNoSpeech = true;
+            } else {
+              _usingRecordedAudioSpeech = false;
+              // Android ASR must never silently upload a failed native WAV to
+              // Cloudflare. Keep translation/TTS online, not audio recognition.
+              asrMode = AsrMode.androidStreaming;
+              throw const StreamingSpeechInputException(
+                'Android chưa nhận diện được bản ghi. Bạn nói lại nhé.',
+                code: 'ANDROID_RECORDED_RECOGNITION_FAILED',
+              );
+            }
+          }
+        }
+      }
+      if (recognizerReportedNoSpeech) {
+        await _finishNoSpeechTurn(inputAlreadyStopped: true);
+        return;
+      }
+      if (_usingOfflineIntent) {
+        final finalHypothesis = await _offlineIntentRecognizer?.stop();
+        if (finalHypothesis != null) {
+          _onOfflineIntentHypothesis(finalHypothesis);
+        }
+        final decision = _offlineIntentDecision;
+        if (decision != null) {
+          streamingCapture = StreamingSpeechCapture(
+            sourceText: decision.hypothesis.transcript.trim(),
+            duration: audioCapture?.duration ?? elapsed,
+            inputLabel: audioCapture?.inputLabel ?? _audioInput.label,
+            confidence: decision.hypothesis.confidence,
+            firstResultMs: _offlineIntentFirstResultMs,
+            finalAfterStopMs: 0,
+            asrMode: AsrMode.bleOfflineIntent.apiValue,
+            isBluetoothInput: true,
+            initialNoiseRms: audioCapture?.initialNoiseRms,
+          );
+        }
+        await _offlineIntentHypothesisSubscription?.cancel();
+        _offlineIntentHypothesisSubscription = null;
+      }
+      await _waitForRealtimeConnectionAtStop();
+      _realtimeConnectionGeneration += 1;
+      _realtimeConnectionFuture = null;
+      await _realtimeChunkSubscription?.cancel();
+      _realtimeChunkSubscription = null;
+      await _realtimePartialSubscription?.cancel();
+      _realtimePartialSubscription = null;
+      final realtimeSession = _realtimeSession;
+      _realtimeSession = null;
+      if (realtimeSession != null) {
+        try {
+          streamingCapture = await realtimeSession.finalize();
+        } catch (error) {
+          debugPrint(
+            'Legacy Realtime finalize failed; preparing Batch Chunks fallback: $error',
+          );
+          realtimeFallbackUpload = await _prepareRealtimeBatchFallback();
+          transientMessage = realtimeFallbackUpload == null
+              ? 'Realtime không ổn định; đã chuyển sang gửi WAV dự phòng.'
+              : 'Realtime không ổn định; đã chuyển sang Batch Chunks dự phòng.';
+        }
+      } else if (streamingCapture == null &&
+          audioCapture != null &&
+          _batchChunkUpload == null) {
+        realtimeFallbackUpload = await _prepareRealtimeBatchFallback();
+        if (realtimeFallbackUpload != null) {
+          transientMessage =
+              'Đang gửi phần ghi âm qua Cloudflare Batch Chunks.';
+        }
+      }
+      await _batchChunkSubscription?.cancel();
+      _batchChunkSubscription = null;
+      final batchUpload =
+          _batchChunkUpload ?? adaptiveWebUpload ?? realtimeFallbackUpload;
+      _batchChunkUpload = null;
+      _batchSpeechGate = null;
+      _realtimeFallbackBuffer.clear();
+      _usingOfflineIntent = false;
+      if (turnGeneration != _conversationTurnGeneration) {
+        await batchUpload
+            ?.discard(reason: 'single_sentence_mode_cancelled')
+            .catchError((Object _) {});
+        return;
+      }
+      String? streamingCommandText;
+      if (streamingCapture != null) {
+        for (final candidate in <String>[
+          streamingCapture.sourceText,
+          ...streamingCapture.alternatives,
+        ]) {
+          final text = candidate.trim();
+          if (text.isNotEmpty && _matchesRecognizedSpeechCommand(text)) {
+            streamingCommandText = text;
+            break;
+          }
+        }
+      }
+      if (streamingCommandText != null) {
+        handledSpeechCommand = streamingCommandText;
+        await batchUpload
+            ?.discard(reason: 'spoken_command_handled')
+            .catchError((Object _) {});
+        _completeRecognizedSpeechCommand();
+        return;
+      }
+      if (streamingCapture != null) {
+        streamingCapture = await _correctVietnameseCapture(streamingCapture);
+        if (turnGeneration != _conversationTurnGeneration) {
+          await batchUpload
+              ?.discard(reason: 'single_sentence_mode_cancelled')
+              .catchError((Object _) {});
+          return;
+        }
+      }
+      phase = ConversationPhase.processing;
+      unawaited(_syncAiv0AppState());
+      _beginProcessingStages();
+      amplitude = 0;
+      notifyListeners();
+
+      final sentences = streamingCapture == null
+          ? const <String>[]
+          : splitFinalSentences(streamingCapture.sourceText);
+      debugPrint(
+        jsonEncode({
+          'event': 'sentence_classification',
+          'splitterVersion': 3,
+          'turnGeneration': turnGeneration,
+          'asrMode': streamingCapture?.asrMode ?? asrMode.apiValue,
+          'characters': streamingCapture?.sourceText.length,
+          'sentenceCount': sentences.length,
+          'decision': streamingCapture == null
+              ? 'no_frontend_final_transcript'
+              : sentences.length > 1
+              ? 'queued'
+              : 'single_or_uncertain',
+        }),
+      );
+      if (sentences.length > 1) {
+        // Invalidate speculative partial-transcript work before queue playback.
+        _previewGeneration += 1;
+        _partialPreviewTimer?.cancel();
+        await batchUpload?.discard(reason: 'final_sentence_queue');
+        await _runSentenceTurn(
+          streamingCapture!,
+          sentences,
+          audioCapture,
+          turnGeneration,
+        );
+        publishedResultForTurn = _sentenceResults.isNotEmpty;
+        return;
+      }
+
+      final useAndroidOfflineAudio =
+          !_isWebRuntime && defaultTargetPlatform == TargetPlatform.android;
+      // Android must know the transport state before it is allowed to start a
+      // remote exact-rule clip. Other platforms retain their existing early
+      // playback ordering.
+      final androidNetworkTransport = useAndroidOfflineAudio
+          ? await _hasNetworkTransport()
+          : null;
+      Future<PlaybackStartMetrics>? earlyRulePlayback;
+      Future<void>? earlyRulePlaybackCompletion;
+      DateTime? earlyRulePlaybackRequestedAt;
+      Uri? earlyRulePlaybackUri;
+      String? earlyRuleEnglishText;
+      _useTranslatedSpeechPlaybackRate();
+      if (outputLanguage == TranslationOutputLanguage.english &&
+          (!useAndroidOfflineAudio || androidNetworkTransport == true) &&
+          streamingCapture != null) {
+        final matchedLocalRule = _applyLocalExactPreview(
+          streamingCapture.sourceText,
+          targetContext: context,
+        );
+        final localPreview = _preview;
+        if (matchedLocalRule && localPreview?.audioUri != null) {
+          final localAudioUri = localPreview!.audioUri!;
+          earlyRulePlaybackUri = localAudioUri;
+          earlyRuleEnglishText = localPreview.englishText.trim();
+          earlyRulePlaybackRequestedAt = DateTime.now();
+          // Arm completion before play(): a cached clip may end before play()
+          // reports that it started. The turn must not become ready while the
+          // assistant is still speaking, regardless of phone/A2DP/HFP output.
+          earlyRulePlaybackCompletion = _waitForActivePlaybackToComplete();
+          earlyRulePlayback = _playbackService.play(localAudioUri);
+        }
+      }
+
+      final hasNetworkTransport =
+          androidNetworkTransport ?? await _hasNetworkTransport();
+      final offlineFirstResult = hasNetworkTransport
+          ? null
+          : await _tryOfflineConversationResult(
+              capture: streamingCapture,
+              audioCapture: audioCapture,
+              reason: 'network_transport_unavailable',
+              useDeviceTtsForExact: useAndroidOfflineAudio,
+            );
+      final Future<ConversationResult> resultFuture;
+      if (offlineFirstResult != null) {
+        // Do not create an HTTP request after the OS has already reported that
+        // Wi-Fi/mobile data disappeared. This makes an in-progress online
+        // session switch to the installed model on the very next utterance.
+        resultFuture = Future<ConversationResult>.value(offlineFirstResult);
+      } else {
+        final backendResultFuture = streamingCapture != null
+            ? _repository.processStreamingText(
+                capture: streamingCapture,
+                context: context,
+                childAge: _childAge,
+                vadSilenceMs: vadSilenceMs,
+              )
+            : batchUpload != null
+            ? _finalizeBatchChunksWithFallback(
+                upload: batchUpload,
+                capture: audioCapture!,
+              )
+            : _repository.processAudio(
+                capture: audioCapture!,
+                context: context,
+                childAge: _childAge,
+                vadSilenceMs: vadSilenceMs,
+              );
+        resultFuture = _useOfflineResultWhenBackendIsUnavailable(
+          backendResult: backendResultFuture,
+          capture: streamingCapture,
+          audioCapture: audioCapture,
+        );
+      }
+      final processing = await Future.wait<Object?>([
+        earlyRulePlayback == null
+            ? _preparePlaybackWithTimeout()
+            : Future<void>.value(),
+        resultFuture,
+      ]);
+      if (turnGeneration != _conversationTurnGeneration) {
+        return;
+      }
+      final nextResult = processing[1]! as ConversationResult;
+      _responseReceivedAt = DateTime.now();
+      final batchCommandText = nextResult.vietnameseText.trim();
+      if (batchCommandText.isNotEmpty &&
+          _matchesRecognizedSpeechCommand(batchCommandText)) {
+        handledSpeechCommand = batchCommandText;
+        await _playbackService.stop();
+        _completeRecognizedSpeechCommand();
+        return;
+      }
+      final archiveRepository = _repository is UserAudioArchiveRepository
+          ? _repository as UserAudioArchiveRepository
+          : null;
+      final shouldArchiveStreamingAudio =
+          audioCapture != null &&
+          nextResult.conversationId.trim().isNotEmpty &&
+          (streamingCapture != null ||
+              nextResult.asrMode == AsrMode.workerAsrPilot.apiValue);
+      if (archiveRepository != null && shouldArchiveStreamingAudio) {
+        unawaited(
+          archiveRepository
+              .archiveUserAudio(result: nextResult, capture: audioCapture)
+              .catchError((Object error, StackTrace stackTrace) {
+                debugPrint('User audio background upload failed: $error');
+              }),
+        );
+      }
+      // Do not wait for a late preview HTTP request before starting Safari
+      // playback. The forwarding stream stays alive through finalize, so any
+      // already-delivered terminal preview can still supply the exact
+      // preloaded HTMLAudioElement source below. Cleanup happens only after
+      // playback has started (or in finally on error).
+      final preview = _preview;
+      final preparedPreviewMatchesResult =
+          nextResult.outputLanguage == TranslationOutputLanguage.english &&
+          preview?.audioUri != null &&
+          preview!.englishText.trim() == nextResult.englishText.trim() &&
+          preview.audioUri == nextResult.audioUri;
+      if (preparedPreviewMatchesResult) {
+        _preferredPlaybackUri = preview.audioUri;
+      } else {
+        // A different signed URL means finalize did not commit the preparation
+        // that owns the current HTMLAudioElement. Do not play stale speculative
+        // audio merely because its English text happens to be equal.
+        _preferredPlaybackUri = nextResult.audioUri;
+        if (_speculativePreloadUri != nextResult.audioUri) {
+          _speculativePreloadUri = null;
+        }
+      }
+      result = nextResult;
+      publishedResultForTurn = true;
+      _processingStageTimer?.cancel();
+      processingStage = ConversationProcessingStage.preparingAudio;
+      errorMessage = null;
+      notifyListeners();
+
+      var reusedEarlyRulePlayback = false;
+      final canReuseEarlyRulePlayback =
+          nextResult.outputLanguage == TranslationOutputLanguage.english &&
+          earlyRulePlayback != null &&
+          earlyRulePlaybackRequestedAt != null &&
+          earlyRulePlaybackUri != null &&
+          earlyRuleEnglishText == nextResult.englishText.trim() &&
+          (_preferredPlaybackUri == earlyRulePlaybackUri ||
+              nextResult.audioUri == earlyRulePlaybackUri);
+      if (canReuseEarlyRulePlayback) {
+        try {
+          final metrics = await _awaitPlaybackStartWithTimeout(
+            earlyRulePlayback,
+          );
+          final startedAt = earlyRulePlaybackRequestedAt.add(
+            metrics.startedAfterRequest,
+          );
+          _reportPlaybackStarted(
+            currentResult: nextResult,
+            startedAt: startedAt,
+            metrics: metrics,
+          );
+          await earlyRulePlaybackCompletion;
+          reusedEarlyRulePlayback = true;
+        } catch (error) {
+          debugPrint('Early exact-rule playback failed: $error');
+          await _playbackService.stop().catchError((Object _) {});
+          if (error is PlaybackException &&
+              useAndroidOfflineAudio &&
+              nextResult.processingMode == 'offline_fallback') {
+            // Connectivity can report Wi-Fi/mobile transport even when DNS or
+            // Internet access is unavailable. Preserve the exact local answer
+            // and speak it on-device instead of turning the whole turn into an
+            // audio source error.
+            await _speakOfflineTranslation(
+              nextResult.englishText,
+              turnGeneration: turnGeneration,
+            );
+            reusedEarlyRulePlayback = true;
+          } else if (error is PlaybackException) {
+            rethrow;
+          }
+        }
+      }
+      if (!reusedEarlyRulePlayback && earlyRulePlayback != null) {
+        // The playback start future cannot be cancelled, but stopping the
+        // service releases its source immediately. Never await that stale
+        // future again after a timeout.
+        await _playbackService.stop().catchError((Object _) {});
+      }
+      if (!reusedEarlyRulePlayback &&
+          (nextResult.audioUri != null || _preferredPlaybackUri != null)) {
+        await playResult(reportLatency: true, propagateFailure: true);
+      } else if (!reusedEarlyRulePlayback &&
+          nextResult.audioSource == 'device_tts') {
+        await _speakOfflineTranslation(
+          nextResult.displayedTranslation,
+          turnGeneration: turnGeneration,
+          locale: nextResult.outputLanguage.speechLocale,
+        );
+      }
+      await stoppedAdaptiveWebUpload?.finishPreviewForwarding();
+      stoppedAdaptiveWebUpload = null;
+      await _batchPreviewSubscription?.cancel();
+      _batchPreviewSubscription = null;
+      if (turnGeneration != _conversationTurnGeneration) {
+        return;
+      }
+      _lastTurnEndReason = ConversationTurnEndReason.completed;
+      phase = ConversationPhase.ready;
+      unawaited(_syncAiv0AppState());
+      notifyListeners();
+    } catch (error) {
+      if (turnGeneration != _conversationTurnGeneration) {
+        return;
+      }
+      if (!publishedResultForTurn && identical(result, resultBeforeTurn)) {
+        _clearPresentationResultState();
+      }
+      _lastTurnEndReason = ConversationTurnEndReason.failed;
+      await _handleConversationError(error);
+    } finally {
+      await stoppedAdaptiveWebUpload?.finishPreviewForwarding();
+      if (!_disposed && turnGeneration == _conversationTurnGeneration) {
+        await _batchPreviewSubscription?.cancel();
+        _batchPreviewSubscription = null;
+        final adaptiveWebUpload = _adaptiveWebUpload;
+        _adaptiveWebUpload = null;
+        if (adaptiveWebUpload != null) {
+          await adaptiveWebUpload.discard();
+        }
+        if (_usingHfpRoute && _playbackPlaying) {
+          await _waitForActivePlaybackToComplete();
+        }
+        await _stopHfpRoute();
+        _realtimeConnectionGeneration += 1;
+        _realtimeConnectionFuture = null;
+        _realtimeFallbackBuffer.clear();
+        _stopInProgress = false;
+        // A completed continuous turn publishes `ready` before entering this
+        // cleanup block. Publish once more after the old microphone/HFP route and
+        // buffers are fully released so the session coordinator can safely start
+        // the next turn without the previous turn tearing it down.
+        if (!_disposed) {
+          notifyListeners();
+        }
+        final command = handledSpeechCommand;
+        if (command != null) {
+          await _onRecognizedSpeechCommand?.call(command);
+        }
+      }
+    }
+  }
+
+  bool _matchesRecognizedSpeechCommand(String recognizedText) {
+    try {
+      return _recognizedSpeechCommandMatcher?.call(recognizedText) ?? false;
+    } catch (error) {
+      debugPrint('Recognized speech command matcher failed: $error');
+      return false;
+    }
+  }
+
+  Future<void> _runSentenceTurn(
+    StreamingSpeechCapture capture,
+    List<String> sentences,
+    AudioCapture? recording,
+    int generation,
+  ) async {
+    final queue = SentenceQueue<(ConversationResult, Uri?)>(
+      sessionId: 'turn-$generation-${DateTime.now().microsecondsSinceEpoch}',
+    );
+    final cache = SentenceAudioCache();
+    _sentenceQueue = queue;
+    _sentenceAudioCache = cache;
+    _sentenceResults.clear();
+    final turnContext = context;
+    final turnAge = _childAge;
+    final turnSilence = vadSilenceMs;
+    bool current() =>
+        !_disposed &&
+        generation == _conversationTurnGeneration &&
+        !queue.isCancelled;
+    final clock = Stopwatch()..start();
+    int? previousEndMs;
+    try {
+      await _preparePlaybackWithTimeout();
+      if (!current()) return;
+      await queue.run(
+        count: sentences.length,
+        progress: (index, preparing) {
+          if (!current()) return;
+          sentenceProgress = preparing
+              ? 'Đang chuẩn bị câu ${index + 1}/${sentences.length}'
+              : 'Câu ${index + 1}/${sentences.length}';
+          notifyListeners();
+        },
+        prepare: (index) async {
+          final part = StreamingSpeechCapture(
+            sourceText: sentences[index],
+            duration: capture.duration,
+            inputLabel: capture.inputLabel,
+            confidence: capture.confidence,
+            firstResultMs: capture.firstResultMs,
+            finalAfterStopMs: capture.finalAfterStopMs,
+            asrMode: capture.asrMode,
+            isBluetoothInput: capture.isBluetoothInput,
+            initialNoiseRms: capture.initialNoiseRms,
+            extraBenchmark: {
+              ...?capture.extraBenchmark,
+              'sentenceSessionId': queue.sessionId,
+              'sentenceIndex': index,
+              'sentenceCount': sentences.length,
+            },
+          );
+          if (!current()) throw StateError('cancelled');
+          final online = await _hasNetworkTransport();
+          if (!current()) throw StateError('cancelled');
+          final offline = online
+              ? null
+              : await _tryOfflineConversationResult(
+                  capture: part,
+                  audioCapture: null,
+                  reason: 'network_transport_unavailable',
+                  useDeviceTtsForExact: true,
+                  expectedGeneration: generation,
+                );
+          if (!current()) throw StateError('cancelled');
+          final translated =
+              offline ??
+              await _useOfflineResultWhenBackendIsUnavailable(
+                backendResult: _repository.processStreamingText(
+                  capture: part,
+                  context: turnContext,
+                  childAge: turnAge,
+                  vadSilenceMs: turnSilence,
+                ),
+                capture: part,
+                audioCapture: null,
+                expectedGeneration: generation,
+              );
+          if (!current()) throw StateError('cancelled');
+          // The first sentence follows normal playback immediately. Only the
+          // lookahead downloads into separate storage.
+          final uri = index > 0 && translated.audioUri != null
+              ? await cache.fetch(
+                  translated.audioUri!,
+                  checksum: translated.audioSha256,
+                )
+              : translated.audioUri;
+          if (!current()) throw StateError('cancelled');
+          debugPrint(
+            jsonEncode({
+              'event': 'sentence_prepared',
+              'sessionId': queue.sessionId,
+              'sentenceIndex': index,
+              'conversationId': translated.conversationId,
+              'elapsedMs': clock.elapsedMilliseconds,
+            }),
+          );
+          return (translated, uri);
+        },
+        play: (prepared, index) async {
+          if (!current()) return;
+          final translated = prepared.$1;
+          result = translated;
+          _sentenceResults.add(translated);
+          _preferredPlaybackUri = prepared.$2;
+          _speculativePreloadUri = null;
+          _responseReceivedAt = DateTime.now();
+          _processingStageTimer?.cancel();
+          processingStage = ConversationProcessingStage.preparingAudio;
+          notifyListeners();
+          final archive = _repository;
+          if (index == 0 &&
+              recording != null &&
+              translated.conversationId.isNotEmpty &&
+              archive is UserAudioArchiveRepository) {
+            unawaited(
+              (archive as UserAudioArchiveRepository)
+                  .archiveUserAudio(result: translated, capture: recording)
+                  .catchError((Object _) {}),
+            );
+          }
+          await _playResultInternal(
+            reportLatency: index == 0,
+            propagateFailure: true,
+            sentenceSession: queue,
+            onStarted: () {
+              debugPrint(
+                jsonEncode({
+                  'event': 'sentence_playing',
+                  'sessionId': queue.sessionId,
+                  'sentenceIndex': index,
+                  'conversationId': translated.conversationId,
+                  'elapsedMs': clock.elapsedMilliseconds,
+                  if (index == 0 && _stoppedAt != null)
+                    'stopToFirstAudioMs': DateTime.now()
+                        .difference(_stoppedAt!)
+                        .inMilliseconds,
+                  if (previousEndMs != null)
+                    'gapMs': clock.elapsedMilliseconds - previousEndMs!,
+                }),
+              );
+            },
+          );
+          if (!current()) return;
+          previousEndMs = clock.elapsedMilliseconds;
+          if (prepared.$2 != null) await cache.release(prepared.$2!);
+          _preferredPlaybackUri = translated.audioUri;
+        },
+      );
+      if (!current()) return;
+      _lastTurnEndReason = ConversationTurnEndReason.completed;
+      phase = ConversationPhase.ready;
+    } on SentenceQueueFailure catch (failure) {
+      if (!current()) return;
+      final cause = failure.cause;
+      final audioFailure =
+          cause is PlaybackException ||
+          cause is SentenceAudioDownloadException ||
+          (cause is CodedConversationException &&
+              (cause.errorCode?.startsWith('TTS') == true ||
+                  cause.errorCode?.startsWith('AUDIO') == true));
+      debugPrint(
+        jsonEncode({
+          'event': 'sentence_failed',
+          'sessionId': queue.sessionId,
+          'sentenceIndex': failure.index,
+          'errorType': cause.runtimeType.toString(),
+          if (cause is ConversationFailureDiagnostics) ...{
+            'httpStatus': cause.statusCode,
+            'requestId': cause.requestId,
+          },
+          if (cause is CodedConversationException) 'code': cause.errorCode,
+          if (cause is SentenceAudioDownloadException) ...{
+            'code': cause.code,
+            'httpStatus': cause.status,
+          },
+        }),
+      );
+      _lastTurnEndReason = ConversationTurnEndReason.failed;
+      _setError(
+        'Câu ${failure.index + 1}/${sentences.length}: '
+        '${audioFailure ? "Không thể phát âm thanh" : "Không thể dịch câu"}.',
+      );
+    } finally {
+      await cache.close().catchError((Object _) {});
+      if (identical(_sentenceQueue, queue)) {
+        _sentenceQueue = null;
+        _sentenceAudioCache = null;
+        if (!_disposed) notifyListeners();
+      }
+    }
+  }
+
+  Future<void> _preparePlaybackWithTimeout() async {
+    try {
+      await _playbackService.prepare().timeout(_audioPreparationTimeout);
+    } on TimeoutException {
+      await _playbackService.stop().catchError((Object _) {});
+      throw const PlaybackException(
+        'Không thể chuẩn bị âm thanh trong thời gian cho phép. Bạn thử lại nhé.',
+      );
+    }
+  }
+
+  Future<PlaybackStartMetrics> _awaitPlaybackStartWithTimeout(
+    Future<PlaybackStartMetrics> playbackStart,
+  ) async {
+    try {
+      return await playbackStart.timeout(_audioPreparationTimeout);
+    } on TimeoutException {
+      await _playbackService.stop().catchError((Object _) {});
+      throw const PlaybackException(
+        'Không thể chuẩn bị âm thanh trong thời gian cho phép. Bạn thử lại nhé.',
+      );
+    }
+  }
+
+  Future<void> _startHfpRouteWithTimeout({
+    required int expectedTurnGeneration,
+  }) {
+    late final Future<void> tracked;
+    tracked = _runHfpRouteStart(expectedTurnGeneration: expectedTurnGeneration)
+        .whenComplete(() {
+          if (identical(_pendingHfpStartOperation, tracked)) {
+            _pendingHfpStartOperation = null;
+          }
+        });
+    _pendingHfpStartOperation = tracked;
+    return tracked;
+  }
+
+  Future<void> _runHfpRouteStart({required int expectedTurnGeneration}) async {
+    final control = _hfpAudioControl;
+    if (control == null) {
+      throw const HfpAudioException('Cầu nối âm thanh HM-D001 chưa sẵn sàng.');
+    }
+    final startOperation = control.startAudioRoute();
+    try {
+      await startOperation.timeout(_audioPreparationTimeout);
+      if (expectedTurnGeneration != _conversationTurnGeneration) {
+        await control.stopAudioRoute().catchError((Object _) {});
+        throw const HfpAudioException(
+          'Đã hủy mở HFP trước khi đường âm thanh sẵn sàng.',
+        );
+      }
+    } on TimeoutException {
+      // Invalidate both Dart retries and the native activation generation so
+      // the timed-out SCO request cannot reopen after MAIN has moved on.
+      await control.stopAudioRoute().catchError((Object _) {});
+      throw const PlaybackException(
+        'Không thể chuẩn bị âm thanh HM-D001 trong thời gian cho phép. Bạn thử lại nhé.',
+      );
+    }
+  }
+
+  bool _isNoSpeechRecognitionError(Object error) {
+    if (error is! StreamingSpeechInputException) return false;
+    final code = error.code?.toUpperCase();
+    if (code == 'RECORDED_AUDIO_UNCLEAR' ||
+        code == 'ANDROID_SPEECH_6' ||
+        code == 'ANDROID_SPEECH_7') {
+      return true;
+    }
+    final message = error.message.toLowerCase();
+    return message.contains('không nghe rõ') ||
+        message.contains('chưa nghe thấy') ||
+        message.contains('no speech') ||
+        message.contains('no match') ||
+        message.contains('speech timeout');
+  }
+
+  Future<void> _finishNoSpeechTurn({required bool inputAlreadyStopped}) async {
+    _realtimeConnectionGeneration += 1;
+    _realtimeConnectionFuture = null;
+    if (!inputAlreadyStopped) {
+      if (_usingStreamingSpeech) {
+        await _streamingSpeechInput!.cancel();
+      } else {
+        await _audioInput.cancel();
+      }
+    }
+    await _batchChunkSubscription?.cancel();
+    _batchChunkSubscription = null;
+    final adaptiveWebUpload = _adaptiveWebUpload;
+    _adaptiveWebUpload = null;
+    if (adaptiveWebUpload != null) {
+      await adaptiveWebUpload.discard();
+    }
+    await _realtimeChunkSubscription?.cancel();
+    _realtimeChunkSubscription = null;
+    await _realtimePartialSubscription?.cancel();
+    _realtimePartialSubscription = null;
+    await _offlineIntentHypothesisSubscription?.cancel();
+    _offlineIntentHypothesisSubscription = null;
+    await _offlineIntentRecognizer?.cancel().catchError((Object _) {});
+    final realtimeSession = _realtimeSession;
+    _realtimeSession = null;
+    if (realtimeSession != null) {
+      await realtimeSession.discard().catchError((Object _) {});
+    }
+    final batchUpload = _batchChunkUpload;
+    _batchChunkUpload = null;
+    _batchSpeechGate = null;
+    if (batchUpload != null) {
+      await batchUpload.discard(reason: 'no_speech').catchError((Object _) {});
+    }
+    phase = ConversationPhase.idle;
+    _lastTurnEndReason = ConversationTurnEndReason.noSpeech;
+    unawaited(_syncAiv0AppState());
+    transientMessage = _noisyRecording
+        ? 'Môi trường đang khá ồn. Hãy đưa micro gần hơn, tránh hướng quạt hoặc chuyển sang chỗ yên hơn rồi thử lại.'
+        : _unclearSpeechMessage;
+    notifyListeners();
+    if (_speakNoSpeechPrompt) {
+      await _speakUnclearSpeechPrompt();
+    }
+    _stopInProgress = false;
+  }
+
+  void _completeRecognizedSpeechCommand() {
+    _processingStageTimer?.cancel();
+    _previewGeneration += 1;
+    _preview = null;
+    _preferredPlaybackUri = null;
+    _speculativePreloadUri = null;
+    transientMessage = null;
+    errorMessage = null;
+    amplitude = 0;
+    _lastTurnEndReason = ConversationTurnEndReason.commandHandled;
+    phase = ConversationPhase.idle;
+    unawaited(_syncAiv0AppState());
+    notifyListeners();
+  }
+
+  Future<void> _stopHfpRoute() async {
+    if (!_usingHfpRoute) {
+      return;
+    }
+    _usingHfpRoute = false;
+    _setPlaybackCommunicationRoute(false);
+    await _hfpAudioControl?.stopAudioRoute().catchError((Object error) {
+      debugPrint('Cannot stop HFP audio route: $error');
+    });
+  }
+
+  void _setPlaybackCommunicationRoute(bool active) {
+    final playback = _playbackService;
+    if (playback is CommunicationRouteAwareAudioPlaybackService) {
+      (playback as CommunicationRouteAwareAudioPlaybackService)
+          .setCommunicationRouteActive(active);
+    }
+  }
+
+  Future<void> _waitForActivePlaybackToComplete() async {
+    final playback = _playbackService;
+    if (playback is! CompletionAwareAudioPlaybackService) return;
+    try {
+      await (playback as CompletionAwareAudioPlaybackService)
+          .completionStream
+          .first
+          .timeout(const Duration(seconds: 30));
+    } on TimeoutException {
+      debugPrint('Timed out while keeping the HFP route open for playback.');
+    }
+  }
+
+  Future<void> _waitForRealtimeConnectionAtStop() async {
+    if (_realtimeSession != null) {
+      return;
+    }
+    final pendingConnection = _realtimeConnectionFuture;
+    if (pendingConnection == null) {
+      return;
+    }
+
+    final waitStopwatch = Stopwatch()..start();
+    try {
+      await pendingConnection.timeout(const Duration(milliseconds: 500));
+    } on TimeoutException {
+      debugPrint(
+        '{"event":"openai_realtime_stop_wait_timeout",'
+        '"waitMs":${waitStopwatch.elapsedMilliseconds}}',
+      );
+    } catch (error) {
+      debugPrint('Legacy Realtime connection failed while stopping: $error');
+    } finally {
+      waitStopwatch.stop();
+    }
+  }
+
+  Future<BatchChunkUploadSession?> _prepareRealtimeBatchFallback() async {
+    if (!_realtimeBatchFallback || !_realtimeFallbackBuffer.canReplay) {
+      return null;
+    }
+    final chunkedRepository = _repository is ChunkedConversationRepository
+        ? _repository as ChunkedConversationRepository
+        : null;
+    if (chunkedRepository == null) {
+      return null;
+    }
+
+    BatchChunkUploadSession? upload;
+    try {
+      upload = await chunkedRepository.startBatchChunkUpload();
+      _realtimeFallbackBuffer.replay(upload.addAudioChunk);
+      return upload;
+    } catch (error) {
+      debugPrint('Cannot prepare buffered Batch Chunks fallback: $error');
+      await upload
+          ?.discard(reason: 'fallback_prepare_failed')
+          .catchError((Object _) {});
+      return null;
+    }
+  }
+
+  Future<ConversationResult> _finalizeBatchChunksWithFallback({
+    required BatchChunkUploadSession upload,
+    required AudioCapture capture,
+  }) async {
+    try {
+      return await upload.finalize(
+        capture: capture,
+        context: context,
+        childAge: _childAge,
+        vadSilenceMs: vadSilenceMs,
+      );
+    } catch (error) {
+      await upload.discard(reason: 'finalize_failed').catchError((Object _) {});
+      if (_shouldSkipWavFallback(error)) {
+        debugPrint(
+          'Batch chunk request was rejected permanently; skipping WAV fallback.',
+        );
+        rethrow;
+      }
+      debugPrint('Batch chunk finalize failed; uploading WAV fallback: $error');
+      transientMessage =
+          'Mạng chunk không ổn định; đã chuyển sang gửi file WAV dự phòng.';
+      notifyListeners();
+      return _repository.processAudio(
+        capture: capture,
+        context: context,
+        childAge: _childAge,
+        vadSilenceMs: vadSilenceMs,
+        fallbackReason: _batchFallbackReason(error),
+      );
+    }
+  }
+
+  bool _shouldSkipWavFallback(Object error) {
+    if (error is! CodedConversationException) {
+      return false;
+    }
+    if (_isRecoverableBatchPcmMetadataMismatch(error)) {
+      return false;
+    }
+    return switch (error.errorCode) {
+      'ASR_LOW_CONFIDENCE' ||
+      'AUDIO_SESSION_UNAUTHORIZED' ||
+      'AUDIO_SESSION_INVALID' ||
+      'AUDIO_UPLOAD_LIMIT' ||
+      'AUDIO_CHUNK_CONFLICT' ||
+      'AUDIO_CHUNK_CHECKSUM_INVALID' ||
+      'AUDIO_CHUNK_CHECKSUM_MISMATCH' ||
+      'AUDIO_CHUNK_IDEMPOTENCY_INVALID' ||
+      'AUDIO_CHUNK_ACK_MISMATCH' => true,
+      _ => false,
+    };
+  }
+
+  bool _isRecoverableBatchPcmMetadataMismatch(
+    CodedConversationException error,
+  ) {
+    final normalizedMessage = error.message.toLowerCase();
+    return (error.errorCode == null ||
+            error.errorCode == 'AUDIO_SESSION_INVALID') &&
+        normalizedMessage.contains('metadata') &&
+        normalizedMessage.contains('pcm');
+  }
+
+  String _batchFallbackReason(Object error) {
+    if (error is CodedConversationException &&
+        _isRecoverableBatchPcmMetadataMismatch(error)) {
+      return 'batch_pcm_metadata_mismatch';
+    }
+    if (error is CodedConversationException && error.errorCode != null) {
+      return error.errorCode!.toLowerCase();
+    }
+    return error is TimeoutException
+        ? 'batch_timeout'
+        : 'batch_transport_failure';
+  }
+
+  Future<void> playResult({
+    bool reportLatency = false,
+    bool propagateFailure = false,
+  }) => sentenceQueueActive
+      ? Future<void>.value()
+      : _continuousTranslationSession.playResult(
+          reportLatency: reportLatency,
+          propagateFailure: propagateFailure,
+        );
+
+  Future<void> _playResultInternal({
+    bool reportLatency = false,
+    bool propagateFailure = false,
+    SentenceQueue<(ConversationResult, Uri?)>? sentenceSession,
+    VoidCallback? onStarted,
+  }) async {
+    final playbackTurnGeneration = _conversationTurnGeneration;
+    final mediaPlaybackToken = Object();
+    final currentResult = result;
+    final audioUri = _preferredPlaybackUri ?? currentResult?.audioUri;
+    if (currentResult == null) {
+      return;
+    }
+    if (audioUri == null) {
+      if (sentenceSession != null &&
+          currentResult.audioSource != 'device_tts') {
+        throw const PlaybackException('Không có âm thanh TTS.');
+      }
+      await _speakOfflineTranslation(
+        currentResult.displayedTranslation,
+        turnGeneration: playbackTurnGeneration,
+        propagateFailure: sentenceSession != null,
+        locale: currentResult.outputLanguage.speechLocale,
+      );
+      return;
+    }
+
+    _useTranslatedSpeechPlaybackRate();
+
+    var openedHfpForReplay = false;
+    try {
+      // Native iOS recognition already opened and released one utterance-scoped
+      // HFP/SCO route. Reopening HFP only to play the translated sentence makes
+      // every continuous turn negotiate Classic Bluetooth twice, invalidates
+      // the playback preparation started alongside the backend request, and
+      // closes the BLE window needed by the physical MAIN button. Output-only
+      // playback keeps the paired HM-D001 on A2DP while BLE remains available; the
+      // next recording turn will explicitly reopen its HFP microphone lease.
+      final useContinuousHfpSession = _continuousHfpSessionActive;
+      final useSelectedMediaOutput =
+          _usesNativeUtteranceScopedHfpCapture && !useContinuousHfpSession;
+      if (useSelectedMediaOutput) {
+        _setPlaybackCommunicationRoute(false);
+      } else if (useContinuousHfpSession) {
+        _setPlaybackCommunicationRoute(true);
+      }
+      if (usesHfpInput &&
+          canUseHfp &&
+          !_usingHfpRoute &&
+          !useContinuousHfpSession &&
+          !useSelectedMediaOutput) {
+        await _startHfpRouteWithTimeout(
+          expectedTurnGeneration: playbackTurnGeneration,
+        );
+        _usingHfpRoute = true;
+        openedHfpForReplay = true;
+        _setPlaybackCommunicationRoute(true);
+      }
+      // Arm completion before starting playback. A short cached sentence can
+      // otherwise finish between play() resolving and the later subscription.
+      // This wait is required for every route: returning after playback merely
+      // starts lets a following prompt/content clip interrupt the assistant on
+      // the phone speaker or A2DP.
+      if (sentenceSession != null &&
+          (sentenceSession.isCancelled ||
+              playbackTurnGeneration != _conversationTurnGeneration)) {
+        return;
+      }
+      final completion = Completer<void>();
+      PlaybackException? completionFailure;
+      StreamSubscription<void>? sentenceCompletionSubscription;
+      if (sentenceSession != null) {
+        final service = _playbackService;
+        if (service is! CompletionAwareAudioPlaybackService) {
+          throw const PlaybackException(
+            'Thiết bị không báo kết thúc âm thanh.',
+          );
+        }
+        sentenceCompletionSubscription =
+            (service as CompletionAwareAudioPlaybackService).completionStream
+                .listen(
+                  (_) {
+                    if (!completion.isCompleted) completion.complete();
+                  },
+                  onError: (Object error, StackTrace stack) {
+                    if (!completion.isCompleted) {
+                      completionFailure = const PlaybackException(
+                        'Lỗi luồng phát âm thanh.',
+                      );
+                      completion.complete();
+                    }
+                  },
+                );
+      }
+      final playbackCompletion = sentenceSession == null
+          ? _waitForActivePlaybackToComplete()
+          : Future.any<void>([completion.future, sentenceSession.cancelled]);
+      try {
+        final playbackRequestedAt = DateTime.now();
+        PlaybackStartMetrics? gestureMetrics;
+        final gesturePlayback = _playbackService;
+        if (sentenceSession == null &&
+            !reportLatency &&
+            currentResult.audioSha256 == null &&
+            gesturePlayback is DirectUserGestureAudioPlaybackService) {
+          final directStart =
+              (gesturePlayback as DirectUserGestureAudioPlaybackService)
+                  .playLoadedForUserGesture(audioUri);
+          final directMetrics = await directStart.timeout(
+            _audioPreparationTimeout,
+            onTimeout: () => throw const PlaybackException(
+              'Không thể chuẩn bị âm thanh trong thời gian cho phép. Bạn thử lại nhé.',
+            ),
+          );
+          gestureMetrics = directMetrics;
+        }
+        final playback = _playbackService;
+        final checksum = currentResult.audioSha256;
+        Future<PlaybackStartMetrics> start() =>
+            checksum != null && playback is IntegrityAwareAudioPlaybackService
+            ? (playback as IntegrityAwareAudioPlaybackService).playVerified(
+                audioUri,
+                sha256: checksum,
+              )
+            : playback.play(audioUri);
+        final metrics =
+            gestureMetrics ??
+            (sentenceSession == null
+                ? await _awaitPlaybackStartWithTimeout(start())
+                : await Future.any<PlaybackStartMetrics?>([
+                    start().timeout(
+                      _audioPreparationTimeout,
+                      onTimeout: () => throw const PlaybackException(
+                        'Không thể bắt đầu phát âm thanh.',
+                      ),
+                    ),
+                    sentenceSession.cancelled.then((_) => null),
+                  ]));
+        if (metrics == null) return;
+        if (playbackTurnGeneration != _conversationTurnGeneration) {
+          if (sentenceSession == null) {
+            await _playbackService.stop().catchError((Object _) {});
+          }
+          return;
+        }
+        if (useSelectedMediaOutput) {
+          _startIosSelectedMediaOutputMonitor(
+            playbackTurnGeneration,
+            mediaPlaybackToken,
+          );
+        }
+        if (reportLatency && _stoppedAt != null) {
+          _reportPlaybackStarted(
+            currentResult: currentResult,
+            startedAt: playbackRequestedAt.add(metrics.startedAfterRequest),
+            metrics: metrics,
+          );
+        }
+        onStarted?.call();
+        await playbackCompletion;
+        if (completionFailure != null) throw completionFailure!;
+      } finally {
+        await sentenceCompletionSubscription?.cancel();
+      }
+    } catch (error) {
+      if (sentenceSession != null &&
+          (sentenceSession.isCancelled ||
+              playbackTurnGeneration != _conversationTurnGeneration)) {
+        return;
+      }
+      await _playbackService.stop().catchError((Object _) {});
+      if (playbackTurnGeneration != _conversationTurnGeneration) return;
+      if (!propagateFailure &&
+          !_isHfpRouteLoss(error) &&
+          !(usesHfpInput && canUseHfp) &&
+          _voicePromptService != null) {
+        await _speakOfflineTranslation(
+          currentResult.displayedTranslation,
+          turnGeneration: playbackTurnGeneration,
+          locale: currentResult.outputLanguage.speechLocale,
+        );
+        return;
+      }
+      transientMessage = _friendlyError(error);
+      notifyListeners();
+      if (propagateFailure) rethrow;
+    } finally {
+      if (identical(_iosMediaPlaybackToken, mediaPlaybackToken)) {
+        _iosMediaPlaybackToken = null;
+        _iosMediaPlaybackTurnGeneration = null;
+        _iosMediaOutputRouteSequence = null;
+        _iosMediaOutputSawBluetooth = false;
+      }
+      if (openedHfpForReplay) await _stopHfpRoute();
+    }
+  }
+
+  Future<void> _speakOfflineTranslation(
+    String translatedText, {
+    required int turnGeneration,
+    bool propagateFailure = false,
+    String locale = 'en-US',
+  }) async {
+    final text = translatedText.trim();
+    final promptService = _voicePromptService;
+    final languageName = TranslationOutputLanguage.values
+        .firstWhere(
+          (language) => language.speechLocale == locale,
+          orElse: () => TranslationOutputLanguage.english,
+        )
+        .label;
+    final isEnglish = locale == TranslationOutputLanguage.english.speechLocale;
+    if (text.isEmpty || promptService == null) {
+      if (propagateFailure) {
+        throw PlaybackException(
+          isEnglish
+              ? 'Thiết bị chưa có giọng đọc tiếng Anh.'
+              : 'Thiết bị chưa có giọng đọc $languageName.',
+        );
+      }
+      transientMessage = isEnglish
+          ? 'Đã dịch offline nhưng thiết bị chưa có giọng đọc tiếng Anh.'
+          : 'Đã dịch nhưng thiết bị chưa có giọng đọc $languageName.';
+      notifyListeners();
+      return;
+    }
+    if (turnGeneration != _conversationTurnGeneration) return;
+    try {
+      if (!_isWebRuntime &&
+          promptService is StyledMediaOutputVoicePromptService) {
+        await (promptService as StyledMediaOutputVoicePromptService)
+            .speakAndWaitStyled(
+              text,
+              locale: locale,
+              speechRate: translatedSpeechPlaybackRate,
+              pitch: 1.05,
+            );
+      } else if (promptService is SelectedMediaOutputVoicePromptService) {
+        await (promptService as SelectedMediaOutputVoicePromptService)
+            .speakAndWaitOnSelectedMediaOutput(text, locale: locale);
+      } else {
+        await promptService.speakAndWait(text, locale: locale);
+      }
+    } catch (error) {
+      if (turnGeneration != _conversationTurnGeneration) return;
+      if (propagateFailure) {
+        throw PlaybackException(
+          isEnglish
+              ? 'Không phát được giọng đọc tiếng Anh.'
+              : 'Không phát được giọng đọc $languageName.',
+        );
+      }
+      transientMessage = isEnglish
+          ? 'Đã dịch offline nhưng chưa phát được giọng tiếng Anh: '
+                '${_friendlyError(error)}'
+          : 'Đã dịch nhưng chưa phát được giọng $languageName: '
+                '${_friendlyError(error)}';
+      notifyListeners();
+    }
+  }
+
+  void _useTranslatedSpeechPlaybackRate() {
+    final playback = _playbackService;
+    if (playback is PlaybackRateAwareAudioPlaybackService) {
+      (playback as PlaybackRateAwareAudioPlaybackService).setPlaybackRate(
+        translatedSpeechPlaybackRate,
+      );
+    }
+  }
+
+  void _useNormalPlaybackRate() {
+    final playback = _playbackService;
+    if (playback is PlaybackRateAwareAudioPlaybackService) {
+      (playback as PlaybackRateAwareAudioPlaybackService).setPlaybackRate(1.0);
+    }
+  }
+
+  void _reportPlaybackStarted({
+    required ConversationResult currentResult,
+    required DateTime startedAt,
+    required PlaybackStartMetrics metrics,
+  }) {
+    final stoppedAt = _stoppedAt;
+    if (stoppedAt == null) {
+      return;
+    }
+    final firstAudioMs = math.max(
+      0,
+      startedAt.difference(stoppedAt).inMilliseconds,
+    );
+    final responseReceivedAt = _responseReceivedAt;
+    final responseToPlaybackMs = responseReceivedAt == null
+        ? null
+        : math.max(0, startedAt.difference(responseReceivedAt).inMilliseconds);
+    debugPrint(
+      jsonEncode(<String, dynamic>{
+        'event': 'playback_latency_client',
+        'conversationId': currentResult.conversationId,
+        'audioStartedAfterStopMs': firstAudioMs,
+        'audioLoadMs': metrics.audioLoadDuration.inMilliseconds,
+        'audioFromDeviceCache': metrics.fromDeviceCache,
+        'responseToPlaybackMs': responseToPlaybackMs,
+        'audioPreloadLoadedData': metrics.preloadedSourceLoaded,
+        'audioPreloadCanPlay': metrics.preloadedSourceReady,
+        'audioPreloadLoadedDataMs':
+            metrics.preloadLoadedDuration?.inMilliseconds,
+        'audioPreloadCanPlayMs': metrics.preloadReadyDuration?.inMilliseconds,
+      }),
+    );
+    unawaited(
+      _reportPlaybackLatency(
+        currentResult: currentResult,
+        timeToFirstAudioMs: firstAudioMs,
+        audioLoadMs: metrics.audioLoadDuration.inMilliseconds,
+        audioFromDeviceCache: metrics.fromDeviceCache,
+        responseToPlaybackMs: responseToPlaybackMs,
+        audioPreloadLoadedData: metrics.preloadedSourceLoaded,
+        audioPreloadCanPlay: metrics.preloadedSourceReady,
+        audioPreloadLoadedDataMs: metrics.preloadLoadedDuration?.inMilliseconds,
+        audioPreloadCanPlayMs: metrics.preloadReadyDuration?.inMilliseconds,
+      ),
+    );
+  }
+
+  Future<void> _reportPlaybackLatency({
+    required ConversationResult currentResult,
+    required int timeToFirstAudioMs,
+    required int audioLoadMs,
+    required bool audioFromDeviceCache,
+    int? responseToPlaybackMs,
+    bool? audioPreloadLoadedData,
+    bool? audioPreloadCanPlay,
+    int? audioPreloadLoadedDataMs,
+    int? audioPreloadCanPlayMs,
+  }) async {
+    if (currentResult.conversationId.trim().isEmpty) {
+      return;
+    }
+    try {
+      await _repository.patchPlaybackLatency(
+        conversationId: currentResult.conversationId,
+        timeToFirstAudioMs: timeToFirstAudioMs,
+        audioLoadMs: audioLoadMs,
+        audioFromDeviceCache: audioFromDeviceCache,
+        responseToPlaybackMs: responseToPlaybackMs,
+        audioPreloadLoadedData: audioPreloadLoadedData,
+        audioPreloadCanPlay: audioPreloadCanPlay,
+        audioPreloadLoadedDataMs: audioPreloadLoadedDataMs,
+        audioPreloadCanPlayMs: audioPreloadCanPlayMs,
+      );
+    } catch (error) {
+      debugPrint('Không thể gửi telemetry phát audio: $error');
+    }
+  }
+
+  Future<void> submitReview(bool approved) async {
+    final conversationId = result?.conversationId;
+    if (conversationId == null || conversationId.trim().isEmpty) {
+      return;
+    }
+
+    final previousValue = qualityApproved;
+    qualityApproved = approved;
+    notifyListeners();
+    try {
+      final learning = await _repository.review(
+        conversationId: conversationId,
+        approved: approved,
+      );
+      transientMessage = learning.message.isNotEmpty
+          ? learning.message
+          : approved
+          ? 'Đã ghi nhận: đúng ý.'
+          : 'Đã ghi nhận để cải thiện câu trả lời.';
+      notifyListeners();
+    } catch (error) {
+      qualityApproved = previousValue;
+      _setError(_friendlyError(error));
+    }
+  }
+
+  @override
+  Future<List<ConversationHistoryItem>> loadHistory() {
+    return _repository.fetchHistory();
+  }
+
+  @override
+  Future<void> playHistoryItem(ConversationHistoryItem item) async {
+    final audioUri = item.audioUri;
+    if (audioUri == null) {
+      throw StateError('Lượt nói này chưa có âm thanh để phát lại.');
+    }
+    _useTranslatedSpeechPlaybackRate();
+    await _playbackService.play(audioUri);
+  }
+
+  @override
+  Future<void> playHistoryUserAudio(ConversationHistoryItem item) async {
+    if (!item.hasUserAudio) {
+      throw StateError('Bản ghi âm này không còn được lưu trên máy chủ.');
+    }
+    final repository = _repository;
+    if (repository is! UserAudioHistoryPlaybackRepository) {
+      throw StateError('Phiên bản này chưa hỗ trợ nghe lại bản ghi âm.');
+    }
+    final playbackRepository = repository as UserAudioHistoryPlaybackRepository;
+    final audioUri = await playbackRepository.fetchUserAudioPlaybackUri(
+      item.conversationId,
+    );
+    await _playbackService.play(audioUri);
+  }
+
+  @override
+  Future<ConversationLearningOutcome> reviewHistoryItem(
+    ConversationHistoryItem item,
+    bool approved,
+  ) {
+    return _repository.review(
+      conversationId: item.conversationId,
+      approved: approved,
+    );
+  }
+
+  @override
+  Future<void> deleteHistoryItem(ConversationHistoryItem item) {
+    return _repository.deleteHistoryItem(item.conversationId);
+  }
+
+  @override
+  Future<void> clearHistory() {
+    return _repository.clearHistory();
+  }
+
+  void selectContext(PracticeContext nextContext) {
+    if (isBusy) {
+      return;
+    }
+    context = nextContext;
+    notifyListeners();
+  }
+
+  void selectAsrMode(AsrMode nextMode) {
+    if (isBusy) {
+      return;
+    }
+    if (nextMode == AsrMode.deviceStreaming) {
+      if (!canUseInnotrikBle) {
+        transientMessage =
+            'Hãy quét và kết nối Mic INNOTRIK trước khi chọn BLE streaming.';
+        notifyListeners();
+        return;
+      }
+    }
+    if (!_isWebRuntime && _streamingSpeechInput != null) {
+      if (nextMode == AsrMode.batchChunks) {
+        asrMode = AsrMode.androidStreaming;
+        transientMessage =
+            _streamingSpeechInput is BatchFallbackCapableNativeSpeechInput
+            ? 'iOS ưu tiên Apple Native Speech; Cloudflare/Batch chỉ nhận audio khi cần dự phòng.'
+            : 'Android chỉ dùng Chế độ tiêu chuẩn để nhận dạng. Cloudflare vẫn được dùng cho dịch và phát âm khi cần.';
+        notifyListeners();
+        return;
+      }
+      if (nextMode == AsrMode.hfpStreaming) {
+        if (!canUseHfp) {
+          transientMessage =
+              'Hãy tìm và kết nối HM-D001 trước khi chọn mic HFP.';
+          notifyListeners();
+          return;
+        }
+        _hfpInputSelected = true;
+        asrMode = AsrMode.androidStreaming;
+        transientMessage =
+            'Đã chọn HM-D001 qua HFP làm nguồn âm thanh cho Chế độ tiêu chuẩn.';
+        notifyListeners();
+        return;
+      }
+    }
+    if (nextMode == AsrMode.hfpStreaming) {
+      if (!canUseHfp) {
+        transientMessage =
+            'Hãy tìm và kết nối thiết bị HFP trước khi chọn HFP streaming.';
+        notifyListeners();
+        return;
+      }
+      if (_streamingSpeechInput == null && !supportsBrowserHfp) {
+        transientMessage = 'HFP streaming chưa khả dụng trên nền tảng này.';
+        notifyListeners();
+        return;
+      }
+      if (supportsBrowserHfp) {
+        _hfpInputSelected = true;
+        asrMode = AsrMode.batchChunks;
+        transientMessage =
+            'Đã chọn mic Bluetooth. Web vẫn dùng Nhận giọng nói trực tuyến.';
+        notifyListeners();
+        return;
+      }
+    }
+    if (nextMode == AsrMode.batchChunks) {
+      transientMessage =
+          'Đã chọn Cloudflare Batch Chunks; nhận dạng, dịch và phát âm đều dùng Cloudflare.';
+    }
+    if (nextMode == AsrMode.openAiRealtime) {
+      transientMessage =
+          'Chế độ Realtime cũ đã bị tắt. Ứng dụng chỉ dùng Cloudflare Batch Chunks.';
+      notifyListeners();
+      return;
+    }
+    if (nextMode == AsrMode.androidStreaming && _streamingSpeechInput == null) {
+      transientMessage = 'Chế độ tiêu chuẩn không khả dụng trên nền tảng này.';
+      notifyListeners();
+      return;
+    }
+    asrMode = nextMode;
+    notifyListeners();
+  }
+
+  @override
+  void setVadSilence(int milliseconds) {
+    if (isBusy) {
+      return;
+    }
+    vadSilenceMs = milliseconds.clamp(400, 1600).toInt();
+    notifyListeners();
+  }
+
+  void clearMessage() {
+    _connectionNoticeTimer?.cancel();
+    transientMessage = null;
+    if (phase == ConversationPhase.error) {
+      _processingStageTimer?.cancel();
+      phase = result == null ? ConversationPhase.idle : ConversationPhase.ready;
+      errorMessage = null;
+      unawaited(_syncAiv0AppState());
+    }
+    notifyListeners();
+  }
+
+  /// Hides the last conversation result without deleting its persisted history.
+  ///
+  /// Listening lessons own a separate speech flow. Returning from one should
+  /// not present an older conversation turn as if it came from that lesson.
+  void clearPresentationResult() {
+    if (!_clearPresentationResultState()) return;
+    notifyListeners();
+  }
+
+  bool _clearPresentationResultState() {
+    _sentenceResults.clear();
+    sentenceProgress = null;
+    if (result == null) return false;
+    result = null;
+    qualityApproved = null;
+    _previewGeneration += 1;
+    _preview = null;
+    _preferredPlaybackUri = null;
+    _speculativePreloadUri = null;
+    if (phase == ConversationPhase.ready) {
+      phase = ConversationPhase.idle;
+    }
+    return true;
+  }
+
+  void showHomiConnectionMessage(String message) {
+    transientMessage = message;
+    notifyListeners();
+  }
+
+  void _setError(String message) {
+    _processingStageTimer?.cancel();
+    errorMessage = message;
+    phase = ConversationPhase.error;
+    unawaited(_syncAiv0AppState(resultCode: Aiv0AppResult.internalError));
+    if (!_disposed) {
+      notifyListeners();
+    }
+  }
+
+  static const _unclearSpeechMessage =
+      'HOMI chưa nghe thấy bạn nói. Bạn nói lại nhé.';
+
+  Future<void> _handleConversationError(Object error) async {
+    if (error is CodedConversationException &&
+        error.errorCode == 'ASR_LOW_CONFIDENCE') {
+      _setError(_unclearSpeechMessage);
+      await _speakUnclearSpeechPrompt();
+      return;
+    }
+    _setError(_friendlyError(error));
+  }
+
+  Future<void> _stopAfterHfpRouteLoss() async {
+    _handlingHfpRouteLoss = true;
+    // Invalidate this turn immediately so a late translated clip cannot start
+    // on the phone after either native platform loses the selected HM-D001 output.
+    final cancellation = cancelCurrentMainAction();
+    final generation = _conversationTurnGeneration;
+    try {
+      await cancellation;
+      await endContinuousHfpSession();
+      if (!_disposed && generation == _conversationTurnGeneration) {
+        errorMessage =
+            'Kết nối âm thanh HM-D001 bị gián đoạn. Bạn thử lại nhé.';
+        phase = ConversationPhase.error;
+        notifyListeners();
+      }
+    } catch (error) {
+      debugPrint('HOMI HM-D001 route-loss cleanup failed: $error');
+    } finally {
+      _handlingHfpRouteLoss = false;
+      if (!_disposed) notifyListeners();
+    }
+  }
+
+  void _startIosSelectedMediaOutputMonitor(
+    int turnGeneration,
+    Object playbackToken,
+  ) {
+    final status = _hfpAudioControl?.status;
+    final output = status?.outputPortType;
+    // An older native bridge has no typed route metadata. Do not infer the
+    // selected HM-D001 from a display name, which may differ between HFP and A2DP.
+    if (status?.routeSequence == null || output == null) return;
+    if (output == 'builtInSpeaker' || output == 'builtInReceiver') {
+      throw const HfpAudioException(
+        'Âm thanh đã chuyển sang loa iPhone. Hãy kết nối lại HM-D001 rồi nghe lại.',
+      );
+    }
+    _iosMediaPlaybackToken = playbackToken;
+    _iosMediaPlaybackTurnGeneration = turnGeneration;
+    _iosMediaOutputRouteSequence = status!.routeSequence;
+    _iosMediaOutputSawBluetooth =
+        output == 'bluetoothA2DP' || output == 'bluetoothHFP';
+  }
+
+  void _handleIosSelectedMediaOutputStatus(BluetoothAudioStatus status) {
+    if (kIsWeb ||
+        defaultTargetPlatform != TargetPlatform.iOS ||
+        _iosMediaPlaybackToken == null ||
+        _iosMediaPlaybackTurnGeneration != _conversationTurnGeneration ||
+        _handlingHfpRouteLoss) {
+      return;
+    }
+    final sequence = status.routeSequence;
+    if (sequence == null || sequence <= (_iosMediaOutputRouteSequence ?? -1)) {
+      return;
+    }
+    _iosMediaOutputRouteSequence = sequence;
+    final output = status.outputPortType;
+    if (output == 'bluetoothA2DP' || output == 'bluetoothHFP') {
+      _iosMediaOutputSawBluetooth = true;
+      return;
+    }
+    if (_iosMediaOutputSawBluetooth &&
+        (output == 'builtInSpeaker' || output == 'builtInReceiver')) {
+      _iosMediaPlaybackToken = null;
+      _iosMediaPlaybackTurnGeneration = null;
+      _iosMediaOutputRouteSequence = null;
+      _iosMediaOutputSawBluetooth = false;
+      unawaited(_stopAfterHfpRouteLoss());
+    }
+  }
+
+  Future<void> _speakUnclearSpeechPrompt() async {
+    await speakAssistantPrompt(
+      _unclearSpeechMessage,
+      audioKey: ConversationAudioKeys.notHeard,
+    );
+  }
+
+  bool _isHfpRouteLoss(Object error) =>
+      error is HfpAudioException ||
+      (error is PlatformException &&
+          (error.code.startsWith('HFP_') ||
+              error.code == 'AUDIO_ROUTE_MISMATCH')) ||
+      (error is StreamingSpeechInputException &&
+          (error.code?.startsWith('HFP_') == true ||
+              error.code == 'AUDIO_ROUTE_MISMATCH'));
+
+  Future<void> speakAssistantPrompt(String text, {String? audioKey}) async {
+    final service = _voicePromptService;
+    final resolvedAudioKey =
+        audioKey ?? ConversationAudioKeys.fixedKeyForText(text);
+    if (resolvedAudioKey != null && service is KeyedVoicePromptService) {
+      await (service as KeyedVoicePromptService).speakAndWaitWithAudioKey(
+        resolvedAudioKey,
+        text,
+      );
+      return;
+    }
+    await service?.speakAndWait(text);
+  }
+
+  String _friendlyError(Object error) {
+    if (error is TimeoutException) {
+      return 'Kết nối backend quá chậm. Vui lòng thử lại.';
+    }
+    if (error is http.ClientException) {
+      return 'Dịch vụ đang tạm gián đoạn. Vui lòng thử lại sau.';
+    }
+    if (error is RetryableConversationException && error.isRetryable) {
+      return 'Dịch vụ đang tạm gián đoạn. Vui lòng thử lại sau.';
+    }
+    if (error is PlatformException &&
+        (error.code == '561017449' ||
+            (error.message?.contains('561017449') ?? false))) {
+      return 'Âm thanh đang chuyển từ nghe sang nói. Bạn thử lại nhé.';
+    }
+    return error.toString().replaceFirst('Exception: ', '');
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    _cancelSentenceQueue();
+    _deviceOperationGeneration += 1;
+    _activeDeviceOperation = null;
+    _automaticDeviceOperation = null;
+    _continuousTranslationSession.dispose();
+    _realtimeConnectionGeneration += 1;
+    _realtimeConnectionFuture = null;
+    _silenceTimer?.cancel();
+    _noSpeechTimer?.cancel();
+    _maximumDurationTimer?.cancel();
+    _partialPreviewTimer?.cancel();
+    _partialSpeechEndpointTimer?.cancel();
+    _offlineFallbackTimer?.cancel();
+    _processingStageTimer?.cancel();
+    _homiHardwareRecordingTimer?.cancel();
+    _connectionNoticeTimer?.cancel();
+    unawaited(_amplitudeSubscription?.cancel());
+    unawaited(_batchChunkSubscription?.cancel());
+    unawaited(_batchPreviewSubscription?.cancel());
+    unawaited(_realtimeChunkSubscription?.cancel());
+    unawaited(_realtimePartialSubscription?.cancel());
+    unawaited(_offlineIntentHypothesisSubscription?.cancel());
+    final batchUpload = _batchChunkUpload;
+    _batchSpeechGate = null;
+    if (batchUpload != null) {
+      unawaited(
+        batchUpload
+            .discard(reason: 'controller_dispose')
+            .catchError((Object _) {}),
+      );
+    }
+    final adaptiveWebUpload = _adaptiveWebUpload;
+    if (adaptiveWebUpload != null) {
+      unawaited(adaptiveWebUpload.discard());
+    }
+    final realtimeSession = _realtimeSession;
+    if (realtimeSession != null) {
+      unawaited(realtimeSession.discard().catchError((Object _) {}));
+    }
+    unawaited(_streamingCompletionSubscription?.cancel());
+    unawaited(_partialTextSubscription?.cancel());
+    unawaited(_speechEndedSubscription?.cancel());
+    unawaited(_nativeSpeechDiagnosticSubscription?.cancel());
+    unawaited(_bluetoothStatusSubscription?.cancel());
+    unawaited(_hfpStatusSubscription?.cancel());
+    unawaited(_aiv0StatusSubscription?.cancel());
+    unawaited(_aiv0ButtonSubscription?.cancel());
+    unawaited(_playbackPlayingSubscription?.cancel());
+    if (_homiHardwareAudioInputStarted) {
+      unawaited(_audioInput.cancel().catchError((Object _) {}));
+    }
+    unawaited(_stopHfpRoute());
+    unawaited(_audioInput.dispose());
+    unawaited(_streamingSpeechInput?.dispose());
+    unawaited(_offlineIntentRecognizer?.dispose());
+    unawaited(_hfpAudioControl?.dispose());
+    unawaited(_aiv0BleControl?.dispose());
+    unawaited(_playbackService.dispose());
+    unawaited(_voicePromptService?.dispose());
+    unawaited(_repository.dispose());
+    super.dispose();
+  }
+}
+
+class _ConversationContinuousTranslationRuntime
+    implements ContinuousTranslationRuntime {
+  const _ConversationContinuousTranslationRuntime(this._controller);
+
+  final ConversationController _controller;
+
+  @override
+  ConversationPhase get phase => _controller.phase;
+
+  @override
+  bool get isBusy =>
+      _controller.isDeviceConnectionBusy || _controller.isRecordingStartBlocked;
+
+  @override
+  Future<void> unlockPlaybackForUserGesture() async {
+    final playback = _controller._playbackService;
+    if (playback is UserGestureAudioPlaybackService) {
+      await (playback as UserGestureAudioPlaybackService)
+          .unlockForUserGesture();
+    }
+  }
+
+  @override
+  Future<void> startTurn({
+    required Duration noSpeechTimeout,
+    required bool speakNoSpeechPrompt,
+    required bool stopOnSilence,
+  }) => _controller._startRecordingInternal(
+    noSpeechTimeout: noSpeechTimeout,
+    speakNoSpeechPrompt: speakNoSpeechPrompt,
+    stopOnSilence: stopOnSilence,
+  );
+
+  @override
+  Future<void> stopTurn({required bool manual}) =>
+      _controller._stopRecordingInternal(manual: manual);
+
+  @override
+  Future<void> playResult({
+    required bool reportLatency,
+    required bool propagateFailure,
+  }) => _controller._playResultInternal(
+    reportLatency: reportLatency,
+    propagateFailure: propagateFailure,
+  );
+}
+
+class _AdaptiveWebChunkUpload {
+  _AdaptiveWebChunkUpload({
+    required this.repository,
+    required this.promotionDelay,
+  }) {
+    _recordingStopwatch.start();
+  }
+
+  final ChunkedConversationRepository repository;
+  final Duration promotionDelay;
+  final List<Uint8List> _bufferedChunks = <Uint8List>[];
+  final StreamController<ConversationPreview> _previewController =
+      StreamController<ConversationPreview>.broadcast();
+
+  static const _terminalPreviewDelay = Duration(milliseconds: 200);
+  static const _pcmStableSilenceDuration = Duration(milliseconds: 50);
+  static const _pcmConfirmedResumeDuration = Duration(milliseconds: 120);
+  static const _pcmConfirmedResumeVariationDb = 3.0;
+  static const _pcmSampleRate = 16000;
+  static const _pcmAnalysisFrameSamples = _pcmSampleRate ~/ 100;
+
+  Timer? _promotionTimer;
+  Timer? _terminalPreviewTimer;
+  Future<void>? _promotionFuture;
+  BatchChunkUploadSession? _session;
+  StreamSubscription<ConversationPreview>? _previewSubscription;
+  PracticeContext? _previewContext;
+  int? _previewChildAge;
+  bool _speechDetected = false;
+  bool _voiceActive = false;
+  DateTime? _voiceInactiveAt;
+  bool _terminalPreviewDispatched = false;
+  bool _terminalPreviewPending = false;
+  bool _acceptingChunks = true;
+  final AdaptiveVoiceActivityDetector _pcmVoiceActivityDetector =
+      AdaptiveVoiceActivityDetector();
+  final Stopwatch _recordingStopwatch = Stopwatch();
+  Duration _pcmElapsed = Duration.zero;
+  Duration _pcmSilenceDuration = Duration.zero;
+  Duration _pcmResumeDuration = Duration.zero;
+  double _pcmResumeMinimumDbfs = 0;
+  double _pcmResumeMaximumDbfs = -100;
+  bool _pcmVoiceInactive = false;
+  int? _pcmSilenceDetectedAtRecordingMs;
+  int? _terminalTimerScheduledAtRecordingMs;
+  int? _terminalRequestedAtRecordingMs;
+  int? _stopRequestedAtRecordingMs;
+  int _terminalTimerCanceledCount = 0;
+  String? _terminalTimerLastCancelReason;
+  String? _stopReason;
+
+  Stream<ConversationPreview> get speculativePreviews =>
+      _previewController.stream;
+
+  void configureSpeculativePreview({
+    required PracticeContext context,
+    required int childAge,
+  }) {
+    _previewContext = context;
+    _previewChildAge = childAge;
+    final speculative = _session is SpeculativeBatchChunkUploadSession
+        ? _session! as SpeculativeBatchChunkUploadSession
+        : null;
+    speculative?.configureSpeculativePreview(
+      context: context,
+      childAge: childAge,
+    );
+  }
+
+  void markSpeculativeSpeechDetected() {
+    if (_terminalPreviewDispatched || _terminalPreviewPending) {
+      // A confirmed VAD speech-start event, rather than a raw noisy frame,
+      // opens the next terminal generation.
+      _terminalPreviewDispatched = false;
+      _terminalPreviewPending = false;
+    }
+    _speechDetected = true;
+    _pcmVoiceActivityDetector.confirmSpeech();
+    final speculative = _session is SpeculativeBatchChunkUploadSession
+        ? _session! as SpeculativeBatchChunkUploadSession
+        : null;
+    speculative?.markSpeculativeSpeechDetected();
+  }
+
+  void markSpeculativeVoiceActive({
+    String resumeReason = 'primary_vad_resume',
+  }) {
+    final resumedAfterSilence = !_voiceActive && _voiceInactiveAt != null;
+    if (resumedAfterSilence && resumeReason == 'primary_vad_resume') {
+      // Safari's amplitude callback is useful for the UI/auto-stop timer but a
+      // single post-silence frame is not proof that the child spoke again. Keep
+      // the terminal alive until Raw PCM confirms a varying speech run; that
+      // confirmation calls this method with pcm_confirmed_resume below.
+      return;
+    }
+    _voiceActive = true;
+    if (resumedAfterSilence) {
+      _voiceInactiveAt = null;
+      _cancelTerminalPreviewTimer(resumeReason);
+    }
+    final speculative = _session is SpeculativeBatchChunkUploadSession
+        ? _session! as SpeculativeBatchChunkUploadSession
+        : null;
+    speculative?.markSpeculativeVoiceActive();
+  }
+
+  void markSpeculativeVoiceInactive() {
+    final firstInactiveFrame = _voiceInactiveAt == null;
+    _voiceActive = false;
+    _voiceInactiveAt ??= DateTime.now();
+    final speculative = _session is SpeculativeBatchChunkUploadSession
+        ? _session! as SpeculativeBatchChunkUploadSession
+        : null;
+    if (firstInactiveFrame) {
+      speculative?.markSpeculativeVoiceInactive();
+    }
+    if (!_acceptingChunks ||
+        !_speechDetected ||
+        _stopRequestedAtRecordingMs != null) {
+      return;
+    }
+    // stopRecording() calls this method once more while the source is already
+    // silent. Do not reset the early terminal timer at that boundary.
+    if (_terminalPreviewDispatched ||
+        _terminalPreviewPending ||
+        _terminalPreviewTimer != null) {
+      return;
+    }
+    _terminalTimerScheduledAtRecordingMs ??=
+        _recordingStopwatch.elapsedMilliseconds;
+    _terminalPreviewTimer = Timer(_terminalPreviewDelay, () {
+      _terminalPreviewTimer = null;
+      if (!_acceptingChunks || _voiceActive || !_speechDetected) {
+        return;
+      }
+      _terminalRequestedAtRecordingMs ??=
+          _recordingStopwatch.elapsedMilliseconds;
+      _terminalPreviewDispatched = true;
+      _terminalPreviewPending = true;
+      final terminalSession = _session is SpeculativeBatchChunkUploadSession
+          ? _session! as SpeculativeBatchChunkUploadSession
+          : null;
+      if (terminalSession != null) {
+        _terminalPreviewPending = false;
+        terminalSession.requestTerminalSpeculativePreview();
+      }
+    });
+  }
+
+  void markStopRequested({required bool manual}) {
+    _stopRequestedAtRecordingMs ??= _recordingStopwatch.elapsedMilliseconds;
+    _stopReason ??= manual ? 'manual' : 'vad';
+    // A timer that fires while recorder.stop() drains its last frame has no
+    // speculative lead. Cancel it here; the explicit recorder-stop request is
+    // tagged late and therefore cannot add prepare/commit to the critical path.
+    _cancelTerminalPreviewTimer('recorder_stop');
+    _pushClientTerminalTelemetry();
+  }
+
+  void requestTerminalSpeculativePreview() {
+    _cancelTerminalPreviewTimer('recorder_stop_snapshot');
+    _terminalRequestedAtRecordingMs ??= _recordingStopwatch.elapsedMilliseconds;
+    _terminalPreviewDispatched = true;
+    _terminalPreviewPending = true;
+    final speculative = _session is SpeculativeBatchChunkUploadSession
+        ? _session! as SpeculativeBatchChunkUploadSession
+        : null;
+    if (speculative != null) {
+      _terminalPreviewPending = false;
+      speculative.requestTerminalSpeculativePreview(atRecorderStop: true);
+    }
+  }
+
+  void addAudioChunk(Uint8List bytes) {
+    if (!_acceptingChunks || bytes.isEmpty) {
+      return;
+    }
+    _analyzePcmVoiceActivity(bytes);
+    final session = _session;
+    if (session != null) {
+      session.addAudioChunk(bytes);
+      return;
+    }
+    _bufferedChunks.add(Uint8List.fromList(bytes));
+  }
+
+  void _analyzePcmVoiceActivity(Uint8List bytes) {
+    final sampleCount = bytes.length ~/ 2;
+    if (sampleCount <= 0) {
+      return;
+    }
+    final data = ByteData.sublistView(bytes);
+    for (
+      var frameStart = 0;
+      frameStart < sampleCount;
+      frameStart += _pcmAnalysisFrameSamples
+    ) {
+      final frameEnd = math.min(
+        sampleCount,
+        frameStart + _pcmAnalysisFrameSamples,
+      );
+      var energy = 0.0;
+      for (
+        var sampleIndex = frameStart;
+        sampleIndex < frameEnd;
+        sampleIndex += 1
+      ) {
+        final sample = data.getInt16(sampleIndex * 2, Endian.little) / 32768.0;
+        energy += sample * sample;
+      }
+      final frameSamples = frameEnd - frameStart;
+      final frameDuration = Duration(
+        microseconds: ((frameSamples * 1000000) / _pcmSampleRate).round(),
+      );
+      _pcmElapsed += frameDuration;
+      final rms = math.sqrt(energy / math.max(1, frameSamples));
+      final dbfs = rms <= 1e-7
+          ? -100.0
+          : (20 * math.log(rms) / math.ln10).clamp(-100.0, 0.0).toDouble();
+      final activity = _pcmVoiceActivityDetector.addSample(
+        dbfs,
+        elapsed: _pcmElapsed,
+      );
+      if (activity.speechStarted && !_speechDetected) {
+        markSpeculativeSpeechDetected();
+      }
+      if (!_speechDetected || activity.isCalibrating) {
+        continue;
+      }
+      if (activity.voiceActive) {
+        _pcmSilenceDuration = Duration.zero;
+        final requiresConfirmedResume =
+            _pcmVoiceInactive || _voiceInactiveAt != null;
+        if (requiresConfirmedResume) {
+          if (_pcmResumeDuration == Duration.zero) {
+            _pcmResumeMinimumDbfs = dbfs;
+            _pcmResumeMaximumDbfs = dbfs;
+          } else {
+            _pcmResumeMinimumDbfs = math.min(_pcmResumeMinimumDbfs, dbfs);
+            _pcmResumeMaximumDbfs = math.max(_pcmResumeMaximumDbfs, dbfs);
+          }
+          _pcmResumeDuration += frameDuration;
+          final resumeVariation = _pcmResumeMaximumDbfs - _pcmResumeMinimumDbfs;
+          if (_pcmResumeDuration < _pcmConfirmedResumeDuration ||
+              resumeVariation < _pcmConfirmedResumeVariationDb) {
+            // Do not let one noisy/reverberant frame cancel an ASR terminal
+            // already scheduled during silence. A real new phrase supplies a
+            // short, varying PCM run and is confirmed below.
+            continue;
+          }
+          _pcmVoiceInactive = false;
+          _resetPcmResumeCandidate();
+          // A confirmed PCM speech resumption invalidates the old terminal
+          // snapshot even when Safari's amplitude callback misses the start.
+          markSpeculativeSpeechDetected();
+          markSpeculativeVoiceActive(resumeReason: 'pcm_confirmed_resume');
+          continue;
+        }
+        _resetPcmResumeCandidate();
+        if (!_voiceActive) {
+          markSpeculativeVoiceActive(resumeReason: 'pcm_voice_active');
+        }
+        continue;
+      }
+      _resetPcmResumeCandidate();
+      _pcmSilenceDuration += frameDuration;
+      if (!_pcmVoiceInactive &&
+          _pcmSilenceDuration >= _pcmStableSilenceDuration) {
+        _pcmVoiceInactive = true;
+        _pcmSilenceDetectedAtRecordingMs ??=
+            _recordingStopwatch.elapsedMilliseconds;
+        markSpeculativeVoiceInactive();
+      }
+    }
+  }
+
+  void _resetPcmResumeCandidate() {
+    _pcmResumeDuration = Duration.zero;
+    _pcmResumeMinimumDbfs = 0;
+    _pcmResumeMaximumDbfs = -100;
+  }
+
+  void _cancelTerminalPreviewTimer(String reason) {
+    final timer = _terminalPreviewTimer;
+    if (timer == null) {
+      return;
+    }
+    timer.cancel();
+    _terminalPreviewTimer = null;
+    _terminalTimerCanceledCount += 1;
+    _terminalTimerLastCancelReason = reason;
+  }
+
+  Map<String, dynamic> _clientTerminalTelemetry() {
+    final stopAt = _stopRequestedAtRecordingMs;
+    final terminalAt = _terminalRequestedAtRecordingMs;
+    return <String, dynamic>{
+      if (_stopReason != null) 'clientStopReason': _stopReason,
+      if (_pcmSilenceDetectedAtRecordingMs != null)
+        'clientPcmSilenceDetectedAtRecordingMs':
+            _pcmSilenceDetectedAtRecordingMs,
+      if (_terminalTimerScheduledAtRecordingMs != null)
+        'clientTerminalTimerScheduledAtRecordingMs':
+            _terminalTimerScheduledAtRecordingMs,
+      'clientTerminalRequestedAtRecordingMs': ?terminalAt,
+      'clientStopRequestedAtRecordingMs': ?stopAt,
+      if (stopAt != null && terminalAt != null)
+        'clientTerminalRequestedBeforeStopMs': math.max(0, stopAt - terminalAt),
+      'clientTerminalTimerCanceledCount': _terminalTimerCanceledCount,
+      if (_terminalTimerLastCancelReason != null)
+        'clientTerminalTimerLastCancelReason': _terminalTimerLastCancelReason,
+    };
+  }
+
+  void _pushClientTerminalTelemetry([
+    SpeculativeBatchChunkUploadSession? target,
+  ]) {
+    final speculative =
+        target ??
+        (_session is SpeculativeBatchChunkUploadSession
+            ? _session! as SpeculativeBatchChunkUploadSession
+            : null);
+    speculative?.updateClientTerminalTelemetry(_clientTerminalTelemetry());
+  }
+
+  void schedulePromotion() {
+    if (_promotionFuture != null || _promotionTimer != null) {
+      return;
+    }
+    if (promotionDelay == Duration.zero) {
+      _promotionFuture = _promoteToChunkUpload();
+      return;
+    }
+    _promotionTimer = Timer(promotionDelay, _startPromotionNow);
+  }
+
+  void _startPromotionNow() {
+    _promotionTimer?.cancel();
+    _promotionTimer = null;
+    _promotionFuture ??= _promoteToChunkUpload();
+  }
+
+  Future<void> waitUntilPromoted() async {
+    if (!_acceptingChunks || _session != null) {
+      return;
+    }
+    _startPromotionNow();
+    final promotion = _promotionFuture;
+    if (promotion == null) {
+      return;
+    }
+    try {
+      await promotion.timeout(const Duration(milliseconds: 350));
+    } on TimeoutException {
+      // The WAV fallback remains available. Promotion may finish later and
+      // will discard its session if stop has already sealed this manager.
+    }
+  }
+
+  Future<void> _promoteToChunkUpload() async {
+    try {
+      final session = await repository.startBatchChunkUpload();
+      if (!_acceptingChunks) {
+        await session.discard().catchError((Object _) {});
+        return;
+      }
+      _session = session;
+      final speculative = session is SpeculativeBatchChunkUploadSession
+          ? session as SpeculativeBatchChunkUploadSession
+          : null;
+      final previewContext = _previewContext;
+      final previewChildAge = _previewChildAge;
+      if (speculative != null &&
+          previewContext != null &&
+          previewChildAge != null) {
+        speculative.configureSpeculativePreview(
+          context: previewContext,
+          childAge: previewChildAge,
+        );
+        if (_speechDetected) {
+          speculative.markSpeculativeSpeechDetected();
+        }
+        if (_voiceActive) {
+          speculative.markSpeculativeVoiceActive();
+        } else if (_voiceInactiveAt != null) {
+          speculative.markSpeculativeVoiceInactive();
+        }
+        _pushClientTerminalTelemetry(speculative);
+        _previewSubscription = speculative.speculativePreviews.listen(
+          (preview) {
+            if (!_previewController.isClosed) {
+              _previewController.add(preview);
+            }
+          },
+          onError: (Object error, StackTrace stackTrace) {
+            if (!_previewController.isClosed) {
+              _previewController.addError(error, stackTrace);
+            }
+          },
+        );
+      }
+      for (final bytes in _bufferedChunks) {
+        session.addAudioChunk(bytes);
+      }
+      _bufferedChunks.clear();
+      if (_terminalPreviewPending && !_voiceActive && speculative != null) {
+        _terminalPreviewPending = false;
+        speculative.requestTerminalSpeculativePreview();
+      }
+    } catch (error) {
+      debugPrint(
+        'Adaptive Web chunk upload was skipped; keeping WAV fallback: $error',
+      );
+    }
+  }
+
+  Future<BatchChunkUploadSession?> stopAndTakeSession() async {
+    _cancelTerminalPreviewTimer('session_sealed');
+    _acceptingChunks = false;
+    _bufferedChunks.clear();
+    final session = _session;
+    if (session is SpeculativeBatchChunkUploadSession) {
+      _pushClientTerminalTelemetry(
+        session as SpeculativeBatchChunkUploadSession,
+      );
+    }
+    _session = null;
+    return session;
+  }
+
+  Future<void> finishPreviewForwarding() async {
+    await _previewSubscription?.cancel();
+    _previewSubscription = null;
+    if (!_previewController.isClosed) {
+      await _previewController.close();
+    }
+  }
+
+  Future<void> discard({String reason = 'adaptive_cancelled'}) async {
+    _promotionTimer?.cancel();
+    _cancelTerminalPreviewTimer('discarded');
+    _acceptingChunks = false;
+    _bufferedChunks.clear();
+    await _previewSubscription?.cancel();
+    _previewSubscription = null;
+    if (!_previewController.isClosed) {
+      await _previewController.close();
+    }
+    final session = _session;
+    _session = null;
+    if (session != null) {
+      await session.discard(reason: reason).catchError((Object _) {});
+    }
+  }
+}
+
+class _DeviceConnectionCancelledException implements Exception {
+  const _DeviceConnectionCancelledException();
+}

@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\MP3\\ROLEPLAY_08\\ROLEPLAY_08_TURN_04_HOMI_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "ROLEPLAY_08_TURN_04_VI",
+  "sourceText": "Lúc năm giờ rưỡi.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75, VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Lúc năm giờ rưỡi.",
+      "generation_key": "372803009e533cf6"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-5A37571DBBFBAE0ED6AB4FCC",
+  "text": "Lúc năm giờ rưỡi.",
+  "asset": "assets/audio/CURRICULUM/5a37571dbbfbae0ed6ab4fcc.vi.v1.mp3",
+  "sha256": "ecd57b56e1c230fb2d0ace3d4944103cbf4edb80200c07017ded0d0dbd0478be",
+  "durationSeconds": 1.499728
+}

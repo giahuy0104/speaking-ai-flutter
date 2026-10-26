@@ -1,0 +1,42 @@
+{
+    "id": "./",
+    "name": "HOMI - Trợ lý giao tiếp",
+    "short_name": "HOMI",
+    "lang": "vi",
+    "start_url": "./",
+    "scope": "./",
+    "display": "standalone",
+    "background_color": "#EAF4FF",
+    "theme_color": "#EAF4FF",
+    "description": "Trợ lý giao tiếp và luyện nghe tiếng Anh dành cho trẻ em.",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "categories": [
+        "education",
+        "kids"
+    ],
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}

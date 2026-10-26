@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T01-B03\\C35-L1-T01-B03-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-T01-B03-Q03",
+  "sourceText": "Cái ô: Umbrella hay Van?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Cái ô:",
+      "spoken_text": "Cái ô:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Umbrella",
+      "spoken_text": "Umbrella",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Van?",
+      "spoken_text": "Van?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-6E0FAD4AC0D3A08D740F5ECC",
+  "text": "Cái ô: Umbrella hay Van?",
+  "asset": "assets/audio/CURRICULUM/6e0fad4ac0d3a08d740f5ecc.vi.v1.mp3",
+  "sha256": "2db1ef2234c2ddc44c3fc86becb605c565c2f49f4d5d23944ddc7fd0ce1c3884",
+  "durationSeconds": 4.213379
+}

@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T10-B02\\C810-L3-T10-B02-T01_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T10-B02-T01_VI",
+  "sourceText": "Đi xe buýt.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Đi xe buýt.",
+      "generation_key": "029f06ea281a79e3"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-DE79EC293413B5441243E4A9",
+  "text": "Đi xe buýt.",
+  "asset": "assets/audio/CURRICULUM/de79ec293413b5441243e4a9.vi.v1.mp3",
+  "sha256": "bff17a9dcf133c9f3f771c32cf2c7739d31172bebd99e617420d42679585af46",
+  "durationSeconds": 0.978435
+}

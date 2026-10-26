@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T04\\C1315-L2-M01_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-M01",
+  "sourceText": "Bạn cần diễn đạt \"Nó có đáng không\". Is it worth it? hay It's too expensive?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần diễn đạt \"Nó có đáng không\".",
+      "text": "Bạn cần diễn đạt \"Nó có đáng không\".",
+      "spoken_text": "Bạn cần diễn đạt \"Nó có đáng không\".",
+      "input_index": 0
+    },
+    {
+      "language": "en",
+      "source_text": "Is it worth it?",
+      "text": "Is it worth it?",
+      "spoken_text": "Is it worth it?",
+      "input_index": 1
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 2
+    },
+    {
+      "language": "en",
+      "source_text": "It's too expensive?",
+      "text": "It's too expensive?",
+      "spoken_text": "It's too expensive?",
+      "input_index": 3
+    }
+  ],
+  "sourceSha256": "ad31d346e222654bcfee1c2f10220e897acce077e138a94ebdaad31ea986cb9a",
+  "id": "LESSON-FBDE1E654503F57D2EBF0B74",
+  "text": "Bạn cần diễn đạt \"Nó có đáng không\". Is it worth it? hay It's too expensive?",
+  "asset": "assets/audio/CURRICULUM/fbde1e654503f57d2ebf0b74.vi.v1.mp3",
+  "sha256": "ad31d346e222654bcfee1c2f10220e897acce077e138a94ebdaad31ea986cb9a",
+  "durationSeconds": 6.935351
+}

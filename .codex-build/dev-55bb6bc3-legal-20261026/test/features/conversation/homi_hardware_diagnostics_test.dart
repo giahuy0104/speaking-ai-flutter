@@ -1,0 +1,1410 @@
+import 'dart:async';
+
+import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
+import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
+import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_control.dart';
+import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
+import 'package:ai_speaking_flutter_app/core/device/aiv0_ble_control.dart';
+import 'package:ai_speaking_flutter_app/core/device/main_button_coordinator.dart';
+import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_models.dart';
+import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_repository.dart';
+import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+void main() {
+  setUp(() => SharedPreferences.setMockInitialValues({}));
+  test(
+    'cancelled HFP discovery cannot select a late device; next round works',
+    () async {
+      final discovery = Completer<List<HfpAudioDevice>>();
+      final hfp = _FakeHfpAudioControl(
+        pendingDiscovery: discovery,
+        devices: const [
+          HfpAudioDevice(id: 'hm-d001', name: 'HM-D001', isConnected: true),
+        ],
+      );
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        hfpAudioControl: hfp,
+        playbackService: _FakePlaybackService(),
+        repository: _NoNetworkRepository(),
+        childAge: 6,
+      );
+      final attempt = controller.autoConnectHomiHfp();
+      controller.cancelAutomaticHfpSelection();
+      discovery.complete(hfp.devices);
+      expect(await attempt, isFalse);
+      expect(hfp.connectedDevice, isNull);
+      expect(controller.usesHfpInput, isFalse);
+      expect(await controller.autoConnectHomiHfp(), isTrue);
+      expect(controller.usesHfpInput, isTrue);
+      controller.dispose();
+    },
+  );
+
+  test(
+    'cancelled HFP connect cannot mark the microphone selected on completion',
+    () async {
+      final connection = Completer<void>();
+      final hfp = _FakeHfpAudioControl(
+        pendingConnection: connection,
+        devices: const [
+          HfpAudioDevice(id: 'hm-d001', name: 'HM-D001', isConnected: true),
+        ],
+      );
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        hfpAudioControl: hfp,
+        playbackService: _FakePlaybackService(),
+        repository: _NoNetworkRepository(),
+        childAge: 6,
+      );
+      final attempt = controller.autoConnectHomiHfp();
+      await _flushAsyncEvents();
+      controller.cancelAutomaticHfpSelection();
+      connection.complete();
+      expect(await attempt, isFalse);
+      expect(controller.usesHfpInput, isFalse);
+      controller.dispose();
+    },
+  );
+
+  test(
+    'HM-D001 loopback records and plays locally without repository calls',
+    () async {
+      final input = _FakeAudioInput();
+      final hfp = _FakeHfpAudioControl();
+      final playback = _FakePlaybackService();
+      final repository = _NoNetworkRepository();
+      final controller = ConversationController(
+        audioInput: input,
+        hfpAudioControl: hfp,
+        playbackService: playback,
+        repository: repository,
+        childAge: 6,
+      );
+
+      await controller.setHomiHardwareTestMode(true);
+      await controller.startHomiOfflineRecording();
+
+      expect(controller.homiHardwareTestPhase, HomiHardwareTestPhase.recording);
+      expect(input.startCount, 1);
+      expect(hfp.startRouteCount, 1);
+      expect(playback.communicationRouteActive, isTrue);
+
+      await controller.stopAndReplayHomiOfflineRecording();
+
+      expect(input.stopCount, 1);
+      expect(playback.playedUris.single.scheme, 'file');
+      expect(hfp.stopRouteCount, 1);
+      expect(repository.networkCallCount, 0);
+      expect(controller.homiHardwareTestPhase, HomiHardwareTestPhase.completed);
+      expect(controller.homiHardwareTestResult?.inputRouteVerified, isTrue);
+      expect(controller.homiHardwareTestResult?.outputRouteVerified, isTrue);
+      expect(
+        controller.homiHardwareTestResult?.inputDeviceName,
+        'HM-D001 Microphone',
+      );
+      expect(controller.homiHardwareTestResult?.outputDeviceName, 'HM-D001 Speaker');
+      expect(playback.communicationRouteActive, isFalse);
+
+      controller.confirmHomiPlaybackAudible(true);
+      expect(controller.homiHardwareTestResult?.playbackAudible, isTrue);
+      controller.dispose();
+    },
+  );
+
+  test('bundled speaker test uses an APK asset and no network', () async {
+    final hfp = _FakeHfpAudioControl();
+    final playback = _FakePlaybackService();
+    final repository = _NoNetworkRepository();
+    final controller = ConversationController(
+      audioInput: _FakeAudioInput(),
+      hfpAudioControl: hfp,
+      playbackService: playback,
+      repository: repository,
+      childAge: 6,
+    );
+
+    await controller.setHomiHardwareTestMode(true);
+    await controller.playHomiBundledSpeakerTest();
+
+    expect(playback.playedUris.single.scheme, 'asset');
+    expect(
+      playback.playedUris.single.path,
+      'assets/audio/A-3-5/GUIDE_RECORD/A035_GUIDE_RECORD_01.mp3',
+    );
+    expect(controller.homiHardwareTestResult?.outputRouteVerified, isTrue);
+    expect(repository.networkCallCount, 0);
+    controller.dispose();
+  });
+
+  test(
+    'offline recording refuses to claim HM-D001 when SCO route is not active',
+    () async {
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        hfpAudioControl: _FakeHfpAudioControl(activateRoute: false),
+        playbackService: _FakePlaybackService(),
+        repository: _NoNetworkRepository(),
+        childAge: 6,
+      );
+
+      await controller.setHomiHardwareTestMode(true);
+
+      await expectLater(
+        controller.startHomiOfflineRecording(),
+        throwsA(isA<StateError>()),
+      );
+      expect(controller.homiHardwareTestPhase, HomiHardwareTestPhase.error);
+      expect(controller.homiHardwareTestResult, isNull);
+      controller.dispose();
+    },
+  );
+
+  test(
+    'confirmed MAIN toggles offline recording and duplicate is ignored',
+    () async {
+      final aiv0 = _FakeAiv0BleControl(protocolConfirmed: true);
+      final input = _FakeAudioInput();
+      final playback = _FakePlaybackService();
+      final controller = ConversationController(
+        audioInput: input,
+        hfpAudioControl: _FakeHfpAudioControl(),
+        aiv0BleControl: aiv0,
+        playbackService: playback,
+        repository: _NoNetworkRepository(),
+        childAge: 6,
+      );
+      await controller.setHomiHardwareTestMode(true);
+
+      aiv0.emitMain(sequence: 1);
+      await _flushAsyncEvents();
+      expect(controller.homiHardwareTestPhase, HomiHardwareTestPhase.recording);
+
+      aiv0.emitMain(sequence: 1, duplicate: true);
+      await _flushAsyncEvents();
+      expect(controller.homiHardwareTestPhase, HomiHardwareTestPhase.recording);
+      expect(input.stopCount, 0);
+
+      aiv0.emitMain(sequence: 2);
+      await _flushAsyncEvents();
+      expect(controller.homiHardwareTestPhase, HomiHardwareTestPhase.completed);
+      expect(input.stopCount, 1);
+      expect(playback.playedUris.single.scheme, 'file');
+      controller.dispose();
+    },
+  );
+
+  test('observed raw MAIN toggles capture without APP State writes', () async {
+    final aiv0 = _FakeAiv0BleControl(protocolConfirmed: false);
+    final input = _FakeAudioInput();
+    final controller = ConversationController(
+      audioInput: input,
+      hfpAudioControl: _FakeHfpAudioControl(),
+      aiv0BleControl: aiv0,
+      playbackService: _FakePlaybackService(),
+      repository: _NoNetworkRepository(),
+      childAge: 6,
+    );
+    await controller.setHomiHardwareTestMode(true);
+
+    aiv0.emitObservedRawMain();
+    await _flushAsyncEvents();
+
+    expect(input.startCount, 1);
+    expect(controller.homiHardwareTestPhase, HomiHardwareTestPhase.recording);
+    expect(controller.aiv0ButtonEventLog, hasLength(1));
+    expect(aiv0.appStateWrites, 0);
+    controller.dispose();
+  });
+
+  test('automatically selects the HM-D001 HFP input after BLE connects', () async {
+    final hfp = _FakeHfpAudioControl(
+      devices: const <HfpAudioDevice>[
+        HfpAudioDevice(id: 'airpods', name: 'AirPods Pro', isConnected: true),
+        HfpAudioDevice(id: 'hm-d001', name: 'HM-D001', isConnected: false),
+      ],
+    );
+    final controller = ConversationController(
+      audioInput: _FakeAudioInput(),
+      hfpAudioControl: hfp,
+      playbackService: _FakePlaybackService(),
+      repository: _NoNetworkRepository(),
+      childAge: 6,
+    );
+
+    expect(await controller.autoConnectHomiHfp(bleDeviceName: 'HM-D001'), isTrue);
+    expect(hfp.connectedDevice?.id, 'hm-d001');
+    expect(controller.usesHfpInput, isTrue);
+    controller.dispose();
+  });
+
+  test(
+    'background auto-selection waits for an actually connected HFP',
+    () async {
+      final hfp = _FakeHfpAudioControl(
+        devices: const <HfpAudioDevice>[
+          HfpAudioDevice(id: 'airpods', name: 'AirPods Pro', isConnected: true),
+          HfpAudioDevice(id: 'hm-d001', name: 'HM-D001', isConnected: false),
+        ],
+      );
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        hfpAudioControl: hfp,
+        playbackService: _FakePlaybackService(),
+        repository: _NoNetworkRepository(),
+        childAge: 6,
+      );
+
+      expect(
+        await controller.autoConnectHomiHfp(
+          bleDeviceName: 'HM-D001',
+          requireConnected: true,
+        ),
+        isFalse,
+      );
+      expect(hfp.connectedDevice, isNull);
+      expect(controller.usesHfpInput, isFalse);
+      controller.dispose();
+    },
+  );
+
+  test(
+    'BLE long press stops once and release does not restart capture',
+    () async {
+      final aiv0 = _FakeAiv0BleControl(protocolConfirmed: true);
+      final input = _FakeAudioInput();
+      final controller = ConversationController(
+        audioInput: input,
+        hfpAudioControl: _FakeHfpAudioControl(),
+        aiv0BleControl: aiv0,
+        playbackService: _FakePlaybackService(),
+        repository: _NoNetworkRepository(),
+        childAge: 6,
+      );
+      final coordinator = MainButtonCoordinator(
+        onScreenShortPress: (_) async => MainButtonActionResult.accepted,
+        onBleShortPress: controller.handleBleMainShortPress,
+        onLongPress: (_) => controller.stopCurrentMainAction(),
+      );
+      controller.setMainButtonDispatcher(coordinator.handle);
+      await controller.setHomiHardwareTestMode(true);
+
+      aiv0.emitMain(sequence: 1);
+      await _flushAsyncEvents();
+      expect(controller.homiHardwareTestPhase, HomiHardwareTestPhase.recording);
+
+      aiv0.emitMain(sequence: 2, gesture: Aiv0ButtonGesture.longPress);
+      await _flushAsyncEvents();
+      expect(controller.homiHardwareTestPhase, HomiHardwareTestPhase.completed);
+      expect(input.stopCount, 1);
+
+      aiv0.emitMain(sequence: 2, gesture: Aiv0ButtonGesture.release);
+      await _flushAsyncEvents();
+      expect(controller.homiHardwareTestPhase, HomiHardwareTestPhase.completed);
+      expect(input.startCount, 1);
+      expect(input.stopCount, 1);
+      controller.dispose();
+    },
+  );
+
+  test('continuous HFP opens without blocking on BLE MAIN recovery', () async {
+    final aiv0 = _FakeAiv0BleControl(
+      protocolConfirmed: true,
+      initialStatus: const Aiv0BleStatus(
+        phase: Aiv0BlePhase.reconnecting,
+        protocolConfirmed: true,
+        deviceId: 'HM-D001-BLE',
+        deviceName: 'HM-D001',
+        peripheralState: 'connecting',
+        mainNotificationState: 'unavailable',
+      ),
+    );
+    final speechInput = _FakeContinuousHfpStreamingSpeechInput();
+    final controller = ConversationController(
+      audioInput: _FakeAudioInput(),
+      streamingSpeechInput: speechInput,
+      hfpAudioControl: _FakeHfpAudioControl(),
+      aiv0BleControl: aiv0,
+      playbackService: _FakePlaybackService(),
+      repository: _NoNetworkRepository(),
+      childAge: 6,
+      initialAsrMode: AsrMode.hfpStreaming,
+    );
+
+    expect(
+      await controller.beginContinuousHfpSession().timeout(
+        const Duration(seconds: 1),
+      ),
+      isTrue,
+    );
+    expect(speechInput.cancelCount, 1);
+    expect(speechInput.beginSessionCount, 1);
+    expect(controller.isContinuousHfpSessionActive, isTrue);
+    controller.dispose();
+  });
+
+  test(
+    'continuous HFP recording start does not wait for BLE coexistence',
+    () async {
+      final aiv0 = _FakeAiv0BleControl(
+        protocolConfirmed: true,
+        initialStatus: const Aiv0BleStatus(
+          phase: Aiv0BlePhase.reconnecting,
+          protocolConfirmed: true,
+          deviceId: 'HM-D001-BLE',
+          deviceName: 'HM-D001',
+          peripheralState: 'connecting',
+          mainNotificationState: 'unavailable',
+        ),
+      );
+      final speechInput = _FakeContinuousHfpStreamingSpeechInput();
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        streamingSpeechInput: speechInput,
+        hfpAudioControl: _FakeHfpAudioControl(),
+        aiv0BleControl: aiv0,
+        playbackService: _FakePlaybackService(),
+        repository: _NoNetworkRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.hfpStreaming,
+      );
+
+      expect(await controller.beginContinuousHfpSession(), isTrue);
+      expect(speechInput.cancelCount, 1);
+      expect(speechInput.beginSessionCount, 1);
+      await controller
+          .startRecording(noSpeechTimeout: const Duration(minutes: 1))
+          .timeout(const Duration(seconds: 1));
+      expect(controller.isRecording, isTrue);
+      expect(speechInput.startCount, 1);
+      await controller.cancelCurrentMainAction();
+      controller.dispose();
+    },
+  );
+
+  test(
+    'phone microphone recording starts while AIV0 BLE scans independently',
+    () async {
+      final aiv0 = _FakeAiv0BleControl(
+        protocolConfirmed: false,
+        initialStatus: const Aiv0BleStatus(
+          phase: Aiv0BlePhase.scanning,
+          protocolConfirmed: false,
+          peripheralState: 'scanning',
+          mainNotificationState: 'unavailable',
+        ),
+      );
+      final speechInput = _FakeContinuousHfpStreamingSpeechInput();
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        streamingSpeechInput: speechInput,
+        aiv0BleControl: aiv0,
+        playbackService: _FakePlaybackService(),
+        repository: _NoNetworkRepository(),
+        childAge: 6,
+      );
+
+      // BLE scanning remains visible as global background work, but it is not
+      // an audio-resource conflict for Apple Speech on the phone microphone.
+      expect(controller.isBusy, isTrue);
+      expect(controller.isRecordingStartBlocked, isFalse);
+
+      await controller
+          .startRecording(noSpeechTimeout: const Duration(minutes: 1))
+          .timeout(const Duration(seconds: 1));
+
+      expect(controller.isRecording, isTrue);
+      expect(speechInput.startCount, 1);
+      await controller.cancelCurrentMainAction();
+      controller.dispose();
+    },
+  );
+
+  test(
+    'BLE recovery preserves active capture and the next push-to-talk turn',
+    () async {
+      final aiv0 = _FakeAiv0BleControl(protocolConfirmed: true);
+      final speech = _FakeContinuousHfpStreamingSpeechInput();
+      final phone = _FakeAudioInput();
+      final hfp = _FakeHfpAudioControl();
+      final controller = ConversationController(
+        audioInput: phone,
+        streamingSpeechInput: speech,
+        hfpAudioControl: hfp,
+        aiv0BleControl: aiv0,
+        playbackService: _FakePlaybackService(),
+        repository: _NoNetworkRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.hfpStreaming,
+      );
+      await controller.connectHfpDevice(
+        const HfpAudioDevice(
+          id: '00:11:22:33:44:55',
+          name: 'HM-D001',
+          isConnected: true,
+        ),
+        confirmHomiAssociation: true,
+      );
+      expect(await controller.beginContinuousHfpSession(), isTrue);
+      await controller.startRecording(
+        noSpeechTimeout: const Duration(minutes: 1),
+      );
+      final cancelBeforeLoss = speech.cancelCount;
+      for (final phase in [
+        Aiv0BlePhase.reconnecting,
+        Aiv0BlePhase.scanning,
+        Aiv0BlePhase.connecting,
+      ]) {
+        aiv0.emitStatus(Aiv0BleStatus(phase: phase, protocolConfirmed: true));
+        await _flushAsyncEvents();
+        expect(controller.isRecording, isTrue);
+        expect(controller.isContinuousHfpSessionActive, isTrue);
+        expect(controller.isHomiAudioReady, isTrue);
+        expect(controller.isHomiReady, isFalse);
+        expect(speech.cancelCount, cancelBeforeLoss);
+      }
+      await controller.cancelCurrentMainAction();
+      // A BLE-only connection transition is not an audio-resource conflict.
+      expect(controller.isBusy, isTrue);
+      await controller.startPushToTalk();
+      expect(controller.isRecording, isTrue);
+      expect(speech.startCount, 2);
+      expect(phone.startCount, 0);
+      expect(hfp.disconnectCount, 0);
+      await controller.cancelCurrentMainAction();
+      await controller.endContinuousHfpSession();
+      controller.dispose();
+    },
+  );
+
+  testWidgets(
+    'real HFP loss ends capture and session without switching to phone',
+    (tester) async {
+      final speech = _FakeContinuousHfpStreamingSpeechInput();
+      final phone = _FakeAudioInput();
+      final hfp = _FakeHfpAudioControl();
+      final controller = ConversationController(
+        audioInput: phone,
+        streamingSpeechInput: speech,
+        hfpAudioControl: hfp,
+        playbackService: _FakePlaybackService(),
+        repository: _NoNetworkRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.hfpStreaming,
+      );
+      expect(await controller.beginContinuousHfpSession(), isTrue);
+      await controller.startRecording(
+        noSpeechTimeout: const Duration(minutes: 1),
+      );
+      expect(controller.isRecording, isTrue);
+
+      // Native can clear the selected device ID completely after a disconnect.
+      await tester.runAsync(() async {
+        await hfp.disconnect();
+        await _flushAsyncEvents();
+      });
+      await tester.pump();
+      expect(controller.isRecording, isFalse);
+      expect(controller.isContinuousHfpSessionActive, isFalse);
+      expect(controller.usesHfpInput, isTrue);
+      expect(controller.errorMessage, contains('Kết nối âm thanh HM-D001'));
+      await controller.startRecording();
+      expect(speech.startCount, 1);
+      expect(phone.startCount, 0);
+      expect(controller.errorMessage, contains('HFP'));
+      controller.dispose();
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
+  test('HFP start failure cannot use a batch-capable phone fallback', () async {
+    final phone = _FakeAudioInput();
+    final controller = ConversationController(
+      audioInput: phone,
+      streamingSpeechInput: _RouteFailureBatchSpeechInput(),
+      hfpAudioControl: _FakeHfpAudioControl(),
+      playbackService: _FakePlaybackService(),
+      repository: _NoNetworkRepository(),
+      childAge: 6,
+      initialAsrMode: AsrMode.hfpStreaming,
+    );
+    await controller.startRecording();
+    expect(controller.isRecording, isFalse);
+    expect(controller.phase, ConversationPhase.error);
+    expect(phone.startCount, 0);
+    controller.dispose();
+  });
+
+  test(
+    'HFP loss cleanup blocks new capture and selection until native release completes',
+    () async {
+      final previousPlatform = debugDefaultTargetPlatformOverride;
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() => debugDefaultTargetPlatformOverride = previousPlatform);
+      final release = Completer<void>();
+      final speech = _FakeContinuousHfpStreamingSpeechInput(
+        pendingSessionEnd: release,
+      );
+      final hfp = _FakeHfpAudioControl();
+      final phone = _FakeAudioInput();
+      final controller = ConversationController(
+        audioInput: phone,
+        streamingSpeechInput: speech,
+        hfpAudioControl: hfp,
+        playbackService: _FakePlaybackService(),
+        repository: _NoNetworkRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.hfpStreaming,
+      );
+      final notifiedStartBlocks = <bool>[];
+      controller.addListener(
+        () => notifiedStartBlocks.add(controller.isRecordingStartBlocked),
+      );
+      expect(await controller.beginContinuousHfpSession(), isTrue);
+      await controller.startRecording(
+        noSpeechTimeout: const Duration(minutes: 1),
+      );
+      await hfp.disconnect();
+      await _flushAsyncEvents();
+      expect(controller.isRecording, isFalse);
+      expect(controller.isRecordingStartBlocked, isTrue);
+      const device = HfpAudioDevice(id: 'hm-d001', name: 'HM-D001', isConnected: true);
+      expect(
+        (await controller.connectHfpDevice(device)).outcome,
+        DeviceConnectionOutcome.busy,
+      );
+      // The OS may restore HFP before the old native session finishes closing.
+      await hfp.connect(device);
+      expect(await controller.beginContinuousHfpSession(), isFalse);
+      await controller.startRecording();
+      expect(speech.beginSessionCount, 1);
+      expect(speech.startCount, 1);
+      expect(phone.startCount, 0);
+      expect(notifiedStartBlocks.last, isTrue);
+
+      release.complete();
+      await _flushAsyncEvents();
+      expect(controller.isRecordingStartBlocked, isFalse);
+      expect(notifiedStartBlocks.last, isFalse);
+      expect((await controller.connectHfpDevice(device)).succeeded, isTrue);
+      expect(await controller.beginContinuousHfpSession(), isTrue);
+      await controller.startRecording(
+        noSpeechTimeout: const Duration(minutes: 1),
+      );
+      expect(speech.startCount, 2);
+      await controller.cancelCurrentMainAction();
+      await controller.endContinuousHfpSession();
+      controller.dispose();
+    },
+  );
+
+  test('phone microphone does not race an HFP route change', () async {
+    final speechInput = _FakeContinuousHfpStreamingSpeechInput();
+    final controller = ConversationController(
+      audioInput: _FakeAudioInput(),
+      streamingSpeechInput: speechInput,
+      hfpAudioControl: _FakeHfpAudioControl(
+        initialStatus: const BluetoothAudioStatus(
+          phase: BluetoothAudioConnectionPhase.connecting,
+          sampleRate: 16000,
+        ),
+      ),
+      playbackService: _FakePlaybackService(),
+      repository: _NoNetworkRepository(),
+      childAge: 6,
+    );
+
+    expect(controller.usesHfpInput, isFalse);
+    expect(controller.isRecordingStartBlocked, isTrue);
+
+    await controller.startRecording();
+
+    expect(speechInput.startCount, 0);
+    expect(controller.errorMessage, 'Nguồn âm thanh hiện chưa sẵn sàng.');
+    controller.dispose();
+  });
+
+  test(
+    'continuous HFP observes cached English playback completion before play',
+    () async {
+      final speechInput = _FakeContinuousHfpStreamingSpeechInput();
+      final playback = _FakePlaybackService();
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        streamingSpeechInput: speechInput,
+        hfpAudioControl: _FakeHfpAudioControl(),
+        aiv0BleControl: _FakeAiv0BleControl(protocolConfirmed: true),
+        playbackService: playback,
+        repository: _NoNetworkRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.hfpStreaming,
+      );
+      controller.result = ConversationResult(
+        conversationId: 'continuous-turn',
+        sessionId: 'continuous-session',
+        context: PracticeContext.home,
+        vietnameseText: 'Con khát nước.',
+        englishText: 'I am thirsty.',
+        audioUri: Uri.parse('https://example.com/i-am-thirsty.mp3'),
+        processingMode: 'rule',
+        textSource: 'phrase_rule',
+        audioSource: 'cache',
+        asrMode: 'android_streaming',
+        latency: const ConversationLatency(
+          asrMs: 1,
+          llmMs: 0,
+          ttsMs: 0,
+          timeToFirstAudioMs: 1,
+        ),
+      );
+
+      expect(await controller.beginContinuousHfpSession(), isTrue);
+      await controller.playResult().timeout(const Duration(seconds: 1));
+
+      expect(playback.playedUris, <Uri>[
+        Uri.parse('https://example.com/i-am-thirsty.mp3'),
+      ]);
+      controller.dispose();
+    },
+  );
+
+  testWidgets(
+    'losing the selected HM-D001 route stops in-flight translation audio',
+    (tester) async {
+      final hfp = _FakeHfpAudioControl(
+        devices: const <HfpAudioDevice>[
+          HfpAudioDevice(id: 'hm-d001', name: 'HM-D001', isConnected: true),
+        ],
+      );
+      final playback = _HeldPlaybackService();
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        hfpAudioControl: hfp,
+        playbackService: playback,
+        repository: _NoNetworkRepository(),
+        childAge: 6,
+      );
+      await controller.connectHfpDevice(hfp.devices.single);
+      controller.result = ConversationResult(
+        conversationId: 'route-loss',
+        sessionId: 'route-loss-session',
+        context: PracticeContext.home,
+        vietnameseText: 'Xin chào',
+        englishText: 'Hello',
+        audioUri: Uri.parse('https://example.com/hello.mp3'),
+        processingMode: 'rule',
+        textSource: 'phrase_rule',
+        audioSource: 'cache',
+        asrMode: 'android_streaming',
+        latency: const ConversationLatency(
+          asrMs: 1,
+          llmMs: 0,
+          ttsMs: 0,
+          timeToFirstAudioMs: 1,
+        ),
+      );
+
+      final playing = controller.playResult();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 10));
+      expect(playback.started.isCompleted, isTrue);
+      expect(hfp.status.routeActive, isTrue);
+
+      hfp.emitRouteLoss();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 10));
+
+      expect(playback.stopCount, greaterThan(0));
+      expect(controller.errorMessage, contains('Kết nối âm thanh HM-D001'));
+      await playing;
+      controller.dispose();
+      await playback.dispose();
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
+  testWidgets(
+    'iOS A2DP playback stops on speaker fallback but ignores stale route events',
+    (tester) async {
+      final hfp = _FakeHfpAudioControl(
+        devices: const <HfpAudioDevice>[
+          HfpAudioDevice(id: 'hm-d001', name: 'HM-D001', isConnected: true),
+        ],
+      );
+      final playback = _HeldPlaybackService();
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        streamingSpeechInput: _FakeContinuousHfpStreamingSpeechInput(),
+        hfpAudioControl: hfp,
+        playbackService: playback,
+        repository: _NoNetworkRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.hfpStreaming,
+      );
+      await controller.connectHfpDevice(hfp.devices.single);
+      hfp.emitOutputRoute('bluetoothA2DP', sequence: 10);
+      controller.result = ConversationResult(
+        conversationId: 'a2dp-route-loss',
+        sessionId: 'a2dp-session',
+        context: PracticeContext.home,
+        vietnameseText: 'Xin chào',
+        englishText: 'Hello',
+        audioUri: Uri.parse('https://example.com/hello.mp3'),
+        processingMode: 'rule',
+        textSource: 'phrase_rule',
+        audioSource: 'cache',
+        asrMode: 'ios_native',
+        latency: const ConversationLatency(
+          asrMs: 1,
+          llmMs: 0,
+          ttsMs: 0,
+          timeToFirstAudioMs: 1,
+        ),
+      );
+
+      final playing = controller.playResult();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 10));
+      expect(playback.started.isCompleted, isTrue);
+      expect(playback.communicationRouteActive, isFalse);
+
+      hfp.emitOutputRoute('builtInSpeaker', sequence: 9);
+      await tester.pump();
+      expect(playback.stopCount, 0);
+
+      hfp.emitOutputRoute('builtInSpeaker', sequence: 11);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 10));
+      expect(playback.stopCount, greaterThan(0));
+      expect(controller.errorMessage, contains('Kết nối âm thanh HM-D001'));
+      await playing;
+      controller.dispose();
+      await playback.dispose();
+    },
+    variant: TargetPlatformVariant({TargetPlatform.iOS}),
+  );
+
+  test(
+    'completed turn stays blocked until its microphone cleanup finishes',
+    () async {
+      final speechInput = _FakeContinuousHfpStreamingSpeechInput();
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        streamingSpeechInput: speechInput,
+        playbackService: _FakePlaybackService(),
+        repository: _SuccessfulStreamingRepository(),
+        childAge: 6,
+        initialAsrMode: AsrMode.androidStreaming,
+      );
+      final readyStartBlocked = <bool>[];
+      controller.addListener(() {
+        if (controller.phase == ConversationPhase.ready) {
+          readyStartBlocked.add(controller.isRecordingStartBlocked);
+        }
+      });
+
+      await controller.startRecording(
+        noSpeechTimeout: const Duration(minutes: 1),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      await controller.stopRecording(manual: true);
+
+      expect(controller.lastTurnEndReason, ConversationTurnEndReason.completed);
+      expect(readyStartBlocked, isNotEmpty);
+      expect(
+        readyStartBlocked.first,
+        isTrue,
+        reason: 'The next turn must not start before old-turn cleanup.',
+      );
+      expect(readyStartBlocked.last, isFalse);
+      controller.dispose();
+    },
+  );
+}
+
+Future<void> _flushAsyncEvents() async {
+  await Future<void>.delayed(Duration.zero);
+  await Future<void>.delayed(Duration.zero);
+}
+
+class _FakeAudioInput implements AudioInput {
+  int startCount = 0;
+  int stopCount = 0;
+  int cancelCount = 0;
+
+  @override
+  String get label => 'Mic điện thoại';
+
+  @override
+  bool get isBluetooth => false;
+
+  @override
+  bool get isAvailable => true;
+
+  @override
+  Stream<double> get amplitudeDbfs => const Stream<double>.empty();
+
+  @override
+  Future<void> start() async {
+    startCount += 1;
+  }
+
+  @override
+  Future<AudioCapture> stop() async {
+    stopCount += 1;
+    return const AudioCapture(
+      // URI-only fake path: use POSIX form so Uri.file is valid on both the
+      // Windows golden baseline and Codemagic macOS builders.
+      filePath: '/tmp/hm-d001-offline-test.m4a',
+      mimeType: 'audio/mp4',
+      duration: Duration(seconds: 3),
+      inputLabel: 'Mic điện thoại',
+      isBluetoothInput: false,
+      initialNoiseRms: null,
+    );
+  }
+
+  @override
+  Future<void> cancel() async {
+    cancelCount += 1;
+  }
+
+  @override
+  Future<void> dispose() async {}
+}
+
+class _FakeContinuousHfpStreamingSpeechInput
+    implements
+        StreamingSpeechInput,
+        HfpRouteOwningStreamingSpeechInput,
+        ContinuousHfpSessionStreamingSpeechInput {
+  _FakeContinuousHfpStreamingSpeechInput({this.pendingSessionEnd});
+
+  final Completer<void>? pendingSessionEnd;
+  int cancelCount = 0;
+  int beginSessionCount = 0;
+  int startCount = 0;
+  bool _sessionActive = false;
+
+  @override
+  String get label => 'HM-D001 Apple Speech';
+
+  @override
+  Stream<double> get amplitudeDbfs => const Stream<double>.empty();
+
+  @override
+  Stream<void> get completed => const Stream<void>.empty();
+
+  @override
+  Stream<String> get partialText => const Stream<String>.empty();
+
+  @override
+  bool get isContinuousHfpSessionActive => _sessionActive;
+
+  @override
+  Future<bool> checkAvailability() async => true;
+
+  @override
+  Future<void> start() async {
+    startCount += 1;
+  }
+
+  @override
+  Future<StreamingSpeechCapture> stop() async => const StreamingSpeechCapture(
+    sourceText: 'hello',
+    duration: Duration(seconds: 1),
+    inputLabel: 'HM-D001 Apple Speech',
+    confidence: 1,
+    firstResultMs: 10,
+    finalAfterStopMs: 10,
+    isBluetoothInput: true,
+  );
+
+  @override
+  Future<void> cancel() async {
+    cancelCount += 1;
+  }
+
+  @override
+  Future<void> beginContinuousHfpSession() async {
+    beginSessionCount += 1;
+    _sessionActive = true;
+  }
+
+  @override
+  Future<void> endContinuousHfpSession() async {
+    if (pendingSessionEnd != null) await pendingSessionEnd!.future;
+    _sessionActive = false;
+  }
+
+  @override
+  Future<void> dispose() async {
+    _sessionActive = false;
+  }
+}
+
+class _RouteFailureBatchSpeechInput
+    extends _FakeContinuousHfpStreamingSpeechInput
+    implements BatchFallbackCapableNativeSpeechInput {
+  @override
+  Future<void> start() async {
+    throw const StreamingSpeechInputException(
+      'Selected HFP input unavailable',
+      code: 'HFP_INPUT_UNAVAILABLE',
+    );
+  }
+}
+
+class _FakeHfpAudioControl implements HfpAudioControl {
+  _FakeHfpAudioControl({
+    this.activateRoute = true,
+    this.devices = const <HfpAudioDevice>[],
+    this.pendingDiscovery,
+    this.pendingConnection,
+    BluetoothAudioStatus? initialStatus,
+  }) : _status =
+           initialStatus ??
+           const BluetoothAudioStatus(
+             phase: BluetoothAudioConnectionPhase.ready,
+             deviceId: '00:11:22:33:44:55',
+             deviceName: 'HM-D001',
+             sampleRate: 16000,
+           );
+
+  final bool activateRoute;
+  final List<HfpAudioDevice> devices;
+  final Completer<List<HfpAudioDevice>>? pendingDiscovery;
+  final Completer<void>? pendingConnection;
+  final StreamController<BluetoothAudioStatus> _statuses =
+      StreamController<BluetoothAudioStatus>.broadcast(sync: true);
+  BluetoothAudioStatus _status;
+  int startRouteCount = 0;
+  int stopRouteCount = 0;
+  int disconnectCount = 0;
+  HfpAudioDevice? connectedDevice;
+
+  void emitRouteLoss() {
+    _status = const BluetoothAudioStatus(
+      phase: BluetoothAudioConnectionPhase.idle,
+      deviceId: 'hm-d001',
+      deviceName: 'HM-D001',
+      sampleRate: 16000,
+    );
+    _statuses.add(_status);
+  }
+
+  void emitOutputRoute(String portType, {required int sequence}) {
+    final next = BluetoothAudioStatus(
+      phase: BluetoothAudioConnectionPhase.ready,
+      deviceId: 'hm-d001',
+      deviceName: 'HM-D001',
+      sampleRate: 16000,
+      outputPortType: portType,
+      routeSequence: sequence,
+    );
+    if (sequence >= (_status.routeSequence ?? -1)) {
+      _status = next;
+    }
+    _statuses.add(next);
+  }
+
+  @override
+  bool get usesBrowserAudioInput => false;
+
+  @override
+  BluetoothAudioStatus get status => _status;
+
+  @override
+  Stream<BluetoothAudioStatus> get statusChanges => _statuses.stream;
+
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  Future<List<HfpAudioDevice>> findDevices() async =>
+      pendingDiscovery == null ? devices : await pendingDiscovery!.future;
+
+  @override
+  Future<void> connect(HfpAudioDevice device) async {
+    if (pendingConnection != null) await pendingConnection!.future;
+    connectedDevice = device;
+    _status = BluetoothAudioStatus(
+      phase: BluetoothAudioConnectionPhase.ready,
+      deviceId: device.id,
+      deviceName: device.displayName,
+      sampleRate: 16000,
+    );
+    _statuses.add(_status);
+  }
+
+  @override
+  Future<void> disconnect() async {
+    disconnectCount += 1;
+    _status = const BluetoothAudioStatus(
+      phase: BluetoothAudioConnectionPhase.idle,
+      sampleRate: 16000,
+    );
+    _statuses.add(_status);
+  }
+
+  @override
+  Future<void> startAudioRoute() async {
+    startRouteCount += 1;
+    if (!activateRoute) return;
+    _status = const BluetoothAudioStatus(
+      phase: BluetoothAudioConnectionPhase.recording,
+      deviceId: '00:11:22:33:44:55',
+      deviceName: 'HM-D001',
+      sampleRate: 16000,
+      routeActive: true,
+      inputDeviceName: 'HM-D001 Microphone',
+      outputDeviceName: 'HM-D001 Speaker',
+      audioRoute: 'HFP/SCO two-way',
+    );
+    _statuses.add(_status);
+  }
+
+  @override
+  Future<void> stopAudioRoute() async {
+    stopRouteCount += 1;
+    _status = const BluetoothAudioStatus(
+      phase: BluetoothAudioConnectionPhase.ready,
+      deviceId: '00:11:22:33:44:55',
+      deviceName: 'HM-D001',
+      sampleRate: 16000,
+    );
+    _statuses.add(_status);
+  }
+
+  @override
+  Future<void> dispose() => _statuses.close();
+}
+
+class _FakePlaybackService
+    implements
+        AudioPlaybackService,
+        CompletionAwareAudioPlaybackService,
+        CommunicationRouteAwareAudioPlaybackService {
+  final StreamController<void> _completions = StreamController<void>.broadcast(
+    sync: true,
+  );
+  final List<Uri> playedUris = <Uri>[];
+  bool communicationRouteActive = false;
+
+  @override
+  Stream<bool> get playingStream => const Stream<bool>.empty();
+
+  @override
+  Stream<void> get completionStream => _completions.stream;
+
+  @override
+  void setCommunicationRouteActive(bool active) {
+    communicationRouteActive = active;
+  }
+
+  @override
+  Future<void> prepare() async {}
+
+  @override
+  Future<void> preload(Uri uri) async {}
+
+  @override
+  Future<PlaybackStartMetrics> play(Uri uri) async {
+    playedUris.add(uri);
+    scheduleMicrotask(() => _completions.add(null));
+    return const PlaybackStartMetrics(
+      audioLoadDuration: Duration.zero,
+      startedAfterRequest: Duration.zero,
+      fromDeviceCache: true,
+    );
+  }
+
+  @override
+  Future<void> stop() async {}
+
+  @override
+  Future<void> dispose() => _completions.close();
+}
+
+class _HeldPlaybackService extends _FakePlaybackService {
+  final Completer<void> started = Completer<void>();
+  final StreamController<bool> _playing = StreamController<bool>.broadcast(
+    sync: true,
+  );
+  final StreamController<void> _finished = StreamController<void>.broadcast(
+    sync: true,
+  );
+  int stopCount = 0;
+
+  @override
+  Stream<bool> get playingStream => _playing.stream;
+
+  @override
+  Stream<void> get completionStream => _finished.stream;
+
+  @override
+  Future<PlaybackStartMetrics> play(Uri uri) async {
+    playedUris.add(uri);
+    _playing.add(true);
+    if (!started.isCompleted) started.complete();
+    return const PlaybackStartMetrics(
+      audioLoadDuration: Duration.zero,
+      startedAfterRequest: Duration.zero,
+      fromDeviceCache: true,
+    );
+  }
+
+  @override
+  Future<void> stop() async {
+    stopCount += 1;
+    _playing.add(false);
+    _finished.add(null);
+  }
+
+  @override
+  Future<void> dispose() async {
+    await _playing.close();
+    await _finished.close();
+    await super.dispose();
+  }
+}
+
+class _FakeAiv0BleControl implements Aiv0BleControl {
+  _FakeAiv0BleControl({
+    required this.protocolConfirmed,
+    Aiv0BleStatus? initialStatus,
+  }) : _status =
+           initialStatus ??
+           Aiv0BleStatus(
+             phase: Aiv0BlePhase.connected,
+             protocolConfirmed: protocolConfirmed,
+             deviceId: 'HM-D001-BLE',
+             deviceName: 'HM-D001',
+             writeMode: 'withResponse',
+             peripheralState: 'connected',
+             mainNotificationState: 'notifying',
+           );
+
+  final bool protocolConfirmed;
+  Aiv0BleStatus _status;
+  final StreamController<Aiv0BleStatus> _statuses =
+      StreamController<Aiv0BleStatus>.broadcast(sync: true);
+  final StreamController<Aiv0ButtonEvent> _buttons =
+      StreamController<Aiv0ButtonEvent>.broadcast(sync: true);
+  int appStateWrites = 0;
+
+  @override
+  Aiv0BleStatus get status => _status;
+
+  @override
+  Stream<Aiv0BleStatus> get statusStream => _statuses.stream;
+
+  @override
+  Stream<Aiv0ButtonEvent> get buttonEvents => _buttons.stream;
+
+  @override
+  Future<void> markParentDiagnosticsOpened() async {}
+
+  void emitStatus(Aiv0BleStatus status) {
+    _status = status;
+    _statuses.add(status);
+  }
+
+  void emitMain({
+    required int sequence,
+    Aiv0ButtonGesture gesture = Aiv0ButtonGesture.shortPress,
+    bool duplicate = false,
+  }) {
+    final gestureByte = switch (gesture) {
+      Aiv0ButtonGesture.shortPress => 1,
+      Aiv0ButtonGesture.longPress => 2,
+      Aiv0ButtonGesture.release => 3,
+      Aiv0ButtonGesture.unknown => 0,
+    };
+    _buttons.add(
+      Aiv0ButtonEvent(
+        rawBytes: Uint8List.fromList(<int>[
+          1,
+          1,
+          gestureByte,
+          0,
+          sequence,
+          0,
+          100,
+          0,
+          0,
+          0,
+          0,
+          0,
+        ]),
+        receivedAt: DateTime.now(),
+        button: Aiv0Button.main,
+        gesture: gesture,
+        sequence: sequence,
+        isDraftPacket: true,
+        isDuplicate: duplicate,
+      ),
+    );
+  }
+
+  void emitObservedRawMain() {
+    _buttons.add(
+      Aiv0ButtonEvent(
+        rawBytes: Uint8List.fromList(<int>[
+          0x01,
+          0x01,
+          0x01,
+          0x00,
+          0x10,
+          0x00,
+          0x3E,
+          0x00,
+          0x3A,
+          0xF2,
+          0x0B,
+          0x00,
+        ]),
+        receivedAt: DateTime.now(),
+        button: Aiv0Button.main,
+        gesture: Aiv0ButtonGesture.shortPress,
+        sequence: 0x10,
+        isObservedHmD001Packet: true,
+      ),
+    );
+  }
+
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  Future<List<Aiv0BleDevice>> scan({
+    Duration timeout = const Duration(seconds: 8),
+  }) async => const <Aiv0BleDevice>[];
+
+  @override
+  Future<void> connect(String deviceId) async {}
+
+  @override
+  Future<void> disconnect() async {}
+
+  @override
+  Future<void> sendAppState({
+    required Aiv0AppState state,
+    required Aiv0AppResult result,
+    int sequence = 0,
+  }) async {
+    if (protocolConfirmed) appStateWrites += 1;
+  }
+
+  @override
+  Future<void> dispose() async {
+    await _statuses.close();
+    await _buttons.close();
+  }
+}
+
+class _NoNetworkRepository implements ConversationRepository {
+  int networkCallCount = 0;
+
+  Never _networkCalled() {
+    networkCallCount += 1;
+    throw StateError('The offline HM-D001 test must not call the repository.');
+  }
+
+  @override
+  Future<void> warmAudioCache() async {}
+
+  @override
+  Future<ConversationResult> processAudio({
+    required AudioCapture capture,
+    required PracticeContext context,
+    required int childAge,
+    required int vadSilenceMs,
+    String? fallbackReason,
+  }) async => _networkCalled();
+
+  @override
+  Future<ConversationResult> processStreamingText({
+    required StreamingSpeechCapture capture,
+    required PracticeContext context,
+    required int childAge,
+    required int vadSilenceMs,
+  }) async => _networkCalled();
+
+  @override
+  Future<ConversationPreview?> previewStreamingText({
+    required String sourceText,
+    required PracticeContext context,
+    required int childAge,
+  }) async => _networkCalled();
+
+  @override
+  Future<ConversationLearningOutcome> review({
+    required String conversationId,
+    required bool approved,
+  }) async => _networkCalled();
+
+  @override
+  Future<void> patchPlaybackLatency({
+    required String conversationId,
+    required int timeToFirstAudioMs,
+    required int audioLoadMs,
+    required bool audioFromDeviceCache,
+    int? responseToPlaybackMs,
+    bool? audioPreloadLoadedData,
+    bool? audioPreloadCanPlay,
+    int? audioPreloadLoadedDataMs,
+    int? audioPreloadCanPlayMs,
+  }) async => _networkCalled();
+
+  @override
+  Future<List<ConversationHistoryItem>> fetchHistory() async =>
+      _networkCalled();
+
+  @override
+  Future<void> deleteHistoryItem(String conversationId) async =>
+      _networkCalled();
+
+  @override
+  Future<void> clearHistory() async => _networkCalled();
+
+  @override
+  Future<void> dispose() async {}
+}
+
+class _SuccessfulStreamingRepository extends _NoNetworkRepository {
+  @override
+  Future<ConversationResult> processStreamingText({
+    required StreamingSpeechCapture capture,
+    required PracticeContext context,
+    required int childAge,
+    required int vadSilenceMs,
+  }) async => ConversationResult(
+    conversationId: 'continuous-turn',
+    sessionId: 'continuous-session',
+    context: context,
+    vietnameseText: capture.sourceText,
+    englishText: 'Hello.',
+    audioUri: null,
+    processingMode: 'streaming',
+    textSource: 'native_speech',
+    audioSource: 'none',
+    asrMode: capture.asrMode,
+    latency: const ConversationLatency(
+      asrMs: 1,
+      llmMs: 1,
+      ttsMs: 0,
+      timeToFirstAudioMs: 0,
+    ),
+  );
+}

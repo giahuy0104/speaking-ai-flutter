@@ -1,0 +1,20 @@
+{
+  "signature": "fbf2a66fe0cfa8d6ad0357df2b32c980079429ceab137ac1222ae9a242c615dc",
+  "request": {
+    "text": "Nó có thể làm gì nhỉ?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+    "speed": 0.9
+  },
+  "sha256": "2f8a1bd783a99d6c0f6c78402a83e7f740501da1e0d45a3a47c6901804985b77",
+  "requestId": "SeJvGoavwLLu1GOJD139",
+  "createdAt": "2026-09-15T23:17:41.962Z"
+}

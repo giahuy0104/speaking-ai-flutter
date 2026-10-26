@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T09-B02\\C810-L3-T09-B02-Q02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T09-B02-Q02",
+  "sourceText": "Mình đã xem TV: I visited Grandma hay I watched TV?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình đã xem TV:",
+      "spoken_text": "Mình đã xem TV:",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "text": "I visited Grandma",
+      "spoken_text": "I visited Grandma",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "text": "I watched TV?",
+      "spoken_text": "I watched TV?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-6BEC11879749524C9885E722",
+  "text": "Mình đã xem TV: I visited Grandma hay I watched TV?",
+  "asset": "assets/audio/CURRICULUM/6bec11879749524c9885e722.vi.v1.mp3",
+  "sha256": "019e151f6fb3a4ddee6837452712697cde17034a7893580b7d0b4b1509e0db70",
+  "durationSeconds": 5.913197
+}

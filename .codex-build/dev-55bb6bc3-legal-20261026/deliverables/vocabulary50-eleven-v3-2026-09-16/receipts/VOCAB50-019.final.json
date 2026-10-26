@@ -1,0 +1,22 @@
+{
+  "number": 19,
+  "id": "VOCAB50-019",
+  "text": "Mình cùng nghe Ngôi sao nhé.",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current",
+  "file": "audio/VOCAB50-019.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "9cd2ac7545e370eb801af30fee26f846eb9610521c6e22dcd4f3c6f8b66e5fbc",
+  "bytes": 28047,
+  "sourceDurationSeconds": 1.52,
+  "durationSeconds": 1.672902,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "oHzG1Wj3Ok7Tjs2kpy2y",
+  "characterCost": "15",
+  "createdAt": "2026-09-16T03:20:32.758Z"
+}

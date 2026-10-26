@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T05-B02\\C1315-L2-T05-B02-Q08_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T05-B02-Q08",
+  "sourceText": "Bạn muốn diễn đạt \"Cất điện thoại đi\". Put your phone away hay What should I do?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn diễn đạt \"Cất điện thoại đi\".",
+      "spoken_text": "Bạn muốn diễn đạt \"Cất điện thoại đi\".",
+      "input_index": 44
+    },
+    {
+      "language": "en",
+      "text": "Put your phone away",
+      "spoken_text": "Put your phone away",
+      "input_index": 45
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 46
+    },
+    {
+      "language": "en",
+      "text": "What should I do?",
+      "spoken_text": "What should I do?",
+      "input_index": 47
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-40636AE3357A82A561267711",
+  "text": "Bạn muốn diễn đạt \"Cất điện thoại đi\". Put your phone away hay What should I do?",
+  "asset": "assets/audio/CURRICULUM/40636ae3357a82a561267711.vi.v1.mp3",
+  "sha256": "9956a031145eab1b96d8241860a02b73d79b9a9d36e04cf00f9d2b6029fdeaa9",
+  "durationSeconds": 6.544036
+}

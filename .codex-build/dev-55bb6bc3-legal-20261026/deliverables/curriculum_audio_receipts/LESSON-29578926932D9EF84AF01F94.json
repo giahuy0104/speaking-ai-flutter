@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T10-B01\\C35-L3-T10-B01-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T10-B01-Q05",
+  "sourceText": "Ngủ: Sleep hay Wake up?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Ngủ:",
+      "spoken_text": "Ngủ:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Sleep",
+      "spoken_text": "Sleep",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Wake up?",
+      "spoken_text": "Wake up?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-29578926932D9EF84AF01F94",
+  "text": "Ngủ: Sleep hay Wake up?",
+  "asset": "assets/audio/CURRICULUM/29578926932d9ef84af01f94.vi.v1.mp3",
+  "sha256": "6668c20377ae27a2441832e3063b641b3dd27dcffe796e634a6a25f2f03fd668",
+  "durationSeconds": 3.33542
+}

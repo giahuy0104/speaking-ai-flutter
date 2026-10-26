@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T03\\C35-L1-M11_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-M11",
+  "sourceText": "Xanh dương: Blue hay Yellow?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Xanh dương:",
+      "text": "Xanh dương:",
+      "spoken_text": "Xanh dương:",
+      "input_index": 60
+    },
+    {
+      "language": "en",
+      "source_text": "Blue",
+      "text": "Blue",
+      "spoken_text": "Blue",
+      "input_index": 61
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 62
+    },
+    {
+      "language": "en",
+      "source_text": "Yellow?",
+      "text": "Yellow?",
+      "spoken_text": "Yellow?",
+      "input_index": 63
+    }
+  ],
+  "sourceSha256": "859c1d023384e8d078c9ca868c5a6b460386743a80ff366adefa4f70394ff9c9",
+  "id": "LESSON-D5C7F774844B3443F2EB2445",
+  "text": "Xanh dương: Blue hay Yellow?",
+  "asset": "assets/audio/CURRICULUM/d5c7f774844b3443f2eb2445.vi.v1.mp3",
+  "sha256": "859c1d023384e8d078c9ca868c5a6b460386743a80ff366adefa4f70394ff9c9",
+  "durationSeconds": 3.39415
+}

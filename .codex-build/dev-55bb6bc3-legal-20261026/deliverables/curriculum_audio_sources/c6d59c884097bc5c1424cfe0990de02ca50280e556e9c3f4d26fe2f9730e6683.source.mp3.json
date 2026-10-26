@@ -1,0 +1,20 @@
+{
+  "signature": "c6d59c884097bc5c1424cfe0990de02ca50280e556e9c3f4d26fe2f9730e6683",
+  "request": {
+    "text": "Time & Tasks.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "8f2800055957bfb129404fe48c1a243cd9039b327089a5d3e7886ad6f5e1e860",
+  "requestId": "86XWUIS0fQEv1GZs2E9c",
+  "createdAt": "2026-09-15T23:26:11.329Z"
+}

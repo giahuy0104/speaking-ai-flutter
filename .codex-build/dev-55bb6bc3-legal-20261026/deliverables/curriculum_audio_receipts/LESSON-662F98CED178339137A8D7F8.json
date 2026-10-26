@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T01-B01\\C1315-L1-T01-B01-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-T01-B01-Q06",
+  "sourceText": "Bạn muốn nói 'Trước giờ học.' Hoàn thành câu: Before... dinner hay school?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói 'Trước giờ học.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Trước giờ học.' Hoàn thành câu:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Before... dinner",
+      "spoken_text": "Before... dinner",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "school?",
+      "spoken_text": "school?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-662F98CED178339137A8D7F8",
+  "text": "Bạn muốn nói 'Trước giờ học.' Hoàn thành câu: Before... dinner hay school?",
+  "asset": "assets/audio/CURRICULUM/662f98ced178339137a8d7f8.vi.v1.mp3",
+  "sha256": "8588c750d7ae02925ca490afa998477bab12603760edfeb4a3bbb558fb558498",
+  "durationSeconds": 8.113311
+}

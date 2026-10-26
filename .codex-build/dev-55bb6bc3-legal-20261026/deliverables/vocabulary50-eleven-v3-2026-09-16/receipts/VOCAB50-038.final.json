@@ -1,0 +1,22 @@
+{
+  "number": 38,
+  "id": "VOCAB50-038",
+  "text": "Nghe câu đúng nhé.",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current",
+  "file": "audio/VOCAB50-038.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "5070d350e0ea9acec0bd39fdbfc2839af2e1580ea916e5e63c554b08a3b9ae30",
+  "bytes": 18016,
+  "sourceDurationSeconds": 0.96,
+  "durationSeconds": 1.059977,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "OzKPnecYTutyHtju2Lqs",
+  "characterCost": "10",
+  "createdAt": "2026-09-16T03:21:06.801Z"
+}

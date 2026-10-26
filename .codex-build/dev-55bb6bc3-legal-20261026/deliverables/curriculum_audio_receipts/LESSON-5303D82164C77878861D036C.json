@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C35-L2-T04-B01\\C35-L2-T04-B01-T04_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L2-T04-B01-T04_VI",
+  "sourceText": "Hình ngôi sao.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Hình ngôi sao.",
+      "generation_key": "f02ff32672d3a677"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-5303D82164C77878861D036C",
+  "text": "Hình ngôi sao.",
+  "asset": "assets/audio/CURRICULUM/5303d82164c77878861d036c.vi.v1.mp3",
+  "sha256": "53b0a0979e3a88f2e1d9b79b628491c3a7c8d77b711d58f6c92cdbe62d151050",
+  "durationSeconds": 1.499728
+}

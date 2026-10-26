@@ -1,0 +1,20 @@
+{
+  "signature": "ef85414461a86ed3fe86a6c768f08f22f980bdad91eb7b27a4c89ab150e7fbc6",
+  "request": {
+    "text": "Body Words.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "6b2fd540fe4739ba7ab6b92c07de4af44a0bbe260df7a2692cbcb5769568897d",
+  "requestId": "krNbiTDDevHAcJf9MuLO",
+  "createdAt": "2026-09-15T23:23:51.681Z"
+}

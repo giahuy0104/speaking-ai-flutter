@@ -1,0 +1,461 @@
+import 'package:flutter/foundation.dart';
+
+import '../../../core/audio/pcm_speech_preprocessor.dart';
+
+enum PracticeContext {
+  home('home', 'Ở nhà'),
+  school('school', 'Ở trường'),
+  outside('outside', 'Ra ngoài');
+
+  const PracticeContext(this.apiValue, this.label);
+
+  final String apiValue;
+  final String label;
+}
+
+enum TranslationOutputLanguage {
+  english('en', 'Tiếng Anh', 'en-US'),
+  chinese('zh', 'Tiếng Trung', 'zh-CN'),
+  japanese('ja', 'Tiếng Nhật', 'ja-JP'),
+  korean('ko', 'Tiếng Hàn', 'ko-KR'),
+  french('fr', 'Tiếng Pháp', 'fr-FR');
+
+  const TranslationOutputLanguage(this.apiValue, this.label, this.speechLocale);
+
+  final String apiValue;
+  final String label;
+  final String speechLocale;
+
+  static TranslationOutputLanguage fromCode(Object? code) =>
+      TranslationOutputLanguage.values.firstWhere(
+        (language) => language.apiValue == code,
+        orElse: () => TranslationOutputLanguage.english,
+      );
+}
+
+enum AsrMode {
+  androidStreaming('android_streaming', 'Chế độ tiêu chuẩn'),
+  hfpStreaming('hfp_streaming', 'HFP streaming'),
+  // Kept only so older stored records can still be decoded. It is never
+  // selectable and the production repository rejects new sessions.
+  openAiRealtime('openai_realtime', 'Realtime cũ (đã tắt)'),
+  bleOfflineIntent('ble_offline_intent', 'BLE offline intent'),
+  workerAsrPilot('browser_streaming', 'Cloudflare Worker ASR Pilot'),
+  batchChunks('batch_chunks', 'Cloudflare Batch Chunks'),
+  deviceStreaming('device_streaming', 'BLE streaming');
+
+  const AsrMode(this.apiValue, this.label);
+
+  final String apiValue;
+  final String label;
+
+  bool get isBackendSupported => true;
+
+  bool get isUserSelectable =>
+      this != AsrMode.openAiRealtime &&
+      this != AsrMode.bleOfflineIntent &&
+      this != AsrMode.workerAsrPilot;
+}
+
+enum ConversationPhase { idle, recording, processing, ready, error }
+
+enum ConversationProcessingStage { recognizing, translating, preparingAudio }
+
+class ConversationLearningOutcome {
+  const ConversationLearningOutcome({
+    required this.status,
+    required this.promoted,
+    required this.useCount,
+    required this.threshold,
+    required this.message,
+  });
+
+  factory ConversationLearningOutcome.fromJson(
+    dynamic value, {
+    bool? approved,
+  }) {
+    if (value is Map<String, dynamic>) {
+      return ConversationLearningOutcome(
+        status: value['status'] as String? ?? 'unknown',
+        promoted: value['promoted'] as bool? ?? false,
+        useCount: _readInt(value['useCount']),
+        threshold: _readInt(value['threshold'], fallback: 3),
+        message: value['message'] as String? ?? '',
+      );
+    }
+
+    return ConversationLearningOutcome(
+      status: approved == false ? 'rejected' : 'unknown',
+      promoted: false,
+      useCount: 0,
+      threshold: 3,
+      message: '',
+    );
+  }
+
+  final String status;
+  final bool promoted;
+  final int useCount;
+  final int threshold;
+  final String message;
+
+  static int _readInt(dynamic value, {int fallback = 0}) =>
+      value is num ? value.round() : fallback;
+}
+
+class ConversationLatency {
+  const ConversationLatency({
+    required this.asrMs,
+    required this.llmMs,
+    required this.ttsMs,
+    required this.timeToFirstAudioMs,
+    this.audioLoadMs,
+    this.audioFromDeviceCache,
+    this.ttsFirstByteMs,
+    this.audioStartedAfterStopMs,
+  });
+
+  factory ConversationLatency.fromJson(Map<String, dynamic> json) {
+    return ConversationLatency(
+      asrMs: _readInt(json['asrMs']),
+      llmMs: _readInt(json['llmMs']),
+      ttsMs: _readInt(json['ttsMs']),
+      timeToFirstAudioMs: _readInt(json['timeToFirstAudioMs']),
+      audioLoadMs:
+          _readNullableInt(json['audioLoadMs']) ??
+          _readNullableInt(json['ttsFirstByteMs']),
+      audioFromDeviceCache: json['audioFromDeviceCache'] as bool?,
+      ttsFirstByteMs: _readNullableInt(json['ttsFirstByteMs']),
+      audioStartedAfterStopMs: _readNullableInt(
+        json['audioStartedAfterStopMs'],
+      ),
+    );
+  }
+
+  final int asrMs;
+  final int llmMs;
+  final int ttsMs;
+  final int timeToFirstAudioMs;
+  final int? audioLoadMs;
+  final bool? audioFromDeviceCache;
+  @Deprecated('Use audioLoadMs')
+  final int? ttsFirstByteMs;
+  final int? audioStartedAfterStopMs;
+
+  static int _readInt(dynamic value) => value is num ? value.round() : 0;
+
+  static int? _readNullableInt(dynamic value) =>
+      value is num ? value.round() : null;
+}
+
+class ConversationPreview {
+  const ConversationPreview({
+    required this.sourceText,
+    required this.englishText,
+    required this.textSource,
+    required this.audioUri,
+    this.audioSha256,
+    this.audioDurationSeconds,
+    this.dynamicAudioKey,
+  });
+
+  final String sourceText;
+  final String englishText;
+  final String textSource;
+  final Uri? audioUri;
+  final String? audioSha256;
+  final double? audioDurationSeconds;
+  final String? dynamicAudioKey;
+}
+
+class ConversationResult {
+  const ConversationResult({
+    required this.conversationId,
+    required this.sessionId,
+    required this.context,
+    required this.vietnameseText,
+    required this.englishText,
+    this.outputLanguage = TranslationOutputLanguage.english,
+    this.translatedText,
+    required this.audioUri,
+    required this.processingMode,
+    required this.textSource,
+    required this.audioSource,
+    required this.asrMode,
+    required this.latency,
+    this.learning,
+    this.audioSha256,
+    this.audioDurationSeconds,
+    this.dynamicAudioKey,
+  });
+
+  factory ConversationResult.fromJson(
+    Map<String, dynamic> json, {
+    required Uri backendBaseUri,
+  }) {
+    final rawAudioUrl = json['audioUrl'] as String?;
+    return ConversationResult(
+      conversationId: json['conversationId'] as String,
+      sessionId: json['sessionId'] as String,
+      context: PracticeContext.values.firstWhere(
+        (item) => item.apiValue == json['context'],
+        orElse: () => PracticeContext.home,
+      ),
+      vietnameseText: json['vietnameseText'] as String? ?? '',
+      englishText: json['englishText'] as String? ?? '',
+      outputLanguage: TranslationOutputLanguage.fromCode(
+        json['targetLanguage'],
+      ),
+      translatedText: json['translatedText'] as String?,
+      audioUri: rawAudioUrl == null
+          ? null
+          : backendBaseUri.resolve(rawAudioUrl),
+      audioSha256: _readAudioChecksum(json),
+      audioDurationSeconds: _readAudioDuration(json),
+      dynamicAudioKey: _readAudioKey(json),
+      processingMode: json['processingMode'] as String? ?? 'fallback',
+      textSource: json['textSource'] as String? ?? 'fallback',
+      audioSource: json['audioSource'] as String? ?? 'cloudflare_tts',
+      asrMode: json['asrMode'] as String? ?? 'batch_chunks',
+      latency: ConversationLatency.fromJson(
+        json['latency'] as Map<String, dynamic>? ?? const <String, dynamic>{},
+      ),
+      learning: json['learning'] == null
+          ? null
+          : ConversationLearningOutcome.fromJson(json['learning']),
+    );
+  }
+
+  final String conversationId;
+  final String sessionId;
+  final PracticeContext context;
+  final String vietnameseText;
+  final String englishText;
+  final TranslationOutputLanguage outputLanguage;
+  final String? translatedText;
+  String get displayedTranslation =>
+      outputLanguage == TranslationOutputLanguage.english
+      ? englishText
+      : translatedText ?? '';
+  final Uri? audioUri;
+  final String? audioSha256;
+  final double? audioDurationSeconds;
+  final String? dynamicAudioKey;
+  final String processingMode;
+  final String textSource;
+  final String audioSource;
+  final String asrMode;
+  final ConversationLatency latency;
+  final ConversationLearningOutcome? learning;
+
+  static String? _readAudioChecksum(Map<String, dynamic> json) {
+    final value = json['audioSha256'] ?? json['sha256'];
+    return value is String && RegExp(r'^[a-fA-F0-9]{64}$').hasMatch(value)
+        ? value.toLowerCase()
+        : null;
+  }
+
+  static double? _readAudioDuration(Map<String, dynamic> json) {
+    final value = json['audioDurationSeconds'] ?? json['durationSeconds'];
+    final duration = value is num ? value.toDouble() : null;
+    return duration != null && duration > 0 && duration <= 45 ? duration : null;
+  }
+
+  static String? _readAudioKey(Map<String, dynamic> json) {
+    final value = json['dynamicAudioKey'] ?? json['audioKey'];
+    return value is String && RegExp(r'^[a-fA-F0-9]{64}$').hasMatch(value)
+        ? value.toLowerCase()
+        : null;
+  }
+}
+
+class ConversationHistoryItem {
+  const ConversationHistoryItem({
+    required this.conversationId,
+    required this.vietnameseText,
+    required this.englishText,
+    this.outputLanguage = TranslationOutputLanguage.english,
+    this.translatedText,
+    required this.createdAt,
+    required this.qualityApproved,
+    this.promotedToRule = false,
+    this.learningStatus = 'unknown',
+    this.learningReason,
+    this.learningUseCount,
+    this.audioUri,
+    this.hasUserAudio = false,
+    this.context = PracticeContext.home,
+    this.processingMode = 'unknown',
+    this.textSource = 'unknown',
+    this.audioSource = 'unknown',
+    this.asrMode = 'unknown',
+    this.inputMode = 'unknown',
+    this.latency = const ConversationLatency(
+      asrMs: 0,
+      llmMs: 0,
+      ttsMs: 0,
+      timeToFirstAudioMs: 0,
+    ),
+  });
+
+  factory ConversationHistoryItem.fromJson(
+    Map<String, dynamic> json, {
+    Uri? backendBaseUri,
+  }) {
+    final parsedCreatedAt = DateTime.tryParse(
+      json['createdAt'] as String? ?? '',
+    );
+    final rawAudioUrl = json['audioUrl'] as String?;
+
+    return ConversationHistoryItem(
+      conversationId: json['conversationId'] as String? ?? '',
+      vietnameseText: json['vietnameseText'] as String? ?? '',
+      englishText: json['englishText'] as String? ?? '',
+      outputLanguage: TranslationOutputLanguage.fromCode(
+        json['targetLanguage'],
+      ),
+      translatedText: json['translatedText'] as String?,
+      createdAt: (parsedCreatedAt ?? DateTime.fromMillisecondsSinceEpoch(0))
+          .toLocal(),
+      qualityApproved: json['qualityApproved'] as bool?,
+      promotedToRule: json['promotedToRule'] as bool? ?? false,
+      learningStatus: json['learningStatus'] as String? ?? 'unknown',
+      learningReason: json['learningReason'] as String?,
+      learningUseCount: _readNullableInt(json['learningUseCount']),
+      audioUri: rawAudioUrl == null
+          ? null
+          : backendBaseUri?.resolve(rawAudioUrl) ?? Uri.tryParse(rawAudioUrl),
+      hasUserAudio: json['hasUserAudio'] as bool? ?? false,
+      context: PracticeContext.values.firstWhere(
+        (item) => item.apiValue == json['context'],
+        orElse: () => PracticeContext.home,
+      ),
+      processingMode: json['processingMode'] as String? ?? 'unknown',
+      textSource: json['textSource'] as String? ?? 'unknown',
+      audioSource: json['audioSource'] as String? ?? 'unknown',
+      asrMode: json['asrMode'] as String? ?? 'unknown',
+      inputMode: json['inputMode'] as String? ?? 'unknown',
+      latency: ConversationLatency.fromJson(
+        json['latency'] as Map<String, dynamic>? ?? const <String, dynamic>{},
+      ),
+    );
+  }
+
+  final String conversationId;
+  final String vietnameseText;
+  final String englishText;
+  final TranslationOutputLanguage outputLanguage;
+  final String? translatedText;
+  String get displayedTranslation =>
+      outputLanguage == TranslationOutputLanguage.english
+      ? englishText
+      : translatedText ?? '';
+  final DateTime createdAt;
+  final bool? qualityApproved;
+  final bool promotedToRule;
+  final String learningStatus;
+  final String? learningReason;
+  final int? learningUseCount;
+  final Uri? audioUri;
+  final bool hasUserAudio;
+  final PracticeContext context;
+  final String processingMode;
+  final String textSource;
+  final String audioSource;
+  final String asrMode;
+  final String inputMode;
+  final ConversationLatency latency;
+
+  HistoryReviewStatus get reviewStatus => switch (qualityApproved) {
+    true => HistoryReviewStatus.approved,
+    false => HistoryReviewStatus.rejected,
+    null => HistoryReviewStatus.pending,
+  };
+
+  ConversationHistoryItem copyWithReview(
+    bool approved, {
+    ConversationLearningOutcome? learning,
+  }) {
+    return ConversationHistoryItem(
+      conversationId: conversationId,
+      vietnameseText: vietnameseText,
+      englishText: englishText,
+      outputLanguage: outputLanguage,
+      translatedText: translatedText,
+      createdAt: createdAt,
+      qualityApproved: approved,
+      promotedToRule: learning?.promoted ?? promotedToRule,
+      learningStatus:
+          learning?.status ?? (approved ? learningStatus : 'rejected'),
+      learningReason: learning == null
+          ? learningReason
+          : approved
+          ? 'positive_feedback'
+          : 'negative_feedback',
+      learningUseCount: learning?.useCount ?? learningUseCount,
+      audioUri: audioUri,
+      hasUserAudio: hasUserAudio,
+      context: context,
+      processingMode: processingMode,
+      textSource: textSource,
+      audioSource: audioSource,
+      asrMode: asrMode,
+      inputMode: inputMode,
+      latency: latency,
+    );
+  }
+
+  static int? _readNullableInt(dynamic value) =>
+      value is num ? value.round() : null;
+}
+
+enum HistoryReviewStatus { approved, rejected, pending }
+
+class ConversationBenchmark {
+  const ConversationBenchmark({
+    required this.utteranceDurationMs,
+    required this.vadSilenceMs,
+    required this.requestedAsrMode,
+    required this.audioInputLabel,
+    required this.bluetoothAudioInput,
+    required this.initialNoiseRms,
+    this.clientVadApplied = false,
+    this.audioProcessing,
+  });
+
+  final int utteranceDurationMs;
+  final int vadSilenceMs;
+  final AsrMode requestedAsrMode;
+  final String audioInputLabel;
+  final bool bluetoothAudioInput;
+  final double? initialNoiseRms;
+  final bool clientVadApplied;
+  final AudioProcessingMetrics? audioProcessing;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'device': 'mobile',
+    'browser': _flutterPlatformLabel,
+    'utteranceDurationMs': utteranceDurationMs,
+    'vadSilenceMs': vadSilenceMs,
+    'requestedAsrMode': requestedAsrMode.apiValue,
+    'audioInputLabel': audioInputLabel,
+    'bluetoothAudioInput': bluetoothAudioInput,
+    'clientVadApplied': clientVadApplied,
+    if (initialNoiseRms != null) 'initialNoiseRms': initialNoiseRms,
+    if (audioProcessing != null) ...audioProcessing!.toJson(),
+  };
+}
+
+String get _flutterPlatformLabel {
+  if (kIsWeb) {
+    return 'flutter_web';
+  }
+  return switch (defaultTargetPlatform) {
+    TargetPlatform.android => 'flutter_android',
+    TargetPlatform.iOS => 'flutter_ios',
+    TargetPlatform.macOS => 'flutter_macos',
+    TargetPlatform.windows => 'flutter_windows',
+    TargetPlatform.linux => 'flutter_linux',
+    TargetPlatform.fuchsia => 'flutter_fuchsia',
+  };
+}

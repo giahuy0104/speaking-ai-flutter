@@ -1,0 +1,20 @@
+{
+  "signature": "092506821d55e6fa9209b3f6276ba7f914c9435a9913a7ca5d840aa6bdc69797",
+  "request": {
+    "text": "Mình luyện cách nói về lịch trong tuần.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+    "speed": 0.9
+  },
+  "sha256": "3dfced0452f062e62ceefd58e55bbc9b9d0a5009ad28db73631375bc1b74a65f",
+  "requestId": "DPsQYpRQX1HDTVrX6KOT",
+  "createdAt": "2026-09-15T23:19:30.250Z"
+}

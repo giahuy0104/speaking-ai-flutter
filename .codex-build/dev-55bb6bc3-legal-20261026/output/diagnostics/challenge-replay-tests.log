@@ -1,0 +1,236 @@
+00:00 +0: loading D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart
+00:00 +0: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: Challenge replay repeats question without the introduction
+00:00 +1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: finishing Topic 1 continues the remaining Topic at its unfinished lesson (variant: TargetPlatform.android)
+00:00 +2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: finishing Topic 1 continues the remaining Topic at its unfinished lesson (variant: TargetPlatform.android)
+00:01 +3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: finishing Topic 1 continues the remaining Topic at its unfinished lesson (variant: TargetPlatform.android)
+00:01 +4: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: finishing Topic 1 continues the remaining Topic at its unfinished lesson (variant: TargetPlatform.android)
+00:01 +5: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: finishing Topic 1 continues the remaining Topic at its unfinished lesson (variant: TargetPlatform.android)
+00:01 +6: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: finishing Topic 1 continues the remaining Topic at its unfinished lesson (variant: TargetPlatform.android)
+00:01 +7: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: finishing Topic 1 continues the remaining Topic at its unfinished lesson (variant: TargetPlatform.android)
+00:01 +8: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: finishing Topic 1 continues the remaining Topic at its unfinished lesson (variant: TargetPlatform.android)
+00:01 +9: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: finishing Topic 1 continues the remaining Topic at its unfinished lesson (variant: TargetPlatform.android)
+00:01 +10: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: iOS Challenge has the same retry and answer script (variant: TargetPlatform.iOS)
+00:01 +11: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: finishing Topic 1 continues the remaining Topic at its unfinished lesson (variant: TargetPlatform.iOS)
+00:01 +12: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: finishing Topic 1 continues the remaining Topic at its unfinished lesson (variant: TargetPlatform.iOS)
+00:01 +13: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: finishing Topic 1 continues the remaining Topic at its unfinished lesson (variant: TargetPlatform.iOS)
+00:02 +14: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: finishing Topic 1 continues the remaining Topic at its unfinished lesson (variant: TargetPlatform.iOS)
+00:02 +15: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: finishing Topic 1 continues the remaining Topic at its unfinished lesson (variant: TargetPlatform.iOS)
+00:02 +16: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: MAIN during old Challenge feedback cannot advance the resumed question
+00:02 +17: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: iOS completion validates spoken Chủ đề 2 across legacy Level boundaries (variant: TargetPlatform.iOS)
+00:02 +18: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: iOS completion validates spoken Chủ đề 2 across legacy Level boundaries (variant: TargetPlatform.iOS)
+00:02 +19: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: iOS completion validates spoken Chủ đề 2 across legacy Level boundaries (variant: TargetPlatform.iOS)
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-53.0,"stopThresholdDbfs":-56.0}
+00:02 +20: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: correct challenge uses shared keyed feedback and completion
+00:02 +21: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: iOS completion validates spoken Chủ đề số 2 across legacy Level boundaries (variant: TargetPlatform.iOS)
+00:02 +22: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: iOS completion validates spoken Chủ đề số 2 across legacy Level boundaries (variant: TargetPlatform.iOS)
+00:02 +23: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: iOS completion validates spoken Chủ đề số 2 across legacy Level boundaries (variant: TargetPlatform.iOS)
+00:02 +24: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: iOS completion validates spoken Chủ đề số 2 across legacy Level boundaries (variant: TargetPlatform.iOS)
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-53.0,"stopThresholdDbfs":-56.0}
+00:02 +25: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: multiple legacy inputs never award Challenge Stars
+00:02 +26: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: iOS completion validates spoken Chủ đề 3 across legacy Level boundaries (variant: TargetPlatform.iOS)
+00:02 +27: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: iOS completion validates spoken Chủ đề 3 across legacy Level boundaries (variant: TargetPlatform.iOS)
+00:02 +28: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: iOS completion validates spoken Chủ đề 3 across legacy Level boundaries (variant: TargetPlatform.iOS)
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-53.0,"stopThresholdDbfs":-56.0}
+00:02 +29: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: iOS silent question timeout stops without opening mic
+00:02 +30: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: iOS completion validates spoken Chủ đề 1 across legacy Level boundaries (variant: TargetPlatform.iOS)
+00:02 +31: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: iOS completion validates spoken Chủ đề 1 across legacy Level boundaries (variant: TargetPlatform.iOS)
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-53.0,"stopThresholdDbfs":-56.0}
+HOMI completion failed choice: attempt=1
+00:03 +32: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: Android timeout cannot become success when stop completes speech
+00:03 +33: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: iOS completion validates spoken Chủ đề 4 across legacy Level boundaries (variant: TargetPlatform.iOS)
+00:03 +33: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: auto-stops, waits for a correct score, then opens challenge two
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+00:03 +34: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: iOS completion validates spoken Chủ đề 4 across legacy Level boundaries (variant: TargetPlatform.iOS)
+00:03 +34: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: moves on after two retries instead of recording forever
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+00:03 +35: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: iOS completion validates spoken Chủ đề 4 across legacy Level boundaries (variant: TargetPlatform.iOS)
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-53.0,"stopThresholdDbfs":-56.0}
+HOMI completion failed choice: attempt=1
+00:03 +36: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: MAIN replay resumes a silence-paused Challenge after audio
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+00:03 +37: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: late nextItem progress save cannot change a resumed sentence (variant: TargetPlatform.android)
+00:03 +38: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: pauses directly after the second unusable response
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+00:03 +39: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: late nextItem progress save cannot change a resumed sentence (variant: TargetPlatform.iOS)
+00:03 +39: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: second answer correct gets correct feedback without HOMI sample
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+00:03 +40: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: late nextItem progress save cannot change a resumed sentence (variant: TargetPlatform.iOS)
+00:03 +41: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: iOS Challenge remembers partial speech after native start and stops after silence (variant: TargetPlatform.iOS)
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-53.0,"stopThresholdDbfs":-56.0}
+00:03 +42: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: late previousItem progress save cannot change a resumed sentence (variant: TargetPlatform.android)
+00:03 +42: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: iOS Challenge remembers partial speech before native start and stops after silence (variant: TargetPlatform.iOS)
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-53.0,"stopThresholdDbfs":-56.0}
+00:03 +43: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: late previousItem progress save cannot change a resumed sentence (variant: TargetPlatform.android)
+00:03 +44: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: iOS Challenge allows the Apple Speech ready budget after H20 route startup (variant: TargetPlatform.iOS)
+00:03 +45: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: late previousItem progress save cannot change a resumed sentence (variant: TargetPlatform.iOS)
+00:03 +45: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: iOS scores a challenge on device without calling the backend
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-53.0,"stopThresholdDbfs":-56.0}
+00:03 +46: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: late previousItem progress save cannot change a resumed sentence (variant: TargetPlatform.iOS)
+00:04 +47: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: iOS recognition failure retains its local WAV without backend scoring (variant: TargetPlatform.iOS)
+HOMI iOS challenge recognition returned no usable speech: code=SF_SPEECH_RECOGNIZER_FAILED
+00:04 +48: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: MAIN replay during initial cursor loading waits for the restored sentence (variant: TargetPlatform.android)
+00:04 +49: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: MAIN replay during initial cursor loading waits for the restored sentence (variant: TargetPlatform.android)
+00:04 +50: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_challenge_screen_test.dart: iOS native start failure does not upload audio through a hidden fallback
+00:04 +51: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: MAIN replay during initial cursor loading waits for the restored sentence (variant: TargetPlatform.iOS)
+00:04 +52: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: MAIN replay during initial cursor loading waits for the restored sentence (variant: TargetPlatform.iOS)
+00:04 +53: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: iOS pending completion start cannot cancel newer MAIN (lateFailure=false) (variant: TargetPlatform.iOS)
+00:04 +54: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: iOS pending completion start cannot cancel newer MAIN (lateFailure=true) (variant: TargetPlatform.iOS)
+00:04 +55: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: iOS completion final received during native start stops choice once (variant: TargetPlatform.iOS)
+00:04 +56: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: iOS completion keeps an early partial and ends after silence without more native events (variant: TargetPlatform.iOS)
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-53.0,"stopThresholdDbfs":-56.0}
+00:04 +57: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: iOS old completion result cannot navigate after MAIN resumes a new choice (variant: TargetPlatform.iOS)
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-53.0,"stopThresholdDbfs":-56.0}
+00:05 +58: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: iOS completion permission failure leaves touch choices without recorder fallback (variant: TargetPlatform.iOS)
+00:05 +59: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: iOS foreground completion "(Học lại, 1, true)" uses Apple Speech without a second recorder (variant: TargetPlatform.iOS)
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-53.0,"stopThresholdDbfs":-56.0}
+00:05 +60: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: iOS foreground completion "(Bài 2, 2, false)" uses Apple Speech without a second recorder (variant: TargetPlatform.iOS)
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-53.0,"stopThresholdDbfs":-56.0}
+00:05 +61: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via screen Back with stalled audio
+00:05 +62: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: paused silent lesson exits via system Back with stalled audio
+00:06 +63: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: leaving during completion ting releases the already-open mic
+00:06 +64: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: Android end-of-lesson "(Học lại, 1, true)" opens the selected learning flow
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+00:06 +65: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: Android end-of-lesson "(Bài 2, 2, false)" opens the selected learning flow
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+00:06 +66: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: completion retries then stops: ListeningPendingChoiceStage.lessonEnd [không hợp lệ, không hợp lệ]
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=1
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=2
+00:06 +67: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: completion retries then stops: ListeningPendingChoiceStage.lessonEnd [không hợp lệ, ]
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=1
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=2
+00:06 +68: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: completion retries then stops: ListeningPendingChoiceStage.lessonEnd [, không hợp lệ]
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=1
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=2
+00:07 +69: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: completion retries then stops: ListeningPendingChoiceStage.lessonEnd [, ]
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=1
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=2
+00:07 +70: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: completion retries then stops: ListeningPendingChoiceStage.lessonEnd [, Dừng lại]
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=1
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+00:07 +71: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: completion retries then stops: ListeningPendingChoiceStage.topicEnd [không hợp lệ, không hợp lệ]
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=1
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=2
+00:07 +72: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: completion retries then stops: ListeningPendingChoiceStage.topicEnd [không hợp lệ, ]
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=1
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=2
+00:07 +73: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: completion retries then stops: ListeningPendingChoiceStage.topicEnd [, không hợp lệ]
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=1
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=2
+00:07 +74: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: completion retries then stops: ListeningPendingChoiceStage.topicEnd [, ]
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=1
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=2
+00:08 +75: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: completion retries then stops: ListeningPendingChoiceStage.topicEnd [, Dừng lại]
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=1
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+00:08 +76: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: completion retries then stops: ListeningPendingChoiceStage.topicEndOneRemaining [không hợp lệ, không hợp lệ]
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=1
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=2
+00:08 +77: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: completion retries then stops: ListeningPendingChoiceStage.topicEndOneRemaining [không hợp lệ, ]
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=1
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=2
+00:08 +78: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: completion retries then stops: ListeningPendingChoiceStage.topicEndOneRemaining [, không hợp lệ]
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=1
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=2
+00:08 +79: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: completion retries then stops: ListeningPendingChoiceStage.topicEndOneRemaining [, ]
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=1
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=2
+00:08 +80: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: completion retries then stops: ListeningPendingChoiceStage.topicEndOneRemaining [, Dừng lại]
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=1
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+00:08 +81: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: completion handles native SPEECH_NO_MATCH
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion recognition failed: type=StreamingSpeechInputException code=SPEECH_NO_MATCH
+HOMI completion failed choice: attempt=1
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion recognition failed: type=StreamingSpeechInputException code=SPEECH_NO_MATCH
+HOMI completion failed choice: attempt=2
+00:08 +82: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: completion handles native SPEECH_TIMEOUT
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion recognition failed: type=StreamingSpeechInputException code=SPEECH_TIMEOUT
+HOMI completion failed choice: attempt=1
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion recognition failed: type=StreamingSpeechInputException code=SPEECH_TIMEOUT
+HOMI completion failed choice: attempt=2
+00:08 +83: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: completion handles native ANDROID_SPEECH_6
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion recognition failed: type=StreamingSpeechInputException code=ANDROID_SPEECH_6
+HOMI completion failed choice: attempt=1
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion recognition failed: type=StreamingSpeechInputException code=ANDROID_SPEECH_6
+HOMI completion failed choice: attempt=2
+00:09 +84: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: completion handles native ANDROID_SPEECH_7
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion recognition failed: type=StreamingSpeechInputException code=ANDROID_SPEECH_7
+HOMI completion failed choice: attempt=1
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion recognition failed: type=StreamingSpeechInputException code=ANDROID_SPEECH_7
+HOMI completion failed choice: attempt=2
+00:09 +85: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: completion handles native null
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion recognition failed: type=StreamingSpeechInputException code=null
+HOMI completion failed choice: attempt=1
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion recognition failed: type=StreamingSpeechInputException code=null
+HOMI completion failed choice: attempt=2
+00:09 +86: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: completion handles native NETWORK
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion recognition failed: type=StreamingSpeechInputException code=NETWORK
+00:09 +87: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: touch during completion retry cancels reopening microphone
+{"event":"lesson_take_endpoint","reason":"maximumDuration","speechDetected":false,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+HOMI completion failed choice: attempt=1
+00:09 +88: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: MAIN silence stop preserves completion choice ListeningPendingChoiceStage.lessonEnd
+00:09 +89: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: MAIN silence stop preserves completion choice ListeningPendingChoiceStage.topicEnd
+00:09 +90: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: MAIN silence stop preserves completion choice ListeningPendingChoiceStage.topicEndOneRemaining
+00:09 +91: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: Android completion arms command ASR before ting, not Core mic
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-52.0,"stopThresholdDbfs":-55.0}
+00:10 +92: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: next and previous both restart the selected sentence from its sample
+00:10 +93: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: communication tab reports the lesson exit before navigation
+00:10 +94: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: previous sentence is persisted and restored after re-entry
+00:10 +95: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: MAIN previous command replays the previous sentence flow
+00:10 +96: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: review from beginning resets the resume sentence
+00:10 +97: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: V4 resume ignores an archived attempt and restarts EN-VI-mic
+00:10 +98: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: V4 marks the lesson complete only after its authored challenge finishes
+00:11 +99: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: Challenge intro is owned once by the pushed challenge route
+00:11 +100: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: MAIN during Challenge handoff waits for resume before audio
+00:11 +101: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: stale Challenge entry after MAIN resume opens once
+00:11 +102: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: stale Challenge entry after MAIN replayCurrent opens once
+00:11 +103: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: V4 resumes the exact completion choice after interruption
+00:11 +104: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: legacy next-Level pending choice resumes as whole-group topic completion
+00:11 +105: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: post-Challenge lesson choice uses the authored current-to-next key
+00:11 +106: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: V4 resumes an interrupted song from its beginning
+00:12 +107: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: completion remains usable on a compact phone
+00:12 +108: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_practice_navigation_test.dart: MAIN commands pause, resume, and leave the lesson for home
+00:12 +109: All tests passed!

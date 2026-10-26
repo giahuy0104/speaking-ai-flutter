@@ -1,0 +1,83 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\d1a0365071439c5f781462235870a9965718a9f3e53ee3615d311ec33d9f40fc.tempo.mp3",
+      "signature": "d1a0365071439c5f781462235870a9965718a9f3e53ee3615d311ec33d9f40fc",
+      "request": {
+        "text": "Dog",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "ab27c1acea5aa2ee1db32aab587087f4aa8b35c0d6051386b853bedac993ec9a",
+      "requestId": "31ptlahuuCeL799c8s90",
+      "createdAt": "2026-09-15T23:16:06.057Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\bf7e195461603850e32a1fd5bdca60daac8c237356f9a84c816a4a74ac0e9732.tempo.mp3",
+      "signature": "bf7e195461603850e32a1fd5bdca60daac8c237356f9a84c816a4a74ac0e9732",
+      "request": {
+        "text": "hay",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "587b62310066af72f7481443c9fccef371a1ad2d8d537d3d1e9b16ebd3efc8b4",
+      "requestId": "Y8EyPPYGalhB5eNl9yAL",
+      "createdAt": "2026-09-15T23:15:44.925Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\759e92590d2d5b607354d478f31ae336914c501dc9ec7b6cdedacca3cf7ddd6e.tempo.mp3",
+      "signature": "759e92590d2d5b607354d478f31ae336914c501dc9ec7b6cdedacca3cf7ddd6e",
+      "request": {
+        "text": "Bird?",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "f2ec8de5e1cd943da24b8098cf188699d349c17176060c8c49288aaee1077e67",
+      "requestId": "mLGPwJTRqLdUtNnwd9TU",
+      "createdAt": "2026-09-15T23:16:07.063Z"
+    }
+  ],
+  "id": "LESSON-A75F621FD0C43D98758D6BB3",
+  "text": "Dog hay Bird?",
+  "asset": "assets/audio/CURRICULUM/a75f621fd0c43d98758d6bb3.vi.v1.mp3",
+  "sha256": "f6c5f5b13902ea73faa7de6cdadd9af08a6625ac85bc8b4567b443482b1aabda",
+  "durationSeconds": 2.92517,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

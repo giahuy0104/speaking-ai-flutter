@@ -1,0 +1,41 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\30befc81a0b4d4ce86a369bc462232ee27e7028ff39d6c22bb5e884a7ba70d32.tempo.mp3",
+      "signature": "30befc81a0b4d4ce86a369bc462232ee27e7028ff39d6c22bb5e884a7ba70d32",
+      "request": {
+        "text": "Hôm nay trời thế nào?",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "16627d23f4bf383eb4bd75a6943cdfd01b94295d5ae9c6d12c5de71f0c2f0302",
+      "requestId": "PrI1MaqZ1yBXgYsjmRql",
+      "createdAt": "2026-09-15T23:18:51.822Z"
+    }
+  ],
+  "id": "LESSON-26989A969A980A8D853A8403",
+  "text": "Hôm nay trời thế nào?",
+  "asset": "assets/audio/CURRICULUM/26989a969a980a8d853a8403.vi.v1.mp3",
+  "sha256": "0d78b26ec841e4dc05cf661c82a7043de0c5acce525e3a2a9653eb77fdb663c4",
+  "durationSeconds": 1.412109,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

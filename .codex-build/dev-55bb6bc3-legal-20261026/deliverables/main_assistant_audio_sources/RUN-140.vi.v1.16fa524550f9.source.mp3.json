@@ -1,0 +1,20 @@
+{
+  "id": "RUN-140",
+  "signature": "16fa524550f92f6dbdb3dfaa999cbe2975d382f9dac1509010b57241c798649c",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn muốn học bài tiếp theo hay học lại bài này?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:15:26.754Z",
+  "requestId": "5ipxhsASzjSLepeHXlsk",
+  "characterCost": "26",
+  "sourceSha256": "e7c42563f52d242e3034a87b1718e5304f5c65b7f758569211e1b5bcfea8bae7"
+}

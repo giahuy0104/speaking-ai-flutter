@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T06-B01\\C810-L2-T06-B01-Q02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T06-B01-Q02",
+  "sourceText": "Máy tính bảng: Computer hay Tablet?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Máy tính bảng:",
+      "spoken_text": "Máy tính bảng:",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "text": "Computer",
+      "spoken_text": "Computer",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "text": "Tablet?",
+      "spoken_text": "Tablet?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-4E5C4C20D04ED2DDDEA4674B",
+  "text": "Máy tính bảng: Computer hay Tablet?",
+  "asset": "assets/audio/CURRICULUM/4e5c4c20d04ed2dddea4674b.vi.v1.mp3",
+  "sha256": "268fa3f887fe4f874b94503b5ccf22e2c9e9aaccaa0c7aa6784ed58cb96e5334",
+  "durationSeconds": 4.10229
+}

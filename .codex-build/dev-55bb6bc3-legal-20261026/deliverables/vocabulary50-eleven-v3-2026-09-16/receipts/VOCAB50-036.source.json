@@ -1,0 +1,22 @@
+{
+  "id": "VOCAB50-036",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Thử lại nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "3w7LxctZbnCwTB2x4Sh7",
+  "historyItemId": "l8Jkr7M4m1WvZ9xpZw5I",
+  "characterCost": "7",
+  "createdAt": "2026-09-16T03:21:04.159Z",
+  "sourceSha256": "cfa9acdb56c1fb0275e580987f8aa53c0e13ee17ce7720c6ea868110d3bfb271"
+}

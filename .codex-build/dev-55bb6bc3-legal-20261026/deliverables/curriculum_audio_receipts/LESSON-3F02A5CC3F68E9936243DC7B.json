@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T02-B02\\C67-L1-T02-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T02-B02-Q05",
+  "sourceText": "Mười sáu: Sixteen hay Seventeen?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mười sáu:",
+      "spoken_text": "Mười sáu:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Sixteen",
+      "spoken_text": "Sixteen",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Seventeen?",
+      "spoken_text": "Seventeen?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-3F02A5CC3F68E9936243DC7B",
+  "text": "Mười sáu: Sixteen hay Seventeen?",
+  "asset": "assets/audio/CURRICULUM/3f02a5cc3f68e9936243dc7b.vi.v1.mp3",
+  "sha256": "39cba694b5f0c755f7630625a3b7552524254d90762f9055eaa2304bc109f9dc",
+  "durationSeconds": 3.808254
+}

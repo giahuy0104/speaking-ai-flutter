@@ -1,0 +1,83 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\cfa0b672c4b1d30d7de48749ea153ef77b570f6554466ae103b818b8878a53b0.tempo.mp3",
+      "signature": "cfa0b672c4b1d30d7de48749ea153ef77b570f6554466ae103b818b8878a53b0",
+      "request": {
+        "text": "Elephant",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "864990f26de53aac1c1a4eef33566d0c35c1d157fd5b381cee21f1f6f7eb06b2",
+      "requestId": "yeqTYmaNrIrd74B4KzVj",
+      "createdAt": "2026-09-15T23:17:32.964Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\bf7e195461603850e32a1fd5bdca60daac8c237356f9a84c816a4a74ac0e9732.tempo.mp3",
+      "signature": "bf7e195461603850e32a1fd5bdca60daac8c237356f9a84c816a4a74ac0e9732",
+      "request": {
+        "text": "hay",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "587b62310066af72f7481443c9fccef371a1ad2d8d537d3d1e9b16ebd3efc8b4",
+      "requestId": "Y8EyPPYGalhB5eNl9yAL",
+      "createdAt": "2026-09-15T23:15:44.925Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\86fda0f7a2c06d35aeaccefd047cdd686709870f4caa1f9825814147fc9727da.tempo.mp3",
+      "signature": "86fda0f7a2c06d35aeaccefd047cdd686709870f4caa1f9825814147fc9727da",
+      "request": {
+        "text": "Monkey?",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "913adeff4b151adeca852f46146c55a4589b19923490ea0128e37cb2494cddf0",
+      "requestId": "iwMPZUbrXxnGhP5f7HGj",
+      "createdAt": "2026-09-15T23:17:37.707Z"
+    }
+  ],
+  "id": "LESSON-40E2D7FDEDF380F15AAD60F0",
+  "text": "Elephant hay Monkey?",
+  "asset": "assets/audio/CURRICULUM/40e2d7fdedf380f15aad60f0.vi.v1.mp3",
+  "sha256": "8cfc02f130951e8311f6adfc1a680261390eb4f3470f38b52fcb9ac0621bc794",
+  "durationSeconds": 2.835465,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

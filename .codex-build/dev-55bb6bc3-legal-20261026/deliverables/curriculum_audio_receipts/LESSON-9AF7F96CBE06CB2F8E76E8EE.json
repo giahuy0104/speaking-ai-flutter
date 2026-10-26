@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T02-B03\\C67-L1-T02-B03-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T02-B03-Q03",
+  "sourceText": "Năm quả táo: Five apples hay Ten crayons?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Năm quả táo:",
+      "spoken_text": "Năm quả táo:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Five apples",
+      "spoken_text": "Five apples",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Ten crayons?",
+      "spoken_text": "Ten crayons?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-9AF7F96CBE06CB2F8E76E8EE",
+  "text": "Năm quả táo: Five apples hay Ten crayons?",
+  "asset": "assets/audio/CURRICULUM/9af7f96cbe06cb2f8e76e8ee.vi.v1.mp3",
+  "sha256": "c2f80397bd0447d43302c74f2457c3f50456591392f068a86f42d13ba3fbf5ea",
+  "durationSeconds": 5.300998
+}

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T01-B02\\C1315-L1-T01-B02-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-T01-B02-Q07",
+  "sourceText": "Bạn muốn nói 'Mình tập thể dục trước bữa tối.' Hoàn thành câu: I... exercise before dinner hay relax in the evening?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói 'Mình tập thể dục trước bữa tối.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Mình tập thể dục trước bữa tối.' Hoàn thành câu:",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "I... exercise before dinner",
+      "spoken_text": "I... exercise before dinner",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "relax in the evening?",
+      "spoken_text": "relax in the evening?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-EB1FACBE99D9DB733A3E6532",
+  "text": "Bạn muốn nói 'Mình tập thể dục trước bữa tối.' Hoàn thành câu: I... exercise before dinner hay relax in the evening?",
+  "asset": "assets/audio/CURRICULUM/eb1facbe99d9db733a3e6532.vi.v1.mp3",
+  "sha256": "5cdaebe3759c3ab126f4a7049e9091d524a7ee3560d886f624a150f65208e780",
+  "durationSeconds": 13.207574
+}

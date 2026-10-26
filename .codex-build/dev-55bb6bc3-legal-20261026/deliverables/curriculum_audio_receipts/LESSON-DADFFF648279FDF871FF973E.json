@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T06-B02\\C1112-L2-T06-B02-T01_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T06-B02-T01_EN",
+  "sourceText": "Keep passwords private.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Keep passwords private.",
+      "generation_key": "f32ee96db9a29200"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-DADFFF648279FDF871FF973E",
+  "text": "Keep passwords private.",
+  "asset": "assets/audio/CURRICULUM/dadfff648279fdf871ff973e.en.v1.mp3",
+  "sha256": "23b8a4edde717ae27498807b14c7e81d26080b548050328fb466c270a2553965",
+  "durationSeconds": 2.665941
+}

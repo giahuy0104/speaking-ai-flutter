@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T08-B01\\C810-L3-T08-B01-Q01_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-T08-B01-Q01",
+  "sourceText": "Mình vui: I'm happy hay I'm sad?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình vui:",
+      "spoken_text": "Mình vui:",
+      "input_index": 0
+    },
+    {
+      "language": "en",
+      "text": "I'm happy",
+      "spoken_text": "I'm happy",
+      "input_index": 1
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 2
+    },
+    {
+      "language": "en",
+      "text": "I'm sad?",
+      "spoken_text": "I'm sad?",
+      "input_index": 3
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-7DEC538BEB63BF891F3B4B16",
+  "text": "Mình vui: I'm happy hay I'm sad?",
+  "asset": "assets/audio/CURRICULUM/7dec538beb63bf891f3b4b16.vi.v1.mp3",
+  "sha256": "8a319d02b2bd7fa7b41fe55333c3bd8920cee6c9a5fecf9619292a6943d49861",
+  "durationSeconds": 4.097438
+}

@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T06-B02\\C67-L2-T06-B02-T05_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-T06-B02-T05_EN",
+  "sourceText": "Comb your hair.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Comb your hair.",
+      "generation_key": "2d2d62efb258c8b2"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-6023EEE047869BFA21BADED6",
+  "text": "Comb your hair.",
+  "asset": "assets/audio/CURRICULUM/6023eee047869bfa21baded6.en.v1.mp3",
+  "sha256": "ba39b28dc9b661a0d06379a9df9582df79b8f948bdf91eef21b6b054e067f6ad",
+  "durationSeconds": 1.690703
+}

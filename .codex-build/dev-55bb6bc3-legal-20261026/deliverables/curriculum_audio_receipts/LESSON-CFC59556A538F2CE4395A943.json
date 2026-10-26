@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T10-B01\\C67-L3-T10-B01-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-T10-B01-Q04",
+  "sourceText": "Sách: Park hay Books?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Sách:",
+      "spoken_text": "Sách:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Park",
+      "spoken_text": "Park",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Books?",
+      "spoken_text": "Books?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-CFC59556A538F2CE4395A943",
+  "text": "Sách: Park hay Books?",
+  "asset": "assets/audio/CURRICULUM/cfc59556a538f2ce4395a943.vi.v1.mp3",
+  "sha256": "b270af2186e9c662c862213c4434fbfd2dcb88396eb0243a41be0c15fd3d5952",
+  "durationSeconds": 3.197528
+}

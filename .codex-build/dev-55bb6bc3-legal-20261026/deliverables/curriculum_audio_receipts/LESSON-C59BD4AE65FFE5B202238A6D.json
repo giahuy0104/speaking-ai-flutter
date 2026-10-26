@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T07-B02\\C35-L3-T07-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T07-B02-Q05",
+  "sourceText": "Cho mình nước nhé: Water, please hay Apple, please?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Cho mình nước nhé:",
+      "spoken_text": "Cho mình nước nhé:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Water, please",
+      "spoken_text": "Water, please",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Apple, please?",
+      "spoken_text": "Apple, please?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-C59BD4AE65FFE5B202238A6D",
+  "text": "Cho mình nước nhé: Water, please hay Apple, please?",
+  "asset": "assets/audio/CURRICULUM/c59bd4ae65ffe5b202238a6d.vi.v1.mp3",
+  "sha256": "663cf0859e8d57e047c1b3df850ab1190c0ce7fba3181eb5dc77cc4c1269bc29",
+  "durationSeconds": 6.32161
+}

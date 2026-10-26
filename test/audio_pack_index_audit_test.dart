@@ -17,6 +17,16 @@ void main() {
 
     final owners = <String, String>{};
     final referencedAssets = <String>{};
+    // Media played directly (for example song-skipped) is registered in the
+    // delivery catalog even when it has no semantic prompt key.
+    final remoteCatalog =
+        jsonDecode(
+              File('assets/data/remote_audio_catalog.json').readAsStringSync(),
+            )
+            as Map;
+    referencedAssets.addAll(
+      (remoteCatalog['assets'] as Map).keys.cast<String>(),
+    );
     final checksumTextHashes = <String, Set<String>>{};
     for (final pack in packs) {
       final manifestFile = File(pack['manifest'] as String);

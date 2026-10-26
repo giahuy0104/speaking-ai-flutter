@@ -1,0 +1,22 @@
+{
+  "number": 25,
+  "id": "VOCAB50-025",
+  "text": "Đến lượt bạn.",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current",
+  "file": "audio/VOCAB50-025.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "13ec7881aabc366dcefa1f67ab49b35796e2dbde58a154bb5fceea2434dcf5ed",
+  "bytes": 17598,
+  "sourceDurationSeconds": 0.96,
+  "durationSeconds": 1.043719,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "V0b03T93BpVk5qZFRtPQ",
+  "characterCost": "7",
+  "createdAt": "2026-09-16T03:20:46.990Z"
+}

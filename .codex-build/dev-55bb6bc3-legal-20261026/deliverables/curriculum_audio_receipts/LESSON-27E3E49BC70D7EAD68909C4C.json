@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T08-B01\\C1315-L3-T08-B01-T04_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T08-B01-T04_EN",
+  "sourceText": "Side dish.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Side dish.",
+      "generation_key": "87e3e7c9acd9e118"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-27E3E49BC70D7EAD68909C4C",
+  "text": "Side dish.",
+  "asset": "assets/audio/CURRICULUM/27e3e49bc70d7ead68909c4c.en.v1.mp3",
+  "sha256": "eead793efe4f4375fdcfb4454ba0a10ac825bc09c8c63abca6fe1b7d37d4569d",
+  "durationSeconds": 1.798095
+}

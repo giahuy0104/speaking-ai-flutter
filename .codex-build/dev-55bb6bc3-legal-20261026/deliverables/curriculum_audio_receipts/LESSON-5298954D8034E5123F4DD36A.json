@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L1-T01-B01\\C1112-L1-T01-B01-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L1-T01-B01-Q06",
+  "sourceText": "Bạn muốn diễn đạt \"Làm bài tập\". Read books hay Do homework?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn diễn đạt \"Làm bài tập\".",
+      "spoken_text": "Bạn muốn diễn đạt \"Làm bài tập\".",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Read books",
+      "spoken_text": "Read books",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "Do homework?",
+      "spoken_text": "Do homework?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-5298954D8034E5123F4DD36A",
+  "text": "Bạn muốn diễn đạt \"Làm bài tập\". Read books hay Do homework?",
+  "asset": "assets/audio/CURRICULUM/5298954d8034e5123f4dd36a.vi.v1.mp3",
+  "sha256": "88c5376aded97e79a63aa9b600b38308be8d894ffc936b1a875a6ce2f55ddd14",
+  "durationSeconds": 5.681156
+}

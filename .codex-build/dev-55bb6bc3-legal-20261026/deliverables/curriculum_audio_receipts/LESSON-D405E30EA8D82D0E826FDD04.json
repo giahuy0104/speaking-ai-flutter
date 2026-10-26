@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T06-B02\\C67-L2-T06-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-T06-B02-Q04",
+  "sourceText": "Đi tắm: Comb your hair hay Take a bath?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Đi tắm:",
+      "spoken_text": "Đi tắm:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Comb your hair",
+      "spoken_text": "Comb your hair",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Take a bath?",
+      "spoken_text": "Take a bath?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-D405E30EA8D82D0E826FDD04",
+  "text": "Đi tắm: Comb your hair hay Take a bath?",
+  "asset": "assets/audio/CURRICULUM/d405e30ea8d82d0e826fdd04.vi.v1.mp3",
+  "sha256": "cc67c444838d667212a2475ab417b679076b18df53051ff923eeefa2eff31853",
+  "durationSeconds": 5.890125
+}

@@ -1,0 +1,41 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\87563f00f898056c2fb22cc5ff15522cac7b932842db159a4768c33e8acf0638.tempo.mp3",
+      "signature": "87563f00f898056c2fb22cc5ff15522cac7b932842db159a4768c33e8acf0638",
+      "request": {
+        "text": "Bài này bạn còn 4 Ngôi sao chưa chinh phục. Mình cùng thử nhé!",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "d1f02a91698d59de0604d17739e7fee2c6b537c32a08b2103bf44fa15ddddcb0",
+      "requestId": "b6vgQbNq9N14vsYsIzEm",
+      "createdAt": "2026-09-15T23:22:44.097Z"
+    }
+  ],
+  "id": "LESSON-0BEBD96D3291C09D111FFA39",
+  "text": "Bài này bạn còn 4 Ngôi sao chưa chinh phục. Mình cùng thử nhé!",
+  "asset": "assets/audio/CURRICULUM/0bebd96d3291c09d111ffa39.vi.v1.mp3",
+  "sha256": "fe68f5df176fd2f84a43c33394b2765dbea6e349480454995089f26ceb6c91ff",
+  "durationSeconds": 3.979705,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

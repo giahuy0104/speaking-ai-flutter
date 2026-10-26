@@ -87,7 +87,7 @@ void main() {
   );
 
   test(
-    'CDN timeout uses TTS and does not prevent bundled lesson playback',
+    'CDN timeout uses TTS and does not prevent cached lesson playback',
     () async {
       final pending = Completer<http.Response>();
       final client = MockClient((_) => pending.future);
@@ -110,6 +110,12 @@ void main() {
         (p) => p.pack == 'listening-common',
       );
       final lesson = lessonPack.prompts.firstWhere((p) => p.enabled);
+      await repository.cache.putVerified(
+        pack: lessonPack.pack,
+        sha256: lesson.sha256,
+        bytes: File(lesson.asset!).readAsBytesSync(),
+        maximumBytes: repository.maximumAudioBytes,
+      );
       expect(
         (await resolver.resolve(
           AudioPromptRequest(
@@ -118,7 +124,7 @@ void main() {
             locale: lesson.locale,
           ),
         )).source,
-        AudioPromptSource.bundledAsset,
+        AudioPromptSource.deviceCache,
       );
       pending.complete(http.Response('offline', 503));
     },

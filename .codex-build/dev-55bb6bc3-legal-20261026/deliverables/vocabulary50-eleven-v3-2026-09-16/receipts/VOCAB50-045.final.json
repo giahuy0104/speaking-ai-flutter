@@ -1,0 +1,22 @@
+{
+  "number": 45,
+  "id": "VOCAB50-045",
+  "text": "Mình nghe câu đúng nhé.",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "reserve-variant",
+  "file": "audio/VOCAB50-045.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "ccb90bbae42556bec58bbfcbb45055b11df9a222ff3be3451127d8cbaa72cf16",
+  "bytes": 26375,
+  "sourceDurationSeconds": 1.44,
+  "durationSeconds": 1.579705,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "qF1rS7W6H090X962hysL",
+  "characterCost": "13",
+  "createdAt": "2026-09-16T03:21:24.018Z"
+}

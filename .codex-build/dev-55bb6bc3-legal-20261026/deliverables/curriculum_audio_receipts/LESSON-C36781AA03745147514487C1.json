@@ -1,0 +1,41 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\07c6d2574aa9f3e4e795b6257ec8ab3f374582095e415a201187ec5e87de28de.tempo.mp3",
+      "signature": "07c6d2574aa9f3e4e795b6257ec8ab3f374582095e415a201187ec5e87de28de",
+      "request": {
+        "text": "Đến giờ vào lớp rồi.",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "79ad1d755c0fb603a1c68d0598b4b8e33e045ac77f9949ef9d6e3d4624cc754f",
+      "requestId": "xVq4vwXQs5ENGzF4HS2I",
+      "createdAt": "2026-09-15T23:18:05.038Z"
+    }
+  ],
+  "id": "LESSON-C36781AA03745147514487C1",
+  "text": "Đến giờ vào lớp rồi.",
+  "asset": "assets/audio/CURRICULUM/c36781aa03745147514487c1.vi.v1.mp3",
+  "sha256": "b7f93ad0941280160b485da31f12f706b8e2aa26c95abca79c7bff51d3e01d39",
+  "durationSeconds": 1.495986,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

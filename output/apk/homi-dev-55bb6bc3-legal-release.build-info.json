@@ -1,0 +1,37 @@
+{
+  "sourceBranch": "dev",
+  "sourceReference": "origin/dev",
+  "sourceCommit": "55bb6bc3c0bca79d61e164e24bd9260b43159ee9",
+  "sourceExport": "git archive of the exact commit; no application source changes",
+  "buildCommand": "powershell -File tool/build_production_apk.ps1",
+  "buildSucceeded": true,
+  "flutterVersion": "3.44.7",
+  "versionName": "1.0.11",
+  "versionCode": 18,
+  "packageName": "com.innotrik.aispeaking",
+  "file": "homi-dev-55bb6bc3-legal-release.apk",
+  "sizeBytes": 278092076,
+  "sha256": "3caeda3c9e14f697e8bbdeb743985cfd0eb54275804431acb001750be0f87446",
+  "productionConfigGitBlob": "928d59972d6312f678abf3d89d0799e756fdd8dc",
+  "legalUrls": {
+    "PRIVACY_POLICY_URL": "https://homi-app-privacy.lixiang22.chatgpt.site/privacy",
+    "TERMS_URL": "https://homi-app-privacy.lixiang22.chatgpt.site/terms",
+    "SUPPORT_URL": "https://homi-app-privacy.lixiang22.chatgpt.site/support"
+  },
+  "verifiedAllThreeUrlsInEachAbi": [
+    "arm64-v8a",
+    "armeabi-v7a",
+    "x86_64"
+  ],
+  "signingVerified": true,
+  "signingScheme": "v2",
+  "signingCertificate": "CN=HOMI Android Upload, OU=Mobile, O=HOMI, C=VN",
+  "signingCertificateSha256": "a052d2b187fb6806a92291bcd913991a98cc922f7531fe41665b58f564801127",
+  "testsPassed": 9,
+  "testFiles": [
+    "test/app_config_test.dart",
+    "test/features/privacy/parental_gate_test.dart",
+    "test/features/privacy/privacy_consent_store_test.dart"
+  ],
+  "builtAt": "2026-10-26T10:16:53.9082700+07:00"
+}

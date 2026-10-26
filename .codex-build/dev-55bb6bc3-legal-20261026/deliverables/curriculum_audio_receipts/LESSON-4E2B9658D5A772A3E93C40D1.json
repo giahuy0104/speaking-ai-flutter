@@ -1,0 +1,83 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\ec99413cc33aaee386914c70a3dd4775f3fb998c05f2a006029a4216e579f09f.tempo.mp3",
+      "signature": "ec99413cc33aaee386914c70a3dd4775f3fb998c05f2a006029a4216e579f09f",
+      "request": {
+        "text": "Tiếp theo là một câu thử thách. Xong rồi mình nghe bài hát",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "a87bb67623e40b897aea37e674506dfa118d9b8da29a6b3a36a539f957136122",
+      "requestId": "fTYOFCgw9z3gq3uVusAx",
+      "createdAt": "2026-09-15T23:23:28.811Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\a9749fc8f48198ff4cd0054f5120c910f5408910dade1977e2b8ea8593782ed5.tempo.mp3",
+      "signature": "a9749fc8f48198ff4cd0054f5120c910f5408910dade1977e2b8ea8593782ed5",
+      "request": {
+        "text": "My Happy Day",
+        "model_id": "eleven_v3",
+        "language_code": "en",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+        "speed": 0.75
+      },
+      "sha256": "796fe95e725a47d74667f21c057dfb6b6884af6232d0293f883e303d231efd72",
+      "requestId": "rfQKR2dordfoHN4XJL3I",
+      "createdAt": "2026-09-15T23:24:34.635Z"
+    },
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\f72caefaa52b9ec3d291f160d78b360185e13807d2eedb801f47a382b8e85780.tempo.mp3",
+      "signature": "f72caefaa52b9ec3d291f160d78b360185e13807d2eedb801f47a382b8e85780",
+      "request": {
+        "text": "nhé.",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "f8a90b46149d734b590160ab12314af597dc9eb203f9f411637ff57d12e7a8d6",
+      "requestId": "1gbfQaGo6f7yeN8SvxDC",
+      "createdAt": "2026-09-15T23:22:32.853Z"
+    }
+  ],
+  "id": "LESSON-4E2B9658D5A772A3E93C40D1",
+  "text": "Tiếp theo là một câu thử thách. Xong rồi mình nghe bài hát My Happy Day nhé.",
+  "asset": "assets/audio/CURRICULUM/4e2b9658d5a772a3e93c40d1.vi.v1.mp3",
+  "sha256": "a4c818ab46ee8c28ba30a58e12979f85a3299d68a1f186ceef52a2fa185f988a",
+  "durationSeconds": 6.427188,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T01-B02\\C67-L1-T01-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T01-B02-Q04",
+  "sourceText": "Mặt trăng: Moon hay Notebook?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mặt trăng:",
+      "spoken_text": "Mặt trăng:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Moon",
+      "spoken_text": "Moon",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Notebook?",
+      "spoken_text": "Notebook?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-7D64B36599BEE89FDD140705",
+  "text": "Mặt trăng: Moon hay Notebook?",
+  "asset": "assets/audio/CURRICULUM/7d64b36599bee89fdd140705.vi.v1.mp3",
+  "sha256": "d740700eb0ca568231c5e3d163537ad5dc4816c72752c003d235de9d7a27f1df",
+  "durationSeconds": 3.753923
+}

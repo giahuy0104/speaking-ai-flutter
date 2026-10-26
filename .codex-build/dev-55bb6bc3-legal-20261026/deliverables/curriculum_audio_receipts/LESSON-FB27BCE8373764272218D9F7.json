@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T09-B02\\C1112-L3-T09-B02-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T09-B02-Q06",
+  "sourceText": "Bạn muốn nói 'Làm ơn gọi cho ba mình.' Hoàn thành câu: Please... wait here hay call my Dad?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói 'Làm ơn gọi cho ba mình.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Làm ơn gọi cho ba mình.' Hoàn thành câu:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Please... wait here",
+      "spoken_text": "Please... wait here",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "call my Dad?",
+      "spoken_text": "call my Dad?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-FB27BCE8373764272218D9F7",
+  "text": "Bạn muốn nói 'Làm ơn gọi cho ba mình.' Hoàn thành câu: Please... wait here hay call my Dad?",
+  "asset": "assets/audio/CURRICULUM/fb27bce8373764272218d9f7.vi.v1.mp3",
+  "sha256": "706d2d7477b952af447e27b991481bf2668a88152dc68159f7854d205d110ece",
+  "durationSeconds": 9.151179
+}

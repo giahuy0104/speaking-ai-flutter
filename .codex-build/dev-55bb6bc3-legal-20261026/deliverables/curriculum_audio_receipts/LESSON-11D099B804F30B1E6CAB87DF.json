@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L1-T02-B01\\C810-L1-T02-B01-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L1-T02-B01-Q04",
+  "sourceText": "Môn Mỹ thuật: Music hay Art?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Môn Mỹ thuật:",
+      "spoken_text": "Môn Mỹ thuật:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Music",
+      "spoken_text": "Music",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Art?",
+      "spoken_text": "Art?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-11D099B804F30B1E6CAB87DF",
+  "text": "Môn Mỹ thuật: Music hay Art?",
+  "asset": "assets/audio/CURRICULUM/11d099b804f30b1e6cab87df.vi.v1.mp3",
+  "sha256": "586e66e8589c640f5ca5c4b74188fa2c079d2a504d1842992048d66682c8e89b",
+  "durationSeconds": 3.53517
+}

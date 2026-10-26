@@ -1,0 +1,20 @@
+{
+  "signature": "eb5f33723e6015936daa58cb47ae3f22545a1c003c22763e4f2cfcf7c0660345",
+  "request": {
+    "text": "My Week.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "831362f8fe467cb4bba931f9a1b1ff45daa18d20203a08d4ee7e46124d29cf5d",
+  "requestId": "DVTYSkVTXMq3Vli9Q3tI",
+  "createdAt": "2026-09-15T23:27:45.283Z"
+}

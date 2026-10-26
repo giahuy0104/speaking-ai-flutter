@@ -1,0 +1,20 @@
+{
+  "id": "AI-068",
+  "signature": "53aa1bd45a4c36a2055e6d99470d753dc1fbc35ed4ed560b57fab4be435c0872",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình học xong bài hát này trước rồi chuyển phần khác.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:10:13.894Z",
+  "requestId": "gr7XyP33XYrakJ1ieNEU",
+  "characterCost": "29",
+  "sourceSha256": "f2a53b4c10f80cffa6cbbd47c65e67fb845045b69f52a28e01d65914ea31776e"
+}

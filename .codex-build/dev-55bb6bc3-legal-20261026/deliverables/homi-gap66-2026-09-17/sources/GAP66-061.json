@@ -1,0 +1,21 @@
+{
+  "id": "GAP66-061",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình chưa hiểu. Chưa có nội dung ở phần này. Bạn muốn học Ngôi sao hay Luyện lại?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "SaG3syUKDkqsVU2vX0xC",
+  "historyItemId": "ZXG4vHjcrElQiMvek4q2",
+  "characterCost": "45",
+  "createdAt": "2026-09-17T14:26:51.044Z",
+  "sourceSha256": "13d59184a9625c778c4173d8fa4fdfb3c21f9a67706bf53de0fe8525f0e5521e"
+}

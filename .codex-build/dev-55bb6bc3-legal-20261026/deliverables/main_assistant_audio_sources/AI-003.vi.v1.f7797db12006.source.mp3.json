@@ -1,0 +1,20 @@
+{
+  "id": "AI-003",
+  "signature": "f7797db12006e2e6cb7cce179ce9eb28ea666bcc4b9a2ea9c774510c4f776619",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Khi sẵn sàng, bạn nhấn nút gọi HOMI nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:06:25.227Z",
+  "requestId": "DN8zrKB9sIxVmjlJWG6r",
+  "characterCost": "22",
+  "sourceSha256": "7477ebc63920486d743a35c02ca5ad041aec9bd991cdc78161cc25004c3f8a91"
+}

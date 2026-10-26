@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T03-B01\\C1315-L1-T03-B01-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-T03-B01-Q03",
+  "sourceText": "Mình thích cái này hơn: I prefer this one hay I agree?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình thích cái này hơn:",
+      "spoken_text": "Mình thích cái này hơn:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "I prefer this one",
+      "spoken_text": "I prefer this one",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "I agree?",
+      "spoken_text": "I agree?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-9AC4B0A768CD6518E18719C4",
+  "text": "Mình thích cái này hơn: I prefer this one hay I agree?",
+  "asset": "assets/audio/CURRICULUM/9ac4b0a768cd6518e18719c4.vi.v1.mp3",
+  "sha256": "7ac320518cebeb4a1928317c18df5525f934ed1b6b8d0a2a3d8db0acdf93cf61",
+  "durationSeconds": 4.867664
+}

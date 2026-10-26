@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T07-B01\\C1315-L3-T07-B01-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T07-B01-Q05",
+  "sourceText": "Lối ra: Exit hay Departure?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Lối ra:",
+      "spoken_text": "Lối ra:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Exit",
+      "spoken_text": "Exit",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Departure?",
+      "spoken_text": "Departure?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-DEFB0CBE650FB9231DCE8FF6",
+  "text": "Lối ra: Exit hay Departure?",
+  "asset": "assets/audio/CURRICULUM/defb0cbe650fb9231dce8ff6.vi.v1.mp3",
+  "sha256": "1f7b19c5c18358861220b6c8c80fb3192536f61ff1cf188c1e4c8d0c30def31d",
+  "durationSeconds": 3.9615
+}

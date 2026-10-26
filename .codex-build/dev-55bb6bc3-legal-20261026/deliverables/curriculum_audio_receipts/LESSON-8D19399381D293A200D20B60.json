@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L2-T04-B01\\C35-L2-T04-B01-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L2-T04-B01-Q03",
+  "sourceText": "Hình tam giác: Triangle hay Star?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Hình tam giác:",
+      "spoken_text": "Hình tam giác:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Triangle",
+      "spoken_text": "Triangle",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Star?",
+      "spoken_text": "Star?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-8D19399381D293A200D20B60",
+  "text": "Hình tam giác: Triangle hay Star?",
+  "asset": "assets/audio/CURRICULUM/8d19399381d293a200d20b60.vi.v1.mp3",
+  "sha256": "55830bd6f076f3f4a8b85ec55cc0b4baf41292ecde16d79ebdd68a8142752fa0",
+  "durationSeconds": 3.827823
+}

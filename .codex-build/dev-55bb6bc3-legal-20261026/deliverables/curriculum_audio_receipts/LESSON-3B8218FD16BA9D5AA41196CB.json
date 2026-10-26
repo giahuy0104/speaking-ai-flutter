@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T08-B01\\C1112-L3-T08-B01-T05_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T08-B01-T05_EN",
+  "sourceText": "Expensive.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Expensive.",
+      "generation_key": "fd243995a9bdb845"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-3B8218FD16BA9D5AA41196CB",
+  "text": "Expensive.",
+  "asset": "assets/audio/CURRICULUM/3b8218fd16ba9d5aa41196cb.en.v1.mp3",
+  "sha256": "3a03b94878cb75f27920f0f30da35a72042f902d57678f362a305b307df33836",
+  "durationSeconds": 1.899683
+}

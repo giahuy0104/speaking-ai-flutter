@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L3-T10\\C810-L3-M10_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L3-M10",
+  "sourceText": "Bạn cần nói \"Đi xe buýt\". Take the bus hay Walk there?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần nói \"Đi xe buýt\".",
+      "text": "Bạn cần nói \"Đi xe buýt\".",
+      "spoken_text": "Bạn cần nói \"Đi xe buýt\".",
+      "input_index": 58
+    },
+    {
+      "language": "en",
+      "source_text": "Take the bus",
+      "text": "Take the bus",
+      "spoken_text": "Take the bus",
+      "input_index": 59
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 60
+    },
+    {
+      "language": "en",
+      "source_text": "Walk there?",
+      "text": "Walk there?",
+      "spoken_text": "Walk there?",
+      "input_index": 61
+    }
+  ],
+  "sourceSha256": "d1fe0542218e65e1512abf3072f81cc6fb9ddfcdb4f8d2f1334c753542d51c03",
+  "id": "LESSON-83923BAFD917248C14FCB173",
+  "text": "Bạn cần nói \"Đi xe buýt\". Take the bus hay Walk there?",
+  "asset": "assets/audio/CURRICULUM/83923bafd917248c14fcb173.vi.v1.mp3",
+  "sha256": "d1fe0542218e65e1512abf3072f81cc6fb9ddfcdb4f8d2f1334c753542d51c03",
+  "durationSeconds": 7.438231
+}

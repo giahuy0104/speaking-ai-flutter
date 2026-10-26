@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T10-B01\\C1112-L3-T10-B01-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T10-B01-Q06",
+  "sourceText": "Bạn muốn nói 'Dùng ít giấy hơn.' Hoàn thành câu: Use... both sides hay less paper?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói 'Dùng ít giấy hơn.' Hoàn thành câu:",
+      "spoken_text": "Bạn muốn nói 'Dùng ít giấy hơn.' Hoàn thành câu:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Use... both sides",
+      "spoken_text": "Use... both sides",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "less paper?",
+      "spoken_text": "less paper?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-068AD2ABEB86A8494EDEDB5D",
+  "text": "Bạn muốn nói 'Dùng ít giấy hơn.' Hoàn thành câu: Use... both sides hay less paper?",
+  "asset": "assets/audio/CURRICULUM/068ad2abeb86a8494ededb5d.vi.v1.mp3",
+  "sha256": "75bc55e29a6731375fe110caad9aea148e324a04c77abbfd129a1a98dfa015b4",
+  "durationSeconds": 9.858707
+}

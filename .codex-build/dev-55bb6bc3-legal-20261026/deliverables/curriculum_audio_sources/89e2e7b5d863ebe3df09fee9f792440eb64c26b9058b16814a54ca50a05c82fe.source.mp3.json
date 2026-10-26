@@ -1,0 +1,20 @@
+{
+  "signature": "89e2e7b5d863ebe3df09fee9f792440eb64c26b9058b16814a54ca50a05c82fe",
+  "request": {
+    "text": "My Order.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "ed09ff80e833d3c0f2cfeec9f7facda16d7a21e258f143eb4c7f46a238e8df9a",
+  "requestId": "lhQtR5FeQu1k86wbjWhF",
+  "createdAt": "2026-09-15T23:30:47.902Z"
+}

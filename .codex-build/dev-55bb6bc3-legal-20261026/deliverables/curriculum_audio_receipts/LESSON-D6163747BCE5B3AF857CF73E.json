@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L2-T04-B02\\C1315-L2-T04-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L2-T04-B02-Q05",
+  "sourceText": "Mình sẽ tiết kiệm tiền: I'll save my money hay I'll think about it?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình sẽ tiết kiệm tiền:",
+      "spoken_text": "Mình sẽ tiết kiệm tiền:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "I'll save my money",
+      "spoken_text": "I'll save my money",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "I'll think about it?",
+      "spoken_text": "I'll think about it?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-D6163747BCE5B3AF857CF73E",
+  "text": "Mình sẽ tiết kiệm tiền: I'll save my money hay I'll think about it?",
+  "asset": "assets/audio/CURRICULUM/d6163747bce5b3af857cf73e.vi.v1.mp3",
+  "sha256": "e65b2b341c79a5c75b627e1060ec487d9c63b90aef989cffe09ac72e7de33fa3",
+  "durationSeconds": 5.471995
+}

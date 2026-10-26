@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T02-B03\\C67-L1-T02-B03-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T02-B03-Q06",
+  "sourceText": "Bạn muốn nói \"Hai quyển sách\". Five apples hay Two books?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói \"Hai quyển sách\".",
+      "spoken_text": "Bạn muốn nói \"Hai quyển sách\".",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Five apples",
+      "spoken_text": "Five apples",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "Two books?",
+      "spoken_text": "Two books?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-B1DB3B1588A3694E9DC5B066",
+  "text": "Bạn muốn nói \"Hai quyển sách\". Five apples hay Two books?",
+  "asset": "assets/audio/CURRICULUM/b1db3b1588a3694e9dc5b066.vi.v1.mp3",
+  "sha256": "4b90c59e6f7fd80b3cfee4ab1b0834201787602ff7a688cd93bbdbaa21157ddf",
+  "durationSeconds": 6.365465
+}

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T01-B02\\C67-L1-T01-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T01-B02-Q05",
+  "sourceText": "Bạch tuộc: Octopus hay Pencil?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạch tuộc:",
+      "spoken_text": "Bạch tuộc:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Octopus",
+      "spoken_text": "Octopus",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Pencil?",
+      "spoken_text": "Pencil?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-9BA8CA940CC53EBCFF9BA84E",
+  "text": "Bạch tuộc: Octopus hay Pencil?",
+  "asset": "assets/audio/CURRICULUM/9ba8ca940cc53ebcff9ba84e.vi.v1.mp3",
+  "sha256": "03a3c4dc76167fdbe8a27b46958228a39a77cce7f4ef5a5e4c1ebe0276b187a4",
+  "durationSeconds": 4.06551
+}

@@ -1,0 +1,63 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L1-T02-B02\\C810-L1-T02-B02-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L1-T02-B02-Q06",
+  "sourceText": "HOMI hỏi: Can I come in? Bạn đồng ý. Yes, come in hay Thank you?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "HOMI hỏi:",
+      "spoken_text": "HOMI hỏi:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Can I come in?",
+      "spoken_text": "Can I come in?",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "Bạn đồng ý.",
+      "spoken_text": "Bạn đồng ý.",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "Yes, come in",
+      "spoken_text": "Yes, come in",
+      "input_index": 33
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 34
+    },
+    {
+      "language": "en",
+      "text": "Thank you?",
+      "spoken_text": "Thank you?",
+      "input_index": 35
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-769EB0111483CCB045E01DF6",
+  "text": "HOMI hỏi: Can I come in? Bạn đồng ý. Yes, come in hay Thank you?",
+  "asset": "assets/audio/CURRICULUM/769eb0111483ccb045e01df6.vi.v1.mp3",
+  "sha256": "bc0e0cf58db67c9e7c2659406015827ec668f877f3c9d95fcf3bc3e768bcf07a",
+  "durationSeconds": 7.71424
+}

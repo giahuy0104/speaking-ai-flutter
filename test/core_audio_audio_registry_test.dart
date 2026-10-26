@@ -177,7 +177,8 @@ void main() {
     var ttsCount = 0;
     final service = AudioPromptService(
       resolver: fixture.resolver,
-      playAuthored: (_, _) async => throw StateError('autoplay denied'),
+      playAuthored: (_, _, {assetKey}) async =>
+          throw StateError('autoplay denied'),
       playTts: (_) async => ttsCount += 1,
       stopPlayback: () async {},
     );
@@ -191,7 +192,8 @@ void main() {
     var ttsCount = 0;
     final service = AudioPromptService(
       resolver: fixture.resolver,
-      playAuthored: (_, _) async => throw const HfpAudioException('route lost'),
+      playAuthored: (_, _, {assetKey}) async =>
+          throw const HfpAudioException('route lost'),
       playTts: (_) async => ttsCount += 1,
       stopPlayback: () async {},
       isRouteLoss: (error) => error is HfpAudioException,
@@ -217,7 +219,7 @@ void main() {
     var stopCount = 0;
     final service = AudioPromptService(
       resolver: fixture.resolver,
-      playAuthored: (_, _) async => authoredCount += 1,
+      playAuthored: (_, _, {assetKey}) async => authoredCount += 1,
       playTts: (_) async => ttsCount += 1,
       stopPlayback: () async => stopCount += 1,
     );
@@ -248,7 +250,7 @@ void main() {
       var playCount = 0;
       final service = AudioPromptService(
         resolver: fixture.resolver,
-        playAuthored: (_, _) async {
+        playAuthored: (_, _, {assetKey}) async {
           playCount += 1;
           activePlayers += 1;
           maximumActivePlayers = activePlayers > maximumActivePlayers
@@ -283,7 +285,7 @@ void main() {
     final events = <String>[];
     final service = AudioPromptService(
       resolver: fixture.resolver,
-      playAuthored: (_, _) async {
+      playAuthored: (_, _, {assetKey}) async {
         events.add('authored');
         throw StateError('decoder failed');
       },
@@ -771,6 +773,7 @@ final class _RecordingVoicePromptService
     Uint8List bytes, {
     bool forcePhoneSpeaker = false,
     bool forceMediaPlayback = false,
+    double? gainDb,
   }) async {
     authoredPlays += 1;
   }

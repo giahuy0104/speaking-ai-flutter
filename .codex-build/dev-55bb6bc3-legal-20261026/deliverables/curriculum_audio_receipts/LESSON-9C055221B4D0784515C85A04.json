@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\MP3\\ROLEPLAY_10\\ROLEPLAY_10_TURN_03_HOMI_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\04_D_ROLE_PLAY_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "ROLEPLAY_10_TURN_03_VI",
+  "sourceText": "Tại sao?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75, VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Tại sao?",
+      "generation_key": "826b8dd1e99b9e45"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-9C055221B4D0784515C85A04",
+  "text": "Tại sao?",
+  "asset": "assets/audio/CURRICULUM/9c055221b4d0784515c85a04.vi.v1.mp3",
+  "sha256": "87a619aa167162f1c23861a6c569b0843337828d4e4640a32eddfe79472be01e",
+  "durationSeconds": 1.072608
+}

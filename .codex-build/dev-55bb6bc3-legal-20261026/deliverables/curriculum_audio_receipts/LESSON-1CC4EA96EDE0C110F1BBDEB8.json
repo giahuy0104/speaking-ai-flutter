@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T04-B03\\C1112-L2-T04-B03-T04_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T04-B03-T04_EN",
+  "sourceText": "Walking is cheaper.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Walking is cheaper.",
+      "generation_key": "2f1c23c46dbf71ff"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-1CC4EA96EDE0C110F1BBDEB8",
+  "text": "Walking is cheaper.",
+  "asset": "assets/audio/CURRICULUM/1cc4ea96ede0c110f1bbdeb8.en.v1.mp3",
+  "sha256": "e53af6abd2ae8f66e62c70384434889c321ed201fa6c116484e45cd5a0e42bfb",
+  "durationSeconds": 2.247982
+}

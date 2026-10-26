@@ -1,0 +1,63 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T08-B02\\C1112-L3-T08-B02-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T08-B02-Q06",
+  "sourceText": "HOMI nói: It's twenty dollars. Bạn thấy giá thấp. That's cheap hay That's expensive?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "HOMI nói:",
+      "spoken_text": "HOMI nói:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "It's twenty dollars.",
+      "spoken_text": "It's twenty dollars.",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "Bạn thấy giá thấp.",
+      "spoken_text": "Bạn thấy giá thấp.",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "That's cheap",
+      "spoken_text": "That's cheap",
+      "input_index": 33
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 34
+    },
+    {
+      "language": "en",
+      "text": "That's expensive?",
+      "spoken_text": "That's expensive?",
+      "input_index": 35
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-883280318915223786E32EEC",
+  "text": "HOMI nói: It's twenty dollars. Bạn thấy giá thấp. That's cheap hay That's expensive?",
+  "asset": "assets/audio/CURRICULUM/883280318915223786e32eec.vi.v1.mp3",
+  "sha256": "746fb6dc68e3bdd10f4e6ec97d6e8dc8c101c45c461b4117a062370cddabd817",
+  "durationSeconds": 8.203515
+}

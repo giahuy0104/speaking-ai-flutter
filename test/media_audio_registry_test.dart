@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:ai_speaking_flutter_app/core/audio/catalog/audio_pack_manifest.dart';
 import 'package:ai_speaking_flutter_app/core/audio/catalog/media_audio_keys.dart';
+import 'package:ai_speaking_flutter_app/core/audio/remote_audio_catalog.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -47,8 +48,11 @@ void main() {
   });
 
   test(
-    'all five curriculum song IDs resolve to loadable bundled assets',
+    'all five song IDs resolve through the remote catalog without bundled MP3',
     () async {
+      final bundled = (await AssetManifest.loadFromAssetBundle(
+        rootBundle,
+      )).listAssets();
       for (final id in const <String>[
         'C35-L1-T02-B02_SONG',
         'C35-L3-T09-B02_SONG',
@@ -60,8 +64,11 @@ void main() {
         expect(uri?.scheme, 'asset');
         expect(uri?.path, endsWith('.mp3'));
         final assetPath = uri!.path.replaceFirst(RegExp(r'^/'), '');
-        final bytes = await rootBundle.load(assetPath);
-        expect(bytes.lengthInBytes, greaterThan(0), reason: id);
+        final entry = await RemoteAudioCatalog.entryForUri(uri);
+        expect(entry, isNotNull, reason: id);
+        expect(entry!.uri.scheme, 'https');
+        expect(entry.sizeBytes, greaterThan(0));
+        expect(bundled, isNot(contains(assetPath)));
       }
       expect(MediaAudioKeys.bundledSongUri('missing-song'), isNull);
     },

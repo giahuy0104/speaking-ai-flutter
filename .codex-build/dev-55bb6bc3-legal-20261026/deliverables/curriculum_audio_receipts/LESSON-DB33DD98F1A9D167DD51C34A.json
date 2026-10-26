@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T02-B02\\C1315-L1-T02-B02-T02_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-T02-B02-T02_EN",
+  "sourceText": "Review my notes.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Review my notes.",
+      "generation_key": "6a38be0a557bec8d"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-DB33DD98F1A9D167DD51C34A",
+  "text": "Review my notes.",
+  "asset": "assets/audio/CURRICULUM/db33dd98f1a9d167dd51c34a.en.v1.mp3",
+  "sha256": "83fa2f35b505b14ceeb63e8547e63a67dcc84e040ac0d392d5f9377f320e0083",
+  "durationSeconds": 1.899683
+}

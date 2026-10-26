@@ -1,0 +1,63 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T07-B02\\C1112-L3-T07-B02-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T07-B02-Q07",
+  "sourceText": "HOMI nói: Let's meet at three. Bạn chốt kế hoạch. See you there hay Are you free Saturday?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "HOMI nói:",
+      "spoken_text": "HOMI nói:",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Let's meet at three.",
+      "spoken_text": "Let's meet at three.",
+      "input_index": 39
+    },
+    {
+      "language": "vi",
+      "text": "Bạn chốt kế hoạch.",
+      "spoken_text": "Bạn chốt kế hoạch.",
+      "input_index": 40
+    },
+    {
+      "language": "en",
+      "text": "See you there",
+      "spoken_text": "See you there",
+      "input_index": 41
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 42
+    },
+    {
+      "language": "en",
+      "text": "Are you free Saturday?",
+      "spoken_text": "Are you free Saturday?",
+      "input_index": 43
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-CCEDB93E1C28816C2D5BB0D6",
+  "text": "HOMI nói: Let's meet at three. Bạn chốt kế hoạch. See you there hay Are you free Saturday?",
+  "asset": "assets/audio/CURRICULUM/ccedb93e1c28816c2d5bb0d6.vi.v1.mp3",
+  "sha256": "b92f24a6eeaff522e99d7be71e681f74cf8c24a961c7893840532e526f2364e3",
+  "durationSeconds": 9.548707
+}

@@ -1,0 +1,20 @@
+{
+  "signature": "811a54d21a88da6c3cef2213a116ad4ff6a718aab6e3231c90e43ea14844de72",
+  "request": {
+    "text": "School Subjects",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "81949d8f6214620a8bea1828187dacaddd36702ec23f04f35cffcdc8e8d6d28f",
+  "requestId": "2dvNEPYUQDhfTqbfiRYH",
+  "createdAt": "2026-09-15T23:26:25.719Z"
+}

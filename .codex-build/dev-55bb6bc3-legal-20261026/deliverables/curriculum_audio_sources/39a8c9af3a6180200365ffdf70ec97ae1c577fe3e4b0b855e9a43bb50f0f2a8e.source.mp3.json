@@ -1,0 +1,20 @@
+{
+  "signature": "39a8c9af3a6180200365ffdf70ec97ae1c577fe3e4b0b855e9a43bb50f0f2a8e",
+  "request": {
+    "text": "Hobby Skills",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "af9b25b1a35cabd658f4752a99c4d7d7bb8b8ebbd4d5af0bb6f21c7f4a9fd939",
+  "requestId": "abxLBg4MF90gKUqCXNat",
+  "createdAt": "2026-09-15T23:26:35.298Z"
+}

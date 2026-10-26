@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T06-B01\\C810-L2-T06-B01-T02_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T06-B01-T02_VI",
+  "sourceText": "Máy tính bảng.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Máy tính bảng.",
+      "generation_key": "a0e29b316389d4ac"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-FE583313E98B51FDC8B490BE",
+  "text": "Máy tính bảng.",
+  "asset": "assets/audio/CURRICULUM/fe583313e98b51fdc8b490be.vi.v1.mp3",
+  "sha256": "f169d98a47d8a172e6dfcab05b5f173b0f884476571b02cbafa068641a836727",
+  "durationSeconds": 1.23907
+}

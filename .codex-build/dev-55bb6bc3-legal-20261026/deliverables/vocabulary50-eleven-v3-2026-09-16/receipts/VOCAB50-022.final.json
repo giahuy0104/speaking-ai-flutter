@@ -1,0 +1,22 @@
+{
+  "number": 22,
+  "id": "VOCAB50-022",
+  "text": "Bạn đã nghe hết Ngôi sao rồi. Bạn muốn học nội dung khác hay học lại?",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current",
+  "file": "audio/VOCAB50-022.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "ac3794c2b60224ad4dbb8c8ff984285d71c8613afab17dfccc27f57c13937fdb",
+  "bytes": 76530,
+  "sourceDurationSeconds": 4.24,
+  "durationSeconds": 4.70424,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "ogmaRu73JfAFljGRpqxj",
+  "characterCost": "38",
+  "createdAt": "2026-09-16T03:20:40.765Z"
+}

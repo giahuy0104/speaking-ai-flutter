@@ -1,0 +1,44 @@
+import 'package:flutter/foundation.dart';
+import 'package:web/web.dart' as web;
+
+final Set<String> _availableRecordingPaths = <String>{};
+
+String lessonRecordingFileExtension({TargetPlatform? platform}) => 'webm';
+
+Future<String> createLessonRecordingPath(
+  String lessonId,
+  int sentenceNumber, {
+  String? extension,
+}) async =>
+    '$lessonId-sentence-$sentenceNumber-'
+    '${DateTime.now().microsecondsSinceEpoch}.'
+    '${extension?.replaceFirst(RegExp(r'^\.'), '').trim() ?? 'webm'}';
+
+Future<String?> findLessonRecording(String path) async {
+  final value = path.trim();
+  return value.isNotEmpty && _availableRecordingPaths.contains(value)
+      ? value
+      : null;
+}
+
+Future<String?> retainStarRecording(String path) => findLessonRecording(path);
+
+Future<void> deleteLessonRecording(String path) async {
+  _availableRecordingPaths.remove(path);
+  if (path.startsWith('blob:')) {
+    web.URL.revokeObjectURL(path);
+  }
+}
+
+Future<String?> resolveLessonRecording(
+  String? recordedPath,
+  String expectedPath, {
+  bool requireNormalization = false,
+}) async {
+  final path = recordedPath?.trim();
+  if (path == null || path.isEmpty) {
+    return null;
+  }
+  _availableRecordingPaths.add(path);
+  return path;
+}

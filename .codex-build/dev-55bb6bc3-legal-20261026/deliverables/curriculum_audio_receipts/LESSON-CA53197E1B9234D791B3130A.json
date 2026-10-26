@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T03-B02\\C35-L1-T03-B02-T04_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-T03-B02-T04_EN",
+  "sourceText": "It's green.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "It's green.",
+      "generation_key": "9c75be5229c8b40a"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-CA53197E1B9234D791B3130A",
+  "text": "It's green.",
+  "asset": "assets/audio/CURRICULUM/ca53197e1b9234d791b3130a.en.v1.mp3",
+  "sha256": "e55985bcf00e4015e0ec7dd83c4dc61c3f4f286ddc4074bdae704bc2fe769e21",
+  "durationSeconds": 1.589116
+}

@@ -1,0 +1,20 @@
+{
+  "signature": "0ec40dad1ccf4cc812029e14e6a6fab7ca3e73b83b06ce6fa97b776fb32f8aa8",
+  "request": {
+    "text": "Where Are We?.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "ea6f054b7e13c053e6929aa384c36b4981c5419ea41f355de9cd0ca72f776648",
+  "requestId": "bkZYeIdk2IM83ojDSzBg",
+  "createdAt": "2026-09-15T23:26:01.097Z"
+}

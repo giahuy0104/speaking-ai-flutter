@@ -1,0 +1,20 @@
+{
+  "id": "RUN-131",
+  "signature": "49656648cd19504ed0400d3014d66d89746b96856139029e0ad15abf3bca7a8a",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Nói lại lựa chọn của con nhé",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:15:05.257Z",
+  "requestId": "QsTIwUmBv3WJSdV1AI2l",
+  "characterCost": "15",
+  "sourceSha256": "287bd7b3a0af6984b005085d3f6aa5f6236be2bb964f09532b60926b4d8da3b3"
+}

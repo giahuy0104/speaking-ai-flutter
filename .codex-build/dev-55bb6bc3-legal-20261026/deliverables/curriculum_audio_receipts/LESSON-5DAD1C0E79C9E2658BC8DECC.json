@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L2-T06-B01\\C810-L2-T06-B01-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L2-T06-B01-Q07",
+  "sourceText": "Bạn cần nói \"Máy tính bảng\". Tablet hay Camera?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn cần nói \"Máy tính bảng\".",
+      "spoken_text": "Bạn cần nói \"Máy tính bảng\".",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "Tablet",
+      "spoken_text": "Tablet",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Camera?",
+      "spoken_text": "Camera?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-5DAD1C0E79C9E2658BC8DECC",
+  "text": "Bạn cần nói \"Máy tính bảng\". Tablet hay Camera?",
+  "asset": "assets/audio/CURRICULUM/5dad1c0e79c9e2658bc8decc.vi.v1.mp3",
+  "sha256": "f33c04bfe99705d90d0a51dba62632ce9aee4682cd325cd19aaac8f2ca18161b",
+  "durationSeconds": 4.918776
+}

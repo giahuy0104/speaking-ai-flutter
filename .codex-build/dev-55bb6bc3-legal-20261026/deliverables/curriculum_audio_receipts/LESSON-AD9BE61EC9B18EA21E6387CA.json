@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T09-B01\\C1112-L3-T09-B01-T01_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T09-B01-T01_EN",
+  "sourceText": "I lost my key.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "I lost my key.",
+      "generation_key": "2ba1f8f2703a3093"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-AD9BE61EC9B18EA21E6387CA",
+  "text": "I lost my key.",
+  "asset": "assets/audio/CURRICULUM/ad9be61ec9b18ea21e6387ca.en.v1.mp3",
+  "sha256": "1797e88294d5102773cdf0c1b9fa064029d99d953cde42bc30442677707937b0",
+  "durationSeconds": 2.355374
+}

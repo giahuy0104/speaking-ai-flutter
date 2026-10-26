@@ -1,0 +1,99 @@
+package com.innotrik.aispeaking
+
+import android.content.Context
+import android.content.Intent
+import android.os.Build
+import android.os.Bundle
+import android.util.Log
+import android.view.KeyEvent
+import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.engine.FlutterEngine
+
+/** A view host for the process-scoped Flutter engine owned by HOMI runtime. */
+class MainActivity : FlutterActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        HomiAndroidRuntime.attachActivity(this)
+        super.onCreate(savedInstanceState)
+        preferHighestRefreshRate()
+    }
+
+    /**
+     * Xiaomi, Samsung and other OEMs keep third-party windows at 60 Hz on a
+     * 90/120 Hz panel unless the window asks for a display mode. Flutter
+     * animates at the mode the window gets, so ask for the fastest mode that
+     * keeps the current resolution.
+     */
+    private fun preferHighestRefreshRate() {
+        val display = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            display
+        } else {
+            @Suppress("DEPRECATION")
+            windowManager.defaultDisplay
+        } ?: return
+        val current = display.mode
+        val fastest = display.supportedModes
+            .filter {
+                it.physicalWidth == current.physicalWidth &&
+                    it.physicalHeight == current.physicalHeight
+            }
+            .maxByOrNull { it.refreshRate } ?: return
+        window.attributes = window.attributes.apply {
+            preferredDisplayModeId = fastest.modeId
+        }
+        Log.i(
+            "HomiDisplay",
+            "Display mode ${current.modeId} at ${current.refreshRate} Hz; " +
+                "preferring mode ${fastest.modeId} at ${fastest.refreshRate} Hz",
+        )
+    }
+
+    override fun provideFlutterEngine(context: Context): FlutterEngine =
+        HomiAndroidRuntime.getOrCreateEngine(applicationContext)
+
+    override fun shouldDestroyEngineWithHost(): Boolean = false
+
+    override fun onStart() {
+        super.onStart()
+        HomiAndroidRuntime.setControlForeground(true)
+    }
+
+    override fun onStop() {
+        HomiAndroidRuntime.setControlForeground(false)
+        super.onStop()
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        HomiAndroidRuntime.observeMediaKey(event)
+        return super.dispatchKeyEvent(event)
+    }
+
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        // The shared engine registers plugins and process-scoped bridges once.
+        // Calling super keeps ActivityAware plugins attached to this Activity.
+        super.configureFlutterEngine(flutterEngine)
+    }
+
+    override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
+        // Do not dispose process-scoped bridges when only the screen detaches.
+        super.cleanUpFlutterEngine(flutterEngine)
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+    ) {
+        if (HomiAndroidRuntime.onPermissionResult(requestCode, grantResults)) return
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (HomiAndroidRuntime.onActivityResult(requestCode, resultCode, data)) return
+        super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        HomiAndroidRuntime.detachActivity(this)
+    }
+}

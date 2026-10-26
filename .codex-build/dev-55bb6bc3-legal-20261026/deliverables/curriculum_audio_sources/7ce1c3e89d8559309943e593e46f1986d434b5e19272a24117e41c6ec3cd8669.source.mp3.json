@@ -1,0 +1,20 @@
+{
+  "signature": "7ce1c3e89d8559309943e593e46f1986d434b5e19272a24117e41c6ec3cd8669",
+  "request": {
+    "text": "Mưa rồi. Mặc gì nhỉ?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+    "speed": 0.9
+  },
+  "sha256": "1b0e9d0936e1112f196686465b3b4591dd45c42930ea439a4038bb43a7e83754",
+  "requestId": "nAoZ6gh4pqcSC3Ae2EOi",
+  "createdAt": "2026-09-15T23:16:54.965Z"
+}

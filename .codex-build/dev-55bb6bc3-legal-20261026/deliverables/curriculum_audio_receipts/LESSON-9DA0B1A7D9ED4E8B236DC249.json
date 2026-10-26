@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T05-B01\\C1112-L2-T05-B01-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T05-B01-Q05",
+  "sourceText": "Nghỉ giải lao: Take breaks hay Drink water?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Nghỉ giải lao:",
+      "spoken_text": "Nghỉ giải lao:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Take breaks",
+      "spoken_text": "Take breaks",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Drink water?",
+      "spoken_text": "Drink water?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-9DA0B1A7D9ED4E8B236DC249",
+  "text": "Nghỉ giải lao: Take breaks hay Drink water?",
+  "asset": "assets/audio/CURRICULUM/9da0b1a7d9ed4e8b236dc249.vi.v1.mp3",
+  "sha256": "77723ddf22ab20f10b0797196ccd5a904baa09c64ff2c04bad3fef3c75584dd7",
+  "durationSeconds": 4.435147
+}

@@ -1,0 +1,20 @@
+{
+  "signature": "16345ab21e2aeed3e5fabfe37cb215f9f014b3f1edb50559e845bdfc886b9053",
+  "request": {
+    "text": "Go Green",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "1c625fe27a7a9725407400ea774b11dd181b89774e9aaf6f94c45ad93e5aec67",
+  "requestId": "2fjzZsUTWj0XcUwCzP0E",
+  "createdAt": "2026-09-15T23:29:12.006Z"
+}

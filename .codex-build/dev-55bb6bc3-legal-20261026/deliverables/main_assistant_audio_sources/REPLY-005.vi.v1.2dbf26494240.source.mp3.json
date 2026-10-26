@@ -1,0 +1,20 @@
+{
+  "id": "REPLY-005",
+  "signature": "2dbf264942402a4a27799ed0d3685f860317f2eeb2c4a039c36efccc3650842a",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Con hãy vào bài học trước nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:18:06.924Z",
+  "requestId": "LlIvn9yznIzuqVBM4gnM",
+  "characterCost": "16",
+  "sourceSha256": "333c6c2f88a70958d4578904ea5abc7c3dd628f8d6c8e5c42814cf3f0db7e908"
+}

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T01-B01\\C1315-L1-T01-B01-Q01_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-T01-B01-Q01",
+  "sourceText": "Trước giờ học: Before school hay After school?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Trước giờ học:",
+      "spoken_text": "Trước giờ học:",
+      "input_index": 0
+    },
+    {
+      "language": "en",
+      "text": "Before school",
+      "spoken_text": "Before school",
+      "input_index": 1
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 2
+    },
+    {
+      "language": "en",
+      "text": "After school?",
+      "spoken_text": "After school?",
+      "input_index": 3
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-9B0BBEC108F6CAF61666BB2D",
+  "text": "Trước giờ học: Before school hay After school?",
+  "asset": "assets/audio/CURRICULUM/9b0bbec108f6caf61666bb2d.vi.v1.mp3",
+  "sha256": "bba6d0642c449ab75ba45793456e37556439cc77b4285cea75becfbe622b25c9",
+  "durationSeconds": 5.254195
+}

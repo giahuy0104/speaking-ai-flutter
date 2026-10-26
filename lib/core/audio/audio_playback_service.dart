@@ -14,6 +14,7 @@ import 'browser_audio_playback.dart';
 import 'browser_audio_playback_factory.dart';
 import 'device_audio_cache.dart';
 import 'just_audio_asset_cache_directory.dart';
+import 'remote_audio_catalog.dart';
 
 class PlaybackStartMetrics {
   const PlaybackStartMetrics({
@@ -349,13 +350,17 @@ class JustAudioPlaybackService
     return manifest.gainDbForAsset(uri.path.replaceFirst(RegExp(r'^/'), ''));
   }
 
-  Future<void> _applySourceLevel(Uri uri, _PlaybackRequest request) async {
+  Future<void> _applySourceLevel(
+    Uri uri,
+    _PlaybackRequest request, {
+    Uri? logicalUri,
+  }) async {
     if (kIsWeb) return;
     // Metering does not mutate the player. Cancelling this wait lets the next
     // queued source start immediately; a late meter response cannot apply gain.
     final fixedGain = _fixedGainDb;
     final manifestGain = fixedGain == null
-        ? await request.wait(_manifestGain(uri))
+        ? await request.wait(_manifestGain(logicalUri ?? uri))
         : null;
     _requireCurrentPlayback(request);
     // Only a clip the manifest does not cover pays for a decode, and only where
@@ -794,6 +799,9 @@ class JustAudioPlaybackService
   @override
   Future<void> preload(Uri uri) async {
     if (_disposed) return;
+    final revision = ++_preloadRevision;
+    final remote = await RemoteAudioCatalog.entryForUri(uri);
+    if (_disposed || revision != _preloadRevision) return;
     final browserPlayback = _browserPlayback;
     if (browserPlayback != null) {
       await browserPlayback.preload(uri);
@@ -802,12 +810,18 @@ class JustAudioPlaybackService
       return;
     }
 
-    final revision = ++_preloadRevision;
     final integrity = _integrity[uri];
-    final cachedUri = integrity == null
-        ? await _cache.cache(uri)
+    final deliveryUri = remote?.uri ?? uri;
+    final cachedUri = remote != null
+        ? await _cache.cacheVerified(
+            deliveryUri,
+            sha256Checksum: remote.sha256Checksum,
+            maximumFileBytes: remote.sizeBytes,
+          )
+        : integrity == null
+        ? await _cache.cache(deliveryUri)
         : await _cache.cacheVerified(
-            uri,
+            deliveryUri,
             sha256Checksum: integrity.sha256,
             maximumFileBytes: integrity.maximumBytes,
           );
@@ -914,6 +928,8 @@ class JustAudioPlaybackService
     _PlaybackRequest request,
   ) async {
     final requestedAt = DateTime.now();
+    final remote = await request.wait(RemoteAudioCatalog.entryForUri(uri));
+    _requireCurrentPlayback(request);
     final browserPlayback = _browserPlayback;
     if (browserPlayback != null) {
       final reusedPreloadedSource = browserPlayback.hasPreloadedSource(uri);
@@ -966,11 +982,27 @@ class JustAudioPlaybackService
     await request.wait(_consumePlaybackPreparation());
     _requireCurrentPlayback(request);
     final integrity = _integrity[uri];
+    final deliveryUri = remote?.uri ?? uri;
     final resolvedUri = await request.wait(
-      integrity == null
-          ? _cache.resolveAfterPreload(uri)
+      remote != null
+          ? () async {
+              final cached = await _cache.cacheVerified(
+                deliveryUri,
+                sha256Checksum: remote.sha256Checksum,
+                maximumFileBytes: remote.sizeBytes,
+              );
+              // Do not bypass checksum verification after a failed download.
+              if (cached == null) {
+                throw const PlaybackException(
+                  'Không thể tải âm thanh. Kiểm tra kết nối mạng và thử lại.',
+                );
+              }
+              return cached;
+            }()
+          : integrity == null
+          ? _cache.resolveAfterPreload(deliveryUri)
           : _cache.resolveAfterPreloadVerified(
-              uri,
+              deliveryUri,
               sha256Checksum: integrity.sha256,
             ),
     );
@@ -993,7 +1025,13 @@ class JustAudioPlaybackService
     _requireCurrentPlayback(request);
     final loadedAt = DateTime.now();
     await request.wait(
-      _queueSource(() => _applySourceLevel(resolvedUri, request)),
+      _queueSource(
+        () => _applySourceLevel(
+          resolvedUri,
+          request,
+          logicalUri: remote == null ? null : uri,
+        ),
+      ),
     );
     _requireCurrentPlayback(request);
     assert(() {
@@ -1029,8 +1067,8 @@ class JustAudioPlaybackService
     }
 
     final startedAt = DateTime.now();
-    if (!resolvedUri.isScheme('file')) {
-      unawaited(_cache.cache(uri));
+    if (!resolvedUri.isScheme('file') && remote == null) {
+      unawaited(_cache.cache(deliveryUri));
     }
     return PlaybackStartMetrics(
       audioLoadDuration: loadedAt.difference(loadStartedAt),

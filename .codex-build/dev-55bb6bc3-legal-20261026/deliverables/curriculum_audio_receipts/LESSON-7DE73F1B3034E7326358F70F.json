@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T01-B01\\C35-L1-T01-B01-Q09_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-T01-B01-Q09",
+  "sourceText": "Quả trứng: Egg hay Fish?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Quả trứng:",
+      "spoken_text": "Quả trứng:",
+      "input_index": 48
+    },
+    {
+      "language": "en",
+      "text": "Egg",
+      "spoken_text": "Egg",
+      "input_index": 49
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 50
+    },
+    {
+      "language": "en",
+      "text": "Fish?",
+      "spoken_text": "Fish?",
+      "input_index": 51
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-7DE73F1B3034E7326358F70F",
+  "text": "Quả trứng: Egg hay Fish?",
+  "asset": "assets/audio/CURRICULUM/7de73f1b3034e7326358f70f.vi.v1.mp3",
+  "sha256": "6559ab52998a9708399a8c56b241f551ea851d1d3a8f9e2a26981315fbfe84f3",
+  "durationSeconds": 3.559932
+}

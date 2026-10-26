@@ -1,0 +1,57 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T09-B03\\C1112-L3-T09-B03-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T09-B03-Q06",
+  "sourceText": "HOMI nói: I missed the bus. Take the next bus hay Charge your phone?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "HOMI nói:",
+      "spoken_text": "HOMI nói:",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "I missed the bus.",
+      "spoken_text": "I missed the bus.",
+      "input_index": 31
+    },
+    {
+      "language": "en",
+      "text": "Take the next bus",
+      "spoken_text": "Take the next bus",
+      "input_index": 32
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 33
+    },
+    {
+      "language": "en",
+      "text": "Charge your phone?",
+      "spoken_text": "Charge your phone?",
+      "input_index": 34
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-E472ACA6974CB5BA55DC3A05",
+  "text": "HOMI nói: I missed the bus. Take the next bus hay Charge your phone?",
+  "asset": "assets/audio/CURRICULUM/e472aca6974cb5ba55dc3a05.vi.v1.mp3",
+  "sha256": "1dbe244811c954645df70daea6cf7b71f859150f86b999c1dfc09204a4d14fb5",
+  "durationSeconds": 7.558125
+}

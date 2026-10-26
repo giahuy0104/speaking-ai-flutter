@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L2-T06\\C35-L2-M11_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L2-M11",
+  "sourceText": "Mắt: Eyes hay Nose?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Mắt:",
+      "text": "Mắt:",
+      "spoken_text": "Mắt:",
+      "input_index": 60
+    },
+    {
+      "language": "en",
+      "source_text": "Eyes",
+      "text": "Eyes",
+      "spoken_text": "Eyes",
+      "input_index": 61
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 62
+    },
+    {
+      "language": "en",
+      "source_text": "Nose?",
+      "text": "Nose?",
+      "spoken_text": "Nose?",
+      "input_index": 63
+    }
+  ],
+  "sourceSha256": "2ab1aeae52830866c33ea24dd0d6361014e405464b8f5101463ea80593b0267d",
+  "id": "LESSON-518A2A98C34797B05A743E0C",
+  "text": "Mắt: Eyes hay Nose?",
+  "asset": "assets/audio/CURRICULUM/518a2a98c34797b05a743e0c.vi.v1.mp3",
+  "sha256": "2ab1aeae52830866c33ea24dd0d6361014e405464b8f5101463ea80593b0267d",
+  "durationSeconds": 3.134286
+}

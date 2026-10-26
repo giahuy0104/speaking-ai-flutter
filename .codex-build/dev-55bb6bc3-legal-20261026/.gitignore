@@ -1,0 +1,73 @@
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+coverage/
+.toolhome/
+
+# Android generated/local
+android/.gradle/
+android/.kotlin/
+android/local.properties
+android/app/debug/
+android/app/profile/
+android/app/release/
+/android/hs_err_pid*.log
+/android/replay_pid*.log
+*.hprof
+*.jks
+*.keystore
+key.properties
+
+# IDE / OS
+.idea/
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
+*.iml
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+.env.*
+!.env.example
+dart_defines.local.json
+dart_defines.production.local.json
+
+# Local AI/ASR artifacts
+/.codex-spreadsheet/aiv0-ai-precheck/
+/outputs/aiv0-ai-precheck/
+/standalone/aiv0_batch_reviewer/.asr-models/
+/standalone/aiv0_batch_reviewer/.venv-asr/
+
+node_modules/
+.wrangler/
+.codex-spreadsheet/
+.codegraph/
+dist/
+flutter_*.log
+
+# Generated release/test artifacts belong in GitHub Releases or object storage,
+# not in Git history. Use `git add -f` only for a deliberate source archive.
+*.apk
+*.aab
+*.ipa
+*.zip
+/assets.rar
+/.codex-tmp/
+/.codex_tmp/
+/test/**/failures/
+
+# Deployed from its own Sites source repository.
+/homi-legal-site/
+
+# Local reports, extracted test videos, and temporary deployment bundles.
+# Keep these on the workstation; they may contain user recordings or logs.
+/artifacts/reports/
+/tmp/
+~$*.docx

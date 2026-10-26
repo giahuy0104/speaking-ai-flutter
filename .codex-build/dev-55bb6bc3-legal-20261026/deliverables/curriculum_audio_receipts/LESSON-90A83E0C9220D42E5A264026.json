@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T06-B02\\C1112-L2-T06-B02-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T06-B02-Q04",
+  "sourceText": "Chặn người lạ: Tell an adult hay Block strangers?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Chặn người lạ:",
+      "spoken_text": "Chặn người lạ:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Tell an adult",
+      "spoken_text": "Tell an adult",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Block strangers?",
+      "spoken_text": "Block strangers?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-90A83E0C9220D42E5A264026",
+  "text": "Chặn người lạ: Tell an adult hay Block strangers?",
+  "asset": "assets/audio/CURRICULUM/90a83e0c9220d42e5a264026.vi.v1.mp3",
+  "sha256": "eb7fb81e88224767bf7bbbd2b3d7b4dfcd565effd16b547a538cb374a0233e09",
+  "durationSeconds": 5.669977
+}

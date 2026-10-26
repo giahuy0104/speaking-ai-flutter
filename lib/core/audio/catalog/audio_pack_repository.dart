@@ -21,7 +21,7 @@ final class AudioPackRepository {
     Set<String> allowedCdnHosts = const {'res.cloudinary.com'},
     this.maximumAudioBytes = 2 * 1024 * 1024,
     this.maximumManifestBytes = 1024 * 1024,
-    this.maximumCacheBytes = 128 * 1024 * 1024,
+    this.maximumCacheBytes = 64 * 1024 * 1024,
     this.remoteAudioTimeout = const Duration(seconds: 8),
     this.currentAppVersion = '1.0.8',
     this.telemetry,
@@ -56,6 +56,18 @@ final class AudioPackRepository {
   Future<void>? _loading;
   final Map<String, AudioPackManifest?> _rollbackManifests = {};
   final Map<String, Future<Uint8List>> _downloads = {};
+  Future<void> _cacheMaintenance = Future.value();
+
+  Future<void> trimCache() {
+    final operation = _cacheMaintenance.catchError((_) {}).then((_) async {
+      await cache.pruneObjects(
+        protectedChecksums: const {},
+        maximumBytes: maximumCacheBytes,
+      );
+    });
+    _cacheMaintenance = operation;
+    return operation;
+  }
 
   Future<void> ensureLoaded() => _loading ??= _loadBundledManifests();
 

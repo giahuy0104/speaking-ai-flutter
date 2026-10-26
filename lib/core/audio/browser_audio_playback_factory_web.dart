@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:web/web.dart' as web;
 
 import 'browser_audio_playback.dart';
+import 'remote_audio_catalog.dart';
 import 'wav_audio.dart';
 
 BrowserAudioPlayback? createBrowserAudioPlayback() =>
@@ -210,7 +211,10 @@ class _HtmlAudioElementPlayback implements BrowserAudioPlayback {
     // Publish identity before load(); cached Safari responses may dispatch a
     // readiness event synchronously from the load call.
     _sourceUri = uri;
-    _element.src = uri.isScheme('asset') ? 'assets${uri.path}' : uri.toString();
+    final delivery = RemoteAudioCatalog.resolveLoadedUri(uri);
+    _element.src = delivery.isScheme('asset')
+        ? 'assets${delivery.path}'
+        : delivery.toString();
     _element.load();
     if (!_positionController.isClosed) {
       _positionController.add(Duration.zero);

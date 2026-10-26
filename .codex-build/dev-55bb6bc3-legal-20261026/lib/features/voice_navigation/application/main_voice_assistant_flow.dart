@@ -1,0 +1,2404 @@
+import '../../../core/device/active_learning_module.dart';
+import '../../listening/domain/listening_catalog.dart';
+import '../../listening/domain/listening_audio_keys.dart';
+import '../../listening/domain/listening_content.dart';
+import '../../listening/domain/v4_completion_flow.dart';
+import '../../vocabulary/data/vocabulary_store.dart';
+import '../../vocabulary/domain/vocabulary_audio_keys.dart';
+import '../../vocabulary/domain/vocabulary_entry.dart';
+import '../../vocabulary/domain/vocabulary_flow_v3.dart';
+import '../domain/controlled_speech_lexicon.dart';
+import '../domain/homi_fallback_catalog.dart';
+import '../domain/master_navigation_contract.dart';
+import '../domain/main_assistant_audio_keys.dart';
+import 'active_learning_command_resolver.dart';
+import 'voice_navigation_intent_resolver.dart';
+import 'package:flutter/foundation.dart';
+
+enum MainVoiceAssistantStage {
+  idle,
+  chooseFeature,
+  chooseOtherLearning,
+  chooseModuleSwitch,
+  chooseAfterTranslationStop,
+  chooseAlternativeAfterLearning,
+  chooseVocabularyCollection,
+  activeLearning,
+  askAge,
+  chooseTopic,
+  chooseTopicAfterCompletion,
+  confirmReplayTopic,
+  chooseLesson,
+  confirmReplayLesson,
+}
+
+class MainVoiceAssistantUtterance {
+  const MainVoiceAssistantUtterance(
+    this.text, {
+    this.locale = 'vi-VN',
+    this.audioKey,
+  });
+
+  final String text;
+  final String locale;
+  final String? audioKey;
+}
+
+class MainVoiceAssistantTurn {
+  const MainVoiceAssistantTurn({
+    required this.promptText,
+    required this.continueListening,
+    this.promptAudioKey,
+    this.promptSequence = const <MainVoiceAssistantUtterance>[],
+    this.onPromptCompleted,
+    this.navigationBeforePrompt,
+    this.navigationAfterPrompt,
+    this.activeLearningCommand,
+    this.exhaustedUnrecognizedInput = false,
+  });
+
+  final String promptText;
+  final bool continueListening;
+  final String? promptAudioKey;
+  final List<MainVoiceAssistantUtterance> promptSequence;
+  final Future<void> Function()? onPromptCompleted;
+  final VoiceNavigationIntent? navigationBeforePrompt;
+  final VoiceNavigationIntent? navigationAfterPrompt;
+  final ActiveLearningCommand? activeLearningCommand;
+  final bool exhaustedUnrecognizedInput;
+}
+
+/// Holds the multi-turn conversation started from the fixed Main button.
+///
+/// Topic and lesson counts are read from the same catalogs used by the UI, so
+/// the spoken questions stay correct when learning content changes.
+class MainVoiceAssistantFlow {
+  MainVoiceAssistantFlow({
+    List<ListeningAgeCatalog> catalogs = listeningCatalogs,
+    Future<ListeningContentCatalog> Function()? contentLoader,
+    Future<List<VocabularyEntry>> Function()? vocabularyLoader,
+    Future<void> Function(Iterable<String>)? vocabularyIntroducedMarker,
+    int? childAge,
+  }) : _catalogs = catalogs,
+       _contentLoader = contentLoader ?? _loadDefaultContent,
+       _vocabularyLoader = vocabularyLoader ?? _loadDefaultVocabulary,
+       _configuredChildAge = childAge;
+
+  static const String openingPrompt = MasterNavigationContract.mainPrompt;
+  static const String noSpeechRetryPrompt = MasterNavigationContract.mainRetry;
+  static const String noSpeechExitPrompt = MasterNavigationContract.pause;
+  static const String otherLearningPrompt =
+      MasterNavigationContract.translationSwitch;
+  static const String afterTranslationStopPrompt =
+      MasterNavigationContract.afterTranslationStop;
+  static const String activeLearningPrompt =
+      MasterNavigationContract.coreControlPrompt;
+  static const String courseRelearnTopicPrompt =
+      'Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Chủ đề số mấy?';
+
+  static String topicSelectionPrompt(int topicCount) => topicCount == 10
+      ? 'Có 10 Chủ đề. Bạn muốn chọn Chủ đề số mấy?'
+      : 'Có $topicCount Chủ đề. Bạn chọn Chủ đề số mấy?';
+
+  static String invalidTopicSelectionPrompt(int topicCount) => topicCount == 10
+      ? 'Bạn chọn Chủ đề từ số 1 đến số 10 nhé.'
+      : 'Nhóm tuổi này có $topicCount Chủ đề. Bạn chọn lại nhé.';
+  static const String alternativeAfterLearningPrompt =
+      MasterNavigationContract.translationSwitch;
+  static const String stopPrompt = MasterNavigationContract.pause;
+  static final String translationModeAcknowledgement =
+      HomiFallbackCatalog.assistantPromptById['AI-020'] ??
+      'Mình cùng dịch sang tiếng Anh nha.';
+  static const String continuousTranslationPrompt =
+      MasterNavigationContract.translationIntro;
+  static const ActiveLearningCommandResolver _activeLearningCommandResolver =
+      ActiveLearningCommandResolver();
+
+  final List<ListeningAgeCatalog> _catalogs;
+  final Future<ListeningContentCatalog> Function() _contentLoader;
+  final Future<List<VocabularyEntry>> Function() _vocabularyLoader;
+
+  int? _configuredChildAge;
+  MainVoiceAssistantStage _stage = MainVoiceAssistantStage.idle;
+  int? _selectedAge;
+  ListeningAgeCatalog? _selectedCatalog;
+  int? _selectedTopicNumber;
+  ListeningTopicContent? _selectedTopicContent;
+  Set<int> _completedTopicNumbers = const <int>{};
+  Set<int> _allowedTopicNumbers = const <int>{};
+  bool _courseCompletedTopicSelection = false;
+  int? _pendingReplayTopicNumber;
+  Set<int> _completedLessonNumbers = const <int>{};
+  int? _pendingReplayLessonNumber;
+  ActiveLearningModuleKind? _activeLearningKind;
+  ActiveLearningVoiceNode? _activeVoiceNode;
+  String? _activeVoicePrompt;
+  ActiveLearningVoiceSelectionContext? _activeVoiceSelection;
+  bool _pausedChoice = false;
+  int _flowGeneration = 0;
+  final Map<MainVoiceAssistantStage, int> _fallbackAttempts =
+      <MainVoiceAssistantStage, int>{};
+
+  MainVoiceAssistantStage get stage => _stage;
+
+  String? get currentPromptAudioKey => switch (_stage) {
+    MainVoiceAssistantStage.chooseFeature => MainAssistantAudioKeys.openMenu,
+    MainVoiceAssistantStage.chooseOtherLearning ||
+    MainVoiceAssistantStage.chooseModuleSwitch ||
+    MainVoiceAssistantStage.chooseAlternativeAfterLearning =>
+      MainAssistantAudioKeys.chooseTranslation,
+    MainVoiceAssistantStage.chooseAfterTranslationStop =>
+      MainAssistantAudioKeys.afterTranslationStop,
+    MainVoiceAssistantStage.chooseVocabularyCollection =>
+      MainAssistantAudioKeys.chooseVocabulary,
+    MainVoiceAssistantStage.activeLearning => _activeLearningPromptAudioKey,
+    MainVoiceAssistantStage.chooseTopic when _selectedCatalog != null =>
+      MainAssistantAudioKeys.chooseTopic(_selectedCatalog!.topics.length),
+    MainVoiceAssistantStage.chooseTopicAfterCompletion
+        when _allowedTopicNumbers.isNotEmpty =>
+      _courseCompletedTopicSelection
+          ? MainAssistantAudioKeys.courseRelearnTopic
+          : MainAssistantAudioKeys.chooseTopic(_allowedTopicNumbers.length),
+    MainVoiceAssistantStage.confirmReplayTopic
+        when _pendingReplayTopicNumber != null =>
+      MainAssistantAudioKeys.replayTopic(_pendingReplayTopicNumber!),
+    _ => null,
+  };
+
+  String? get _activeLearningPromptAudioKey => switch (_activeVoiceNode) {
+    ActiveLearningVoiceNode.challenge =>
+      MainAssistantAudioKeys.challengeControls,
+    ActiveLearningVoiceNode.song => MainAssistantAudioKeys.songControls,
+    _ when _activeVoicePrompt == null =>
+      MainAssistantAudioKeys.activeLearningControls,
+    _ => null,
+  };
+
+  String? get silenceRetryAudioKey =>
+      _stage == MainVoiceAssistantStage.chooseFeature
+      ? MainAssistantAudioKeys.noSpeech
+      : audioKeyForPrompt(silenceRetryPrompt) ?? currentPromptAudioKey;
+
+  /// Maps the finite dynamic prompts in the Topic flow to authored recordings.
+  String? audioKeyForPrompt(String text) {
+    final value = text.replaceAll(RegExp(r'\s+'), ' ').trim();
+    if (value == MasterNavigationContract.songSkipped) {
+      return MainAssistantAudioKeys.songSkipped;
+    }
+    if (value == 'Chủ đề này chưa có bài học. Bạn chọn Chủ đề khác nhé.') {
+      return MainAssistantAudioKeys.topicWithoutLessons;
+    }
+    if (value == 'Chủ đề này chưa có bài học. Bạn thử lại sau nhé.') {
+      return MainAssistantAudioKeys.lessonNotFound;
+    }
+    if (value == 'HOMI chưa chọn được Chủ đề. Bạn thử lại nhé.') {
+      return MainAssistantAudioKeys.topicNotFound;
+    }
+    if (value == 'HOMI chưa tải được bài học. Bạn thử lại sau nhé.') {
+      return MainAssistantAudioKeys.catalogLoadError;
+    }
+    if (value == courseRelearnTopicPrompt) {
+      return MainAssistantAudioKeys.courseRelearnTopic;
+    }
+    if (value == 'Cùng học tiếp nhé') {
+      return MainAssistantAudioKeys.resumeLearning;
+    }
+    if (value == 'Mình tiếp tục Chủ đề nhé.') {
+      return MainAssistantAudioKeys.continueSubject;
+    }
+    if (value == 'Mình chuyển sang câu sau nhé.') {
+      return MainAssistantAudioKeys.nextItem;
+    }
+    if (value == 'Mình nghe lại câu trước nhé') {
+      return MainAssistantAudioKeys.previousItem;
+    }
+    if (value == 'Mình nghe lại câu này nhé') {
+      return MainAssistantAudioKeys.replayItem;
+    }
+    if (value == 'Mình chuyển sang bài tiếp theo nhé') {
+      return MainAssistantAudioKeys.nextLesson;
+    }
+    if (value == 'Mình học lại bài này từ đầu nhé') {
+      return MainAssistantAudioKeys.restartLesson;
+    }
+    if (value == 'Đây là câu đầu tiên. Mình nghe lại nhé.') {
+      return MainAssistantAudioKeys.firstItemReplay;
+    }
+
+    final chooseTopic = RegExp(
+      r'^Có (\d+) Chủ đề\. Bạn (?:muốn )?chọn Chủ đề số mấy\?$',
+    ).firstMatch(value);
+    if (chooseTopic != null) {
+      return MainAssistantAudioKeys.chooseTopic(
+        int.parse(chooseTopic.group(1)!),
+      );
+    }
+    final invalidTopic = RegExp(
+      r'^Nhóm tuổi này có (\d+) Chủ đề\. Bạn chọn lại nhé\.$',
+    ).firstMatch(value);
+    if (invalidTopic != null) {
+      return MainAssistantAudioKeys.invalidTopic(
+        int.parse(invalidTopic.group(1)!),
+      );
+    }
+    final invalidTopicRange = RegExp(
+      r'^Bạn chọn Chủ đề từ số 1 đến số (\d+) nhé\.$',
+    ).firstMatch(value);
+    if (invalidTopicRange != null) {
+      return MainAssistantAudioKeys.invalidTopic(
+        int.parse(invalidTopicRange.group(1)!),
+      );
+    }
+    final replayTopic = RegExp(
+      r'^Chủ đề (\d+) bạn đã học xong rồi\. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề (\d+)\?$',
+    ).firstMatch(value);
+    if (replayTopic != null && replayTopic.group(1) == replayTopic.group(2)) {
+      return MainAssistantAudioKeys.replayTopic(
+        int.parse(replayTopic.group(1)!),
+      );
+    }
+    final vocabularyPrompt = VocabularyFlowV3.fixedPromptForText(value);
+    if (vocabularyPrompt != null) {
+      return VocabularyAudioKeys.fixedPrompt(vocabularyPrompt);
+    }
+    return ListeningAudioKeys.topicContextPrompt(value);
+  }
+
+  void setChildAge(int age) {
+    if (_configuredChildAge == age) {
+      return;
+    }
+    _configuredChildAge = age;
+    reset();
+  }
+
+  String begin() {
+    if (_pausedChoice) {
+      _pausedChoice = false;
+      _fallbackAttempts.clear();
+      return currentPrompt;
+    }
+    reset();
+    _stage = MainVoiceAssistantStage.chooseFeature;
+    return openingPrompt;
+  }
+
+  String beginOtherLearning() {
+    reset();
+    _stage = MainVoiceAssistantStage.chooseOtherLearning;
+    return otherLearningPrompt;
+  }
+
+  String beginAfterTranslationStop() {
+    reset();
+    _stage = MainVoiceAssistantStage.chooseAfterTranslationStop;
+    return afterTranslationStopPrompt;
+  }
+
+  String beginActiveLearning({
+    ActiveLearningModuleKind? kind,
+    ActiveLearningVoiceContext? voiceContext,
+  }) {
+    reset();
+    _activeLearningKind = kind;
+    _activeVoiceNode = voiceContext?.mainVoiceNode;
+    _activeVoicePrompt = voiceContext?.mainVoicePrompt;
+    _activeVoiceSelection = voiceContext is ActiveLearningVoiceSelectionContext
+        ? voiceContext as ActiveLearningVoiceSelectionContext
+        : null;
+    _stage = MainVoiceAssistantStage.activeLearning;
+    return _activeVoicePrompt ?? activeLearningPrompt;
+  }
+
+  String beginTopicSelection({
+    required int childAge,
+    required List<int> topicNumbers,
+    required List<int> completedTopicNumbers,
+    required bool courseCompleted,
+  }) {
+    reset();
+    final catalog = _catalogForAge(childAge);
+    if (catalog == null || topicNumbers.isEmpty) {
+      _stage = MainVoiceAssistantStage.chooseFeature;
+      return openingPrompt;
+    }
+    _selectedAge = childAge;
+    _selectedCatalog = catalog;
+    _allowedTopicNumbers =
+        !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
+        ? {
+            for (var number = 1; number <= catalog.topics.length; number++)
+              number,
+          }
+        : topicNumbers.toSet();
+    _completedTopicNumbers = completedTopicNumbers.toSet();
+    _courseCompletedTopicSelection = courseCompleted;
+    _stage = MainVoiceAssistantStage.chooseTopicAfterCompletion;
+    return _topicSelectionPrompt;
+  }
+
+  String beginLessonSelectionForTopic({
+    required int childAge,
+    required int topicNumber,
+    required ListeningTopicContent topicContent,
+    required List<int> completedLessonNumbers,
+  }) {
+    reset();
+    if (topicContent.lessons.isEmpty) {
+      _stage = MainVoiceAssistantStage.chooseFeature;
+      return 'Chủ đề này chưa có bài học. Bạn chọn Chủ đề khác nhé.';
+    }
+    _selectedAge = childAge;
+    _selectedCatalog = _catalogForAge(childAge);
+    _selectedTopicNumber = topicNumber;
+    _selectedTopicContent = topicContent;
+    _completedLessonNumbers = completedLessonNumbers
+        .where((number) => number >= 1 && number <= topicContent.lessons.length)
+        .toSet();
+    if (_nextIncompleteLessonNumber == null) {
+      _pendingReplayTopicNumber = topicNumber;
+      _stage = MainVoiceAssistantStage.confirmReplayTopic;
+      return _replayTopicPrompt;
+    }
+    _stage = MainVoiceAssistantStage.chooseLesson;
+    return _lessonSelectionPrompt;
+  }
+
+  void reset() {
+    _flowGeneration += 1;
+    _pausedChoice = false;
+    _stage = MainVoiceAssistantStage.idle;
+    _selectedAge = null;
+    _selectedCatalog = null;
+    _selectedTopicNumber = null;
+    _selectedTopicContent = null;
+    _completedTopicNumbers = const <int>{};
+    _allowedTopicNumbers = const <int>{};
+    _courseCompletedTopicSelection = false;
+    _pendingReplayTopicNumber = null;
+    _completedLessonNumbers = const <int>{};
+    _pendingReplayLessonNumber = null;
+    _activeLearningKind = null;
+    _activeVoiceNode = null;
+    _activeVoicePrompt = null;
+    _activeVoiceSelection = null;
+    _fallbackAttempts.clear();
+  }
+
+  /// Retains the current choice while iOS waits for a route installation ack.
+  /// A returned closure restores only the conversational choice; the monotonic
+  /// generation is intentionally left advanced so obsolete async work stays
+  /// cancelled.
+  void Function() captureNavigationChoice() {
+    final stage = _stage;
+    final selectedAge = _selectedAge;
+    final selectedCatalog = _selectedCatalog;
+    final selectedTopicNumber = _selectedTopicNumber;
+    final selectedTopicContent = _selectedTopicContent;
+    final completedTopicNumbers = _completedTopicNumbers;
+    final allowedTopicNumbers = _allowedTopicNumbers;
+    final courseCompletedTopicSelection = _courseCompletedTopicSelection;
+    final pendingReplayTopicNumber = _pendingReplayTopicNumber;
+    final completedLessonNumbers = _completedLessonNumbers;
+    final pendingReplayLessonNumber = _pendingReplayLessonNumber;
+    final activeLearningKind = _activeLearningKind;
+    final activeVoiceNode = _activeVoiceNode;
+    final activeVoicePrompt = _activeVoicePrompt;
+    final activeVoiceSelection = _activeVoiceSelection;
+    final pausedChoice = _pausedChoice;
+    final fallbackAttempts = Map<MainVoiceAssistantStage, int>.of(
+      _fallbackAttempts,
+    );
+    return () {
+      _stage = stage;
+      _selectedAge = selectedAge;
+      _selectedCatalog = selectedCatalog;
+      _selectedTopicNumber = selectedTopicNumber;
+      _selectedTopicContent = selectedTopicContent;
+      _completedTopicNumbers = completedTopicNumbers;
+      _allowedTopicNumbers = allowedTopicNumbers;
+      _courseCompletedTopicSelection = courseCompletedTopicSelection;
+      _pendingReplayTopicNumber = pendingReplayTopicNumber;
+      _completedLessonNumbers = completedLessonNumbers;
+      _pendingReplayLessonNumber = pendingReplayLessonNumber;
+      _activeLearningKind = activeLearningKind;
+      _activeVoiceNode = activeVoiceNode;
+      _activeVoicePrompt = activeVoicePrompt;
+      _activeVoiceSelection = activeVoiceSelection;
+      _pausedChoice = pausedChoice;
+      _fallbackAttempts
+        ..clear()
+        ..addAll(fallbackAttempts);
+    };
+  }
+
+  void pauseChoice() {
+    _pausedChoice =
+        _stage != MainVoiceAssistantStage.idle &&
+        _stage != MainVoiceAssistantStage.chooseFeature &&
+        _stage != MainVoiceAssistantStage.activeLearning;
+  }
+
+  bool canHandle(String recognizedText) {
+    final normalized = _normalize(recognizedText);
+    if (normalized.isEmpty || _looksLikePromptEcho(normalized)) {
+      return false;
+    }
+    final stageCanHandle = _hasStageSpecificIntent(normalized);
+    if (_isStopChoice(normalized)) {
+      return _stage != MainVoiceAssistantStage.idle;
+    }
+    return _directVocabularyTarget(normalized) != null ||
+        _selectionModuleDestination(normalized) != null ||
+        stageCanHandle ||
+        (_stage != MainVoiceAssistantStage.idle && _isHelpChoice(normalized));
+  }
+
+  /// Whether [recognizedText] is already a complete topic or lesson
+  /// number, or the Topics module on its own, so the turn may end after a
+  /// short silence instead of waiting for the recognizer's own endpoint. The
+  /// final transcript is still what gets handled.
+  bool canEndOnSilence(String recognizedText) {
+    final normalized = _normalize(recognizedText);
+    final directTopic = VoiceNavigationIntentResolver.directTopicNumber(
+      normalized,
+    );
+    if (directTopic != null &&
+        (_hasStageSpecificIntent(normalized) ||
+            _selectionModuleDestination(normalized) != null)) {
+      return directTopic != 10;
+    }
+    // A child who stays quiet after "Chủ đề" asked for the Topics list; a
+    // trailing "số" still announces a number.
+    if (RegExp(r'(^| )(?:chu de|topic)$').hasMatch(normalized) &&
+        canHandle(recognizedText)) {
+      return true;
+    }
+    final numberStage = switch (_stage) {
+      MainVoiceAssistantStage.chooseTopic ||
+      MainVoiceAssistantStage.chooseTopicAfterCompletion ||
+      MainVoiceAssistantStage.chooseLesson => true,
+      _ => false,
+    };
+    if (!numberStage) return false;
+    final number = _extractSpokenNumber(normalized);
+    // "Mười" can still become "mười một" after a pause.
+    return number != null &&
+        number != 10 &&
+        _hasStageSpecificIntent(normalized);
+  }
+
+  /// Keep an unfinished iOS Home answer open when a Topic number may follow.
+  bool canEndUnfinishedAnswerEarly(String recognizedText) {
+    if (_stage != MainVoiceAssistantStage.chooseFeature) return false;
+    final normalized = _normalize(recognizedText);
+    return !_containsPhrase(normalized, 'chu de') &&
+        !_containsPhrase(normalized, 'topic');
+  }
+
+  /// Returns true only for a complete, unambiguous local command. The 500
+  /// fallback phrases are resolved on-device once Android produces a stable
+  /// partial transcript; number choices and broad phrases still wait for the
+  /// final ASR result so "mình muốn học từ mới" never becomes a topic request
+  /// before the final words arrive.
+  bool canHandlePartial(String recognizedText) {
+    final normalized = _normalize(recognizedText);
+    if (normalized.isEmpty || _looksLikePromptEcho(normalized)) {
+      return false;
+    }
+    if (RegExp(
+      r'(^| )(?:chu de|topic)(?: so| number)?$',
+    ).hasMatch(normalized)) {
+      // A stable module name may still grow into "Chủ đề số hai". Preserve
+      // the entire command in Home, module switches and content selection.
+      return false;
+    }
+    if (VoiceNavigationIntentResolver.directTopicNumber(normalized) != null) {
+      // A numbered destination must retain its final number through MAIN's
+      // normal final-result path, just like a choice within the topic catalog.
+      return false;
+    }
+    if (_directVocabularyTarget(normalized) != null) return true;
+    final selectionDestination = _selectionModuleDestination(normalized);
+    if (selectionDestination != null) {
+      return true;
+    }
+    if (!_hasStageSpecificIntent(normalized) && !_isStopChoice(normalized)) {
+      return false;
+    }
+    if (_isStopChoice(normalized)) {
+      return _stage != MainVoiceAssistantStage.idle;
+    }
+    return switch (_stage) {
+      MainVoiceAssistantStage.chooseFeature ||
+      MainVoiceAssistantStage.chooseOtherLearning ||
+      MainVoiceAssistantStage.chooseModuleSwitch ||
+      MainVoiceAssistantStage.chooseAlternativeAfterLearning =>
+        _isUnambiguousFeatureChoice(normalized),
+      MainVoiceAssistantStage.chooseAfterTranslationStop =>
+        _isTopicChoice(normalized) ||
+            _isVocabularyChoice(normalized) ||
+            _isContinueTranslationChoice(normalized),
+      MainVoiceAssistantStage.chooseVocabularyCollection =>
+        _isParentVocabularyChoice(normalized) ||
+            _isReviewVocabularyChoice(normalized) ||
+            _isStarVocabularyChoice(normalized),
+      MainVoiceAssistantStage.activeLearning =>
+        _resolveActiveCommand(normalized) != null ||
+            (!kIsWeb &&
+                defaultTargetPlatform == TargetPlatform.iOS &&
+                _activeLearningKind != ActiveLearningModuleKind.vocabulary &&
+                _vocabularyTarget(normalized) != null) ||
+            MasterNavigationContract.matches('CONTINUE_GLOBAL', normalized) ||
+            (_activeLearningKind == ActiveLearningModuleKind.listeningLesson &&
+                MasterNavigationContract.matches(
+                  'GO_TO_TOPIC_SELECTION',
+                  normalized,
+                )) ||
+            _isTopicChoice(normalized) ||
+            _isVocabularyChoice(normalized) ||
+            _isTranslationChoice(normalized) ||
+            _isSwitchModuleMenuChoice(normalized) ||
+            (_activeVoiceNode == null &&
+                _isLeaveActiveLearningChoice(normalized)),
+      MainVoiceAssistantStage.confirmReplayTopic =>
+        _isReplayTopicChoice(normalized) || _isOtherTopicChoice(normalized),
+      MainVoiceAssistantStage.confirmReplayLesson =>
+        _isReplayLessonChoice(normalized) ||
+            _isContinueLessonChoice(normalized) ||
+            _hasSelectableLessonNumber(normalized),
+      // A number can arrive after a partial prefix ("chủ đề số ..."), so
+      // selecting age, topic, or lesson always waits for the final transcript.
+      MainVoiceAssistantStage.askAge ||
+      MainVoiceAssistantStage.chooseTopic ||
+      MainVoiceAssistantStage.chooseTopicAfterCompletion ||
+      MainVoiceAssistantStage.chooseLesson ||
+      MainVoiceAssistantStage.idle => false,
+    };
+  }
+
+  bool _hasStageSpecificIntent(String normalized) => switch (_stage) {
+    MainVoiceAssistantStage.chooseFeature =>
+      _isSpeakingChoice(normalized) ||
+          _isTopicChoice(normalized) ||
+          _isVocabularyChoice(normalized) ||
+          _isTranslationChoice(normalized) ||
+          _wrappedFeatureChoice(normalized) != null,
+    MainVoiceAssistantStage.chooseOtherLearning =>
+      _isTopicChoice(normalized) ||
+          _isVocabularyChoice(normalized) ||
+          _isContinueTranslationChoice(normalized),
+    MainVoiceAssistantStage.chooseModuleSwitch =>
+      _isTopicChoice(normalized) ||
+          _isVocabularyChoice(normalized) ||
+          _isTranslationChoice(normalized),
+    MainVoiceAssistantStage.chooseAfterTranslationStop =>
+      _isTopicChoice(normalized) ||
+          _isVocabularyChoice(normalized) ||
+          _isContinueTranslationChoice(normalized),
+    MainVoiceAssistantStage.chooseAlternativeAfterLearning =>
+      _isVocabularyChoice(normalized) || _isTranslationChoice(normalized),
+    MainVoiceAssistantStage.chooseVocabularyCollection =>
+      _isParentVocabularyChoice(normalized) ||
+          _isReviewVocabularyChoice(normalized) ||
+          _isStarVocabularyChoice(normalized),
+    MainVoiceAssistantStage.activeLearning =>
+      _resolveActiveCommand(normalized) != null ||
+          _vocabularyTarget(normalized) != null ||
+          MasterNavigationContract.matches('CONTINUE_GLOBAL', normalized) ||
+          (_activeLearningKind == ActiveLearningModuleKind.listeningLesson &&
+              MasterNavigationContract.matches(
+                'GO_TO_TOPIC_SELECTION',
+                normalized,
+              )) ||
+          _isTopicChoice(normalized) ||
+          _isVocabularyChoice(normalized) ||
+          _isTranslationChoice(normalized) ||
+          _isSwitchModuleMenuChoice(normalized) ||
+          (_activeVoiceNode == null &&
+              _isLeaveActiveLearningChoice(normalized)),
+    MainVoiceAssistantStage.confirmReplayTopic =>
+      _isReplayTopicChoice(normalized) || _isOtherTopicChoice(normalized),
+    MainVoiceAssistantStage.confirmReplayLesson =>
+      _isReplayLessonChoice(normalized) ||
+          _isContinueLessonChoice(normalized) ||
+          _hasSelectableLessonNumber(normalized),
+    MainVoiceAssistantStage.askAge ||
+    MainVoiceAssistantStage.chooseTopic ||
+    MainVoiceAssistantStage.chooseTopicAfterCompletion => switch (_stage) {
+      MainVoiceAssistantStage.askAge =>
+        _extractSpokenNumber(normalized) != null,
+      MainVoiceAssistantStage.chooseTopicAfterCompletion
+          when _allowedTopicNumbers.isNotEmpty =>
+        _extractSpokenNumber(normalized) != null,
+      _ => _hasSelectableTopicNumber(normalized),
+    },
+    MainVoiceAssistantStage.chooseLesson =>
+      _hasSelectableLessonNumber(normalized) ||
+          _isContinueLessonChoice(normalized),
+    MainVoiceAssistantStage.idle => false,
+  };
+
+  VoiceVocabularyTarget? _directVocabularyTarget(String normalized) {
+    if (!const <MainVoiceAssistantStage>{
+      MainVoiceAssistantStage.chooseFeature,
+      MainVoiceAssistantStage.chooseOtherLearning,
+      MainVoiceAssistantStage.chooseAfterTranslationStop,
+      MainVoiceAssistantStage.chooseModuleSwitch,
+      MainVoiceAssistantStage.chooseAlternativeAfterLearning,
+      MainVoiceAssistantStage.askAge,
+      MainVoiceAssistantStage.chooseTopic,
+      MainVoiceAssistantStage.chooseTopicAfterCompletion,
+      MainVoiceAssistantStage.confirmReplayTopic,
+      MainVoiceAssistantStage.chooseLesson,
+      MainVoiceAssistantStage.confirmReplayLesson,
+    }.contains(_stage)) {
+      return null;
+    }
+    return _vocabularyTarget(normalized);
+  }
+
+  Future<MainVoiceAssistantTurn> handle(String recognizedText) async {
+    final normalized = _normalize(recognizedText);
+    final isPromptEcho = _looksLikePromptEcho(normalized);
+    final stageCanHandle = _hasStageSpecificIntent(normalized);
+    if (_isStopChoice(normalized)) {
+      return MainVoiceAssistantTurn(
+        promptText: stopPrompt,
+        promptAudioKey: MainAssistantAudioKeys.cancelled,
+        continueListening: false,
+        activeLearningCommand: _stage == MainVoiceAssistantStage.activeLearning
+            ? ActiveLearningCommand.stop
+            : null,
+      );
+    }
+    if (_isHelpChoice(normalized)) {
+      return _helpTurn();
+    }
+    final vocabularyTarget = isPromptEcho
+        ? null
+        : _directVocabularyTarget(normalized);
+    if (vocabularyTarget != null) {
+      return _moduleNavigationTurn(
+        recognizedText: recognizedText,
+        destination: VoiceNavigationDestination.vocabulary,
+        promptText: '',
+        vocabularyTarget: vocabularyTarget,
+      );
+    }
+    final selectionDestination = _selectionModuleDestination(normalized);
+    if (selectionDestination != null) {
+      return _moduleNavigationTurn(
+        recognizedText: recognizedText,
+        destination: selectionDestination,
+        promptText: switch (selectionDestination) {
+          VoiceNavigationDestination.topics =>
+            MasterNavigationContract.switchedToSubject,
+          VoiceNavigationDestination.vocabulary =>
+            MasterNavigationContract.switchedToVocabulary,
+          _ => MasterNavigationContract.switchedToTranslation,
+        },
+      );
+    }
+    if (!stageCanHandle &&
+        !isPromptEcho &&
+        _stage != MainVoiceAssistantStage.idle) {
+      final nearestPhrase = _nearestFeaturePhrase(normalized);
+      if (nearestPhrase != null && canHandle(nearestPhrase)) {
+        return handle(nearestPhrase);
+      }
+      final fallback = _fallbackForUnrecognizedInput();
+      if (fallback != null) {
+        return fallback;
+      }
+    } else {
+      _fallbackAttempts.remove(_stage);
+    }
+    return switch (_stage) {
+      MainVoiceAssistantStage.chooseFeature => await _handleFeature(
+        recognizedText,
+        normalized,
+      ),
+      MainVoiceAssistantStage.chooseOtherLearning => await _handleOtherLearning(
+        recognizedText,
+        normalized,
+      ),
+      MainVoiceAssistantStage.chooseModuleSwitch => _handleModuleSwitch(
+        recognizedText,
+        normalized,
+      ),
+      MainVoiceAssistantStage.chooseAfterTranslationStop =>
+        await _handleAfterTranslationStop(recognizedText, normalized),
+      MainVoiceAssistantStage.chooseAlternativeAfterLearning =>
+        await _handleAlternativeAfterLearning(recognizedText, normalized),
+      MainVoiceAssistantStage.chooseVocabularyCollection =>
+        await _handleVocabularyCollection(normalized),
+      MainVoiceAssistantStage.activeLearning => _handleActiveLearning(
+        recognizedText,
+        normalized,
+      ),
+      MainVoiceAssistantStage.askAge => _handleAge(recognizedText, normalized),
+      MainVoiceAssistantStage.chooseTopic => await _handleTopic(
+        recognizedText,
+        normalized,
+      ),
+      MainVoiceAssistantStage.chooseTopicAfterCompletion =>
+        await _handleTopicAfterCompletion(recognizedText, normalized),
+      MainVoiceAssistantStage.confirmReplayTopic =>
+        await _handleReplayTopicConfirmation(recognizedText, normalized),
+      MainVoiceAssistantStage.chooseLesson => _handleLesson(
+        recognizedText,
+        normalized,
+      ),
+      MainVoiceAssistantStage.confirmReplayLesson =>
+        _handleReplayLessonConfirmation(recognizedText, normalized),
+      MainVoiceAssistantStage.idle => const MainVoiceAssistantTurn(
+        promptText: openingPrompt,
+        promptAudioKey: MainAssistantAudioKeys.openMenu,
+        continueListening: true,
+      ),
+    };
+  }
+
+  MainVoiceAssistantTurn _beginConfiguredTopicSelection(String recognizedText) {
+    final age = _configuredChildAge;
+    final catalog = age == null ? null : _catalogForAge(age);
+    if (age == null || catalog == null) {
+      // The destination resolves age from the saved profile/onboarding.
+      // Voice navigation must never open the retired AGE_NUMBER flow.
+      reset();
+      return MainVoiceAssistantTurn(
+        promptText: '',
+        continueListening: false,
+        navigationBeforePrompt: VoiceNavigationIntent(
+          destination: VoiceNavigationDestination.topics,
+          recognizedText: recognizedText.trim(),
+          matchedPhrase: 'chu de',
+          topicNumber: VoiceNavigationIntentResolver.directTopicNumber(
+            recognizedText,
+          ),
+        ),
+      );
+    }
+    return _openTopicCatalog(recognizedText: recognizedText, childAge: age);
+  }
+
+  /// Exact global commands remain available while choosing content. Local
+  /// numbers and replay choices still belong to their existing node; idle
+  /// translation text must never be interpreted as a navigation command here.
+  VoiceNavigationDestination? _selectionModuleDestination(String text) {
+    if (!const <MainVoiceAssistantStage>{
+      MainVoiceAssistantStage.askAge,
+      MainVoiceAssistantStage.chooseTopic,
+      MainVoiceAssistantStage.chooseTopicAfterCompletion,
+      MainVoiceAssistantStage.confirmReplayTopic,
+      MainVoiceAssistantStage.chooseLesson,
+      MainVoiceAssistantStage.confirmReplayLesson,
+      MainVoiceAssistantStage.chooseVocabularyCollection,
+    }.contains(_stage)) {
+      return null;
+    }
+    if (_stage != MainVoiceAssistantStage.chooseTopic &&
+        _stage != MainVoiceAssistantStage.chooseTopicAfterCompletion &&
+        _stage != MainVoiceAssistantStage.confirmReplayTopic &&
+        VoiceNavigationIntentResolver.directTopicNumber(text) != null) {
+      return VoiceNavigationDestination.topics;
+    }
+    if (MasterNavigationContract.matches('OPEN_SUBJECT', text)) {
+      return VoiceNavigationDestination.topics;
+    }
+    if (MasterNavigationContract.matches('OPEN_VOCAB', text)) {
+      return VoiceNavigationDestination.vocabulary;
+    }
+    if (MasterNavigationContract.matches('OPEN_TRANSLATE', text) ||
+        MasterNavigationContract.matches('TRANSLATE_CONTINUOUS', text)) {
+      return VoiceNavigationDestination.conversation;
+    }
+    return null;
+  }
+
+  MainVoiceAssistantTurn _openTopicCatalog({
+    required String recognizedText,
+    required int childAge,
+  }) {
+    final intent = VoiceNavigationIntent(
+      destination: VoiceNavigationDestination.topics,
+      recognizedText: recognizedText.trim(),
+      matchedPhrase: 'hoc theo chu de',
+      childAge: childAge,
+      topicNumber: VoiceNavigationIntentResolver.directTopicNumber(
+        recognizedText,
+      ),
+    );
+    // TopicListeningScreen owns progress resolution and presents all ten
+    // topics for the selected age group.
+    reset();
+    return MainVoiceAssistantTurn(
+      promptText: '',
+      continueListening: false,
+      navigationBeforePrompt: intent,
+    );
+  }
+
+  ListeningAgeCatalog? _catalogForAge(int age) {
+    for (final candidate in _catalogs) {
+      if (age >= candidate.startAge && age <= candidate.endAge) {
+        return candidate;
+      }
+    }
+    return null;
+  }
+
+  Future<MainVoiceAssistantTurn> _handleFeature(
+    String recognizedText,
+    String normalized,
+  ) async {
+    if (_looksLikePromptEcho(normalized)) {
+      return const MainVoiceAssistantTurn(
+        promptText: openingPrompt,
+        promptAudioKey: MainAssistantAudioKeys.openMenu,
+        continueListening: true,
+      );
+    }
+    final wrapped = _wrappedFeatureChoice(normalized);
+    if (_isVocabularyChoice(normalized) ||
+        wrapped == VoiceNavigationDestination.vocabulary) {
+      return _beginVocabularyLearning(
+        recognizedText: recognizedText,
+        matchedPhrase: 'hoc tu moi',
+      );
+    }
+    if (_isTopicChoice(normalized) ||
+        wrapped == VoiceNavigationDestination.topics) {
+      return _beginConfiguredTopicSelection(recognizedText);
+    }
+    if (_isTranslationChoice(normalized) ||
+        wrapped == VoiceNavigationDestination.conversation) {
+      return _beginContinuousTranslation(recognizedText);
+    }
+    if (_isSpeakingChoice(normalized)) {
+      return _beginContinuousTranslation(recognizedText);
+    }
+    return const MainVoiceAssistantTurn(
+      promptText: openingPrompt,
+      promptAudioKey: MainAssistantAudioKeys.openMenu,
+      continueListening: true,
+    );
+  }
+
+  Future<MainVoiceAssistantTurn> _handleOtherLearning(
+    String recognizedText,
+    String normalized,
+  ) async {
+    if (_looksLikePromptEcho(normalized)) {
+      return const MainVoiceAssistantTurn(
+        promptText: otherLearningPrompt,
+        promptAudioKey: MainAssistantAudioKeys.afterTranslationStop,
+        continueListening: true,
+      );
+    }
+    if (_isVocabularyChoice(normalized)) {
+      return _moduleNavigationTurn(
+        recognizedText: recognizedText,
+        destination: VoiceNavigationDestination.vocabulary,
+        promptText: MasterNavigationContract.switchedToVocabulary,
+      );
+    }
+    if (_isTopicChoice(normalized)) {
+      return _moduleNavigationTurn(
+        recognizedText: recognizedText,
+        destination: VoiceNavigationDestination.topics,
+        promptText: MasterNavigationContract.switchedToSubject,
+      );
+    }
+    if (_isContinueTranslationChoice(normalized)) {
+      return _beginContinuousTranslation(recognizedText, resuming: true);
+    }
+    if (_isSpeakingChoice(normalized)) {
+      return _beginContinuousTranslation(recognizedText);
+    }
+    return const MainVoiceAssistantTurn(
+      promptText: otherLearningPrompt,
+      promptAudioKey: MainAssistantAudioKeys.afterTranslationStop,
+      continueListening: true,
+    );
+  }
+
+  Future<MainVoiceAssistantTurn> _handleAfterTranslationStop(
+    String recognizedText,
+    String normalized,
+  ) async {
+    if (_looksLikePromptEcho(normalized)) {
+      return const MainVoiceAssistantTurn(
+        promptText: afterTranslationStopPrompt,
+        promptAudioKey: MainAssistantAudioKeys.chooseTranslation,
+        continueListening: true,
+      );
+    }
+    if (_isVocabularyChoice(normalized)) {
+      return _moduleNavigationTurn(
+        recognizedText: recognizedText,
+        destination: VoiceNavigationDestination.vocabulary,
+        promptText: MasterNavigationContract.switchedToVocabulary,
+      );
+    }
+    if (_isTopicChoice(normalized)) {
+      return _moduleNavigationTurn(
+        recognizedText: recognizedText,
+        destination: VoiceNavigationDestination.topics,
+        promptText: MasterNavigationContract.switchedToSubject,
+      );
+    }
+    if (_isContinueTranslationChoice(normalized)) {
+      return _beginContinuousTranslation(recognizedText, resuming: true);
+    }
+    return const MainVoiceAssistantTurn(
+      promptText: afterTranslationStopPrompt,
+      promptAudioKey: MainAssistantAudioKeys.chooseTranslation,
+      continueListening: true,
+    );
+  }
+
+  MainVoiceAssistantTurn _beginContinuousTranslation(
+    String recognizedText, {
+    bool resuming = false,
+  }) {
+    reset();
+    return MainVoiceAssistantTurn(
+      promptText: resuming
+          ? MasterNavigationContract.translationContinue
+          : continuousTranslationPrompt,
+      promptAudioKey: resuming
+          ? MainAssistantAudioKeys.translationContinue
+          : MainAssistantAudioKeys.translationStarted,
+      continueListening: false,
+      navigationAfterPrompt: VoiceNavigationIntent(
+        destination: VoiceNavigationDestination.conversation,
+        recognizedText: recognizedText.trim(),
+        matchedPhrase: 'lien tuc',
+        enterMainSpeakingMode: true,
+      ),
+    );
+  }
+
+  MainVoiceAssistantTurn _moduleNavigationTurn({
+    required String recognizedText,
+    required VoiceNavigationDestination destination,
+    required String promptText,
+    VoiceVocabularyTarget? vocabularyTarget,
+  }) {
+    final transitionAudioKey = vocabularyTarget != null
+        ? null
+        : switch (destination) {
+            VoiceNavigationDestination.topics =>
+              MainAssistantAudioKeys.switchedToListening,
+            VoiceNavigationDestination.vocabulary =>
+              MainAssistantAudioKeys.switchedToVocabulary,
+            _ => MainAssistantAudioKeys.switchedToTranslation,
+          };
+    final turn = MainVoiceAssistantTurn(
+      promptText: promptText,
+      promptAudioKey: transitionAudioKey,
+      // A module transfer starts a new translation session. Keep its authored
+      // introduction in the same awaited prompt sequence as the transition so
+      // the destination cannot open its microphone between the two utterances.
+      // Direct MAIN entry and explicit resume already own their own prompts.
+      promptSequence: destination == VoiceNavigationDestination.conversation
+          ? <MainVoiceAssistantUtterance>[
+              MainVoiceAssistantUtterance(
+                promptText,
+                audioKey: transitionAudioKey,
+              ),
+              const MainVoiceAssistantUtterance(
+                continuousTranslationPrompt,
+                audioKey: MainAssistantAudioKeys.translationStarted,
+              ),
+            ]
+          : const <MainVoiceAssistantUtterance>[],
+      continueListening: false,
+      navigationAfterPrompt: VoiceNavigationIntent(
+        destination: destination,
+        recognizedText: recognizedText.trim(),
+        matchedPhrase: switch (destination) {
+          VoiceNavigationDestination.topics => 'chu de',
+          VoiceNavigationDestination.vocabulary => 'bo tu vung',
+          VoiceNavigationDestination.conversation => 'dich tieng anh',
+          VoiceNavigationDestination.history => 'lich su',
+          VoiceNavigationDestination.settings => 'cai dat',
+        },
+        childAge: destination == VoiceNavigationDestination.topics
+            ? _configuredChildAge
+            : null,
+        topicNumber: destination == VoiceNavigationDestination.topics
+            ? VoiceNavigationIntentResolver.directTopicNumber(recognizedText)
+            : null,
+        enterMainSpeakingMode:
+            destination == VoiceNavigationDestination.conversation,
+        vocabularyTarget: vocabularyTarget,
+      ),
+    );
+    reset();
+    return turn;
+  }
+
+  Future<MainVoiceAssistantTurn> _handleAlternativeAfterLearning(
+    String recognizedText,
+    String normalized,
+  ) async {
+    if (_looksLikePromptEcho(normalized)) {
+      return const MainVoiceAssistantTurn(
+        promptText: alternativeAfterLearningPrompt,
+        continueListening: true,
+      );
+    }
+    if (_isVocabularyChoice(normalized)) {
+      return _beginVocabularyLearning(
+        recognizedText: recognizedText,
+        matchedPhrase: 'hoc tu vung',
+      );
+    }
+    if (_isTranslationChoice(normalized)) {
+      return _beginContinuousTranslation(recognizedText);
+    }
+    if (_isSpeakingChoice(normalized)) {
+      return _beginContinuousTranslation(recognizedText);
+    }
+    return const MainVoiceAssistantTurn(
+      promptText: alternativeAfterLearningPrompt,
+      continueListening: true,
+    );
+  }
+
+  Future<MainVoiceAssistantTurn> _beginVocabularyLearning({
+    required String recognizedText,
+    required String matchedPhrase,
+  }) async {
+    final navigation = VoiceNavigationIntent(
+      destination: VoiceNavigationDestination.vocabulary,
+      recognizedText: recognizedText.trim(),
+      matchedPhrase: matchedPhrase,
+    );
+    // VocabularyHomeScreen is the single V3 state machine. Navigating only
+    // after the silent handoff prevents MAIN from narrating an older parallel
+    // flow while the shared Android/iOS module creates today's batch, speaks
+    // its exact intro/menu, and opens the next microphone window itself.
+    reset();
+    return MainVoiceAssistantTurn(
+      promptText: '',
+      continueListening: false,
+      navigationBeforePrompt: navigation,
+    );
+  }
+
+  Future<MainVoiceAssistantTurn> _handleVocabularyCollection(
+    String normalized,
+  ) async {
+    if (_looksLikePromptEcho(normalized)) {
+      return const MainVoiceAssistantTurn(
+        promptText: 'Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Luyện lại?',
+        promptAudioKey: MainAssistantAudioKeys.chooseVocabulary,
+        continueListening: true,
+      );
+    }
+    final parentChoice = _isParentVocabularyChoice(normalized);
+    final collection = parentChoice
+        ? VocabularyCollection.saved
+        : _isReviewVocabularyChoice(normalized)
+        ? VocabularyCollection.review
+        : _isStarVocabularyChoice(normalized)
+        ? VocabularyCollection.star
+        : null;
+    if (collection == null) {
+      return const MainVoiceAssistantTurn(
+        promptText: 'Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Luyện lại?',
+        promptAudioKey: MainAssistantAudioKeys.chooseVocabulary,
+        continueListening: true,
+      );
+    }
+
+    final entries = await _loadVocabularyOrNull();
+    if (entries == null) {
+      reset();
+      return const MainVoiceAssistantTurn(
+        promptText: 'HOMI chưa tải được Bộ từ vựng. Bạn thử lại sau nhé.',
+        continueListening: false,
+      );
+    }
+    final selected = parentChoice
+        ? entries
+              .where(
+                (entry) =>
+                    entry.isParentAdded &&
+                    entry.isLearnedWell &&
+                    entry.word.trim().isNotEmpty,
+              )
+              .toList(growable: false)
+        : _entriesIn(entries, collection);
+    final title = parentChoice
+        ? 'Phần Ba mẹ đã thêm.'
+        : collection == VocabularyCollection.review
+        ? 'Phần luyện lại.'
+        : 'Ngôi sao của bạn.';
+    final emptyPrompt = parentChoice
+        ? 'Chưa có nội dung đã học tốt trong phần Ba mẹ đã thêm.'
+        : collection == VocabularyCollection.review
+        ? 'Phần luyện lại chưa có từ nào.'
+        : 'Bạn chưa có Ngôi sao nào.';
+    final utterances = <MainVoiceAssistantUtterance>[];
+    _appendVocabularyCollection(
+      utterances,
+      title: title,
+      emptyPrompt: emptyPrompt,
+      entries: selected,
+    );
+    utterances.add(
+      const MainVoiceAssistantUtterance('Mình đã học xong từ vựng rồi.'),
+    );
+    reset();
+    return MainVoiceAssistantTurn(
+      promptText: _plainPrompt(utterances),
+      promptSequence: utterances,
+      continueListening: false,
+    );
+  }
+
+  Future<List<VocabularyEntry>?> _loadVocabularyOrNull() async {
+    try {
+      return await _vocabularyLoader();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static List<VocabularyEntry> _entriesIn(
+    List<VocabularyEntry> entries,
+    VocabularyCollection collection,
+  ) => entries
+      .where(
+        (entry) =>
+            entry.collection == collection && entry.word.trim().isNotEmpty,
+      )
+      .toList(growable: false);
+
+  static void _appendVocabularyCollection(
+    List<MainVoiceAssistantUtterance> utterances, {
+    required String title,
+    required String emptyPrompt,
+    required List<VocabularyEntry> entries,
+  }) {
+    if (entries.isEmpty) {
+      utterances.add(MainVoiceAssistantUtterance(emptyPrompt));
+      return;
+    }
+    utterances.add(MainVoiceAssistantUtterance(title));
+    _appendVocabularyEntries(utterances, entries);
+  }
+
+  static void _appendVocabularyEntries(
+    List<MainVoiceAssistantUtterance> utterances,
+    List<VocabularyEntry> entries,
+  ) {
+    for (final entry in entries) {
+      utterances.add(
+        MainVoiceAssistantUtterance(entry.word.trim(), locale: 'en-US'),
+      );
+      final meaning = entry.meaning.trim();
+      if (meaning.isNotEmpty) {
+        utterances.add(MainVoiceAssistantUtterance(meaning));
+      }
+    }
+  }
+
+  static String _plainPrompt(List<MainVoiceAssistantUtterance> utterances) =>
+      utterances.map((item) => item.text).join(' ');
+
+  ActiveLearningCommand? _resolveActiveCommand(String normalized) {
+    final selection = _activeVoiceSelection;
+    if (selection != null && selection.isMainVoiceChoice) {
+      return selection.resolveMainVoiceChoice(normalized);
+    }
+    return _activeLearningCommandResolver.resolve(
+      normalized,
+      state: _activeLearningSpeechState,
+      node: _activeVoiceNode,
+    );
+  }
+
+  MainVoiceAssistantTurn _handleActiveLearning(
+    String recognizedText,
+    String normalized,
+  ) {
+    if (_looksLikePromptEcho(normalized)) {
+      return MainVoiceAssistantTurn(
+        promptText: _activeVoicePrompt ?? activeLearningPrompt,
+        promptAudioKey: currentPromptAudioKey,
+        continueListening: true,
+      );
+    }
+    if (_activeLearningKind == ActiveLearningModuleKind.listeningLesson &&
+        MasterNavigationContract.matches('GO_TO_TOPIC_SELECTION', normalized)) {
+      return _beginConfiguredTopicSelection(recognizedText);
+    }
+    // The FINAL contract makes OPEN_SUBJECT / OPEN_VOCAB / OPEN_TRANSLATE
+    // global while learning. Resolve those explicit transfers before the
+    // local lesson grammar so an overlapping phrase such as "Cho mình học
+    // bài" cannot be consumed as an item-level action.
+    if (_isTopicChoice(normalized)) {
+      return _switchFromActiveLearning(
+        recognizedText: recognizedText,
+        destination: VoiceNavigationDestination.topics,
+      );
+    }
+    if (_isVocabularyChoice(normalized)) {
+      return _switchFromActiveLearning(
+        recognizedText: recognizedText,
+        destination: VoiceNavigationDestination.vocabulary,
+      );
+    }
+    if (_isTranslationChoice(normalized)) {
+      return _switchFromActiveLearning(
+        recognizedText: recognizedText,
+        destination: VoiceNavigationDestination.conversation,
+      );
+    }
+    final vocabularyTarget = _vocabularyTarget(normalized);
+    if (vocabularyTarget != null &&
+        _activeLearningKind != ActiveLearningModuleKind.vocabulary) {
+      return _moduleNavigationTurn(
+        recognizedText: recognizedText,
+        destination: VoiceNavigationDestination.vocabulary,
+        promptText: '',
+        vocabularyTarget: vocabularyTarget,
+      );
+    }
+    final activeCommand = _resolveActiveCommand(normalized);
+    if (MasterNavigationContract.matches('CONTINUE_GLOBAL', normalized) &&
+        (_isWaitingChoiceNode(_activeVoiceNode) ||
+            (_activeVoiceSelection?.isMainVoiceChoice ?? false))) {
+      return MainVoiceAssistantTurn(
+        promptText: _activeVoicePrompt ?? activeLearningPrompt,
+        promptAudioKey: currentPromptAudioKey,
+        continueListening: true,
+      );
+    }
+    if (_isSwitchModuleMenuChoice(normalized) ||
+        (_activeVoiceNode == null &&
+            _isLeaveActiveLearningChoice(normalized))) {
+      _stage = MainVoiceAssistantStage.chooseModuleSwitch;
+      _fallbackAttempts.remove(_stage);
+      return const MainVoiceAssistantTurn(
+        promptText: MasterNavigationContract.translationSwitch,
+        continueListening: true,
+      );
+    }
+    if (activeCommand != null) {
+      return _activeLearningTurn(activeCommand);
+    }
+    return MainVoiceAssistantTurn(
+      promptText: _activeVoicePrompt ?? activeLearningPrompt,
+      promptAudioKey: currentPromptAudioKey,
+      continueListening: true,
+    );
+  }
+
+  MainVoiceAssistantTurn _handleModuleSwitch(
+    String recognizedText,
+    String normalized,
+  ) {
+    if (_looksLikePromptEcho(normalized)) {
+      return const MainVoiceAssistantTurn(
+        promptText: MasterNavigationContract.translationSwitch,
+        continueListening: true,
+      );
+    }
+    if (_isTopicChoice(normalized)) {
+      return _switchFromActiveLearning(
+        recognizedText: recognizedText,
+        destination: VoiceNavigationDestination.topics,
+      );
+    }
+    if (_isVocabularyChoice(normalized)) {
+      return _switchFromActiveLearning(
+        recognizedText: recognizedText,
+        destination: VoiceNavigationDestination.vocabulary,
+      );
+    }
+    if (_isTranslationChoice(normalized)) {
+      return _switchFromActiveLearning(
+        recognizedText: recognizedText,
+        destination: VoiceNavigationDestination.conversation,
+      );
+    }
+    return const MainVoiceAssistantTurn(
+      promptText: MasterNavigationContract.translationSwitch,
+      continueListening: true,
+    );
+  }
+
+  MainVoiceAssistantTurn _switchFromActiveLearning({
+    required String recognizedText,
+    required VoiceNavigationDestination destination,
+  }) {
+    if (_activeLearningKind == ActiveLearningModuleKind.vocabulary &&
+        destination == VoiceNavigationDestination.vocabulary) {
+      return _activeLearningTurn(ActiveLearningCommand.vocabularyRoot);
+    }
+    final sameModule = switch ((_activeLearningKind, destination)) {
+      (
+        ActiveLearningModuleKind.listeningLesson,
+        VoiceNavigationDestination.topics,
+      ) =>
+        true,
+      _ => false,
+    };
+    if (sameModule) {
+      final promptText = switch (_activeLearningKind) {
+        ActiveLearningModuleKind.listeningLesson =>
+          MasterNavigationContract.continueSubject,
+        ActiveLearningModuleKind.vocabulary =>
+          MasterNavigationContract.continueVocabulary,
+        null => MasterNavigationContract.keepCurrentContent,
+      };
+      return MainVoiceAssistantTurn(
+        promptText: promptText,
+        continueListening: false,
+        activeLearningCommand: ActiveLearningCommand.resume,
+      );
+    }
+    final promptText = switch (destination) {
+      VoiceNavigationDestination.topics =>
+        MasterNavigationContract.switchedToSubject,
+      VoiceNavigationDestination.vocabulary =>
+        MasterNavigationContract.switchedToVocabulary,
+      VoiceNavigationDestination.conversation =>
+        MasterNavigationContract.switchedToTranslation,
+      VoiceNavigationDestination.history => 'Mình đã chuyển sang Lịch sử.',
+      VoiceNavigationDestination.settings => 'Mình đã chuyển sang Cài đặt.',
+    };
+    return _moduleNavigationTurn(
+      recognizedText: recognizedText,
+      destination: destination,
+      promptText: promptText,
+    );
+  }
+
+  MainVoiceAssistantTurn _activeLearningTurn(ActiveLearningCommand command) {
+    final isVocabulary =
+        _activeLearningKind == ActiveLearningModuleKind.vocabulary;
+    final promptText = switch (command) {
+      ActiveLearningCommand.resume =>
+        isVocabulary || _activeVoiceNode == ActiveLearningVoiceNode.intro
+            ? ''
+            : _activeVoiceNode == ActiveLearningVoiceNode.core
+            ? MasterNavigationContract.continueSubject
+            : 'Cùng học tiếp nhé',
+      ActiveLearningCommand.replayCurrent =>
+        isVocabulary || _activeVoiceNode == ActiveLearningVoiceNode.intro
+            ? ''
+            : _activeVoiceNode == ActiveLearningVoiceNode.song
+            ? MasterNavigationContract.songReplay
+            : 'Mình nghe lại câu này nhé',
+      ActiveLearningCommand.nextItem =>
+        isVocabulary || _activeVoiceNode == ActiveLearningVoiceNode.core
+            ? ''
+            : _activeVoiceNode == ActiveLearningVoiceNode.song
+            ? MasterNavigationContract.songSkipped
+            : MasterNavigationContract.nextItemPrompt,
+      ActiveLearningCommand.previousItem =>
+        isVocabulary || _activeVoiceNode == ActiveLearningVoiceNode.core
+            ? ''
+            : 'Mình nghe lại câu trước nhé',
+      ActiveLearningCommand.nextLesson => 'Mình chuyển sang bài tiếp theo nhé',
+      ActiveLearningCommand.previousLesson => 'Mình quay lại bài trước nhé',
+      ActiveLearningCommand.restart => 'Mình học lại bài này từ đầu nhé',
+      ActiveLearningCommand.stop => 'Đã dừng.',
+      ActiveLearningCommand.exitToHome =>
+        isVocabulary ? '' : 'Mình kết thúc bài học nhé',
+      ActiveLearningCommand.vocabularyParentAdded ||
+      ActiveLearningCommand.vocabularyPracticeAgain ||
+      ActiveLearningCommand.vocabularyStars ||
+      ActiveLearningCommand.vocabularyLatest ||
+      ActiveLearningCommand.vocabularyAll ||
+      ActiveLearningCommand.vocabularyRoot => '',
+    };
+    return MainVoiceAssistantTurn(
+      promptText: (_activeVoiceSelection?.isMainVoiceChoice ?? false)
+          ? ''
+          : promptText,
+      promptAudioKey:
+          command == ActiveLearningCommand.replayCurrent &&
+              _activeVoiceNode == ActiveLearningVoiceNode.song &&
+              !isVocabulary
+          ? MainAssistantAudioKeys.songReplay
+          : command == ActiveLearningCommand.nextItem &&
+                _activeVoiceNode == ActiveLearningVoiceNode.song &&
+                !isVocabulary
+          ? MainAssistantAudioKeys.songSkipped
+          : null,
+      continueListening: false,
+      activeLearningCommand: command,
+    );
+  }
+
+  MainVoiceAssistantTurn _handleAge(String recognizedText, String normalized) {
+    final age = _extractSpokenNumber(normalized);
+    if (age == null) {
+      return const MainVoiceAssistantTurn(
+        promptText: 'Bạn mấy tuổi? Ví dụ bạn nói: 6 tuổi.',
+        continueListening: true,
+      );
+    }
+
+    final catalog = _catalogForAge(age);
+    if (catalog == null) {
+      final minimumAge = _catalogs.isEmpty ? 0 : _catalogs.first.startAge;
+      final maximumAge = _catalogs.isEmpty ? 0 : _catalogs.last.endAge;
+      return MainVoiceAssistantTurn(
+        promptText:
+            'HOMI có bài học cho các bạn từ $minimumAge đến $maximumAge tuổi. Bạn mấy tuổi?',
+        continueListening: true,
+      );
+    }
+
+    return _openTopicCatalog(recognizedText: recognizedText, childAge: age);
+  }
+
+  Future<MainVoiceAssistantTurn> _handleTopic(
+    String recognizedText,
+    String normalized,
+  ) async {
+    final catalog = _selectedCatalog;
+    final age = _selectedAge;
+    if (_looksLikePromptEcho(normalized)) {
+      return MainVoiceAssistantTurn(
+        promptText: topicSelectionPrompt(catalog?.topics.length ?? 0),
+        continueListening: true,
+      );
+    }
+    final topicNumber = _extractSpokenNumber(normalized);
+    if (catalog == null || age == null) {
+      return _beginConfiguredTopicSelection(recognizedText);
+    }
+    if (topicNumber == null ||
+        topicNumber < 1 ||
+        topicNumber > catalog.topics.length) {
+      return MainVoiceAssistantTurn(
+        promptText: invalidTopicSelectionPrompt(catalog.topics.length),
+        continueListening: true,
+      );
+    }
+    return _openTopic(recognizedText: recognizedText, topicNumber: topicNumber);
+  }
+
+  Future<MainVoiceAssistantTurn> _openTopic({
+    required String recognizedText,
+    required int topicNumber,
+    bool relearnTopic = false,
+  }) async {
+    final catalog = _selectedCatalog;
+    final age = _selectedAge;
+    if (catalog == null || age == null) {
+      return _beginConfiguredTopicSelection(recognizedText);
+    }
+    final generation = _flowGeneration;
+    try {
+      final content = await _contentLoader();
+      if (generation != _flowGeneration) {
+        return const MainVoiceAssistantTurn(
+          promptText: '',
+          continueListening: false,
+        );
+      }
+      final topicContent = content.topic(
+        startAge: catalog.startAge,
+        endAge: catalog.endAge,
+        topicNumber: topicNumber,
+      );
+      if (topicContent.lessons.isEmpty) {
+        reset();
+        return const MainVoiceAssistantTurn(
+          promptText: 'Chủ đề này chưa có bài học. Bạn thử lại sau nhé.',
+          promptAudioKey: MainAssistantAudioKeys.lessonNotFound,
+          continueListening: false,
+        );
+      }
+      // The topic owner decides the next lesson from saved progress.
+      // MAIN must never expose a second, free lesson picker.
+      final intent = VoiceNavigationIntent(
+        destination: VoiceNavigationDestination.topics,
+        recognizedText: recognizedText.trim(),
+        matchedPhrase: 'chu de so $topicNumber',
+        topicNumber: topicNumber,
+        childAge: age,
+        relearnTopic: relearnTopic,
+      );
+      reset();
+      return MainVoiceAssistantTurn(
+        promptText: '',
+        continueListening: false,
+        navigationBeforePrompt: intent,
+      );
+    } catch (_) {
+      if (generation != _flowGeneration) {
+        return const MainVoiceAssistantTurn(
+          promptText: '',
+          continueListening: false,
+        );
+      }
+      reset();
+      return const MainVoiceAssistantTurn(
+        promptText: 'HOMI chưa tải được bài học. Bạn thử lại sau nhé.',
+        promptAudioKey: MainAssistantAudioKeys.catalogLoadError,
+        continueListening: false,
+      );
+    }
+  }
+
+  Future<MainVoiceAssistantTurn> _handleTopicAfterCompletion(
+    String recognizedText,
+    String normalized,
+  ) async {
+    if (_looksLikePromptEcho(normalized)) {
+      return MainVoiceAssistantTurn(
+        promptText: _topicSelectionPrompt,
+        continueListening: true,
+      );
+    }
+    final catalog = _selectedCatalog;
+    final topicNumber = _extractSpokenNumber(normalized);
+    if (catalog == null || _selectedAge == null) {
+      return _beginConfiguredTopicSelection(recognizedText);
+    }
+    if (_allowedTopicNumbers.isNotEmpty &&
+        (topicNumber == null ||
+            topicNumber < 1 ||
+            topicNumber > catalog.topics.length)) {
+      return MainVoiceAssistantTurn(
+        promptText: invalidTopicSelectionPrompt(_allowedTopicNumbers.length),
+        continueListening: true,
+      );
+    }
+    if (topicNumber == null ||
+        topicNumber < 1 ||
+        topicNumber > catalog.topics.length) {
+      return MainVoiceAssistantTurn(
+        promptText: invalidTopicSelectionPrompt(catalog.topics.length),
+        continueListening: true,
+      );
+    }
+    if (_allowedTopicNumbers.isNotEmpty &&
+        !_allowedTopicNumbers.contains(topicNumber)) {
+      return MainVoiceAssistantTurn(
+        promptText: invalidTopicSelectionPrompt(_allowedTopicNumbers.length),
+        continueListening: true,
+      );
+    }
+    if (_courseCompletedTopicSelection) {
+      return _openTopic(
+        recognizedText: recognizedText,
+        topicNumber: topicNumber,
+        relearnTopic: true,
+      );
+    }
+    if (_completedTopicNumbers.contains(topicNumber)) {
+      _pendingReplayTopicNumber = topicNumber;
+      _stage = MainVoiceAssistantStage.confirmReplayTopic;
+      return MainVoiceAssistantTurn(
+        promptText: _replayTopicPrompt,
+        continueListening: true,
+      );
+    }
+    return _openTopic(recognizedText: recognizedText, topicNumber: topicNumber);
+  }
+
+  Future<MainVoiceAssistantTurn> _handleReplayTopicConfirmation(
+    String recognizedText,
+    String normalized,
+  ) async {
+    final topicNumber = _pendingReplayTopicNumber;
+    if (_looksLikePromptEcho(normalized)) {
+      return MainVoiceAssistantTurn(
+        promptText: _replayTopicPrompt,
+        continueListening: true,
+      );
+    }
+    if (_isReplayTopicChoice(normalized) && topicNumber != null) {
+      _pendingReplayTopicNumber = null;
+      return _openTopic(
+        recognizedText: recognizedText,
+        topicNumber: topicNumber,
+        relearnTopic: true,
+      );
+    }
+    if (_isOtherTopicChoice(normalized)) {
+      if (_allowedTopicNumbers.isEmpty) {
+        final intent = VoiceNavigationIntent(
+          destination: VoiceNavigationDestination.topics,
+          recognizedText: recognizedText.trim(),
+          matchedPhrase: 'chu de khac',
+          childAge: _selectedAge,
+        );
+        reset();
+        return MainVoiceAssistantTurn(
+          promptText: '',
+          continueListening: false,
+          navigationBeforePrompt: intent,
+        );
+      }
+      _pendingReplayTopicNumber = null;
+      _stage = MainVoiceAssistantStage.chooseTopicAfterCompletion;
+      return MainVoiceAssistantTurn(
+        promptText: _topicSelectionPrompt,
+        continueListening: true,
+      );
+    }
+    return MainVoiceAssistantTurn(
+      promptText: _replayTopicPrompt,
+      continueListening: true,
+    );
+  }
+
+  String get _topicSelectionPrompt => _courseCompletedTopicSelection
+      ? courseRelearnTopicPrompt
+      : topicSelectionPrompt(_allowedTopicNumbers.length);
+
+  String get _replayTopicPrompt =>
+      'Chủ đề $_pendingReplayTopicNumber bạn đã học xong rồi. Bạn muốn chọn Chủ đề khác hay học lại Chủ đề $_pendingReplayTopicNumber?';
+
+  bool _isReplayTopicChoice(String text) {
+    if (MasterNavigationContract.matches('RELEARN_TOPIC', text)) return true;
+    final number = _pendingReplayTopicNumber;
+    return number != null &&
+        <String>[
+          'chu de $number',
+          'hoc lai chu de $number',
+          'minh muon hoc lai chu de $number',
+          'lam lai chu de $number',
+        ].contains(text);
+  }
+
+  static bool _isOtherTopicChoice(String text) =>
+      MasterNavigationContract.matches('OTHER_TOPIC', text);
+
+  MainVoiceAssistantTurn _handleLesson(
+    String recognizedText,
+    String normalized,
+  ) {
+    final age = _selectedAge;
+    final topicNumber = _selectedTopicNumber;
+    final topicContent = _selectedTopicContent;
+    if (_looksLikePromptEcho(normalized)) {
+      return MainVoiceAssistantTurn(
+        promptText: _lessonSelectionPrompt,
+        continueListening: true,
+      );
+    }
+    if (age == null || topicNumber == null || topicContent == null) {
+      reset();
+      return const MainVoiceAssistantTurn(
+        promptText: 'HOMI chưa chọn được Chủ đề. Bạn thử lại nhé.',
+        promptAudioKey: MainAssistantAudioKeys.topicNotFound,
+        continueListening: false,
+      );
+    }
+    if (_isContinueLessonChoice(normalized)) {
+      if (normalized == 'hoc tiep') {
+        return MainVoiceAssistantTurn(
+          promptText: _lessonSelectionPrompt,
+          continueListening: true,
+        );
+      }
+      final nextLesson = _nextIncompleteLessonNumber;
+      if (nextLesson != null) {
+        return _openLessonTurn(
+          recognizedText: recognizedText,
+          lessonNumber: nextLesson,
+        );
+      }
+      return MainVoiceAssistantTurn(
+        promptText:
+            'Bạn đã học xong cả ${topicContent.lessons.length} Bài rồi. Bạn muốn học lại Bài số mấy?',
+        continueListening: true,
+      );
+    }
+    final lessonNumber = _extractSpokenNumber(normalized);
+    if (lessonNumber == null ||
+        lessonNumber < 1 ||
+        lessonNumber > topicContent.lessons.length) {
+      return MainVoiceAssistantTurn(
+        promptText:
+            'Có ${topicContent.lessons.length} Bài học. Bạn chọn từ số 1 đến số ${topicContent.lessons.length}.',
+        continueListening: true,
+      );
+    }
+
+    if (_completedLessonNumbers.contains(lessonNumber)) {
+      _pendingReplayLessonNumber = lessonNumber;
+      _stage = MainVoiceAssistantStage.confirmReplayLesson;
+      return MainVoiceAssistantTurn(
+        promptText: _replayLessonConfirmationPrompt(lessonNumber),
+        continueListening: true,
+      );
+    }
+
+    final firstIncomplete = _nextIncompleteLessonNumber;
+    if (firstIncomplete != null && lessonNumber > firstIncomplete) {
+      return MainVoiceAssistantTurn(
+        promptText: 'Bạn cần học xong Bài $firstIncomplete trước nhé.',
+        continueListening: true,
+      );
+    }
+    return _openLessonTurn(
+      recognizedText: recognizedText,
+      lessonNumber: lessonNumber,
+    );
+  }
+
+  MainVoiceAssistantTurn _handleReplayLessonConfirmation(
+    String recognizedText,
+    String normalized,
+  ) {
+    final replayLesson = _pendingReplayLessonNumber;
+    if (replayLesson == null || _selectedTopicContent == null) {
+      reset();
+      return const MainVoiceAssistantTurn(
+        promptText: 'HOMI chưa chọn được Bài học. Bạn thử lại nhé.',
+        continueListening: false,
+      );
+    }
+    if (_looksLikePromptEcho(normalized)) {
+      return MainVoiceAssistantTurn(
+        promptText: _replayLessonConfirmationPrompt(replayLesson),
+        continueListening: true,
+      );
+    }
+    final choice = const V4CompletionChoiceResolver().resolve(
+      recognizedText,
+      stage: V4CompletionStage.lessonEnd,
+      currentLesson: replayLesson,
+      nextLesson: _nextIncompleteLessonNumber,
+    );
+    if (choice == V4CompletionAction.nextLesson) {
+      final nextLesson = _nextIncompleteLessonNumber;
+      if (nextLesson != null) {
+        _pendingReplayLessonNumber = null;
+        return _openLessonTurn(
+          recognizedText: recognizedText,
+          lessonNumber: nextLesson,
+        );
+      }
+      _stage = MainVoiceAssistantStage.chooseLesson;
+      return MainVoiceAssistantTurn(
+        promptText:
+            'Bạn đã học xong cả ${_selectedTopicContent!.lessons.length} Bài rồi. Bạn chọn một Bài để học lại nhé.',
+        continueListening: true,
+      );
+    }
+    if (choice == V4CompletionAction.relearnCurrentLesson) {
+      _pendingReplayLessonNumber = null;
+      return _openLessonTurn(
+        recognizedText: recognizedText,
+        lessonNumber: replayLesson,
+        relearnLesson: true,
+      );
+    }
+    return MainVoiceAssistantTurn(
+      promptText: _replayLessonConfirmationPrompt(replayLesson),
+      continueListening: true,
+    );
+  }
+
+  MainVoiceAssistantTurn _openLessonTurn({
+    required String recognizedText,
+    required int lessonNumber,
+    bool relearnLesson = false,
+  }) {
+    final age = _selectedAge;
+    final topicNumber = _selectedTopicNumber;
+    if (age == null || topicNumber == null) {
+      reset();
+      return const MainVoiceAssistantTurn(
+        promptText: 'HOMI chưa chọn được Chủ đề. Bạn thử lại nhé.',
+        promptAudioKey: MainAssistantAudioKeys.topicNotFound,
+        continueListening: false,
+      );
+    }
+
+    return MainVoiceAssistantTurn(
+      promptText: 'Bắt đầu nhé.',
+      promptAudioKey: MainAssistantAudioKeys.startNow,
+      continueListening: false,
+      navigationAfterPrompt: VoiceNavigationIntent(
+        destination: VoiceNavigationDestination.topics,
+        recognizedText: recognizedText.trim(),
+        matchedPhrase: 'bai so $lessonNumber',
+        topicNumber: topicNumber,
+        lessonNumber: lessonNumber,
+        childAge: age,
+        openLesson: true,
+        relearnLesson: relearnLesson,
+      ),
+    );
+  }
+
+  String get _lessonSelectionPrompt {
+    final nextLesson = _nextIncompleteLessonNumber;
+    if (nextLesson == null) {
+      return 'Bạn đã học xong Chủ đề này. Bạn muốn học lại Chủ đề hay dừng lại?';
+    }
+    final completed = _completedLessonNumbers.toList()..sort();
+    if (completed.isEmpty) {
+      return 'Bạn muốn bắt đầu Bài $nextLesson hay dừng lại?';
+    }
+    return 'Bạn muốn học Bài $nextLesson hay học lại Bài ${completed.last}?';
+  }
+
+  int? get _nextIncompleteLessonNumber {
+    final topicContent = _selectedTopicContent;
+    if (topicContent == null) {
+      return null;
+    }
+    for (final lesson in topicContent.lessons) {
+      if (!_completedLessonNumbers.contains(lesson.number)) {
+        return lesson.number;
+      }
+    }
+    return null;
+  }
+
+  String _replayLessonConfirmationPrompt(int replayLesson) {
+    final nextLesson = _nextIncompleteLessonNumber;
+    return nextLesson == null
+        ? 'Bạn muốn học lại Bài $replayLesson hay dừng lại?'
+        : 'Bạn muốn học Bài $nextLesson hay học lại Bài $replayLesson?';
+  }
+
+  static bool _isSpeakingChoice(String normalized) => const {
+    'luyen noi',
+    'luyen giao tiep',
+    'noi chuyen',
+    'con muon noi',
+    'con muon luyen noi',
+    'con ghi muon luyen noi',
+    'con muon luyen giao tiep',
+    'con muon noi chuyen',
+    'noi',
+  }.contains(normalized);
+
+  static bool _isUnambiguousFeatureChoice(String normalized) =>
+      _containsPhrase(normalized, 'hoc tu vung') ||
+      _containsPhrase(normalized, 'hoc tu moi') ||
+      _containsPhrase(normalized, 'luyen tu') ||
+      _containsPhrase(normalized, 'tu vung') ||
+      _containsPhrase(normalized, 'tu moi') ||
+      _containsPhrase(normalized, 'hoc theo chu de') ||
+      _containsPhrase(normalized, 'hoc chu de') ||
+      _containsPhrase(normalized, 'hoc tinh huong') ||
+      _containsPhrase(normalized, 'dich tieng anh') ||
+      _containsPhrase(normalized, 'dich sang tieng anh') ||
+      _containsPhrase(normalized, 'luyen noi') ||
+      _containsPhrase(normalized, 'luyen giao tiep') ||
+      _containsPhrase(normalized, 'noi chuyen');
+
+  /// Home also takes an approved feature phrase wrapped in lead-in words or a
+  /// polite particle, such as "mở bộ từ vựng" or "bộ từ vựng ạ". Any other
+  /// word around the phrase, "không" included, still re-asks: MAIN does not
+  /// guess from a destination embedded in a sentence.
+  static VoiceNavigationDestination? _wrappedFeatureChoice(String normalized) {
+    final words = normalized.split(' ');
+    final unwrapped = _unwrappedFeatureWords(words);
+    if (unwrapped.length == words.length) return null;
+    final phrase = unwrapped.join(' ');
+    if (_isVocabularyChoice(phrase)) {
+      return VoiceNavigationDestination.vocabulary;
+    }
+    if (_isTopicChoice(phrase)) return VoiceNavigationDestination.topics;
+    if (_isTranslationChoice(phrase)) {
+      return VoiceNavigationDestination.conversation;
+    }
+    return null;
+  }
+
+  static List<String> _unwrappedFeatureWords(List<String> words) {
+    var start = 0;
+    var end = words.length;
+    while (start < end && _leadInWords.contains(words[start])) {
+      start++;
+    }
+    while (end > start && _trailingParticles.contains(words[end - 1])) {
+      end--;
+    }
+    return words.sublist(start, end);
+  }
+
+  /// ASR returns near-misses for the three top-level choices: Apple Speech
+  /// heard "Bộ từ vựng" as "Bộ tư vấn" twice in a row and MAIN re-asked, then
+  /// paused. When no approved phrase matches exactly, accept the one
+  /// destination whose phrase differs from the unwrapped transcript in a
+  /// single syllable: by at most two letters for a syllable of four or more
+  /// letters, one letter for a three-letter syllable. Single-syllable phrases
+  /// such as "Dịch" stay exact, and the menu echo "hay bộ từ vựng" is not
+  /// "vào bộ từ vựng" because "hay" would need two of its three letters.
+  static const List<String> _featurePhraseIntents = <String>[
+    'OPEN_SUBJECT',
+    'OPEN_VOCAB',
+    'OPEN_TRANSLATE',
+  ];
+
+  static String? _nearestFeaturePhrase(String normalized) {
+    final words = _unwrappedFeatureWords(normalized.split(' '));
+    if (words.length < 2) return null;
+    String? nearestPhrase;
+    String? nearestIntent;
+    for (final intent in _featurePhraseIntents) {
+      for (final phrase
+          in MasterNavigationContract.phrases[intent] ?? const <String>[]) {
+        final approved = _normalize(phrase).split(' ');
+        if (approved.length != words.length) continue;
+        var differing = 0;
+        var near = true;
+        for (var index = 0; index < words.length && near; index += 1) {
+          if (words[index] == approved[index]) continue;
+          differing += 1;
+          near =
+              differing == 1 && _isNearSyllable(words[index], approved[index]);
+        }
+        if (!near || differing == 0) continue;
+        if (nearestIntent != null && nearestIntent != intent) return null;
+        nearestPhrase ??= phrase;
+        nearestIntent = intent;
+      }
+    }
+    return nearestPhrase ??
+        (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
+            ? _truncatedFeaturePhrase(words)
+            : null);
+  }
+
+  static String? _truncatedFeaturePhrase(List<String> words) {
+    String? truncatedPhrase;
+    String? truncatedIntent;
+    for (final intent in _featurePhraseIntents) {
+      for (final phrase
+          in MasterNavigationContract.phrases[intent] ?? const <String>[]) {
+        final approved = _normalize(phrase).split(' ');
+        if (approved.length <= words.length) continue;
+        var matches = true;
+        for (var index = 0; index < words.length && matches; index += 1) {
+          matches = words[index] == approved[index];
+        }
+        if (!matches) continue;
+        if (truncatedIntent != null && truncatedIntent != intent) return null;
+        truncatedPhrase ??= phrase;
+        truncatedIntent = intent;
+      }
+    }
+    return truncatedPhrase;
+  }
+
+  static bool _isNearSyllable(String heard, String approved) {
+    final longest = heard.length > approved.length
+        ? heard.length
+        : approved.length;
+    if (longest < 3) return false;
+    return VoiceNavigationIntentResolver.editDistanceAtMost(
+      heard,
+      approved,
+      longest >= 4 ? 2 : 1,
+    );
+  }
+
+  static const Set<String> _leadInWords = {
+    'u',
+    'a',
+    'da',
+    'oi',
+    'homi',
+    'minh',
+    'con',
+    'muon',
+    'cho',
+    'mo',
+    'vao',
+    'chon',
+  };
+
+  static const Set<String> _trailingParticles = {
+    'a',
+    'nhe',
+    'nha',
+    'di',
+    'voi',
+    'ne',
+    'nao',
+    'homi',
+  };
+
+  ControlledSpeechState get _activeLearningSpeechState =>
+      _activeLearningKind == ActiveLearningModuleKind.vocabulary
+      ? ControlledSpeechState.vocabulary
+      : ControlledSpeechState.course;
+
+  static bool _isStopChoice(String normalized) =>
+      MasterNavigationContract.matches('STOP_GLOBAL', normalized) ||
+      _matchesFallbackIntent(normalized, 'INT-001');
+
+  static bool _isHelpChoice(String normalized) =>
+      MasterNavigationContract.matches('HELP', normalized) ||
+      _matchesFallbackIntent(normalized, 'INT-016');
+
+  static bool _isTopicChoice(String normalized) =>
+      VoiceNavigationIntentResolver.directTopicNumber(normalized) != null ||
+      MasterNavigationContract.matches('OPEN_SUBJECT', normalized) ||
+      _matchesFallbackIntent(normalized, 'INT-002') ||
+      const {
+        'con muon hoc chu de',
+        'con muon hoc theo chu de',
+        'bat dau bai hoc',
+        'hoc khoa hoc',
+        'hoc bai',
+      }.contains(normalized);
+
+  static bool _isVocabularyChoice(String normalized) =>
+      MasterNavigationContract.matches('OPEN_VOCAB', normalized) ||
+      _matchesFallbackIntent(normalized, 'INT-003') ||
+      const {
+        'con muon hoc tu vung',
+        'con muon hoc tu moi',
+        'hoc bo tu vung',
+        'luyen tu',
+      }.contains(normalized);
+
+  static bool _isReviewVocabularyChoice(String normalized) =>
+      _containsPhrase(normalized, 'luyen lai') ||
+      _containsPhrase(normalized, 'on lai') ||
+      _containsPhrase(normalized, 'tu chua vung') ||
+      _matchesFallbackIntent(normalized, 'INT-014') ||
+      _containsPhrase(normalized, 'chua vung');
+
+  static bool _isParentVocabularyChoice(String normalized) =>
+      _containsPhrase(normalized, 'ba me da them') ||
+      _containsPhrase(normalized, 'ba me them') ||
+      _containsPhrase(normalized, 'noi dung ba me') ||
+      _containsPhrase(normalized, 'gia dinh');
+
+  static bool _isStarVocabularyChoice(String normalized) =>
+      _containsPhrase(normalized, 'ngoi sao') ||
+      _containsPhrase(normalized, 'tu yeu thich') ||
+      _matchesFallbackIntent(normalized, 'INT-015') ||
+      _containsPhrase(normalized, 'yeu thich');
+
+  static VoiceVocabularyTarget? _vocabularyTarget(String normalized) {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+      return VoiceNavigationIntentResolver.directVocabularyTarget(normalized);
+    }
+    if (MasterNavigationContract.matches('OPEN_PARENT', normalized)) {
+      return VoiceVocabularyTarget.parent;
+    }
+    if (MasterNavigationContract.matches('OPEN_STAR', normalized)) {
+      return VoiceVocabularyTarget.star;
+    }
+    if (MasterNavigationContract.matches('OPEN_REVIEW', normalized)) {
+      return VoiceVocabularyTarget.review;
+    }
+    return null;
+  }
+
+  static bool _isWaitingChoiceNode(ActiveLearningVoiceNode? node) => const {
+    ActiveLearningVoiceNode.vocabularyMenu,
+    ActiveLearningVoiceNode.parentAlternatives,
+    ActiveLearningVoiceNode.starAlternatives,
+    ActiveLearningVoiceNode.reviewAlternatives,
+    ActiveLearningVoiceNode.todayEnd,
+    ActiveLearningVoiceNode.blockEnd,
+    ActiveLearningVoiceNode.listEnd,
+  }.contains(node);
+
+  static bool _isTranslationChoice(String normalized) =>
+      MasterNavigationContract.matches('OPEN_TRANSLATE', normalized) ||
+      MasterNavigationContract.matches('TRANSLATE_CONTINUOUS', normalized) ||
+      _matchesFallbackIntent(normalized, 'INT-004') ||
+      _matchesFallbackIntent(normalized, 'INT-006');
+
+  static bool _isContinueTranslationChoice(String normalized) =>
+      MasterNavigationContract.matches('CONTINUE_TRANSLATE', normalized) ||
+      _isTranslationChoice(normalized);
+
+  static bool _isNextSentenceChoice(String normalized) =>
+      _containsPhrase(normalized, 'tiep theo') ||
+      normalized == 'cau tiep' ||
+      _containsPhrase(normalized, 'cau tiep theo') ||
+      _containsPhrase(normalized, 'hoc cau tiep') ||
+      _containsPhrase(normalized, 'qua cau tiep');
+
+  static bool _isPreviousSentenceChoice(String normalized) =>
+      normalized == 'cau truoc' ||
+      normalized == 'quay lai' ||
+      _containsPhrase(normalized, 'nghe cau truoc') ||
+      _containsPhrase(normalized, 'quay lai cau truoc') ||
+      _containsPhrase(normalized, 'cau vua roi');
+
+  static bool _isLeaveActiveLearningChoice(String normalized) =>
+      normalized == 'khong' ||
+      _containsPhrase(normalized, 'khong hoc nua') ||
+      _containsPhrase(normalized, 'khong muon hoc') ||
+      _containsPhrase(normalized, 'muon hoc cai khac') ||
+      _containsPhrase(normalized, 'hoc cai khac') ||
+      _containsPhrase(normalized, 'dung hoc');
+
+  static bool _isSwitchModuleMenuChoice(String normalized) =>
+      MasterNavigationContract.matches('SWITCH_MODULE_MENU', normalized);
+
+  static bool _isReplayLessonChoice(String normalized) =>
+      _containsPhrase(normalized, 'hoc lai') ||
+      _containsPhrase(normalized, 'lam lai') ||
+      _matchesFallbackIntent(normalized, 'INT-011') ||
+      _containsPhrase(normalized, 'nghe lai');
+
+  static bool _isContinueLessonChoice(String normalized) =>
+      const {
+        'tiep',
+        'tiep tuc',
+        'hoc tiep',
+        'con muon tiep tuc',
+        'minh muon tiep tuc',
+      }.contains(normalized) ||
+      MasterNavigationContract.matches('NEXT_LESSON', normalized) ||
+      _matchesFallbackIntent(normalized, 'INT-007') ||
+      _matchesFallbackIntent(normalized, 'INT-012');
+
+  static bool _matchesFallbackIntent(String normalized, String intentId) {
+    final phrases = HomiFallbackCatalog.childPhrasesByIntent[intentId];
+    return phrases != null &&
+        phrases.any(
+          (phrase) =>
+              normalized == HomiFallbackCatalog.normalizeVietnamese(phrase),
+        );
+  }
+
+  static bool _containsPhrase(String value, String phrase) =>
+      ' $value '.contains(' $phrase ');
+
+  bool _hasSelectableTopicNumber(String normalized) {
+    final topicNumber = _extractSpokenNumber(normalized);
+    final catalog = _selectedCatalog;
+    return topicNumber != null &&
+        (catalog == null ||
+            (topicNumber >= 1 && topicNumber <= catalog.topics.length));
+  }
+
+  bool _hasSelectableLessonNumber(String normalized) {
+    final lessonNumber = _extractSpokenNumber(normalized);
+    final topicContent = _selectedTopicContent;
+    return lessonNumber != null &&
+        (topicContent == null ||
+            (lessonNumber >= 1 && lessonNumber <= topicContent.lessons.length));
+  }
+
+  MainVoiceAssistantTurn _helpTurn() {
+    final promptText = switch (_stage) {
+      MainVoiceAssistantStage.chooseFeature => openingPrompt,
+      MainVoiceAssistantStage.chooseOtherLearning => otherLearningPrompt,
+      MainVoiceAssistantStage.chooseModuleSwitch =>
+        MasterNavigationContract.translationSwitch,
+      MainVoiceAssistantStage.chooseAfterTranslationStop =>
+        afterTranslationStopPrompt,
+      MainVoiceAssistantStage.chooseAlternativeAfterLearning =>
+        alternativeAfterLearningPrompt,
+      MainVoiceAssistantStage.chooseVocabularyCollection =>
+        'Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Luyện lại?',
+      MainVoiceAssistantStage.activeLearning =>
+        _activeVoicePrompt ?? activeLearningPrompt,
+      MainVoiceAssistantStage.askAge => 'Bạn mấy tuổi? Ví dụ bạn nói: 6 tuổi.',
+      MainVoiceAssistantStage.chooseTopic ||
+      MainVoiceAssistantStage.chooseTopicAfterCompletion =>
+        _topicSelectionPrompt,
+      MainVoiceAssistantStage.confirmReplayTopic => _replayTopicPrompt,
+      MainVoiceAssistantStage.chooseLesson => _lessonSelectionPrompt,
+      MainVoiceAssistantStage.confirmReplayLesson =>
+        _replayLessonConfirmationPrompt(_pendingReplayLessonNumber ?? 1),
+      MainVoiceAssistantStage.idle => openingPrompt,
+    };
+    return MainVoiceAssistantTurn(
+      promptText: promptText,
+      promptAudioKey: currentPromptAudioKey,
+      continueListening: true,
+    );
+  }
+
+  MainVoiceAssistantTurn? _fallbackForUnrecognizedInput() {
+    final attempts = (_fallbackAttempts[_stage] ?? 0) + 1;
+    _fallbackAttempts[_stage] = attempts;
+    if (attempts == 1) {
+      return MainVoiceAssistantTurn(
+        promptText: currentPrompt,
+        promptAudioKey: currentPromptAudioKey,
+        continueListening: true,
+      );
+    }
+    _fallbackAttempts.remove(_stage);
+    if (_stage == MainVoiceAssistantStage.chooseOtherLearning) {
+      return _moduleNavigationTurn(
+        recognizedText: '',
+        destination: VoiceNavigationDestination.conversation,
+        promptText: MasterNavigationContract.keepCurrentContent,
+      );
+    }
+    if (_stage == MainVoiceAssistantStage.chooseModuleSwitch ||
+        _stage == MainVoiceAssistantStage.activeLearning) {
+      return const MainVoiceAssistantTurn(
+        promptText: MasterNavigationContract.keepCurrentContent,
+        promptAudioKey: MainAssistantAudioKeys.keepCurrentContent,
+        continueListening: false,
+        activeLearningCommand: ActiveLearningCommand.resume,
+      );
+    }
+    return MainVoiceAssistantTurn(
+      promptText: MasterNavigationContract.pause,
+      promptAudioKey: MainAssistantAudioKeys.cancelled,
+      continueListening: false,
+      exhaustedUnrecognizedInput: true,
+      activeLearningCommand: _stage == MainVoiceAssistantStage.activeLearning
+          ? ActiveLearningCommand.stop
+          : null,
+    );
+  }
+
+  String get currentPrompt => _helpTurn().promptText;
+
+  String get silenceRetryPrompt =>
+      _stage == MainVoiceAssistantStage.chooseFeature
+      ? noSpeechRetryPrompt
+      : currentPrompt;
+
+  /// Every navigation state uses the same second-silence outcome.
+  ///
+  /// No speech is distinct from an invalid spoken answer: the former preserves
+  /// the checkpoint in a paused state, while the latter resumes after the
+  /// approved "Mình giữ nội dung hiện tại nhé." fallback.
+  String get silenceExitPrompt => MasterNavigationContract.pause;
+
+  MainVoiceAssistantTurn handleSilenceExit() {
+    return MainVoiceAssistantTurn(
+      promptText: silenceExitPrompt,
+      promptAudioKey: MainAssistantAudioKeys.cancelled,
+      continueListening: false,
+      activeLearningCommand: _stage == MainVoiceAssistantStage.activeLearning
+          ? ActiveLearningCommand.stop
+          : null,
+    );
+  }
+
+  bool _looksLikePromptEcho(String normalized) {
+    if (normalized == _normalize(currentPrompt)) return true;
+    return switch (_stage) {
+      MainVoiceAssistantStage.chooseFeature =>
+        (_isTopicChoice(normalized) &&
+                _isVocabularyChoice(normalized) &&
+                _isTranslationChoice(normalized)) ||
+            (_isSpeakingChoice(normalized) && _isTopicChoice(normalized)) ||
+            _containsPhrase(normalized, 'hay hoc chu de ne') ||
+            normalized == 'hoc chu de ne',
+      MainVoiceAssistantStage.chooseOtherLearning =>
+        (_isTopicChoice(normalized) &&
+                _isVocabularyChoice(normalized) &&
+                _isTranslationChoice(normalized)) ||
+            (_isTopicChoice(normalized) && _isVocabularyChoice(normalized)) ||
+            _containsPhrase(normalized, 'hay hoc tu vung ne') ||
+            normalized == 'hoc tu vung ne',
+      MainVoiceAssistantStage.chooseModuleSwitch =>
+        (_isTopicChoice(normalized) &&
+                _isVocabularyChoice(normalized) &&
+                _isTranslationChoice(normalized)) ||
+            normalized ==
+                HomiFallbackCatalog.normalizeVietnamese(
+                  MasterNavigationContract.translationSwitch,
+                ),
+      MainVoiceAssistantStage.chooseAfterTranslationStop =>
+        (_isTopicChoice(normalized) && _isVocabularyChoice(normalized)) ||
+            normalized ==
+                HomiFallbackCatalog.normalizeVietnamese(
+                  afterTranslationStopPrompt,
+                ),
+      MainVoiceAssistantStage.chooseAlternativeAfterLearning =>
+        _isTranslationChoice(normalized) && _isVocabularyChoice(normalized),
+      MainVoiceAssistantStage.chooseVocabularyCollection =>
+        (_isParentVocabularyChoice(normalized) &&
+                _isReviewVocabularyChoice(normalized)) ||
+            (_isParentVocabularyChoice(normalized) &&
+                _isStarVocabularyChoice(normalized)) ||
+            (_isReviewVocabularyChoice(normalized) &&
+                _isStarVocabularyChoice(normalized)),
+      MainVoiceAssistantStage.activeLearning =>
+        (_isNextSentenceChoice(normalized) &&
+                _isPreviousSentenceChoice(normalized)) ||
+            (_isNextSentenceChoice(normalized) &&
+                _isLeaveActiveLearningChoice(normalized)) ||
+            (_isPreviousSentenceChoice(normalized) &&
+                _isLeaveActiveLearningChoice(normalized)),
+      MainVoiceAssistantStage.askAge => normalized == 'con may tuoi',
+      MainVoiceAssistantStage.chooseTopic =>
+        _containsPhrase(normalized, 'chu de so may') ||
+            (_selectedCatalog != null &&
+                _containsPhrase(
+                  normalized,
+                  'co ${_selectedCatalog!.topics.length} chu de',
+                )),
+      MainVoiceAssistantStage.chooseTopicAfterCompletion =>
+        normalized ==
+                HomiFallbackCatalog.normalizeVietnamese(
+                  courseRelearnTopicPrompt,
+                ) ||
+            _containsPhrase(normalized, 'con muon hoc chu de so may') ||
+            _containsPhrase(normalized, 'chu de so may') ||
+            (_selectedCatalog != null &&
+                _containsPhrase(
+                  normalized,
+                  'co ${_selectedCatalog!.topics.length} chu de',
+                )),
+      MainVoiceAssistantStage.confirmReplayTopic =>
+        _containsPhrase(normalized, 'con da hoc roi') ||
+            _containsPhrase(normalized, 'co muon hoc lai khong'),
+      MainVoiceAssistantStage.chooseLesson =>
+        _containsPhrase(normalized, 'bai so may') ||
+            _containsPhrase(normalized, 'tiep tuc bai') ||
+            (_selectedTopicContent != null &&
+                _containsPhrase(
+                  normalized,
+                  'co ${_selectedTopicContent!.lessons.length} bai hoc',
+                )),
+      MainVoiceAssistantStage.confirmReplayLesson =>
+        _containsPhrase(normalized, 'con da hoc xong roi') ||
+            (_containsPhrase(normalized, 'hoc lai bai') &&
+                _containsPhrase(normalized, 'hay tiep tuc bai')),
+      MainVoiceAssistantStage.idle => false,
+    };
+  }
+
+  int? _extractSpokenNumber(String normalized) {
+    final scope = switch (_stage) {
+      MainVoiceAssistantStage.chooseLesson ||
+      MainVoiceAssistantStage.confirmReplayLesson => '(?:bai|lesson)',
+      _ => '(?:chu de|topic)',
+    };
+    final numberPattern = RegExp(
+      '^(?:(?:con|minh|toi) )?(?:(?:chon|hoc lai|hoc|muon|muon hoc|muon hoc lai|muon chon|cho minh hoc|mo lai) )?'
+      '(?:$scope )?(?:(?:so|number) )?'
+      '(${VoiceNavigationIntentResolver.spokenNumberPattern})'
+      r'(?: nhe| nha| a| di| please)?$',
+    );
+    final match = numberPattern.firstMatch(normalized);
+    return match == null
+        ? null
+        : VoiceNavigationIntentResolver.parseSpokenNumber(match.group(1)!);
+  }
+
+  static String _normalize(String value) =>
+      HomiFallbackCatalog.normalizeVietnamese(value);
+
+  static Future<ListeningContentCatalog> _loadDefaultContent() =>
+      AssetListeningContentRepository().load();
+
+  static Future<List<VocabularyEntry>> _loadDefaultVocabulary() =>
+      const VocabularyStore().read();
+}

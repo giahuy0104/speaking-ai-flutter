@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L3-T07\\C67-L3-M03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L3-M03",
+  "sourceText": "Bút chì: Pencil hay Desk?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bút chì:",
+      "text": "Bút chì:",
+      "spoken_text": "Bút chì:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "source_text": "Pencil",
+      "text": "Pencil",
+      "spoken_text": "Pencil",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "source_text": "Desk?",
+      "text": "Desk?",
+      "spoken_text": "Desk?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": "7e9047bf78710ca56e04c2ae1e598fef8c5cf1cc984ed064bc77d373233999aa",
+  "id": "LESSON-0C9A500A2224B05ECE96BB68",
+  "text": "Bút chì: Pencil hay Desk?",
+  "asset": "assets/audio/CURRICULUM/0c9a500a2224b05ece96bb68.vi.v1.mp3",
+  "sha256": "7e9047bf78710ca56e04c2ae1e598fef8c5cf1cc984ed064bc77d373233999aa",
+  "durationSeconds": 3.014694
+}

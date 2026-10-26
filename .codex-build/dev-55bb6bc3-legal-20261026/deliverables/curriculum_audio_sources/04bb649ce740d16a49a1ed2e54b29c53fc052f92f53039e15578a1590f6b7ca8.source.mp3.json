@@ -1,0 +1,20 @@
+{
+  "signature": "04bb649ce740d16a49a1ed2e54b29c53fc052f92f53039e15578a1590f6b7ca8",
+  "request": {
+    "text": "Bạn chọn học Chủ đề số mấy?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+    "speed": 0.9
+  },
+  "sha256": "916648f01390cb6aca236db87b68d43f077707a9f0474a0989e6e9f6c6ba2c03",
+  "requestId": "sesJWV0GJ5wmd0kgYVsT",
+  "createdAt": "2026-09-15T23:15:24.267Z"
+}

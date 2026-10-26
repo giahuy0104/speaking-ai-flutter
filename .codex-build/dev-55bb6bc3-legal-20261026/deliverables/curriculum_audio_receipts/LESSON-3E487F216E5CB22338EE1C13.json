@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L1-T01-B01\\C1315-L1-T01-B01-T01_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L1-T01-B01-T01_EN",
+  "sourceText": "Before school.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Before school.",
+      "generation_key": "53c1ae1acce51edc"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-3E487F216E5CB22338EE1C13",
+  "text": "Before school.",
+  "asset": "assets/audio/CURRICULUM/3e487f216e5cb22338ee1c13.en.v1.mp3",
+  "sha256": "9006e080cca803775277eebf7d0424076821a2c1b784cae0769b358c6b4398d1",
+  "durationSeconds": 2.146395
+}

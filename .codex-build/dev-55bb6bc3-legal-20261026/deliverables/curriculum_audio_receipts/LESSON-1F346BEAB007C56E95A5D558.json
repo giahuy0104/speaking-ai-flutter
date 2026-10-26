@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T08-B02\\C35-L3-T08-B02-T04_VI.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T08-B02-T04_VI",
+  "sourceText": "Chị/em gái của mình.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Chị hoặc em gái của mình.",
+      "generation_key": "abc889c743f0dbf1"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-1F346BEAB007C56E95A5D558",
+  "text": "Chị/em gái của mình.",
+  "asset": "assets/audio/CURRICULUM/1f346beab007c56e95a5d558.vi.v1.mp3",
+  "sha256": "0a10907c8f8b51e212f7f18eea43603495a45dd16e13f451b24d3ca26e2f28c8",
+  "durationSeconds": 2.224762
+}

@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L2-T06-B02\\C1112-L2-T06-B02-T02_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L2-T06-B02-T02_EN",
+  "sourceText": "Don't click links.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Don't click links.",
+      "generation_key": "f4f4b6a679b40f34"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-E9D1C4B870950BA679A82E6D",
+  "text": "Don't click links.",
+  "asset": "assets/audio/CURRICULUM/e9d1c4b870950ba679a82e6d.en.v1.mp3",
+  "sha256": "23eee88afc865a74436b01e41c00b81644384cdea6b2ac17dc14329b52399af2",
+  "durationSeconds": 2.456961
+}

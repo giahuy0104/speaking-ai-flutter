@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T04-B01\\C67-L2-T04-B01-Q06_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-T04-B01-Q06",
+  "sourceText": "Bạn muốn nói \"Táo\". Noodles hay Apples?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn nói \"Táo\".",
+      "spoken_text": "Bạn muốn nói \"Táo\".",
+      "input_index": 30
+    },
+    {
+      "language": "en",
+      "text": "Noodles",
+      "spoken_text": "Noodles",
+      "input_index": 31
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 32
+    },
+    {
+      "language": "en",
+      "text": "Apples?",
+      "spoken_text": "Apples?",
+      "input_index": 33
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-4D0CCB30BF98DD3FEE062D7E",
+  "text": "Bạn muốn nói \"Táo\". Noodles hay Apples?",
+  "asset": "assets/audio/CURRICULUM/4d0ccb30bf98dd3fee062d7e.vi.v1.mp3",
+  "sha256": "d47ff59acd4490973c75b90e4063d2aaa3513493e35cb8d6e8aff25632bf12ea",
+  "durationSeconds": 4.48275
+}

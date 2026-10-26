@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T03-B01\\C35-L1-T03-B01-Q02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-T03-B01-Q02",
+  "sourceText": "Xanh dương: Yellow hay Blue?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Xanh dương:",
+      "spoken_text": "Xanh dương:",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "text": "Yellow",
+      "spoken_text": "Yellow",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "text": "Blue?",
+      "spoken_text": "Blue?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-337EA486958DED422198415C",
+  "text": "Xanh dương: Yellow hay Blue?",
+  "asset": "assets/audio/CURRICULUM/337ea486958ded422198415c.vi.v1.mp3",
+  "sha256": "2c54a7a3eb83f3ad0eaf3231944d90eb3a2727c92067d736dc6a6167ea28d6a9",
+  "durationSeconds": 3.514853
+}

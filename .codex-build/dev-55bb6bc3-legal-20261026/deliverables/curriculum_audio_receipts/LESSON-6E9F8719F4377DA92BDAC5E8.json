@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T07-B01\\C1112-L3-T07-B01-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T07-B01-Q07",
+  "sourceText": "Bạn muốn diễn đạt \"Rảnh thứ Bảy\". Free Saturday hay At three?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn diễn đạt \"Rảnh thứ Bảy\".",
+      "spoken_text": "Bạn muốn diễn đạt \"Rảnh thứ Bảy\".",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "Free Saturday",
+      "spoken_text": "Free Saturday",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "At three?",
+      "spoken_text": "At three?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-6E9F8719F4377DA92BDAC5E8",
+  "text": "Bạn muốn diễn đạt \"Rảnh thứ Bảy\". Free Saturday hay At three?",
+  "asset": "assets/audio/CURRICULUM/6e9f8719f4377da92bdac5e8.vi.v1.mp3",
+  "sha256": "89e239cfa101f89db6c5a03799148ba3403d6fe60f5921b3269cd560e84c326b",
+  "durationSeconds": 6.15075
+}

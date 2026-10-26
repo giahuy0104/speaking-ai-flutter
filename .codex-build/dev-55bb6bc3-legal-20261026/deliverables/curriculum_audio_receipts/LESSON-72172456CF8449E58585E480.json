@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L3-T09-B01\\C35-L3-T09-B01-Q04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L3-T09-B01-Q04",
+  "sourceText": "Lạnh: Sunny hay Cold?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Lạnh:",
+      "spoken_text": "Lạnh:",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "text": "Sunny",
+      "spoken_text": "Sunny",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "text": "Cold?",
+      "spoken_text": "Cold?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-72172456CF8449E58585E480",
+  "text": "Lạnh: Sunny hay Cold?",
+  "asset": "assets/audio/CURRICULUM/72172456cf8449e58585e480.vi.v1.mp3",
+  "sha256": "ea26494b7d11c9a7a5441149977dfc895e641cb59ce2ea27415bb548905e9563",
+  "durationSeconds": 3.484853
+}

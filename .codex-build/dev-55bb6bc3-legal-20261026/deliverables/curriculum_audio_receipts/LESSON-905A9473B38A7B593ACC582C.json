@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C35-L2-T06-B02\\C35-L2-T06-B02-T03_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L2-T06-B02-T03_EN",
+  "sourceText": "Touch your nose.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Touch your nose.",
+      "generation_key": "d8e97f2bbba5ca42"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-905A9473B38A7B593ACC582C",
+  "text": "Touch your nose.",
+  "asset": "assets/audio/CURRICULUM/905a9473b38a7b593acc582c.en.v1.mp3",
+  "sha256": "c4ada9d2ff3399b4c7783b5f39b4aad230c5c6b346d15aed57a9c8d5871849ec",
+  "durationSeconds": 1.899683
+}

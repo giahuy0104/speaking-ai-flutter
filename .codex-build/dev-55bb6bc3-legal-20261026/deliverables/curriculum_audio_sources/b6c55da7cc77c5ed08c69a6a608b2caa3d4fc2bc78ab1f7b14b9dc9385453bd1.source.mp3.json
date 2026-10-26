@@ -1,0 +1,20 @@
+{
+  "signature": "b6c55da7cc77c5ed08c69a6a608b2caa3d4fc2bc78ab1f7b14b9dc9385453bd1",
+  "request": {
+    "text": "A to I Words",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "9d7bc6638d55db9d50482f563d96828194fee2e9eecedb2ddbb2768cfa7d6fdb",
+  "requestId": "0R3yFXXnN5X1avHIJtMM",
+  "createdAt": "2026-09-15T23:24:48.070Z"
+}

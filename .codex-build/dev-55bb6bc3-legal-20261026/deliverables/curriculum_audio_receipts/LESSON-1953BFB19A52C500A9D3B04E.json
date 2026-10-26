@@ -1,0 +1,41 @@
+{
+  "sourceKind": "new-eleven-v3",
+  "segments": [
+    {
+      "file": "D:\\Code\\HuaMei\\App_noi\\flutter\\18_16th9\\speaking-ai-flutter\\deliverables\\curriculum_audio_sources\\5c8cdcacde68973fc9ddff2396abec22a352a06afba38d01c11217cc14d39515.tempo.mp3",
+      "signature": "5c8cdcacde68973fc9ddff2396abec22a352a06afba38d01c11217cc14d39515",
+      "request": {
+        "text": "Cửa lớp đang đóng.",
+        "model_id": "eleven_v3",
+        "language_code": "vi",
+        "seed": 164109,
+        "voice_settings": {
+          "stability": 0.5,
+          "similarity_boost": 0.75
+        }
+      },
+      "profile": {
+        "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+        "speed": 0.9
+      },
+      "sha256": "9aa22a47038ac43f71f8bbbff02121f7e8ae1c73f93ec45c32fa4ae42a9bd750",
+      "requestId": "4zYoB7wiIe060FsFXyZC",
+      "createdAt": "2026-09-15T23:18:37.534Z"
+    }
+  ],
+  "id": "LESSON-1953BFB19A52C500A9D3B04E",
+  "text": "Cửa lớp đang đóng.",
+  "asset": "assets/audio/CURRICULUM/1953bfb19a52c500a9d3b04e.vi.v1.mp3",
+  "sha256": "6781bff18a8d53a4235c20792a3749e8aebff63e01c306074a79127da9868e13",
+  "durationSeconds": 1.581633,
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  }
+}

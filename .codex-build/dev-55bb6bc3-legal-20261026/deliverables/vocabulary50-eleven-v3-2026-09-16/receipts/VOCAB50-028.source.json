@@ -1,0 +1,22 @@
+{
+  "id": "VOCAB50-028",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bạn nói tiếng Anh nhé.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "idihwyeERjFsS9CUNxnc",
+  "historyItemId": "4cUx7m5In3icROeMNL9C",
+  "characterCost": "12",
+  "createdAt": "2026-09-16T03:20:53.181Z",
+  "sourceSha256": "0cbc8173bc58e323660b8d2a69dce2bae3187bfab32936c561586489c61ff61a"
+}

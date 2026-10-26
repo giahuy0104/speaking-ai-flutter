@@ -1,0 +1,533 @@
+import 'package:ai_speaking_flutter_app/core/device/aiv0_ble_control.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  test(
+    'parent setup requests system bonding before Android BLE connect',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      const channel = MethodChannel('ailingo_aiv0_ble_control');
+      const events = MethodChannel('ailingo_aiv0_ble_control/events');
+      final methods = <String>[];
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      messenger.setMockMethodCallHandler(events, (call) async => null);
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        methods.add(call.method);
+        switch (call.method) {
+          case 'initialize':
+            return <Object?, Object?>{'phase': 'idle'};
+          case 'requestPermissions':
+            return true;
+          case 'scan':
+            return <Object?>[
+              <Object?, Object?>{
+                'id': 'AA:BB:CC:DD:EE:FF',
+                'name': 'HM-D001',
+                'rssi': -35,
+                'advertisesControlService': true,
+              },
+            ];
+          case 'requestDualModeBond':
+            return true;
+          case 'connect':
+            return <Object?, Object?>{
+              'phase': 'connected',
+              'deviceId': 'AA:BB:CC:DD:EE:FF',
+              'deviceName': 'HM-D001',
+            };
+          default:
+            return null;
+        }
+      });
+      final control = MethodChannelAiv0BleControl(
+        enabled: true,
+        draftProtocolConfirmed: false,
+        dualModePairingEnabled: true,
+      );
+      try {
+        expect(
+          await control.autoConnectKnownOrNearby(requestBond: true),
+          isTrue,
+        );
+        expect(
+          methods,
+          containsAllInOrder(<String>['requestDualModeBond', 'connect']),
+        );
+      } finally {
+        await control.dispose();
+        messenger.setMockMethodCallHandler(channel, null);
+        messenger.setMockMethodCallHandler(events, null);
+        debugDefaultTargetPlatformOverride = null;
+      }
+    },
+  );
+
+  group('AIV0 Bluetooth adapter state', () {
+    test('keeps radio power separate from permission state', () {
+      expect(
+        Aiv0BluetoothAdapterState.fromNative('poweredOn'),
+        Aiv0BluetoothAdapterState.poweredOn,
+      );
+      expect(
+        Aiv0BluetoothAdapterState.fromNative('poweredOff'),
+        Aiv0BluetoothAdapterState.poweredOff,
+      );
+      expect(
+        Aiv0BluetoothAdapterState.fromNative('unauthorized'),
+        Aiv0BluetoothAdapterState.unauthorized,
+      );
+      expect(
+        Aiv0BluetoothAdapterState.fromNative('unexpected'),
+        Aiv0BluetoothAdapterState.unknown,
+      );
+    });
+  });
+
+  group('AIV0 native diagnostics', () {
+    test('decodes the merged BLE-HFP timeline in chronological order', () {
+      final status = Aiv0BleStatus.fromMap(<Object?, Object?>{
+        'phase': 'reconnecting',
+        'diagnosticTimeline': <Object?>[
+          <Object?, Object?>{
+            'stage': 'BLE_DISCONNECTED',
+            'caller': 'Aiv0BleControlBridge',
+            'eventEpochMs': 1_787_900_001_610,
+            'audioRoute': 'in=[BluetoothHFP:HM-D001] out=[BluetoothHFP:HM-D001]',
+            'systemIsReconnecting': true,
+            'code': 'CBErrorDomain:7',
+          },
+          <Object?, Object?>{
+            'stage': 'HFP_ROUTE_CONFIRMED',
+            'caller': 'HfpAudioBridge',
+            'eventEpochMs': 1_787_900_001_420,
+            'audioRoute': 'in=[BluetoothHFP:HM-D001] out=[BluetoothHFP:HM-D001]',
+          },
+        ],
+        'remoteMainCount': 2,
+        'remoteMainDuplicateCount': 1,
+        'remoteMainCommandsEnabled': true,
+        'lastMainTransportSource': 'hfpRemote',
+      }, protocolConfirmed: false);
+
+      expect(status.diagnosticTimeline.map((event) => event.stage), <String>[
+        'HFP_ROUTE_CONFIRMED',
+        'BLE_DISCONNECTED',
+      ]);
+      expect(
+        status.diagnosticTimeline.last.occurredAt,
+        DateTime.fromMillisecondsSinceEpoch(1_787_900_001_610),
+      );
+      expect(status.diagnosticTimeline.last.caller, 'Aiv0BleControlBridge');
+      expect(status.diagnosticTimeline.last.code, 'CBErrorDomain:7');
+      expect(
+        status.diagnosticTimeline.last.metadata['systemIsReconnecting'],
+        true,
+      );
+      expect(status.remoteMainCount, 2);
+      expect(status.remoteMainDuplicateCount, 1);
+      expect(status.remoteMainCommandsEnabled, isTrue);
+      expect(status.lastMainTransportSource, 'hfpRemote');
+    });
+
+    test('recognizes the connected CBPeripheral raw-value description', () {
+      final status = Aiv0BleStatus.fromMap(<Object?, Object?>{
+        'phase': 'connected',
+        'peripheralState': 'CBPeripheralState(rawValue: 2)',
+        'mainNotificationState': 'notifying',
+      }, protocolConfirmed: false);
+
+      expect(status.phase, Aiv0BlePhase.connected);
+      expect(status.isConnected, isTrue);
+      expect(status.peripheralState, 'connected');
+    });
+
+    test(
+      'does not report connected when the native GATT peripheral is disconnected',
+      () {
+        final status = Aiv0BleStatus.fromMap(<Object?, Object?>{
+          'phase': 'connected',
+          'peripheralState': 'CBPeripheralState(rawValue: 0)',
+          'mainNotificationState': 'unavailable',
+          'lastDisconnectCode': 'CBErrorDomain:7',
+          'lastDisconnectMessage': 'The specified device has disconnected.',
+          'lastDisconnectEpochMs': 1_787_987_522_081,
+          'lastNotificationRecovery':
+              'reconnect • peripheral=disconnected • notify=unavailable',
+          'deferredRecoveryRepeatCount': 12,
+        }, protocolConfirmed: false);
+
+        expect(status.phase, Aiv0BlePhase.reconnecting);
+        expect(status.isConnected, isFalse);
+        expect(status.peripheralState, 'disconnected');
+        expect(status.mainNotificationState, 'unavailable');
+        expect(status.lastDisconnectCode, 'CBErrorDomain:7');
+        expect(
+          status.lastDisconnectMessage,
+          'The specified device has disconnected.',
+        );
+        expect(
+          status.lastDisconnectAt,
+          DateTime.fromMillisecondsSinceEpoch(1_787_987_522_081),
+        );
+        expect(
+          status.lastNotificationRecovery,
+          'reconnect • peripheral=disconnected • notify=unavailable',
+        );
+        expect(status.deferredRecoveryRepeatCount, 12);
+      },
+    );
+  });
+
+  group('AIV0 automatic connection selection', () {
+    test(
+      'does not guess between two BLE units with different HFP addresses',
+      () {
+        const devices = <Aiv0BleDevice>[
+          Aiv0BleDevice(id: 'AA:AA', name: 'HM-D001', rssi: -30),
+          Aiv0BleDevice(id: 'BB:BB', name: 'HM-D001', rssi: -75),
+        ];
+
+        expect(
+          selectAiv0AutoConnectCandidate(
+            devices,
+            connectedHfpDeviceIds: const <String>['CC:CC'],
+          ),
+          isNull,
+        );
+      },
+    );
+
+    test('prefers the HM-D001 already connected through Classic HFP', () {
+      const devices = <Aiv0BleDevice>[
+        Aiv0BleDevice(id: 'AA:AA', name: 'HM-D001', rssi: -30),
+        Aiv0BleDevice(id: 'BB:BB', name: 'HM-D001', rssi: -75),
+      ];
+
+      expect(
+        selectAiv0AutoConnectCandidate(
+          devices,
+          savedDeviceId: 'AA:AA',
+          connectedHfpDeviceIds: const <String>['bb:bb'],
+        )?.id,
+        'BB:BB',
+      );
+    });
+
+    test('prefers the previously verified HM-D001 address', () {
+      const devices = <Aiv0BleDevice>[
+        Aiv0BleDevice(
+          id: 'AA:AA',
+          name: 'HM-D001 nearby',
+          rssi: -30,
+          isLikelyAiv0: true,
+        ),
+        Aiv0BleDevice(
+          id: 'BB:BB',
+          name: 'HM-D001 saved',
+          rssi: -80,
+          isLikelyAiv0: true,
+        ),
+      ];
+
+      expect(
+        selectAiv0AutoConnectCandidate(devices, savedDeviceId: 'bb:bb')?.id,
+        'BB:BB',
+      );
+    });
+
+    test('prefers an advertised control service over a name match', () {
+      const devices = <Aiv0BleDevice>[
+        Aiv0BleDevice(id: 'NAME', name: 'HM-D001', rssi: -20, isLikelyAiv0: true),
+        Aiv0BleDevice(
+          id: 'SERVICE',
+          name: 'Unknown',
+          rssi: -70,
+          isLikelyAiv0: true,
+          advertisesControlService: true,
+        ),
+      ];
+
+      expect(selectAiv0AutoConnectCandidate(devices)?.id, 'SERVICE');
+    });
+
+    test('keeps a previously verified HM-D001 address', () {
+      const devices = <Aiv0BleDevice>[
+        Aiv0BleDevice(
+          id: 'OLD',
+          name: 'HM-D001',
+          rssi: -30,
+          advertisesControlService: true,
+        ),
+        Aiv0BleDevice(
+          id: 'NEW',
+          name: 'HM-D001',
+          rssi: -80,
+          advertisesControlService: true,
+        ),
+      ];
+
+      expect(
+        selectAiv0AutoConnectCandidate(
+          devices,
+          savedDeviceId: 'OLD',
+          savedDeviceName: 'HM-D001',
+        )?.id,
+        'OLD',
+      );
+      expect(
+        selectAiv0AutoConnectCandidate(devices, savedDeviceId: 'OLD')?.id,
+        'OLD',
+      );
+      expect(selectAiv0AutoConnectCandidate(devices)?.id, 'OLD');
+    });
+
+    test('does not connect an unrelated BLE device', () {
+      const devices = <Aiv0BleDevice>[
+        Aiv0BleDevice(id: 'OTHER', name: 'Other', rssi: -10),
+      ];
+
+      expect(selectAiv0AutoConnectCandidate(devices), isNull);
+    });
+  });
+
+  group('Aiv0DraftProtocolCodec', () {
+    test(
+      'decodes observed HM-D001 buttons without enabling APP State writes',
+      () {
+        const codec = Aiv0DraftProtocolCodec(confirmed: false);
+        final cases = <(List<int>, Aiv0Button, Aiv0ButtonGesture)>[
+          (
+            <int>[1, 1, 1, 0, 0x1C, 0, 79, 0, 0xC7, 0x40, 0x0C, 0],
+            Aiv0Button.main,
+            Aiv0ButtonGesture.shortPress,
+          ),
+          (
+            <int>[1, 1, 2, 0, 0x1D, 0, 79, 0, 0xA7, 0x5B, 0x0C, 0],
+            Aiv0Button.main,
+            Aiv0ButtonGesture.longPress,
+          ),
+          (
+            <int>[1, 4, 2, 0, 0x1E, 0, 79, 0, 0x82, 0x7B, 0x0C, 0],
+            Aiv0Button.volumeDown,
+            Aiv0ButtonGesture.longPress,
+          ),
+          (
+            <int>[1, 3, 2, 0, 0x1F, 0, 79, 0, 0xFC, 0x97, 0x0C, 0],
+            Aiv0Button.volumeUp,
+            Aiv0ButtonGesture.longPress,
+          ),
+        ];
+
+        for (final (raw, button, gesture) in cases) {
+          final event = codec.decodeButtonEvent(Uint8List.fromList(raw));
+          expect(event.button, button);
+          expect(event.gesture, gesture);
+          expect(event.isObservedHmD001Packet, isTrue);
+          expect(event.isActionable, isTrue);
+          expect(event.sequence, raw[4]);
+          expect(event.batteryPercent, 79);
+        }
+        expect(
+          () => codec.encodeAppState(
+            state: Aiv0AppState.idle,
+            result: Aiv0AppResult.accepted,
+          ),
+          throwsStateError,
+        );
+      },
+    );
+
+    test('decodes observed HM-D001 power short for replay', () {
+      const codec = Aiv0DraftProtocolCodec(confirmed: false);
+      final event = codec.decodeButtonEvent(
+        Uint8List.fromList(<int>[
+          1,
+          2,
+          1,
+          0,
+          0x29,
+          0,
+          0x47,
+          0,
+          0xF1,
+          0x60,
+          0x36,
+          0,
+        ]),
+      );
+      expect(event.button, Aiv0Button.power);
+      expect(event.gesture, Aiv0ButtonGesture.shortPress);
+      expect(event.isObservedHmD001Packet, isTrue);
+      expect(event.isActionable, isTrue);
+      expect(event.sequence, 0x29);
+    });
+
+    test('does not dispatch unobserved HM-D001 button and gesture codes', () {
+      const codec = Aiv0DraftProtocolCodec(confirmed: false);
+      for (final raw in <List<int>>[
+        <int>[1, 2, 2, 0, 1, 0, 79, 0, 0, 0, 0, 0],
+        <int>[1, 3, 3, 0, 1, 0, 79, 0, 0, 0, 0, 0],
+        <int>[1, 3, 2, 1, 1, 0, 79, 0, 0, 0, 0, 0],
+      ]) {
+        expect(
+          codec.decodeButtonEvent(Uint8List.fromList(raw)).isActionable,
+          isFalse,
+        );
+      }
+    });
+
+    test('rejects an obsolete MAIN packet layout', () {
+      const codec = Aiv0DraftProtocolCodec(confirmed: false);
+      final event = codec.decodeButtonEvent(
+        Uint8List.fromList(<int>[
+          0x01,
+          0x01,
+          0x10,
+          0x01,
+          0x01,
+          0x04,
+          0x3E,
+          0x00,
+          0x3A,
+          0xF2,
+          0x0B,
+          0x00,
+        ]),
+      );
+
+      expect(event.isObservedHmD001Packet, isFalse);
+      expect(event.isDraftPacket, isFalse);
+      expect(event.isActionable, isFalse);
+      expect(event.button, Aiv0Button.unknown);
+      expect(event.gesture, Aiv0ButtonGesture.unknown);
+      expect(event.rawHex, '01 01 10 01 01 04 3E 00 3A F2 0B 00');
+    });
+
+    test('does not invent long press or release for current HM-D001 packets', () {
+      const codec = Aiv0DraftProtocolCodec(confirmed: false);
+      final longPress = codec.decodeButtonEvent(
+        Uint8List.fromList(<int>[
+          0x01,
+          0x01,
+          0x11,
+          0x02,
+          0x01,
+          0x04,
+          0x3E,
+          0x00,
+          0x10,
+          0xF3,
+          0x0B,
+          0x00,
+        ]),
+      );
+      final release = codec.decodeButtonEvent(
+        Uint8List.fromList(<int>[
+          0x01,
+          0x01,
+          0x11,
+          0x03,
+          0x01,
+          0x04,
+          0x3E,
+          0x00,
+          0x20,
+          0xF3,
+          0x0B,
+          0x00,
+        ]),
+      );
+
+      expect(longPress.button, Aiv0Button.unknown);
+      expect(longPress.gesture, Aiv0ButtonGesture.unknown);
+      expect(longPress.isObservedHmD001Packet, isFalse);
+      expect(longPress.isActionable, isFalse);
+      expect(release.button, Aiv0Button.unknown);
+      expect(release.gesture, Aiv0ButtonGesture.unknown);
+      expect(release.isObservedHmD001Packet, isFalse);
+      expect(release.isActionable, isFalse);
+    });
+
+    test('keeps an unknown raw packet diagnostic-only', () {
+      const codec = Aiv0DraftProtocolCodec(confirmed: false);
+      final event = codec.decodeButtonEvent(
+        Uint8List.fromList(<int>[0xAA, 0x01, 0x00]),
+      );
+
+      expect(event.isActionable, isFalse);
+      expect(event.button, Aiv0Button.unknown);
+    });
+
+    test(
+      'decodes confirmed HM-D001 power short without changing other draft actions',
+      () {
+        const codec = Aiv0DraftProtocolCodec(confirmed: true);
+        final main = codec.decodeButtonEvent(
+          Uint8List.fromList(<int>[1, 1, 1, 0, 42, 0, 88, 0, 0xD2, 0x04, 0, 0]),
+        );
+        final replay = codec.decodeButtonEvent(
+          Uint8List.fromList(<int>[1, 2, 1, 0, 43, 0, 87, 0, 0xE8, 0x03, 0, 0]),
+        );
+        final longPress = codec.decodeButtonEvent(
+          Uint8List.fromList(<int>[1, 1, 2, 0, 44, 0, 86, 0, 0xE9, 0x03, 0, 0]),
+        );
+        final release = codec.decodeButtonEvent(
+          Uint8List.fromList(<int>[1, 1, 3, 0, 44, 0, 86, 0, 0xEA, 0x03, 0, 0]),
+        );
+
+        expect(main.button, Aiv0Button.main);
+        expect(main.gesture, Aiv0ButtonGesture.shortPress);
+        expect(main.sequence, 42);
+        expect(main.batteryPercent, 88);
+        expect(main.uptimeMilliseconds, 1234);
+        expect(main.isDraftPacket, isTrue);
+        expect(replay.button, Aiv0Button.power);
+        expect(replay.sequence, 43);
+        expect(longPress.gesture, Aiv0ButtonGesture.longPress);
+        expect(release.gesture, Aiv0ButtonGesture.release);
+      },
+    );
+
+    test('encodes the draft 8-byte APP State with acknowledged sequence', () {
+      const codec = Aiv0DraftProtocolCodec(confirmed: true);
+
+      final packet = codec.encodeAppState(
+        state: Aiv0AppState.playing,
+        result: Aiv0AppResult.accepted,
+        sequence: 0x1234,
+      );
+
+      expect(packet, <int>[1, 4, 0, 0, 0x34, 0x12, 0, 0]);
+    });
+
+    test('does not dispatch a packet with an unexpected version', () {
+      const codec = Aiv0DraftProtocolCodec(confirmed: true);
+
+      final event = codec.decodeButtonEvent(
+        Uint8List.fromList(<int>[2, 1, 1, 0, 1, 0, 90, 0, 0, 0, 0, 0]),
+      );
+
+      expect(event.isDraftPacket, isFalse);
+      expect(event.button, Aiv0Button.unknown);
+    });
+
+    test('refuses to encode APP State before ODM confirmation', () {
+      const codec = Aiv0DraftProtocolCodec(confirmed: false);
+
+      expect(
+        () => codec.encodeAppState(
+          state: Aiv0AppState.idle,
+          result: Aiv0AppResult.accepted,
+        ),
+        throwsStateError,
+      );
+    });
+  });
+}

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T03-B01\\C67-L1-T03-B01-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T03-B01-Q03",
+  "sourceText": "Con chim: Bird hay Fish?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Con chim:",
+      "spoken_text": "Con chim:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "Bird",
+      "spoken_text": "Bird",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "Fish?",
+      "spoken_text": "Fish?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-CBF286A192858630BAD417E2",
+  "text": "Con chim: Bird hay Fish?",
+  "asset": "assets/audio/CURRICULUM/cbf286a192858630bad417e2.vi.v1.mp3",
+  "sha256": "5e7956ea7abedb03576085eebfcef242f76e1aa60ae0ef4fc46a3102851a73e5",
+  "durationSeconds": 3.622688
+}

@@ -1,0 +1,21 @@
+{
+  "id": "GAP66-049",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Mình chưa hiểu. Bạn muốn nghe lại, nghe câu trước, câu tiếp theo hay dừng lại?",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "speed": 1
+    }
+  },
+  "requestId": "rwyVFCVHhTRzTiN7AsXn",
+  "historyItemId": "jX9NOtbnNrSWbpgJCp7s",
+  "characterCost": "43",
+  "createdAt": "2026-09-17T14:26:08.311Z",
+  "sourceSha256": "49ba72be291cf04a483ab80235b0210716d97cc4b96b0a4a44a4bc36b31c73ca"
+}

@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T08-B01\\C1315-L3-T08-B01-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T08-B01-Q05",
+  "sourceText": "Món tráng miệng: Dessert hay Bill?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Món tráng miệng:",
+      "spoken_text": "Món tráng miệng:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Dessert",
+      "spoken_text": "Dessert",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Bill?",
+      "spoken_text": "Bill?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-25A01D8D9EB8ACB47F0AFBD9",
+  "text": "Món tráng miệng: Dessert hay Bill?",
+  "asset": "assets/audio/CURRICULUM/25a01d8d9eb8acb47f0afbd9.vi.v1.mp3",
+  "sha256": "05f9bd3d727fee4539b2cb893a7f018fa6c165349c457136293c5c49379d40b3",
+  "durationSeconds": 3.59254
+}

@@ -1,0 +1,20 @@
+{
+  "signature": "055a8b58904ab436ad85e4b82972564209b2424ff4b98eca071867f95f59cde7",
+  "request": {
+    "text": "Weather Choices.",
+    "model_id": "eleven_v3",
+    "language_code": "en",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "profile": {
+    "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+    "speed": 0.75
+  },
+  "sha256": "01660332528976c259644e2654072c55de1d805392c23c2501a0b507bcaaff3a",
+  "requestId": "jnI3bwcZY5idLoJROBz9",
+  "createdAt": "2026-09-15T23:26:46.571Z"
+}

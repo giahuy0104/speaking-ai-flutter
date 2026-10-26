@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "pack": "assistant-core",
-  "version": "v4-cloudinary",
+  "version": "v5-cloudinary",
   "enabled": true,
   "prompts": [
     {

@@ -1,0 +1,20 @@
+{
+  "id": "LESSON-INVALID-CHALLENGE",
+  "signature": "1d5a516eac8daafa9dddcdbd885903147f8cfa2ea37879135caae824b1067acb",
+  "provider": "elevenlabs",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "request": {
+    "text": "Bài học chưa có Challenge hợp lệ cho từng Core.",
+    "model_id": "eleven_v3",
+    "language_code": "vi",
+    "seed": 164109,
+    "voice_settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75
+    }
+  },
+  "createdAt": "2026-09-15T20:15:41.492Z",
+  "requestId": "CW5jT4DhigVyoivhGeLU",
+  "characterCost": "26",
+  "sourceSha256": "a9469d5cffad3371aebc6cda434479435373240407d0cd2cf12c77a73f141fd1"
+}

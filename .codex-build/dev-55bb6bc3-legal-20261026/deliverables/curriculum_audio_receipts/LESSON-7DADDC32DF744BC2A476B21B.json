@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L1-T02-B02\\C1112-L1-T02-B02-Q03_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L1-T02-B02-Q03",
+  "sourceText": "Mình luyện tiếng Anh mỗi ngày: I practice English daily hay I take short breaks?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mình luyện tiếng Anh mỗi ngày:",
+      "spoken_text": "Mình luyện tiếng Anh mỗi ngày:",
+      "input_index": 12
+    },
+    {
+      "language": "en",
+      "text": "I practice English daily",
+      "spoken_text": "I practice English daily",
+      "input_index": 13
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 14
+    },
+    {
+      "language": "en",
+      "text": "I take short breaks?",
+      "spoken_text": "I take short breaks?",
+      "input_index": 15
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-7DADDC32DF744BC2A476B21B",
+  "text": "Mình luyện tiếng Anh mỗi ngày: I practice English daily hay I take short breaks?",
+  "asset": "assets/audio/CURRICULUM/7daddc32df744bc2a476b21b.vi.v1.mp3",
+  "sha256": "f30150b97c89e99ad6c0c100f00bae9a7353cf3f8dc74b8a5f7cb1e4da728fe2",
+  "durationSeconds": 7.341474
+}

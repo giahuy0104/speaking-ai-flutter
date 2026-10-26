@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T09-B01\\C1315-L3-T09-B01-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T09-B01-Q07",
+  "sourceText": "Bạn muốn diễn đạt \"Nhanh hơn\". Faster hay Safer?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn diễn đạt \"Nhanh hơn\".",
+      "spoken_text": "Bạn muốn diễn đạt \"Nhanh hơn\".",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "Faster",
+      "spoken_text": "Faster",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Safer?",
+      "spoken_text": "Safer?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-0E745B05A81358999ADADA58",
+  "text": "Bạn muốn diễn đạt \"Nhanh hơn\". Faster hay Safer?",
+  "asset": "assets/audio/CURRICULUM/0e745b05a81358999adada58.vi.v1.mp3",
+  "sha256": "7d339e32e9ca6e9fd25cdb62f26d79a9c78acda4330ca7f1fc24110d8541a782",
+  "durationSeconds": 5.140522
+}

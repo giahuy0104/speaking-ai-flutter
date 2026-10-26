@@ -1,0 +1,32 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\MP3\\C67-L1-T02-B03\\C67-L1-T02-B03-T04_EN.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\05_E_CORE_TARGET_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L1-T02-B03-T04_EN",
+  "sourceText": "Ten crayons.",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo after synthesis, EN 0.75 and VI 0.9, preserving pitch",
+  "segments": [
+    {
+      "language": "en",
+      "text": "Ten crayons.",
+      "generation_key": "40e284b9e2768f20"
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-06B9DF2BA7DAA1658D3A8F9E",
+  "text": "Ten crayons.",
+  "asset": "assets/audio/CURRICULUM/06b9df2ba7daa1658d3a8f9e.en.v1.mp3",
+  "sha256": "4e0f136d01f506c07d1845395b5f266a33e88b538cc091de131eb27238c6c11c",
+  "durationSeconds": 2.355374
+}

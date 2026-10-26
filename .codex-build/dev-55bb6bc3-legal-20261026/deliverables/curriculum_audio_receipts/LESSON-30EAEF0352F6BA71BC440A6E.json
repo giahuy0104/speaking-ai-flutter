@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1112-L3-T10-B02\\C1112-L3-T10-B02-Q07_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1112-L3-T10-B02-Q07",
+  "sourceText": "Bạn muốn diễn đạt \"Tái chế giấy\". Recycle paper hay Walk short distances?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Bạn muốn diễn đạt \"Tái chế giấy\".",
+      "spoken_text": "Bạn muốn diễn đạt \"Tái chế giấy\".",
+      "input_index": 36
+    },
+    {
+      "language": "en",
+      "text": "Recycle paper",
+      "spoken_text": "Recycle paper",
+      "input_index": 37
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 38
+    },
+    {
+      "language": "en",
+      "text": "Walk short distances?",
+      "spoken_text": "Walk short distances?",
+      "input_index": 39
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-30EAEF0352F6BA71BC440A6E",
+  "text": "Bạn muốn diễn đạt \"Tái chế giấy\". Recycle paper hay Walk short distances?",
+  "asset": "assets/audio/CURRICULUM/30eaef0352f6ba71bc440a6e.vi.v1.mp3",
+  "sha256": "b6b6e6c77a63d08ee49e6d889044a2778adf22cb55f97683c80d0e34e8c86e68",
+  "durationSeconds": 8.325964
+}

@@ -1,0 +1,22 @@
+{
+  "number": 4,
+  "id": "VOCAB50-004",
+  "text": "Mình tạm dừng nhé.",
+  "language": "vi",
+  "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+  "speed": 0.9,
+  "usage": "current",
+  "file": "audio/VOCAB50-004.vi.mp3",
+  "signature": "7c5352646cc6eaf2202ff375cc8e00c31be1b9b92238d436a43ce0e8ddaa1cf1",
+  "provider": "elevenlabs",
+  "modelId": "eleven_v3",
+  "sha256": "b2687956af761d5181009b147def029fb4f89bbe4e8d39511b5323bb085156f2",
+  "bytes": 19270,
+  "sourceDurationSeconds": 1.04,
+  "durationSeconds": 1.136599,
+  "speedMethod": "ffmpeg-atempo-once",
+  "playbackRate": 1,
+  "requestId": "OVMcGnvd5VrlaUIWmMAa",
+  "characterCost": "10",
+  "createdAt": "2026-09-16T03:19:41.013Z"
+}

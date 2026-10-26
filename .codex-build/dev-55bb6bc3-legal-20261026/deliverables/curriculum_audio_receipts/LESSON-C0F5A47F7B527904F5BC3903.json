@@ -1,0 +1,55 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C810-L1-T01\\C810-L1-M04_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\07_G_MISSION_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C810-L1-M04",
+  "sourceText": "Bạn cần nói \"Ngủ vào buổi tối\". Sleep at night hay Wake up at seven?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately for each language after synthesis, preserving pitch.",
+  "segments": [
+    {
+      "language": "vi",
+      "source_text": "Bạn cần nói \"Ngủ vào buổi tối\".",
+      "text": "Bạn cần nói \"Ngủ vào buổi tối\".",
+      "spoken_text": "Bạn cần nói \"Ngủ vào buổi tối\".",
+      "input_index": 18
+    },
+    {
+      "language": "en",
+      "source_text": "Sleep at night",
+      "text": "Sleep at night",
+      "spoken_text": "Sleep at night",
+      "input_index": 19
+    },
+    {
+      "language": "vi",
+      "source_text": "hay",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 20
+    },
+    {
+      "language": "en",
+      "source_text": "Wake up at seven?",
+      "text": "Wake up at seven?",
+      "spoken_text": "Wake up at seven?",
+      "input_index": 21
+    }
+  ],
+  "sourceSha256": "2355c2d1bed1cf2ca365c8e3a180e033ddf212252a1167ec9f29cc5182580573",
+  "id": "LESSON-C0F5A47F7B527904F5BC3903",
+  "text": "Bạn cần nói \"Ngủ vào buổi tối\". Sleep at night hay Wake up at seven?",
+  "asset": "assets/audio/CURRICULUM/c0f5a47f7b527904f5bc3903.vi.v1.mp3",
+  "sha256": "2355c2d1bed1cf2ca365c8e3a180e033ddf212252a1167ec9f29cc5182580573",
+  "durationSeconds": 6.495601
+}

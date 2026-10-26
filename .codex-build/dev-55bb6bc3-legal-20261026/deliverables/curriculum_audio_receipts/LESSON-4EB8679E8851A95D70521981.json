@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C35-L1-T02-B01\\C35-L1-T02-B01-Q12_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C35-L1-T02-B01-Q12",
+  "sourceText": "Mười: Ten hay Nine?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Mười:",
+      "spoken_text": "Mười:",
+      "input_index": 66
+    },
+    {
+      "language": "en",
+      "text": "Ten",
+      "spoken_text": "Ten",
+      "input_index": 67
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 68
+    },
+    {
+      "language": "en",
+      "text": "Nine?",
+      "spoken_text": "Nine?",
+      "input_index": 69
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-4EB8679E8851A95D70521981",
+  "text": "Mười: Ten hay Nine?",
+  "asset": "assets/audio/CURRICULUM/4eb8679e8851a95d70521981.vi.v1.mp3",
+  "sha256": "bff941975d84c293caddcada3db7a27eccc6c499e4125c36fc7c141a2d111c23",
+  "durationSeconds": 3.293447
+}

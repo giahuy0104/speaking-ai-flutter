@@ -1,0 +1,1320 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+
+import '../../../app/app_theme.dart';
+import '../../../app/homi_bottom_navigation.dart';
+import '../../../app/learning_scenery.dart';
+import '../../../core/audio/voice_prompt_service.dart';
+import '../../../core/audio/learning_audio_dependencies.dart';
+import '../../../l10n/display_language.dart';
+import '../../../core/navigation/app_navigator.dart';
+import '../../../presentation/navigation/view_bindings.dart';
+import '../../../core/navigation/view_arguments/lesson_intro_arguments.dart';
+import '../application/lesson_media_service.dart';
+import '../data/listening_progress_store.dart';
+import '../data/active_listening_session_store.dart';
+import '../domain/listening_catalog.dart';
+import '../domain/listening_audio_keys.dart';
+import '../domain/listening_content.dart';
+import '../domain/listening_curriculum_flow.dart';
+import 'lesson_recording_history_sheet.dart';
+import 'song_karaoke_screen.dart';
+
+class TopicLessonListScreen extends StatefulWidget {
+  const TopicLessonListScreen({
+    required this.language,
+    required this.startAge,
+    required this.endAge,
+    required this.topic,
+    required this.content,
+    this.contentGroup,
+    this.levelContent,
+    this.controller,
+    this.ensureDeviceConnected,
+    this.onMainPressed,
+    this.onVocabularyRequested,
+    this.onVoiceNavigationPause,
+    this.onVoiceNavigationResume,
+    this.progressStore = const ListeningProgressStore(),
+    this.mediaService,
+    this.voicePromptService,
+    this.initialLessonNumber,
+    this.initialLessonLeadPrompt,
+    this.initialLessonMainReply,
+    this.coverUntilInitialLessonReturns = false,
+    this.relearnInitialLesson = false,
+    this.relearnTopicSequence = false,
+    this.songsOnly = false,
+    this.onTopicCompleted,
+    this.onCommunicationRequested,
+    super.key,
+  });
+
+  final DisplayLanguage language;
+  final int startAge;
+  final int endAge;
+  final ListeningTopic topic;
+  final ListeningTopicContent content;
+  final ListeningContentAgeGroup? contentGroup;
+  final ListeningLevelContent? levelContent;
+  final LearningAudioDependencies? controller;
+  final Future<bool> Function()? ensureDeviceConnected;
+  final Future<void> Function()? onMainPressed;
+  final VoidCallback? onVocabularyRequested;
+  final Future<void> Function()? onVoiceNavigationPause;
+  final VoidCallback? onVoiceNavigationResume;
+  final ListeningProgressStore progressStore;
+  final LessonMediaService? mediaService;
+  final VoicePromptService? voicePromptService;
+  final int? initialLessonNumber;
+
+  /// A prompt still playing when the initial lesson opens; its intro waits
+  /// for it instead of the navigation.
+  final Future<void>? initialLessonLeadPrompt;
+  final Future<void>? initialLessonMainReply;
+  final bool coverUntilInitialLessonReturns;
+  final bool relearnInitialLesson;
+  final bool relearnTopicSequence;
+  final bool songsOnly;
+  final VoidCallback? onTopicCompleted;
+  final VoidCallback? onCommunicationRequested;
+
+  List<ListeningLessonContent> get songEntries =>
+      content.availableSongsForAge(startAge);
+
+  List<ListeningLessonContent> get legacySongEntries => songEntries
+      .where(
+        (candidate) => content.songs.any((song) => identical(song, candidate)),
+      )
+      .toList(growable: false);
+
+  bool get showsSongs => legacySongEntries.isNotEmpty;
+
+  @override
+  State<TopicLessonListScreen> createState() => _TopicLessonListScreenState();
+}
+
+class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
+  late final LessonMediaService _mediaService;
+  late Future<_TopicLessonProgressSnapshot> _progressFuture;
+  late final bool _ownsMediaService;
+  late final VoicePromptService _voicePromptService;
+  late final bool _ownsVoicePromptService;
+  bool _initialLessonOpened = false;
+  bool _coveredForInitialLesson = false;
+  bool _waitingForDevice = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _ownsMediaService = widget.mediaService == null;
+    _mediaService =
+        widget.mediaService ??
+        LessonMediaService(
+          hfpAudioControl: widget.controller?.createLearningAudioRouteControl(),
+          audioTurnCoordinator: widget.controller?.audioTurnCoordinator,
+        );
+    _ownsVoicePromptService = widget.voicePromptService == null;
+    _voicePromptService =
+        widget.voicePromptService ??
+        createVoicePromptService(
+          coordinator: widget.controller?.audioTurnCoordinator,
+          owner: AudioTurnOwner.listeningLesson,
+        );
+    _progressFuture = _loadProgress();
+    _coveredForInitialLesson =
+        widget.coverUntilInitialLessonReturns &&
+        widget.initialLessonNumber != null;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_openInitialLesson());
+    });
+  }
+
+  @override
+  void dispose() {
+    if (_ownsVoicePromptService) {
+      unawaited(_voicePromptService.dispose());
+    }
+    if (_ownsMediaService) {
+      _mediaService.dispose();
+    }
+    super.dispose();
+  }
+
+  Future<void> _speakOnSelectedLessonOutput(
+    String text, {
+    String locale = 'vi-VN',
+    String? audioKey,
+  }) async {
+    final prompt = _voicePromptService;
+    if (!kIsWeb && prompt is SelectedMediaOutputVoicePromptService) {
+      await _mediaService.prepareSelectedLessonOutput();
+      if (!mounted) return;
+      if (audioKey != null &&
+          prompt is KeyedSelectedMediaOutputVoicePromptService) {
+        await (prompt as KeyedSelectedMediaOutputVoicePromptService)
+            .speakAndWaitOnSelectedMediaOutputWithAudioKey(
+              audioKey,
+              text,
+              locale: locale,
+            );
+        return;
+      }
+      await (prompt as SelectedMediaOutputVoicePromptService)
+          .speakAndWaitOnSelectedMediaOutput(text, locale: locale);
+      return;
+    }
+    if (audioKey != null && prompt is KeyedVoicePromptService) {
+      await (prompt as KeyedVoicePromptService).speakAndWaitWithAudioKey(
+        audioKey,
+        text,
+        locale: locale,
+      );
+      return;
+    }
+    await prompt.speakAndWait(text, locale: locale);
+  }
+
+  Future<_TopicLessonProgressSnapshot> _loadProgress() async {
+    final lessonProgress = await widget.progressStore.readAll();
+    final completedV4LessonActivities = await widget.progressStore
+        .readCompletedV4LessonActivities();
+    return _TopicLessonProgressSnapshot(
+      lessonProgress: lessonProgress,
+      completedV4LessonActivities: completedV4LessonActivities,
+    );
+  }
+
+  bool _isLessonCompleted(
+    ListeningLessonContent lesson,
+    int completedSentences,
+    Set<String> completedV4LessonActivities,
+  ) {
+    final completedCore =
+        completedSentences >= lesson.sentences.length &&
+        lesson.sentences.isNotEmpty;
+    return completedCore &&
+        (!lesson.usesV4Flow || completedV4LessonActivities.contains(lesson.id));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DisplayLanguageScope(
+      language: widget.language,
+      child: Scaffold(
+        key: const Key('topic-lesson-list-screen'),
+        backgroundColor: Colors.transparent,
+        body: LearningScenery(
+          overlayOpacity: 0.36,
+          child: Stack(
+            children: <Widget>[
+              SafeArea(
+                child: FutureBuilder<_TopicLessonProgressSnapshot>(
+                  future: _progressFuture,
+                  builder: (context, snapshot) {
+                    final progress =
+                        snapshot.data ??
+                        const _TopicLessonProgressSnapshot.empty();
+                    return CustomScrollView(
+                      slivers: <Widget>[
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                          sliver: SliverToBoxAdapter(
+                            child: _Header(
+                              title: widget.songsOnly
+                                  ? context.tr(
+                                      'Bài hát · ${widget.content.titleVi}',
+                                      '歌曲 · ${widget.topic.titleZh}',
+                                    )
+                                  : context.tr(
+                                      widget.content.titleVi,
+                                      widget.topic.titleZh,
+                                    ),
+                              titleEn: widget.content.titleEn,
+                              onBack: _goBack,
+                            ),
+                          ),
+                        ),
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                          sliver: SliverToBoxAdapter(
+                            child: _TopicHero(widget: widget),
+                          ),
+                        ),
+                        if (!widget.songsOnly)
+                          SliverPadding(
+                            padding: const EdgeInsets.fromLTRB(20, 22, 20, 10),
+                            sliver: SliverToBoxAdapter(
+                              child: Text(
+                                context.tr('Hành trình học', '学习旅程'),
+                                style: Theme.of(context).textTheme.headlineSmall
+                                    ?.copyWith(
+                                      color: AppColors.indigoDark,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                              ),
+                            ),
+                          ),
+                        if (!widget.songsOnly)
+                          SliverPadding(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 42),
+                            sliver: SliverList.separated(
+                              itemCount: widget.content.lessons.length,
+                              separatorBuilder: (_, _) => Divider(
+                                height: 1,
+                                indent: 72,
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? Theme.of(
+                                        context,
+                                      ).colorScheme.outlineVariant
+                                    : AppColors.mintBorder,
+                              ),
+                              itemBuilder: (context, index) {
+                                final lesson = widget.content.lessons[index];
+                                final completed =
+                                    (progress.lessonProgress[lesson.id] ?? 0)
+                                        .clamp(0, lesson.sentences.length);
+                                final lessonCompleted = _isLessonCompleted(
+                                  lesson,
+                                  completed,
+                                  progress.completedV4LessonActivities,
+                                );
+                                final lessonUnlocked =
+                                    ListeningCurriculumFlow.lessonUnlocked(
+                                      widget.content,
+                                      index,
+                                      progress.lessonProgress,
+                                      progress.completedV4LessonActivities,
+                                    );
+                                return _LessonPathCard(
+                                  key: ValueKey('lesson-${lesson.id}'),
+                                  lesson: lesson,
+                                  completedSentences: completed,
+                                  isCompleted: lessonCompleted,
+                                  isLocked: !lessonUnlocked,
+                                  needsV4Challenge:
+                                      lesson.usesV4Flow &&
+                                      completed >= lesson.sentences.length &&
+                                      !lessonCompleted,
+                                  isLast:
+                                      index ==
+                                      widget.content.lessons.length - 1,
+                                  onPressed: () => _startLessonFromTouch(
+                                    lesson,
+                                    reviewFromBeginning:
+                                        lesson.sentences.isNotEmpty &&
+                                        lessonCompleted,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        if (widget.songsOnly) ...<Widget>[
+                          SliverPadding(
+                            padding: const EdgeInsets.fromLTRB(20, 22, 20, 10),
+                            sliver: SliverToBoxAdapter(
+                              child: Row(
+                                children: <Widget>[
+                                  const Icon(
+                                    Icons.music_note_rounded,
+                                    color: AppColors.coral,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      context.tr('Bài hát', '歌曲'),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .headlineSmall
+                                          ?.copyWith(
+                                            color: AppColors.indigoDark,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          SliverPadding(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 42),
+                            sliver: SliverList.separated(
+                              itemCount: widget.songEntries.length,
+                              separatorBuilder: (_, _) => Divider(
+                                height: 1,
+                                indent: 72,
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? Theme.of(
+                                        context,
+                                      ).colorScheme.outlineVariant
+                                    : AppColors.mintBorder,
+                              ),
+                              itemBuilder: (context, index) {
+                                final song = widget.songEntries[index];
+                                final completed =
+                                    (progress.lessonProgress[song.id] ?? 0)
+                                        .clamp(0, song.sentences.length);
+                                final lessonCompleted = _isLessonCompleted(
+                                  song,
+                                  completed,
+                                  progress.completedV4LessonActivities,
+                                );
+                                final lessonIndex = widget.content.lessons
+                                    .indexWhere(
+                                      (candidate) => candidate.id == song.id,
+                                    );
+                                final unlocked =
+                                    lessonIndex < 0 ||
+                                    ListeningCurriculumFlow.lessonUnlocked(
+                                      widget.content,
+                                      lessonIndex,
+                                      progress.lessonProgress,
+                                      progress.completedV4LessonActivities,
+                                    );
+                                return _LessonPathCard(
+                                  key: ValueKey('song-entry-${song.id}'),
+                                  lesson: song,
+                                  completedSentences: completed,
+                                  isCompleted: lessonCompleted,
+                                  isLocked: !unlocked,
+                                  needsV4Challenge:
+                                      song.usesV4Flow &&
+                                      completed >= song.sentences.length &&
+                                      !lessonCompleted,
+                                  isLast:
+                                      index == widget.songEntries.length - 1,
+                                  onPressed: () => _startLessonFromTouch(
+                                    song,
+                                    reviewFromBeginning:
+                                        song.sentences.isNotEmpty &&
+                                        lessonCompleted,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                        if (!widget.songsOnly && widget.showsSongs) ...<Widget>[
+                          SliverPadding(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+                            sliver: SliverToBoxAdapter(
+                              child: Row(
+                                children: <Widget>[
+                                  const Icon(
+                                    Icons.music_note_rounded,
+                                    color: AppColors.coral,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      context.tr('Bài hát & chant', '歌曲与节奏歌'),
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleLarge,
+                                    ),
+                                  ),
+                                  Text(
+                                    context.tr(
+                                      '${widget.legacySongEntries.length} bài',
+                                      '${widget.legacySongEntries.length} 首',
+                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(color: AppColors.muted),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          SliverPadding(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+                            sliver: SliverList.separated(
+                              itemCount: widget.legacySongEntries.length,
+                              separatorBuilder: (_, _) =>
+                                  const SizedBox(height: 12),
+                              itemBuilder: (context, index) {
+                                final song = widget.legacySongEntries[index];
+                                final completed =
+                                    (progress.lessonProgress[song.id] ?? 0)
+                                        .clamp(0, song.sentences.length);
+                                final lessonCompleted = _isLessonCompleted(
+                                  song,
+                                  completed,
+                                  progress.completedV4LessonActivities,
+                                );
+                                return _LessonPathCard(
+                                  key: ValueKey('song-${song.id}'),
+                                  lesson: song,
+                                  completedSentences: completed,
+                                  isCompleted: lessonCompleted,
+                                  isLocked: false,
+                                  needsV4Challenge:
+                                      song.usesV4Flow &&
+                                      completed >= song.sentences.length &&
+                                      !lessonCompleted,
+                                  isLast:
+                                      index ==
+                                      widget.legacySongEntries.length - 1,
+                                  onPressed: () => _startLessonFromTouch(
+                                    song,
+                                    reviewFromBeginning:
+                                        song.sentences.isNotEmpty &&
+                                        lessonCompleted,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ],
+                    );
+                  },
+                ),
+              ),
+              if (_coveredForInitialLesson)
+                const Positioned.fill(
+                  key: Key('topic-lesson-list-cover'),
+                  child: LearningScenery(
+                    overlayOpacity: 0.36,
+                    child: SizedBox.expand(),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        bottomNavigationBar:
+            !kIsWeb &&
+                defaultTargetPlatform == TargetPlatform.iOS &&
+                !_coveredForInitialLesson
+            ? HomiBottomNavigation(
+                selectedIndex: 1,
+                onConversation: () =>
+                    Navigator.of(context).popUntil((route) => route.isFirst),
+                onTopics: _goBack,
+                onMain: widget.onMainPressed == null
+                    ? null
+                    : () => unawaited(widget.onMainPressed!()),
+                onVocabulary: _openVocabulary,
+                onHistory: () => unawaited(_openHistory()),
+                conversationKey: const Key('listening-conversation-tab'),
+                topicsKey: const Key('listening-topics-tab'),
+                mainKey: const Key('listening-main-button'),
+                vocabularyKey: const Key('listening-vocabulary-tab'),
+                historyKey: const Key('listening-history-tab'),
+              )
+            : null,
+      ),
+    );
+  }
+
+  void _goBack() => Navigator.of(context).pop();
+
+  void _openVocabulary() {
+    Navigator.of(context).popUntil((route) => route.isFirst);
+    widget.onVocabularyRequested?.call();
+  }
+
+  Future<void> _openHistory() async {
+    await widget.onVoiceNavigationPause?.call();
+    try {
+      if (!mounted) return;
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        showDragHandle: true,
+        builder: (_) =>
+            LessonRecordingHistorySheet(mediaService: _mediaService),
+      );
+    } finally {
+      if (mounted) widget.onVoiceNavigationResume?.call();
+    }
+  }
+
+  Future<void> _openInitialLesson() async {
+    final lessonNumber = widget.initialLessonNumber;
+    if (_initialLessonOpened || lessonNumber == null || !mounted) {
+      return;
+    }
+    _initialLessonOpened = true;
+    if (widget.content.lessons.isEmpty) {
+      _revealLessonList();
+      return;
+    }
+    ListeningLessonContent? lesson;
+    for (final candidate in widget.content.lessons) {
+      if (candidate.number == lessonNumber) {
+        lesson = candidate;
+        break;
+      }
+    }
+    if (lesson == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr(
+              'Chủ đề này chưa có Bài $lessonNumber. Bạn hãy chọn một bài đang hiển thị nhé.',
+              '这个主题还没有第 $lessonNumber 课，请选择当前显示的课程。',
+            ),
+          ),
+        ),
+      );
+      _revealLessonList();
+      return;
+    }
+    try {
+      await _startLesson(
+        lesson,
+        reviewFromBeginning: widget.relearnInitialLesson,
+        leadPrompt: widget.initialLessonLeadPrompt,
+        mainReply: widget.initialLessonMainReply,
+      );
+    } finally {
+      _revealLessonList();
+    }
+  }
+
+  void _revealLessonList() {
+    if (!mounted || !_coveredForInitialLesson) return;
+    setState(() => _coveredForInitialLesson = false);
+  }
+
+  Future<void> _startLessonFromTouch(
+    ListeningLessonContent lesson, {
+    required bool reviewFromBeginning,
+  }) async {
+    if (_waitingForDevice) return;
+    _waitingForDevice = true;
+    try {
+      final ensureConnected = widget.ensureDeviceConnected;
+      if (ensureConnected != null && !await ensureConnected()) return;
+      if (!mounted) return;
+      await _startLesson(lesson, reviewFromBeginning: reviewFromBeginning);
+    } finally {
+      _waitingForDevice = false;
+    }
+  }
+
+  Future<void> _startLesson(
+    ListeningLessonContent lesson, {
+    required bool reviewFromBeginning,
+    Future<void>? leadPrompt,
+    Future<void>? mainReply,
+  }) async {
+    final pendingRelearn = await widget.progressStore.hasLessonPendingRelearn(
+      lesson.id,
+    );
+    final startFromBeginning = reviewFromBeginning || pendingRelearn;
+    final lessonIndex = widget.content.lessons.indexWhere(
+      (candidate) => candidate.id == lesson.id,
+    );
+    if (lessonIndex > 0) {
+      final progress = await _loadProgress();
+      final unlocked = ListeningCurriculumFlow.lessonUnlocked(
+        widget.content,
+        lessonIndex,
+        progress.lessonProgress,
+        progress.completedV4LessonActivities,
+      );
+      if (!unlocked) {
+        await mainReply;
+        final previous = widget.content.lessons[lessonIndex - 1];
+        final message = 'Bạn cần học xong Bài ${previous.number} trước nhé.';
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(message)));
+        }
+        await _speakOnSelectedLessonOutput(
+          message,
+          audioKey: ListeningAudioKeys.lockedLesson(previous.number),
+        );
+        return;
+      }
+    }
+    unawaited(
+      const ActiveListeningSessionStore().save(
+        childAge: widget.startAge,
+        topicNumber: widget.content.number,
+        lessonNumber: lesson.number,
+      ),
+    );
+    final unlockFuture =
+        shouldUseSongKaraoke(startAge: widget.startAge, lesson: lesson)
+        ? _mediaService.unlockPlaybackForUserGesture()
+        : null;
+    if (startFromBeginning) {
+      if (lesson.usesV4Flow) {
+        await widget.progressStore.resetLessonRun(lesson.id);
+      } else {
+        await widget.progressStore.saveCurrentSentence(lesson.id, 0);
+      }
+    }
+    await unlockFuture;
+    if (!mounted) {
+      return;
+    }
+    var lessonClosed = false;
+    if (mainReply == null) {
+      await widget.onVoiceNavigationPause?.call();
+    } else {
+      final earlierPrompt = leadPrompt;
+      leadPrompt = mainReply.then((_) async {
+        if (!lessonClosed) await widget.onVoiceNavigationPause?.call();
+        await earlierPrompt;
+      });
+    }
+    try {
+      if (!mounted) {
+        return;
+      }
+      await AppNavigator.of(context).push<void>(
+        context,
+        AppRoute<LessonIntroArguments>(
+          name: AppRouteNames.lessonIntro,
+          arguments: LessonIntroArguments(
+            language: widget.language,
+            startAge: widget.startAge,
+            endAge: widget.endAge,
+            topic: widget.topic,
+            lesson: lesson,
+            topicContent: widget.content,
+            contentGroup: widget.contentGroup,
+            levelContent: widget.levelContent,
+            relearnFromBeginning: startFromBeginning,
+            relearnTopicSequence: widget.relearnTopicSequence || pendingRelearn,
+          ),
+          bindings: () => LessonIntroBindings(
+            controller: widget.controller,
+            progressStore: widget.progressStore,
+            mediaService: _mediaService,
+            voicePromptService: _voicePromptService,
+            leadPrompt: leadPrompt,
+            onTopicCompleted: widget.onTopicCompleted,
+            onCommunicationRequested: widget.onCommunicationRequested,
+          ),
+        ),
+      );
+    } finally {
+      lessonClosed = true;
+      if (mounted) {
+        widget.onVoiceNavigationResume?.call();
+      }
+    }
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _progressFuture = _loadProgress();
+    });
+  }
+}
+
+class _Header extends StatelessWidget {
+  const _Header({
+    required this.title,
+    required this.titleEn,
+    required this.onBack,
+  });
+
+  final String title;
+  final String titleEn;
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Row(
+      children: <Widget>[
+        IconButton.filled(
+          onPressed: onBack,
+          icon: const Icon(Icons.arrow_back_rounded),
+          tooltip: context.tr('Quay lại', '返回'),
+          style: IconButton.styleFrom(
+            minimumSize: const Size.square(52),
+            backgroundColor: isDark
+                ? colorScheme.surfaceContainerHighest
+                : const Color(0xF8FFFDF9),
+            foregroundColor: isDark ? colorScheme.primary : AppColors.ink,
+            elevation: 3,
+            shadowColor: const Color(0x24142451),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              if (titleEn.trim().isNotEmpty)
+                Text(
+                  titleEn,
+                  key: const Key('topic-header-english-title'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: isDark
+                        ? colorScheme.onSurface
+                        : AppColors.indigoDark,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              if (titleEn.trim().isNotEmpty) const SizedBox(height: 1),
+              Text(
+                title,
+                key: const Key('topic-header-localized-title'),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: isDark
+                      ? colorScheme.onSurfaceVariant
+                      : AppColors.ink.withValues(alpha: 0.72),
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 10),
+        Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            color: isDark
+                ? colorScheme.surfaceContainerHighest
+                : const Color(0xF8FFFDF9),
+            shape: BoxShape.circle,
+            boxShadow: const <BoxShadow>[
+              BoxShadow(
+                color: Color(0x24142451),
+                blurRadius: 16,
+                offset: Offset(0, 7),
+              ),
+            ],
+          ),
+          child: Icon(
+            Icons.person_rounded,
+            color: isDark ? colorScheme.primary : AppColors.indigo,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TopicLessonProgressSnapshot {
+  const _TopicLessonProgressSnapshot({
+    required this.lessonProgress,
+    required this.completedV4LessonActivities,
+  });
+
+  const _TopicLessonProgressSnapshot.empty()
+    : lessonProgress = const <String, int>{},
+      completedV4LessonActivities = const <String>{};
+
+  final Map<String, int> lessonProgress;
+  final Set<String> completedV4LessonActivities;
+}
+
+class _TopicHero extends StatelessWidget {
+  const _TopicHero({required this.widget});
+
+  final TopicLessonListScreen widget;
+
+  @override
+  Widget build(BuildContext context) {
+    final content = widget.content;
+    final songLessonCount = widget.songEntries.length;
+    final songBadgeCount = widget.songsOnly
+        ? songLessonCount
+        : widget.legacySongEntries.length;
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        AspectRatio(
+          aspectRatio: 1.45,
+          child: ClipRRect(
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(54),
+              topRight: Radius.circular(76),
+              bottomLeft: Radius.circular(68),
+              bottomRight: Radius.circular(44),
+            ),
+            child: ColoredBox(
+              color: widget.topic.background,
+              child: widget.topic.imagePath == null
+                  ? Icon(
+                      widget.topic.icon,
+                      color: widget.topic.foreground,
+                      size: 76,
+                    )
+                  : Image.asset(
+                      widget.topic.imagePath!,
+                      fit: BoxFit.cover,
+                      filterQuality: FilterQuality.high,
+                    ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
+        if ((widget.songsOnly || widget.showsSongs) &&
+            songBadgeCount > 0) ...<Widget>[
+          Align(
+            alignment: Alignment.center,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF1E8),
+                borderRadius: BorderRadius.circular(99),
+              ),
+              child: Text(
+                context.tr(
+                  '♫ $songBadgeCount bài hát/chant',
+                  '♫ $songBadgeCount 首歌曲/节奏歌',
+                ),
+                style: const TextStyle(
+                  color: AppColors.coral,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
+          decoration: BoxDecoration(
+            color: isDark ? colorScheme.surfaceContainer : Colors.white,
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: <BoxShadow>[
+              if (!isDark)
+                const BoxShadow(
+                  color: Color(0x14244883),
+                  blurRadius: 18,
+                  offset: Offset(0, 8),
+                ),
+            ],
+          ),
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Icon(
+                      Icons.menu_book_rounded,
+                      color: isDark ? colorScheme.primary : AppColors.indigo,
+                      size: 22,
+                    ),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        context.tr(
+                          '${content.lessons.length} bài nhỏ',
+                          '${content.lessons.length} 节小课',
+                        ),
+                        maxLines: 1,
+                        style: TextStyle(
+                          color: isDark ? colorScheme.onSurface : AppColors.ink,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 22,
+                child: VerticalDivider(
+                  color: isDark
+                      ? colorScheme.outlineVariant
+                      : AppColors.lavenderBorder,
+                ),
+              ),
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Icon(
+                      Icons.chat_bubble_outline_rounded,
+                      color: isDark ? colorScheme.primary : AppColors.indigo,
+                      size: 21,
+                    ),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        context.tr(
+                          '${content.sentenceCount} câu',
+                          '${content.sentenceCount} 句',
+                        ),
+                        maxLines: 1,
+                        style: TextStyle(
+                          color: isDark ? colorScheme.onSurface : AppColors.ink,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (songLessonCount > 0) ...<Widget>[
+                SizedBox(
+                  height: 22,
+                  child: VerticalDivider(
+                    color: isDark
+                        ? colorScheme.outlineVariant
+                        : AppColors.lavenderBorder,
+                  ),
+                ),
+                Expanded(
+                  child: Row(
+                    key: const Key('topic-song-count'),
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Icon(
+                        Icons.music_note_rounded,
+                        color: isDark
+                            ? colorScheme.primary
+                            : AppColors.accentPink,
+                        size: 22,
+                      ),
+                      const SizedBox(width: 5),
+                      Flexible(
+                        child: Text(
+                          context.tr(
+                            '$songLessonCount bài hát',
+                            '$songLessonCount 首歌曲',
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: isDark
+                                ? colorScheme.onSurface
+                                : AppColors.ink,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _LessonPathCard extends StatelessWidget {
+  const _LessonPathCard({
+    required this.lesson,
+    required this.completedSentences,
+    required this.isCompleted,
+    required this.isLocked,
+    required this.needsV4Challenge,
+    required this.isLast,
+    required this.onPressed,
+    super.key,
+  });
+
+  final ListeningLessonContent lesson;
+  final int completedSentences;
+  final bool isCompleted;
+  final bool isLocked;
+  final bool needsV4Challenge;
+  final bool isLast;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final total = lesson.sentences.length;
+    final progress = total == 0 ? 0.0 : completedSentences / total;
+    final completed = isCompleted;
+    final hasSong =
+        lesson.hasV4SongStage || lesson.type == ListeningLessonType.song;
+    return Semantics(
+      button: true,
+      label: 'Bài ${lesson.number}, ${lesson.titleVi}, ${lesson.titleEn}',
+      child: Material(
+        color: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onPressed,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(8, 14, 8, 16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                SizedBox(
+                  width: 52,
+                  child: Column(
+                    children: <Widget>[
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: lesson.number == 1 || completedSentences > 0
+                              ? AppColors.indigo
+                              : AppColors.softNavy,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 3),
+                          boxShadow: const <BoxShadow>[
+                            BoxShadow(
+                              color: Color(0x243D4DD6),
+                              blurRadius: 10,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          isLocked
+                              ? Icons.lock_rounded
+                              : lesson.type == ListeningLessonType.song
+                              ? Icons.music_note_rounded
+                              : lesson.type == ListeningLessonType.dialogue
+                              ? Icons.forum_rounded
+                              : Icons.star_rounded,
+                          color: isLocked
+                              ? Colors.white
+                              : lesson.type == ListeningLessonType.song
+                              ? Colors.white
+                              : const Color(0xFFFFD36A),
+                          size: 28,
+                        ),
+                      ),
+                      if (!isLast)
+                        Container(
+                          width: 5,
+                          height: 150,
+                          color: AppColors.periwinkle,
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Expanded(
+                            child: Text(
+                              lesson.titleEn.trim().isEmpty
+                                  ? context.tr(
+                                      'Bài ${lesson.number} · ${lesson.titleVi}',
+                                      '第 ${lesson.number} 课 · ${lesson.titleVi}',
+                                    )
+                                  : 'Lesson ${lesson.number} · ${lesson.titleEn}',
+                              key: ValueKey(
+                                'lesson-english-title-${lesson.id}',
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                          ),
+                          if (hasSong) ...<Widget>[
+                            const SizedBox(width: 8),
+                            Tooltip(
+                              message: context.tr('Có bài hát', '包含歌曲'),
+                              child: Semantics(
+                                label: context.tr('Có bài hát', '包含歌曲'),
+                                child: Container(
+                                  width: 30,
+                                  height: 30,
+                                  decoration: BoxDecoration(
+                                    color: isDark
+                                        ? AppColors.darkPink.withValues(
+                                            alpha: 0.18,
+                                          )
+                                        : AppColors.accentPinkSoft,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.music_note_rounded,
+                                    key: ValueKey(
+                                      'lesson-song-indicator-${lesson.id}',
+                                    ),
+                                    color: isDark
+                                        ? AppColors.darkPink
+                                        : AppColors.accentPink,
+                                    size: 19,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      if (lesson.titleEn.trim().isNotEmpty) ...<Widget>[
+                        const SizedBox(height: 3),
+                        Text(
+                          context.tr(
+                            'Bài ${lesson.number} · ${lesson.titleVi}',
+                            '第 ${lesson.number} 课 · ${lesson.titleVi}',
+                          ),
+                          key: ValueKey('lesson-localized-title-${lesson.id}'),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: isDark
+                                    ? colorScheme.primary
+                                    : AppColors.indigo.withValues(alpha: 0.78),
+                                fontSize: 13.5,
+                                height: 1.2,
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                      ],
+                      const SizedBox(height: 7),
+                      Wrap(
+                        spacing: 10,
+                        runSpacing: 5,
+                        children: <Widget>[
+                          _Metadata(
+                            icon: lesson.type == ListeningLessonType.song
+                                ? Icons.lyrics_rounded
+                                : lesson.type == ListeningLessonType.dialogue
+                                ? Icons.forum_rounded
+                                : Icons.chat_bubble_outline_rounded,
+                            label: context.tr(
+                              lesson.type == ListeningLessonType.song
+                                  ? '$total dòng'
+                                  : lesson.type == ListeningLessonType.dialogue
+                                  ? 'Hội thoại · $total câu'
+                                  : '$total câu',
+                              lesson.type == ListeningLessonType.dialogue
+                                  ? '对话 · $total 句'
+                                  : '$total 句',
+                            ),
+                          ),
+                          _Metadata(
+                            icon: Icons.schedule_rounded,
+                            label: context.tr(
+                              '${lesson.estimatedMinutes} phút',
+                              '${lesson.estimatedMinutes} 分钟',
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 13),
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(99),
+                              child: LinearProgressIndicator(
+                                value: progress,
+                                minHeight: 7,
+                                backgroundColor: AppColors.lavenderBorder,
+                                color: AppColors.accentPink,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            '$completedSentences/$total',
+                            style: TextStyle(
+                              color: isDark
+                                  ? colorScheme.onSurfaceVariant
+                                  : AppColors.muted,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton(
+                          key: ValueKey('start-lesson-${lesson.id}'),
+                          onPressed: onPressed,
+                          child: Text(
+                            context.tr(
+                              completedSentences == 0
+                                  ? isLocked
+                                        ? 'Chưa mở khóa'
+                                        : 'Học ngay'
+                                  : needsV4Challenge
+                                  ? 'Hoàn thành thử thách'
+                                  : completed
+                                  ? 'Ôn lại'
+                                  : 'Học tiếp',
+                              completedSentences == 0
+                                  ? isLocked
+                                        ? '尚未解锁'
+                                        : '立即学习'
+                                  : needsV4Challenge
+                                  ? '完成挑战'
+                                  : completed
+                                  ? '复习'
+                                  : '继续学习',
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Metadata extends StatelessWidget {
+  const _Metadata({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Icon(
+          icon,
+          size: 17,
+          color: isDark ? colorScheme.onSurfaceVariant : AppColors.muted,
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: isDark ? colorScheme.onSurfaceVariant : AppColors.muted,
+            fontSize: 13,
+          ),
+        ),
+      ],
+    );
+  }
+}

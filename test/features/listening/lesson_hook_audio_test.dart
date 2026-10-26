@@ -68,7 +68,7 @@ void main() {
           final resolved = await resolver.resolve(request);
           expect(
             resolved.source,
-            AudioPromptSource.bundledAsset,
+            anyOf(AudioPromptSource.remote, AudioPromptSource.deviceCache),
             reason: lesson.id,
           );
           expect(
@@ -99,12 +99,7 @@ void main() {
             );
             expect(
               (await resolver.resolve(partRequest)).source,
-              part.$1.startsWith('assistant.')
-                  ? anyOf(
-                      AudioPromptSource.remote,
-                      AudioPromptSource.deviceCache,
-                    )
-                  : AudioPromptSource.bundledAsset,
+              anyOf(AudioPromptSource.remote, AudioPromptSource.deviceCache),
               reason: part.$1,
             );
             expect(await resolver.budget(partRequest), isNotNull);

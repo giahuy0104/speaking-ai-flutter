@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C1315-L3-T09-B01\\C1315-L3-T09-B01-Q02_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C1315-L3-T09-B01-Q02",
+  "sourceText": "Nhanh hơn: Easier hay Faster?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Nhanh hơn:",
+      "spoken_text": "Nhanh hơn:",
+      "input_index": 6
+    },
+    {
+      "language": "en",
+      "text": "Easier",
+      "spoken_text": "Easier",
+      "input_index": 7
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 8
+    },
+    {
+      "language": "en",
+      "text": "Faster?",
+      "spoken_text": "Faster?",
+      "input_index": 9
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-86DD129CD8EF726D65412F45",
+  "text": "Nhanh hơn: Easier hay Faster?",
+  "asset": "assets/audio/CURRICULUM/86dd129cd8ef726d65412f45.vi.v1.mp3",
+  "sha256": "af058e410d3c7e88b3d6080bb6085c7c8b1b52367d8fa64f1b3d1e7ace534303",
+  "durationSeconds": 3.85068
+}

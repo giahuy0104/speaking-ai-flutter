@@ -1,0 +1,51 @@
+{
+  "sourceKind": "existing-eleven-v3",
+  "file": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\MP3\\C67-L2-T06-B02\\C67-L2-T06-B02-Q05_PROMPT_AUDIO.mp3",
+  "packManifest": "D:\\Code\\HuaMei\\App_noi\\Tao_audio_15th9\\06_F_CHALLENGE_THEO_MAU_ELEVEN_V3_EN075_VI090\\manifest.json",
+  "packAudioId": "C67-L2-T06-B02-Q05",
+  "sourceText": "Chải tóc: Comb your hair hay Wash your hands?",
+  "modelId": "eleven_v3",
+  "profiles": {
+    "en": {
+      "voiceId": "Nhs7eitvQWFTQBsf0yiT",
+      "speed": 0.75
+    },
+    "vi": {
+      "voiceId": "5CVDNcIPiOYgRUQuxXd7",
+      "speed": 0.9
+    }
+  },
+  "speedMethod": "FFmpeg atempo separately at EN 0.75 and VI 0.9 after synthesis, preserving pitch. Final encoder only encodes the same PCM.",
+  "segments": [
+    {
+      "language": "vi",
+      "text": "Chải tóc:",
+      "spoken_text": "Chải tóc:",
+      "input_index": 24
+    },
+    {
+      "language": "en",
+      "text": "Comb your hair",
+      "spoken_text": "Comb your hair",
+      "input_index": 25
+    },
+    {
+      "language": "vi",
+      "text": "hay",
+      "spoken_text": "hay",
+      "input_index": 26
+    },
+    {
+      "language": "en",
+      "text": "Wash your hands?",
+      "spoken_text": "Wash your hands?",
+      "input_index": 27
+    }
+  ],
+  "sourceSha256": null,
+  "id": "LESSON-708A3577ABDC8C23599E84C9",
+  "text": "Chải tóc: Comb your hair hay Wash your hands?",
+  "asset": "assets/audio/CURRICULUM/708a3577abdc8c23599e84c9.vi.v1.mp3",
+  "sha256": "f973274c05c5c4e4b637a322f532d29e0bf0c40d6c9421dc33e43c4b01c2de47",
+  "durationSeconds": 4.951875
+}
