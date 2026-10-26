@@ -20,7 +20,7 @@ import '../../listening/application/android_offline_speech_model_service.dart';
 import '../../listening/domain/listening_catalog.dart';
 import '../application/parent_media_settings.dart';
 import 'history_sheet.dart';
-import 'h20_control_diagnostics_screen.dart';
+import 'homi_control_diagnostics_screen.dart';
 
 class IosSettingsSheet extends StatelessWidget {
   const IosSettingsSheet({
@@ -64,7 +64,7 @@ class IosSettingsSheet extends StatelessWidget {
         final isIOS = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
         final deviceControls = AivoControlScope.maybeOf(context);
         final nativeDiagnostic = controller.nativeSpeechDiagnostic;
-        final h20State = controller.h20ConnectionState();
+        final homiState = controller.homiConnectionState();
         final nativeDiagnosticTimeline = controller
             .nativeSpeechDiagnosticLog
             .reversed
@@ -188,10 +188,10 @@ class IosSettingsSheet extends StatelessWidget {
                       const SizedBox(height: 12),
                     ],
                     _CompactSettingsSection(
-                      key: const Key('settings-audio-h20-section'),
+                      key: const Key('settings-audio-hm-d001-section'),
                       icon: Icons.headset_mic_rounded,
                       title: context.tr('Âm thanh & HOMI', '音频与 HOMI'),
-                      summary: h20State.isH20Ready
+                      summary: homiState.isHomiReady
                           ? context.tr(
                               '${context.trKnown(controller.inputLabel)} • HOMI sẵn sàng',
                               '${context.trKnown(controller.inputLabel)} • HOMI 已就绪',
@@ -265,7 +265,7 @@ class IosSettingsSheet extends StatelessWidget {
                         ),
                         const SizedBox(height: 10),
                         HomiSurface(
-                          key: const Key('settings-h20-group'),
+                          key: const Key('settings-hm-d001-group'),
                           padding: const EdgeInsets.fromLTRB(14, 14, 14, 6),
                           child: Column(
                             children: <Widget>[
@@ -273,13 +273,13 @@ class IosSettingsSheet extends StatelessWidget {
                                 icon: Icons.headset_mic_rounded,
                                 title: context.tr('Kết nối HOMI', '连接 HOMI'),
                                 trailing: HomiStatusPill(
-                                  label: h20State.isH20Ready
+                                  label: homiState.isHomiReady
                                       ? context.tr('Sẵn sàng', '已就绪')
                                       : context.tr('Chưa sẵn sàng', '未就绪'),
-                                  color: h20State.isH20Ready
+                                  color: homiState.isHomiReady
                                       ? AppColors.success
                                       : AppColors.coral,
-                                  icon: h20State.isH20Ready
+                                  icon: homiState.isHomiReady
                                       ? Icons.check_rounded
                                       : Icons.error_outline_rounded,
                                 ),
@@ -289,10 +289,10 @@ class IosSettingsSheet extends StatelessWidget {
                                 alignment: Alignment.centerLeft,
                                 child: Text(
                                   context.tr(
-                                    h20State.isH20Ready
+                                    homiState.isHomiReady
                                         ? 'Âm thanh và nút MAIN đã kết nối.'
                                         : 'Hoàn tất cả âm thanh HFP và BLE để dùng nút MAIN.',
-                                    h20State.isH20Ready
+                                    homiState.isHomiReady
                                         ? '音频与 MAIN 按钮均已连接。'
                                         : '请完成 HFP 音频与 BLE 连接以使用 MAIN 按钮。',
                                   ),
@@ -320,7 +320,7 @@ class IosSettingsSheet extends StatelessWidget {
                                   deviceControls != null)
                                 OutlinedButton.icon(
                                   key: const Key(
-                                    'open-h20-control-diagnostics',
+                                    'open-hm-d001-control-diagnostics',
                                   ),
                                   icon: const Icon(
                                     Icons.settings_remote_outlined,
@@ -330,7 +330,7 @@ class IosSettingsSheet extends StatelessWidget {
                                       Navigator.of(context).push<void>(
                                         MaterialPageRoute<void>(
                                           builder: (_) =>
-                                              H20ControlDiagnosticsScreen(
+                                              HomiControlDiagnosticsScreen(
                                                 controller: controller,
                                                 controls: deviceControls,
                                               ),
@@ -349,13 +349,13 @@ class IosSettingsSheet extends StatelessWidget {
                               ),
                               if (isAndroid) ...<Widget>[
                                 const _SettingsDivider(),
-                                _H20OfflineHardwareTestCard(
+                                _HomiOfflineHardwareTestCard(
                                   embedded: true,
                                   enabled:
-                                      controller.h20HardwareTestModeEnabled,
-                                  phase: controller.h20HardwareTestPhase,
-                                  message: controller.h20HardwareTestMessage,
-                                  result: controller.h20HardwareTestResult,
+                                      controller.homiHardwareTestModeEnabled,
+                                  phase: controller.homiHardwareTestPhase,
+                                  message: controller.homiHardwareTestMessage,
+                                  result: controller.homiHardwareTestResult,
                                   bleConnected: controller.canUseAiv0Ble,
                                   mainProtocolConfirmed: controller
                                       .aiv0BleStatus
@@ -367,13 +367,13 @@ class IosSettingsSheet extends StatelessWidget {
                                       controller.phase ==
                                           ConversationPhase.processing,
                                   onEnabledChanged: (enabled) =>
-                                      _setH20HardwareTestMode(context, enabled),
+                                      _setHomiHardwareTestMode(context, enabled),
                                   onRecord: () =>
-                                      _toggleH20OfflineRecording(context),
+                                      _toggleHomiOfflineRecording(context),
                                   onSpeakerTest: () =>
-                                      _playH20SpeakerTest(context),
+                                      _playHomiSpeakerTest(context),
                                   onPlaybackConfirmed:
-                                      controller.confirmH20PlaybackAudible,
+                                      controller.confirmHomiPlaybackAudible,
                                 ),
                               ],
                             ],
@@ -724,12 +724,12 @@ class IosSettingsSheet extends StatelessWidget {
     );
   }
 
-  Future<void> _setH20HardwareTestMode(
+  Future<void> _setHomiHardwareTestMode(
     BuildContext context,
     bool enabled,
   ) async {
     try {
-      await controller.setH20HardwareTestMode(enabled);
+      await controller.setHomiHardwareTestMode(enabled);
     } catch (error) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(
@@ -738,9 +738,9 @@ class IosSettingsSheet extends StatelessWidget {
     }
   }
 
-  Future<void> _toggleH20OfflineRecording(BuildContext context) async {
+  Future<void> _toggleHomiOfflineRecording(BuildContext context) async {
     try {
-      await controller.toggleH20OfflineRecordingTest();
+      await controller.toggleHomiOfflineRecordingTest();
     } catch (error) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(
@@ -749,9 +749,9 @@ class IosSettingsSheet extends StatelessWidget {
     }
   }
 
-  Future<void> _playH20SpeakerTest(BuildContext context) async {
+  Future<void> _playHomiSpeakerTest(BuildContext context) async {
     try {
-      await controller.playH20BundledSpeakerTest();
+      await controller.playHomiBundledSpeakerTest();
     } catch (error) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(
@@ -2640,8 +2640,8 @@ class _InnotrikStatusCard extends StatelessWidget {
   }
 }
 
-class _H20OfflineHardwareTestCard extends StatelessWidget {
-  const _H20OfflineHardwareTestCard({
+class _HomiOfflineHardwareTestCard extends StatelessWidget {
+  const _HomiOfflineHardwareTestCard({
     this.embedded = false,
     required this.enabled,
     required this.phase,
@@ -2659,9 +2659,9 @@ class _H20OfflineHardwareTestCard extends StatelessWidget {
 
   final bool embedded;
   final bool enabled;
-  final H20HardwareTestPhase phase;
+  final HomiHardwareTestPhase phase;
   final String? message;
-  final H20HardwareTestResult? result;
+  final HomiHardwareTestResult? result;
   final bool bleConnected;
   final bool mainProtocolConfirmed;
   final BluetoothAudioStatus hfpStatus;
@@ -2672,9 +2672,9 @@ class _H20OfflineHardwareTestCard extends StatelessWidget {
   final ValueChanged<bool> onPlaybackConfirmed;
 
   bool get _running =>
-      phase == H20HardwareTestPhase.openingRoute ||
-      phase == H20HardwareTestPhase.recording ||
-      phase == H20HardwareTestPhase.playing;
+      phase == HomiHardwareTestPhase.openingRoute ||
+      phase == HomiHardwareTestPhase.recording ||
+      phase == HomiHardwareTestPhase.playing;
 
   @override
   Widget build(BuildContext context) {
@@ -2683,7 +2683,7 @@ class _H20OfflineHardwareTestCard extends StatelessWidget {
     final routeActive = hfpStatus.routeActive;
     final canStart = enabled && hfpConnected && !conversationBusy && !_running;
     final canToggleRecording =
-        phase == H20HardwareTestPhase.recording || canStart;
+        phase == HomiHardwareTestPhase.recording || canStart;
     return Container(
       width: double.infinity,
       padding: embedded
@@ -2696,7 +2696,7 @@ class _H20OfflineHardwareTestCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(18),
               border: Border.all(
                 color:
-                    (phase == H20HardwareTestPhase.error
+                    (phase == HomiHardwareTestPhase.error
                             ? AppColors.coral
                             : AppColors.indigo)
                         .withValues(alpha: 0.24),
@@ -2775,7 +2775,7 @@ class _H20OfflineHardwareTestCard extends StatelessWidget {
             Text(
               message!,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: phase == H20HardwareTestPhase.error
+                color: phase == HomiHardwareTestPhase.error
                     ? AppColors.coral
                     : colors.onSurfaceVariant,
                 fontWeight: FontWeight.w600,
@@ -2848,12 +2848,12 @@ class _H20OfflineHardwareTestCard extends StatelessWidget {
               FilledButton.icon(
                 onPressed: canToggleRecording ? () => onRecord() : null,
                 icon: Icon(
-                  phase == H20HardwareTestPhase.recording
+                  phase == HomiHardwareTestPhase.recording
                       ? Icons.stop_circle_outlined
                       : Icons.mic_rounded,
                 ),
                 label: Text(
-                  phase == H20HardwareTestPhase.recording
+                  phase == HomiHardwareTestPhase.recording
                       ? context.tr('Dừng & phát lại', '停止并回放')
                       : context.tr('Thu thử tối đa 5 giây', '录音测试（最多 5 秒）'),
                 ),

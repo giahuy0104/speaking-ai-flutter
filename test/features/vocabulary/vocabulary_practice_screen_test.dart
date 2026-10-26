@@ -1359,7 +1359,7 @@ void main() {
           await registry.pauseForMainAssistant();
           voice.cue!.complete();
         } else {
-          voice.cue!.completeError(StateError('H20 cue failed'));
+          voice.cue!.completeError(StateError('HM-D001 cue failed'));
         }
         await tester.pumpAndSettle();
         expect(media.startCalls, 0);

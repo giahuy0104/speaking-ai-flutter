@@ -10,12 +10,12 @@ import android.os.Looper
 import android.view.KeyEvent
 
 /** Scoped diagnostic adapter. Never requests audio focus or changes an audio route. */
-internal class H20MediaKeyObserver(
+internal class HomiMediaKeyObserver(
     private val context: Context,
     private val emit: (Map<String, Any?>) -> Unit,
 ) {
-    private val scope = H20ControlContext()
-    private val duplicates = H20ControlKeyDuplicates()
+    private val scope = HomiControlContext()
+    private val duplicates = HomiControlKeyDuplicates()
     private var session: MediaSession? = null
     val active: Boolean get() = scope.mediaObservationActive
 
@@ -39,7 +39,7 @@ internal class H20MediaKeyObserver(
             return
         }
         if (session != null) return
-        session = MediaSession(context, "HomiH20ControlDiagnostics").apply {
+        session = MediaSession(context, "HomiHomiControlDiagnostics").apply {
             setCallback(object : MediaSession.Callback() {
                 override fun onMediaButtonEvent(mediaButtonIntent: Intent): Boolean {
                     if (mediaButtonIntent.action != Intent.ACTION_MEDIA_BUTTON) return false
@@ -78,9 +78,9 @@ internal class H20MediaKeyObserver(
 
     fun observe(key: KeyEvent, receiver: String): Boolean {
         if (!active) return false
-        val mediaCommand = H20ControlObservation.mediaCommand(key.keyCode)
+        val mediaCommand = HomiControlObservation.mediaCommand(key.keyCode)
         val volumeKey = if (scope.diagnosticsActive && receiver == "activity") {
-            H20ControlObservation.diagnosticVolumeKey(key.keyCode)
+            HomiControlObservation.diagnosticVolumeKey(key.keyCode)
         } else null
         val command = mediaCommand ?: volumeKey ?: return false
         val holdMs = (key.eventTime - key.downTime).coerceAtLeast(0)
@@ -88,7 +88,7 @@ internal class H20MediaKeyObserver(
             "${key.deviceId}:${key.keyCode}:${key.action}:${key.downTime}:${key.eventTime}:${key.repeatCount}",
         )
         emit(baseEvent(command) + mapOf(
-            "gesture" to H20ControlObservation.observedGesture(key.action, key.isLongPress),
+            "gesture" to HomiControlObservation.observedGesture(key.action, key.isLongPress),
             "deviceId" to "android-input:${key.deviceId}",
             "keyCode" to key.keyCode,
             "action" to key.action,
@@ -117,7 +117,7 @@ internal class H20MediaKeyObserver(
         "type" to "controlObservation",
         "source" to "androidMediaKey",
         "platform" to "android",
-        // A media command is not proof of a physical H20 button or gesture.
+        // A media command is not proof of a physical HM-D001 button or gesture.
         "button" to "unknown",
         "gesture" to "unknown",
         "protocol" to "unknown",

@@ -2037,7 +2037,7 @@ void main() {
     await controller.connectHfpDevice(
       const HfpAudioDevice(
         id: 'ios-hfp-input',
-        name: 'H20 HFP',
+        name: 'HM-D001 HFP',
         isConnected: true,
       ),
     );
@@ -2089,7 +2089,7 @@ void main() {
       await controller.connectHfpDevice(
         const HfpAudioDevice(
           id: 'ios-hfp-input',
-          name: 'H20 HFP',
+          name: 'HM-D001 HFP',
           isConnected: true,
         ),
       );
@@ -2162,7 +2162,7 @@ void main() {
     );
 
     await controller.connectHfpDevice(
-      const HfpAudioDevice(id: 'h20', name: 'H20', isConnected: true),
+      const HfpAudioDevice(id: 'hm-d001', name: 'HM-D001', isConnected: true),
     );
     final starting = controller.startRecording();
     await hfp.startRequested.future;
@@ -2197,7 +2197,7 @@ void main() {
       );
 
       await controller.connectHfpDevice(
-        const HfpAudioDevice(id: 'h20', name: 'H20', isConnected: true),
+        const HfpAudioDevice(id: 'hm-d001', name: 'HM-D001', isConnected: true),
       );
       final starting = controller.startRecording();
       await hfp.startRequested.future;
@@ -2341,7 +2341,7 @@ void main() {
       audioUri: Uri.parse('https://api.example.com/result.mp3'),
     );
     await controller.connectHfpDevice(
-      const HfpAudioDevice(id: 'h20', name: 'H20', isConnected: true),
+      const HfpAudioDevice(id: 'hm-d001', name: 'HM-D001', isConnected: true),
     );
 
     await expectLater(
@@ -2377,7 +2377,7 @@ void main() {
       audioUri: Uri.parse('https://api.example.com/result.mp3'),
     );
     await controller.connectHfpDevice(
-      const HfpAudioDevice(id: 'h20', name: 'H20', isConnected: true),
+      const HfpAudioDevice(id: 'hm-d001', name: 'HM-D001', isConnected: true),
     );
 
     final pendingPlayback = controller.playResult();

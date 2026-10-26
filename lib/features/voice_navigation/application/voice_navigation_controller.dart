@@ -641,7 +641,7 @@ class VoiceNavigationController extends ChangeNotifier {
       return false;
     }
 
-    // H20 firmware 1.0.0 can interrupt BLE while iOS changes from A2DP to
+    // HM-D001 firmware 1.0.0 can interrupt BLE while iOS changes from A2DP to
     // two-way HFP for this acknowledgement. AVSpeechSynthesizer may then lose
     // its completion callback even though the command was recognized and the
     // prompt started. A terminal feature transfer (including continuous
@@ -867,7 +867,7 @@ class VoiceNavigationController extends ChangeNotifier {
               promptService is SelectedMediaOutputVoicePromptService &&
               _prepareSelectedOutput != null &&
               !await _prepareSelectedOutput()) {
-            throw StateError('Selected H20 audio route is unavailable.');
+            throw StateError('Selected HM-D001 audio route is unavailable.');
           }
           if (_disposed || generation != _generation) return false;
           final audioKey = utterance.audioKey;
@@ -919,7 +919,7 @@ class VoiceNavigationController extends ChangeNotifier {
     } catch (error) {
       if (!_disposed && generation == _generation) {
         _lastError = error;
-        // A failed/cancelled H20 prompt is not a completed question. Opening
+        // A failed/cancelled HM-D001 prompt is not a completed question. Opening
         // recognition here both hides the failure and records the tail of a
         // prompt whose native completion was lost. Keep the lesson paused and
         // let the next explicit MAIN press retry with a fresh turn.

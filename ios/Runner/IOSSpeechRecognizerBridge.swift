@@ -54,7 +54,7 @@ struct IOSNativeSpeechAudioRoutePolicy {
 /// Reads a conventional dBFS value from the PCM formats commonly delivered by
 /// AVAudioEngine. HFP devices are not guaranteed to use Float32, so limiting
 /// voice activity detection to `floatChannelData` can silently discard a real
-/// H20 microphone stream even while the route and SCO state are correct.
+/// HM-D001 microphone stream even while the route and SCO state are correct.
 struct IOSAudioBufferLevel {
   static func dbfs(_ buffer: AVAudioPCMBuffer) -> Double? {
     let frameCount = Int(buffer.frameLength)
@@ -388,7 +388,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
   private func stopCaptureIfSelectedHfpRouteWasLost() {
     // Route-change events during activation are handled by the existing
     // readiness wait. Once speech.ready has fired, falling back to the phone
-    // microphone would attribute the wrong child's audio to this H20 turn.
+    // microphone would attribute the wrong child's audio to this HM-D001 turn.
     guard active, !stopping, readyAt != nil,
       requestedAudioSource == .hfp,
       !audioRouteMatches(.hfp)

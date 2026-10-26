@@ -5,7 +5,7 @@ const double androidSpeechBoostDb = 8.0;
 
 const double androidAssistantSpeechBoostDb = androidSpeechBoostDb;
 
-/// H20 microphone captures can sit more than 20 dB below authored speech.
+/// HM-D001 microphone captures can sit more than 20 dB below authored speech.
 /// Source metering still chooses the actual gain and attenuates loud clips, but
 /// it needs the full LoudnessEnhancer range to bring quiet captures to target.
 const double androidMaxPlaybackGainDb = 28.0;

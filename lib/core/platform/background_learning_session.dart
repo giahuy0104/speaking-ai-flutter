@@ -129,10 +129,10 @@ class MethodChannelBackgroundLearningSession
     }
   }
 
-  /// Registers the already-selected H20 as an Android companion device.
+  /// Registers the already-selected HM-D001 as an Android companion device.
   /// Android always owns the confirmation UI; this method never pairs or
   /// associates a device silently.
-  Future<bool> associateH20Companion(String deviceId) async {
+  Future<bool> associateHomiCompanion(String deviceId) async {
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
       return true;
     }

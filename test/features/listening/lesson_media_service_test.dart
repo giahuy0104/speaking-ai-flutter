@@ -88,7 +88,7 @@ void main() {
         status: const BluetoothAudioStatus(
           phase: BluetoothAudioConnectionPhase.recording,
           deviceId: '00:11:22:33:44:55',
-          deviceName: 'H20',
+          deviceName: 'HM-D001',
           routeActive: true,
         ),
         changes: statuses.stream,
@@ -114,9 +114,9 @@ void main() {
       saveToHistory: false,
     );
 
-    test('pins H20 input and keeps its output through feedback', () async {
+    test('pins HM-D001 input and keeps its output through feedback', () async {
       await start();
-      expect(recorder.lastConfig?.device, _FakeLessonRecorder.h20);
+      expect(recorder.lastConfig?.device, _FakeLessonRecorder.homi);
       final recording = await media.stopRecording();
       expect(await File(recording.filePath).exists(), isTrue);
       expect(hfp.stopCalls, 0);
@@ -127,7 +127,7 @@ void main() {
       expect(hfp.stopCalls, 1);
     });
 
-    test('selected H20 cannot silently fall back to the phone mic', () async {
+    test('selected HM-D001 cannot silently fall back to the phone mic', () async {
       recorder.devices = const [_FakeLessonRecorder.phone];
       await expectLater(start(), throwsA(isA<LessonMediaException>()));
       expect(recorder.startCalls, 0);
@@ -194,12 +194,12 @@ void main() {
       'simulated HOMI session: lost mic blocks phone fallback and reconnect allows a new recording',
       () async {
         await start();
-        expect(recorder.lastConfig?.device, _FakeLessonRecorder.h20);
+        expect(recorder.lastConfig?.device, _FakeLessonRecorder.homi);
         final failed = media.recordingErrors.first;
         hfp.status = const BluetoothAudioStatus(
           phase: BluetoothAudioConnectionPhase.ready,
           deviceId: '00:11:22:33:44:55',
-          deviceName: 'H20',
+          deviceName: 'HM-D001',
         );
         recorder.devices = const [_FakeLessonRecorder.phone];
         statuses.add(hfp.status);
@@ -210,22 +210,22 @@ void main() {
         // The phone input exists, but a selected HOMI must not fall back to it.
         await expectLater(start(), throwsA(isA<LessonMediaException>()));
         expect(recorder.startCalls, 1);
-        expect(recorder.lastConfig?.device, _FakeLessonRecorder.h20);
+        expect(recorder.lastConfig?.device, _FakeLessonRecorder.homi);
 
         hfp.status = const BluetoothAudioStatus(
           phase: BluetoothAudioConnectionPhase.recording,
           deviceId: '00:11:22:33:44:55',
-          deviceName: 'H20',
+          deviceName: 'HM-D001',
           routeActive: true,
         );
         recorder.devices = const [
           _FakeLessonRecorder.phone,
-          _FakeLessonRecorder.h20,
+          _FakeLessonRecorder.homi,
         ];
         statuses.add(hfp.status);
         await start();
         expect(recorder.startCalls, 2);
-        expect(recorder.lastConfig?.device, _FakeLessonRecorder.h20);
+        expect(recorder.lastConfig?.device, _FakeLessonRecorder.homi);
         final recording = await media.stopRecording();
         expect(await File(recording.filePath).exists(), isTrue);
         expect(recorder.cancelCalls, 1);
@@ -259,7 +259,7 @@ void main() {
     );
   });
 
-  test('iOS H20 capture keeps the selected output through feedback', () async {
+  test('iOS HM-D001 capture keeps the selected output through feedback', () async {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
     const channel = MethodChannel('ailingo_voice_prompt');
@@ -280,7 +280,7 @@ void main() {
       status: const BluetoothAudioStatus(
         phase: BluetoothAudioConnectionPhase.recording,
         deviceId: '42',
-        deviceName: 'H20',
+        deviceName: 'HM-D001',
         routeActive: true,
       ),
     );
@@ -297,7 +297,7 @@ void main() {
       sentenceNumber: 1,
       saveToHistory: false,
     );
-    expect(recorder.lastConfig?.device, _FakeLessonRecorder.h20);
+    expect(recorder.lastConfig?.device, _FakeLessonRecorder.homi);
     await media.stopRecording();
     expect(hfp.stopCalls, 0);
     await media.play(Uri.parse('https://example.test/feedback.mp3'));
@@ -339,7 +339,7 @@ void main() {
           events,
           status: const BluetoothAudioStatus(
             phase: BluetoothAudioConnectionPhase.recording,
-            deviceId: 'h20',
+            deviceId: 'hm-d001',
             routeActive: true,
           ),
           changes: statuses.stream,
@@ -356,7 +356,7 @@ void main() {
         statuses.add(
           const BluetoothAudioStatus(
             phase: BluetoothAudioConnectionPhase.ready,
-            deviceId: 'h20',
+            deviceId: 'hm-d001',
             routeActive: false,
           ),
         );
@@ -632,7 +632,7 @@ void main() {
   });
 
   test(
-    'Android selected H20 route is prepared before lesson playback starts',
+    'Android selected HM-D001 route is prepared before lesson playback starts',
     () async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
       addTearDown(() => debugDefaultTargetPlatformOverride = null);
@@ -642,8 +642,8 @@ void main() {
         events,
         status: const BluetoothAudioStatus(
           phase: BluetoothAudioConnectionPhase.ready,
-          deviceId: 'h20-uid',
-          deviceName: 'H20',
+          deviceId: 'hm-d001-uid',
+          deviceName: 'HM-D001',
           sampleRate: 16000,
         ),
       );
@@ -681,8 +681,8 @@ void main() {
       events,
       status: const BluetoothAudioStatus(
         phase: BluetoothAudioConnectionPhase.ready,
-        deviceId: 'h20-uid',
-        deviceName: 'H20',
+        deviceId: 'hm-d001-uid',
+        deviceName: 'HM-D001',
         sampleRate: 16000,
       ),
       startError: const HfpAudioException('SCO is still settling.'),
@@ -713,8 +713,8 @@ void main() {
       <String>[],
       status: const BluetoothAudioStatus(
         phase: BluetoothAudioConnectionPhase.error,
-        deviceId: 'h20-uid',
-        deviceName: 'H20',
+        deviceId: 'hm-d001-uid',
+        deviceName: 'HM-D001',
         sampleRate: 16000,
       ),
       changes: statuses.stream,
@@ -729,8 +729,8 @@ void main() {
     statuses.add(
       const BluetoothAudioStatus(
         phase: BluetoothAudioConnectionPhase.ready,
-        deviceId: 'h20-uid',
-        deviceName: 'H20',
+        deviceId: 'hm-d001-uid',
+        deviceName: 'HM-D001',
         sampleRate: 16000,
         routeActive: true,
       ),
@@ -752,8 +752,8 @@ void main() {
       events,
       status: const BluetoothAudioStatus(
         phase: BluetoothAudioConnectionPhase.ready,
-        deviceId: 'h20-uid',
-        deviceName: 'H20',
+        deviceId: 'hm-d001-uid',
+        deviceName: 'HM-D001',
         sampleRate: 16000,
       ),
       startError: const HfpAudioException('SCO is still settling.'),
@@ -782,7 +782,7 @@ void main() {
     await mediaService.dispose();
   });
 
-  test('iOS selected H20 lesson playback holds HFP for output', () async {
+  test('iOS selected HM-D001 lesson playback holds HFP for output', () async {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
     final events = <String>[];
@@ -791,8 +791,8 @@ void main() {
       events,
       status: const BluetoothAudioStatus(
         phase: BluetoothAudioConnectionPhase.ready,
-        deviceId: 'h20-uid',
-        deviceName: 'H20',
+        deviceId: 'hm-d001-uid',
+        deviceName: 'HM-D001',
         sampleRate: 16000,
       ),
     );
@@ -828,7 +828,7 @@ void main() {
       events,
       status: const BluetoothAudioStatus(
         phase: BluetoothAudioConnectionPhase.ready,
-        deviceId: 'h20-uid',
+        deviceId: 'hm-d001-uid',
         routeActive: true,
       ),
     );
@@ -899,8 +899,8 @@ void main() {
         events,
         status: const BluetoothAudioStatus(
           phase: BluetoothAudioConnectionPhase.ready,
-          deviceId: 'h20-uid',
-          deviceName: 'H20',
+          deviceId: 'hm-d001-uid',
+          deviceName: 'HM-D001',
           sampleRate: 16000,
         ),
         startError: const HfpAudioException('SCO is still settling.'),
@@ -926,15 +926,15 @@ void main() {
     },
   );
 
-  test('coach prompt leaves H20 and plays on the phone speaker', () async {
+  test('coach prompt leaves HM-D001 and plays on the phone speaker', () async {
     final events = <String>[];
     final playback = _RouteAwareControlledPlaybackService(events);
     final hfp = _FakeHfpAudioControl(
       events,
       status: const BluetoothAudioStatus(
         phase: BluetoothAudioConnectionPhase.ready,
-        deviceId: 'h20-uid',
-        deviceName: 'H20',
+        deviceId: 'hm-d001-uid',
+        deviceName: 'HM-D001',
         sampleRate: 16000,
       ),
     );
@@ -972,15 +972,15 @@ void main() {
     await mediaService.dispose();
   });
 
-  test('consecutive H20 clips revalidate a dropped SCO route', () async {
+  test('consecutive HM-D001 clips revalidate a dropped SCO route', () async {
     final events = <String>[];
     final playback = _RouteAwareControlledPlaybackService(events);
     final hfp = _FakeHfpAudioControl(
       events,
       status: const BluetoothAudioStatus(
         phase: BluetoothAudioConnectionPhase.ready,
-        deviceId: 'h20-uid',
-        deviceName: 'H20',
+        deviceId: 'hm-d001-uid',
+        deviceName: 'HM-D001',
         sampleRate: 16000,
       ),
     );
@@ -1008,7 +1008,7 @@ void main() {
   });
 
   test(
-    'per-play gain is applied after H20 preparation and then reset',
+    'per-play gain is applied after HM-D001 preparation and then reset',
     () async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
       addTearDown(() => debugDefaultTargetPlatformOverride = null);
@@ -1018,8 +1018,8 @@ void main() {
         events,
         status: const BluetoothAudioStatus(
           phase: BluetoothAudioConnectionPhase.ready,
-          deviceId: 'h20-uid',
-          deviceName: 'H20',
+          deviceId: 'hm-d001-uid',
+          deviceName: 'HM-D001',
           sampleRate: 16000,
         ),
       );
@@ -1061,8 +1061,8 @@ void main() {
           events,
           status: const BluetoothAudioStatus(
             phase: BluetoothAudioConnectionPhase.ready,
-            deviceId: 'h20-uid',
-            deviceName: 'H20',
+            deviceId: 'hm-d001-uid',
+            deviceName: 'HM-D001',
             sampleRate: 16000,
           ),
         ),
@@ -1155,7 +1155,7 @@ void main() {
     expect(session.androidWillPauseWhenDucked, isTrue);
   });
 
-  test('iOS recording input selects exact H20 UID and built-in phone mic', () {
+  test('iOS recording input selects exact HM-D001 UID and built-in phone mic', () {
     const builtIn = InputDevice(
       id: 'iphone-mic',
       label: 'iPhone Microphone',
@@ -1166,20 +1166,20 @@ void main() {
       label: 'Other Headset',
       type: InputDeviceType.bluetoothSco,
     );
-    const h20 = InputDevice(
-      id: 'h20-uid',
-      label: 'H20',
+    const homi = InputDevice(
+      id: 'hm-d001-uid',
+      label: 'HM-D001',
       type: InputDeviceType.bluetoothSco,
     );
-    const devices = <InputDevice>[builtIn, otherHeadset, h20];
+    const devices = <InputDevice>[builtIn, otherHeadset, homi];
 
     expect(
       selectLessonRecordingInput(
         devices,
         useSelectedHfp: true,
-        selectedHfpDeviceId: 'h20-uid',
+        selectedHfpDeviceId: 'hm-d001-uid',
       ),
-      h20,
+      homi,
     );
     expect(selectLessonRecordingInput(devices, useSelectedHfp: false), builtIn);
   });
@@ -1246,13 +1246,13 @@ class _FakeLessonRecorder implements AudioRecorder {
     label: 'Built-in microphone',
     type: InputDeviceType.builtIn,
   );
-  static const h20 = InputDevice(
+  static const homi = InputDevice(
     id: '42',
-    label: 'H20',
+    label: 'HM-D001',
     type: InputDeviceType.bluetoothSco,
   );
 
-  List<InputDevice> devices = const [phone, h20];
+  List<InputDevice> devices = const [phone, homi];
   RecordConfig? lastConfig;
   String? path;
   int startCalls = 0;

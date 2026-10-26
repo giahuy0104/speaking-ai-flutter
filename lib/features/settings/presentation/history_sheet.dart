@@ -92,7 +92,7 @@ class _HistorySheetState extends State<HistorySheet> {
           final matchesQuery =
               query.isEmpty ||
               item.vietnameseText.toLowerCase().contains(query) ||
-              item.englishText.toLowerCase().contains(query);
+              item.displayedTranslation.toLowerCase().contains(query);
           return matchesFilter && matchesQuery;
         })
         .toList(growable: false);
@@ -632,7 +632,7 @@ class _HistoryRow extends StatelessWidget {
     return Semantics(
       container: true,
       label:
-          '$localizedStatus. ${item.vietnameseText}. ${item.englishText}. '
+          '$localizedStatus. ${item.vietnameseText}. ${item.outputLanguage.label}: ${item.displayedTranslation}. '
           '${_formatTime(item.createdAt)}.',
       child: HomiSurface(
         margin: const EdgeInsets.only(bottom: 10),
@@ -676,7 +676,7 @@ class _HistoryRow extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(left: 50),
               child: Text(
-                item.englishText,
+                item.displayedTranslation,
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: theme.colorScheme.primary,
                 ),

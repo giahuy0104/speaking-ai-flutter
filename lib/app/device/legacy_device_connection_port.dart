@@ -193,7 +193,7 @@ class LegacyDeviceConnectionPort implements DeviceConnectionPort {
   }
 
   @override
-  Future<bool> autoSelectAudio() => controller.autoConnectH20Hfp(
+  Future<bool> autoSelectAudio() => controller.autoConnectHomiHfp(
     bleDeviceName: ble.status.deviceName,
     requireConnected: android,
   );

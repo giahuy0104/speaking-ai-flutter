@@ -14,8 +14,10 @@ class FakePort implements DeviceConnectionPort {
   Stream<void> get changes => events.stream;
   final calls = <String>[];
   DeviceIssue? accessIssue;
+  Object? accessError;
   bool mainSucceeds = true;
   bool autoAudioSucceeds = true;
+  bool dropMainWhenSelectingMicrophone = false;
   bool paired = false;
   Completer<void>? mainWait;
   Completer<void>? cancelWait;
@@ -30,6 +32,7 @@ class FakePort implements DeviceConnectionPort {
   @override
   Future<DeviceIssue?> prepareAccess({required bool interactive}) async {
     calls.add('access');
+    if (accessError case final error?) throw error;
     return accessIssue;
   }
 
@@ -46,6 +49,7 @@ class FakePort implements DeviceConnectionPort {
       mainId: snapshot.mainId,
       audioReady: snapshot.audioReady,
       audioPaired: paired,
+      audioConnected: snapshot.audioConnected,
     );
   }
 
@@ -90,9 +94,9 @@ class FakePort implements DeviceConnectionPort {
   @override
   Future<bool> selectMicrophone(DeviceSelection selection) async {
     calls.add('selectMic');
-    snapshot = const DeviceSnapshot(
-      mainReady: true,
-      mainId: 'main',
+    snapshot = DeviceSnapshot(
+      mainReady: !dropMainWhenSelectingMicrophone,
+      mainId: dropMainWhenSelectingMicrophone ? null : 'main',
       audioReady: true,
     );
     return true;
@@ -166,6 +170,19 @@ void main() {
       expect(service.state.issue, DeviceIssue.mainUnavailable);
       expect(port.calls, isNot(contains('findMic')));
       expect(port.calls, isNot(contains('autoAudio')));
+    },
+  );
+  test(
+    'Classic audio blocking MAIN shows the HM-D001 recovery issue',
+    () async {
+      port.mainSucceeds = false;
+      port.snapshot = const DeviceSnapshot(audioConnected: true);
+
+      expect(await service.connect(), isFalse);
+      expect(service.state.stage, DeviceStage.incomplete);
+      expect(service.state.issue, DeviceIssue.audioBlocksMain);
+      expect(port.calls, isNot(contains('autoAudio')));
+      expect(port.calls, isNot(contains('findMic')));
     },
   );
   for (final issue in [
@@ -254,6 +271,74 @@ void main() {
       expect(await pending, isTrue);
     },
   );
+  test('Android rejects disconnected and unknown microphones', () async {
+    port.autoAudioSucceeds = false;
+    port.microphones = const [
+      DeviceMicrophone(id: 'offline', name: 'HM-D001', connected: false),
+      DeviceMicrophone(id: 'connected', name: 'HM-D001', connected: true),
+    ];
+    final pending = service.connect();
+    await drain();
+    expect(service.state.stage, DeviceStage.choosingMicrophone);
+    final attempt = service.state.attempt;
+
+    service.selectMicrophone(attempt, DeviceSelection(port.microphones.first));
+    service.selectMicrophone(
+      attempt,
+      const DeviceSelection(
+        DeviceMicrophone(id: 'other', name: 'HM-D001', connected: true),
+      ),
+    );
+    await drain();
+    expect(port.calls, isNot(contains('selectMic')));
+    expect(service.state.stage, DeviceStage.choosingMicrophone);
+
+    service.selectMicrophone(attempt, DeviceSelection(port.microphones.last));
+    expect(await pending, isTrue);
+    expect(port.calls.where((call) => call == 'selectMic').length, 1);
+  });
+  test('missing connected Android mic ends with audio guidance', () async {
+    port.autoAudioSucceeds = false;
+    port.microphones = const [
+      DeviceMicrophone(id: 'offline', name: 'HM-D001', connected: false),
+    ];
+
+    expect(await service.connect(), isFalse);
+    expect(service.state.issue, DeviceIssue.audioUnavailable);
+    expect(service.state.stage, DeviceStage.incomplete);
+    expect(port.calls, isNot(contains('selectMic')));
+  });
+  test('reconnects verified MAIN if microphone selection drops BLE', () async {
+    port.autoAudioSucceeds = false;
+    port.dropMainWhenSelectingMicrophone = true;
+    final pending = service.connect();
+    await drain();
+
+    service.selectMicrophone(
+      service.state.attempt,
+      DeviceSelection(port.microphones.first, confirmAssociation: true),
+    );
+    expect(await pending, isTrue);
+    expect(port.calls, containsAllInOrder(['selectMic', 'main:false']));
+    expect(service.state.snapshot.ready, isTrue);
+  });
+  test('failed MAIN recovery never reports audio-only as ready', () async {
+    port.autoAudioSucceeds = false;
+    port.dropMainWhenSelectingMicrophone = true;
+    final pending = service.connect();
+    await drain();
+    port.mainSucceeds = false;
+
+    service.selectMicrophone(
+      service.state.attempt,
+      DeviceSelection(port.microphones.first, confirmAssociation: true),
+    );
+    expect(await pending, isFalse);
+    expect(port.calls, containsAllInOrder(['selectMic', 'main:false']));
+    expect(service.state.snapshot.audioReady, isTrue);
+    expect(service.state.snapshot.ready, isFalse);
+    expect(service.state.issue, DeviceIssue.mainUnavailable);
+  });
   test(
     'background/resume round never prompts, pairs, or changes retry preferences',
     () async {
@@ -329,5 +414,17 @@ void main() {
     expect(await timed.connect(), isFalse);
     expect(timed.state.issue, DeviceIssue.timedOut);
     await timed.dispose();
+  });
+  test('transport exception reports failure and allows retry', () async {
+    port.accessError = StateError('Bluetooth service unavailable');
+
+    expect(await service.connect(), isFalse);
+    expect(service.state.stage, DeviceStage.failed);
+    expect(service.state.issue, DeviceIssue.transportFailure);
+    expect(port.calls, ['access', 'cancel']);
+
+    port.accessError = null;
+    expect(await service.connect(), isTrue);
+    expect(service.state.stage, DeviceStage.ready);
   });
 }

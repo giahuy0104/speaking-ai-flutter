@@ -1,14 +1,14 @@
-enum H20BatteryAction {
+enum HomiBatteryAction {
   chargeSoon,
   chargeLow,
   chargeCritical,
   disconnectDepleted,
 }
 
-class H20BatteryAlertPolicy {
+class HomiBatteryAlertPolicy {
   final Map<String, _BatteryAlerts> _devices = {};
 
-  List<H20BatteryAction> observe({
+  List<HomiBatteryAction> observe({
     required bool connected,
     required String? deviceId,
     required int? batteryPercent,
@@ -21,7 +21,7 @@ class H20BatteryAlertPolicy {
     }
     final id = deviceId?.trim();
     final state = _devices.putIfAbsent(
-      id == null || id.isEmpty ? 'unknown-h20' : id,
+      id == null || id.isEmpty ? 'unknown-hm-d001' : id,
       _BatteryAlerts.new,
     );
     final percent = batteryPercent;
@@ -30,22 +30,22 @@ class H20BatteryAlertPolicy {
     if (percent >= 8) state.critical = false;
     if (percent > 0) state.depleted = false;
 
-    final actions = <H20BatteryAction>[];
+    final actions = <HomiBatteryAction>[];
     if (percent < 5) {
       state.soon = state.low = true;
-      if (!state.critical) actions.add(H20BatteryAction.chargeCritical);
+      if (!state.critical) actions.add(HomiBatteryAction.chargeCritical);
       state.critical = true;
     } else if (percent < 10) {
       state.soon = true;
-      if (!state.low) actions.add(H20BatteryAction.chargeLow);
+      if (!state.low) actions.add(HomiBatteryAction.chargeLow);
       state.low = true;
     } else if (percent < 20) {
-      if (!state.soon) actions.add(H20BatteryAction.chargeSoon);
+      if (!state.soon) actions.add(HomiBatteryAction.chargeSoon);
       state.soon = true;
     }
     if (percent == 0 && !state.depleted) {
       state.depleted = true;
-      actions.add(H20BatteryAction.disconnectDepleted);
+      actions.add(HomiBatteryAction.disconnectDepleted);
     }
     return actions;
   }

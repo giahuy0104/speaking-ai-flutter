@@ -15,7 +15,7 @@ import android.os.Looper
 import androidx.annotation.RequiresApi
 import io.flutter.plugin.common.MethodChannel
 
-/** Parent-visible association flow for the H20 companion device. */
+/** Parent-visible association flow for the HM-D001 companion device. */
 class HomiCompanionDeviceManager(private val host: HomiAndroidHost) {
     companion object {
         const val ASSOCIATION_REQUEST_CODE = 7420

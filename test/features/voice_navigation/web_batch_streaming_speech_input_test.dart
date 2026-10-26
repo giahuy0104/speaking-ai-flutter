@@ -148,7 +148,7 @@ class _FakeHfpAudioControl implements HfpAudioControl {
   BluetoothAudioStatus get status => const BluetoothAudioStatus(
     phase: BluetoothAudioConnectionPhase.ready,
     deviceId: 'ios-hfp',
-    deviceName: 'H20 HFP',
+    deviceName: 'HM-D001 HFP',
   );
 
   @override

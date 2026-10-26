@@ -5,14 +5,29 @@ import '../../../../l10n/display_language.dart';
 import '../../domain/conversation_models.dart';
 
 class ResultPanel extends StatelessWidget {
-  const ResultPanel({required this.result, required this.onPlay, super.key});
+  const ResultPanel({
+    required this.result,
+    required this.onPlay,
+    this.outputLanguage = TranslationOutputLanguage.english,
+    super.key,
+  });
 
   final ConversationResult? result;
   final VoidCallback onPlay;
+  final TranslationOutputLanguage outputLanguage;
 
   @override
   Widget build(BuildContext context) {
     final currentResult = result;
+    final language = currentResult?.outputLanguage ?? outputLanguage;
+    final vietnameseLanguageName = language.label.replaceFirst('Tiếng', 'tiếng');
+    final chineseLanguageName = switch (language) {
+      TranslationOutputLanguage.english => '英语',
+      TranslationOutputLanguage.chinese => '中文',
+      TranslationOutputLanguage.japanese => '日语',
+      TranslationOutputLanguage.korean => '韩语',
+      TranslationOutputLanguage.french => '法语',
+    };
     final colorScheme = Theme.of(context).colorScheme;
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -29,18 +44,30 @@ class ResultPanel extends StatelessWidget {
           key: const Key('conversation-english-bubble'),
           isEnglish: true,
           icon: Icons.translate_rounded,
-          label: context.tr('Câu tiếng Anh', '英语句子'),
-          text: currentResult?.englishText,
+          label: context.tr(
+            'Câu $vietnameseLanguageName',
+            '$chineseLanguageName句子',
+          ),
+          text: currentResult?.displayedTranslation,
           placeholder: context.tr('Bản dịch sẽ hiện ở đây', '译文会显示在这里'),
-          trailing: currentResult?.audioUri == null
+          trailing:
+              currentResult == null ||
+                  (currentResult.audioUri == null &&
+                      currentResult.audioSource != 'device_tts')
               ? null
               : Semantics(
                   button: true,
-                  label: context.tr('Phát lại câu tiếng Anh', '重新播放英语句子'),
+                  label: context.tr(
+                    'Phát lại câu $vietnameseLanguageName',
+                    '重新播放$chineseLanguageName句子',
+                  ),
                   child: IconButton(
                     key: const Key('conversation-replay-result'),
                     onPressed: onPlay,
-                    tooltip: context.tr('Phát tiếng Anh', '播放英语'),
+                    tooltip: context.tr(
+                      'Phát $vietnameseLanguageName',
+                      '播放$chineseLanguageName',
+                    ),
                     icon: const Icon(Icons.play_arrow_rounded),
                     style: IconButton.styleFrom(
                       minimumSize: const Size.square(44),

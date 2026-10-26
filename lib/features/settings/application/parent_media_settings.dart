@@ -8,7 +8,7 @@ abstract interface class ParentMediaSettingsStore {
   Future<void> writeStopMediaWhenBackgrounded(bool enabled);
 }
 
-/// Android is designed to keep an explicit HOMI/H20 session alive when the
+/// Android is designed to keep an explicit HOMI/HM-D001 session alive when the
 /// child opens another application. Other platforms retain the conservative
 /// stop-on-background default until their background audio flow is handled
 /// separately.

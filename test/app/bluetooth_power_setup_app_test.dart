@@ -52,14 +52,14 @@ void main() {
         );
         final result = tester
             .widget<StartupSetupScreen>(find.byType(StartupSetupScreen))
-            .onSetupH20();
+            .onSetupHomi();
         await _drainConnectionRound(tester);
         expect(await result, isTrue);
         final screen = tester.widget<StartupSetupScreen>(
           find.byType(StartupSetupScreen),
         );
-        expect(screen.h20BleConnected, isTrue);
-        expect(screen.h20HfpConfigured, isTrue);
+        expect(screen.homiBleConnected, isTrue);
+        expect(screen.homiHfpConfigured, isTrue);
         expect(
           app.hfpCalls.where((c) => c.method == 'startAudioRoute'),
           isEmpty,
@@ -89,11 +89,11 @@ void main() {
       final screen = tester.widget<StartupSetupScreen>(
         find.byType(StartupSetupScreen),
       );
-      final pending = screen.onSetupH20();
+      final pending = screen.onSetupHomi();
       for (var i = 0; i < 6; i++) {
         await tester.pump(const Duration(milliseconds: 100));
       }
-      final cancellation = screen.onCancelH20Setup!();
+      final cancellation = screen.onCancelHomiSetup!();
       await tester.pump();
       await cancellation;
       inventory.complete([]);
@@ -168,7 +168,7 @@ void main() {
       expect(
         tester
             .widget<StartupSetupScreen>(find.byType(StartupSetupScreen))
-            .h20BleConnected,
+            .homiBleConnected,
         isTrue,
       );
       await tester.tap(find.byKey(const Key('parent-homi-microphone-cancel')));
@@ -202,7 +202,7 @@ void main() {
           },
         );
         await _openPermissionStep(tester);
-        await tester.tap(find.byKey(const Key('startup-setup-h20')));
+        await tester.tap(find.byKey(const Key('startup-setup-hm-d001')));
         await _drainConnectionRound(tester);
         expect(find.text('Chọn micro HOMI'), findsOneWidget);
         expect(tester.takeException(), isNull);
@@ -269,7 +269,7 @@ void main() {
         find.byKey(
           Key(
             radio == 'poweredOn'
-                ? 'startup-setup-h20'
+                ? 'startup-setup-hm-d001'
                 : 'bluetooth-enable-switch',
           ),
         ),
@@ -285,7 +285,7 @@ void main() {
       app.microphoneGranted = false;
       await _openPermissionStep(tester);
       expect(find.text('Cấp quyền còn thiếu'), findsOneWidget);
-      expect(find.byKey(const Key('startup-setup-h20')), findsNothing);
+      expect(find.byKey(const Key('startup-setup-hm-d001')), findsNothing);
       expect(app.count('requestPermissions'), 0);
       app.microphoneGranted = true;
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
@@ -295,13 +295,13 @@ void main() {
         find.byKey(const Key('startup-request-permissions')),
         findsNothing,
       );
-      expect(find.byKey(const Key('startup-setup-h20')), findsOneWidget);
+      expect(find.byKey(const Key('startup-setup-hm-d001')), findsOneWidget);
       app.microphoneGranted = false;
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
       await tester.pumpAndSettle();
       expect(find.text('Cấp quyền còn thiếu'), findsOneWidget);
-      expect(find.byKey(const Key('startup-setup-h20')), findsNothing);
+      expect(find.byKey(const Key('startup-setup-hm-d001')), findsNothing);
       expect(app.count('requestPermissions'), 0);
       expect(app.count('scan'), 0);
       expect(
@@ -369,10 +369,10 @@ void main() {
       final screen = tester.widget<StartupSetupScreen>(
         find.byType(StartupSetupScreen),
       );
-      final connection = screen.onSetupH20();
+      final connection = screen.onSetupHomi();
       await tester.pump();
       expect(app.count('requestPermissions'), greaterThan(0));
-      await screen.onCancelH20Setup!();
+      await screen.onCancelHomiSetup!();
       permission.complete(true);
       await tester.pumpAndSettle();
       expect(await connection, isFalse);
@@ -496,7 +496,7 @@ void main() {
       await app.openSettings();
       final sheet = tester.widget<SettingsSheet>(find.byType(SettingsSheet));
       expect(sheet.controller.aiv0BleStatus.isConnected, isTrue);
-      expect(sheet.controller.h20ConnectionState().isH20Ready, isFalse);
+      expect(sheet.controller.homiConnectionState().isHomiReady, isFalse);
       // Background MAIN/HFP recovery must not open a system-pairing dialog.
       expect(app.count('requestDualModeBond'), 0);
       app.bleCalls.clear();
@@ -518,7 +518,7 @@ void main() {
       expect(app.count('scan'), 0);
       expect(app.count('disconnect'), 0);
       expect(sheet.connectionCoordinator!.phase, DeviceConnectionPhase.failed);
-      expect(sheet.controller.h20ConnectionState().isH20Ready, isFalse);
+      expect(sheet.controller.homiConnectionState().isHomiReady, isFalse);
       expect(find.text('HOMI đã sẵn sàng'), findsNothing);
       expect(find.text('Kết nối thành công'), findsNothing);
       expect(find.text('Mic chưa kết nối'), findsWidgets);
@@ -551,7 +551,7 @@ void main() {
       final sheet = tester.widget<SettingsSheet>(find.byType(SettingsSheet));
       expect(sheet.controller.aiv0BleStatus.isConnected, isTrue);
       expect(sheet.connectionCoordinator!.phase, DeviceConnectionPhase.failed);
-      expect(sheet.controller.h20ConnectionState().isH20Ready, isFalse);
+      expect(sheet.controller.homiConnectionState().isHomiReady, isFalse);
     },
     variant: android,
   );
@@ -602,8 +602,8 @@ void main() {
       var screen = tester.widget<StartupSetupScreen>(
         find.byType(StartupSetupScreen),
       );
-      expect(screen.h20BleConnected, isTrue);
-      expect(screen.h20HfpConfigured, isFalse);
+      expect(screen.homiBleConnected, isTrue);
+      expect(screen.homiHfpConfigured, isFalse);
       expect(app.count('connect'), 1);
       expect(find.byKey(const Key('homi-guide-enable-audio')), findsOneWidget);
       final enableAudioSettings = find.byKey(
@@ -627,8 +627,8 @@ void main() {
       screen = tester.widget<StartupSetupScreen>(
         find.byType(StartupSetupScreen),
       );
-      expect(screen.h20BleConnected, isTrue);
-      expect(screen.h20HfpConfigured, isTrue);
+      expect(screen.homiBleConnected, isTrue);
+      expect(screen.homiHfpConfigured, isTrue);
       expect(app.count('scanClassic'), 0);
       expect(tester.takeException(), isNull);
     },
@@ -646,9 +646,9 @@ void main() {
       var screen = tester.widget<StartupSetupScreen>(
         find.byType(StartupSetupScreen),
       );
-      expect(screen.h20BleConnected, isTrue);
-      expect(screen.h20HfpConfigured, isFalse);
-      final connection = screen.onSetupH20();
+      expect(screen.homiBleConnected, isTrue);
+      expect(screen.homiHfpConfigured, isFalse);
+      final connection = screen.onSetupHomi();
       await _drainConnectionRound(tester);
       expect(find.byType(BottomSheet), findsNothing);
       expect(find.text('Kết nối thành công'), findsNothing);
@@ -657,7 +657,7 @@ void main() {
       screen = tester.widget<StartupSetupScreen>(
         find.byType(StartupSetupScreen),
       );
-      expect(screen.h20HfpConfigured, isFalse);
+      expect(screen.homiHfpConfigured, isFalse);
       expect(
         find.byKey(const Key('startup-connection-success-dialog')),
         findsNothing,
@@ -687,9 +687,9 @@ Future<void> _openPermissionStep(WidgetTester tester) async {
 
 /// Taps "Kết nối HOMI". MAIN connects first; audio guides open afterwards.
 Future<void> _tapConnectHomi(WidgetTester tester) async {
-  final setupH20 = find.byKey(const Key('startup-setup-h20'));
-  await tester.ensureVisible(setupH20);
-  await tester.tap(setupH20);
+  final setupHomi = find.byKey(const Key('startup-setup-hm-d001'));
+  await tester.ensureVisible(setupHomi);
+  await tester.tap(setupHomi);
 }
 
 Future<void> _drainConnectionRound(WidgetTester tester) async {
@@ -877,7 +877,7 @@ class _NativeApp {
         .widget<ConversationScreen>(find.byType(ConversationScreen))
         .onOpenSettings();
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('settings-audio-h20-section')));
+    await tester.tap(find.byKey(const Key('settings-audio-hm-d001-section')));
     await tester.pumpAndSettle();
   }
 

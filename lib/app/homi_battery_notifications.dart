@@ -5,7 +5,7 @@ import '../l10n/display_language.dart';
 
 /// Immediate reminders from live HOMI telemetry. Does not schedule battery
 /// estimates or request OS permission while handling a device event.
-class H20BatteryNotifications {
+class HomiBatteryNotifications {
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
   Future<bool>? _initialization;

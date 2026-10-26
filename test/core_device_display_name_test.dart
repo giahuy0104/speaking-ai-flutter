@@ -11,7 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('missing BLE name remains raw and is not identified as H20', () {
+  test('missing BLE name remains raw and is not identified as HM-D001', () {
     final device = Aiv0BleDevice.fromMap(<Object?, Object?>{
       'id': 'unknown-ble',
       'rssi': -30,
@@ -44,11 +44,11 @@ void main() {
 
   test('unknown HFP names do not use an identifier as the friendly name', () {
     final device = HfpAudioDevice.fromJson(<String, Object>{
-      'id': 'H20-looking-device-identifier',
+      'id': 'HM-D001-looking-device-identifier',
       'isConnected': true,
     });
     expect(device.name, isEmpty);
-    expect(selectLikelyH20HfpDevice(<HfpAudioDevice>[device]), isNull);
+    expect(selectLikelyHomiHfpDevice(<HfpAudioDevice>[device]), isNull);
     expect(
       localizedDeviceName(
         device.name,
@@ -72,7 +72,7 @@ void main() {
           'Thiết bị không xác định',
         );
       }
-      for (final known in <String>['H20', 'HM-D001', 'AirPods']) {
+      for (final known in <String>['HM-D001', 'HM-D001', 'AirPods']) {
         expect(
           localizedDeviceName(' $known ', DisplayLanguage.simplifiedChinese),
           known,
@@ -85,7 +85,7 @@ void main() {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     SharedPreferences.setMockInitialValues(<String, Object>{
       'aiv0_ble_last_device_id': 'old',
-      'aiv0_ble_last_device_name': 'H20',
+      'aiv0_ble_last_device_name': 'HM-D001',
     });
     const channel = MethodChannel('test.raw-ble-name');
     const events = MethodChannel('test.raw-ble-name/events');
@@ -137,7 +137,7 @@ void main() {
         (_) async => <String, Object>{
           'phase': 'ready',
           'deviceId': 'old',
-          'deviceName': 'H20',
+          'deviceName': 'HM-D001',
         },
       );
       final input = InnotrikBleAudioInput(
@@ -147,7 +147,7 @@ void main() {
       );
       try {
         await input.initializeBluetooth();
-        expect(input.bluetoothStatus.deviceName, 'H20');
+        expect(input.bluetoothStatus.deviceName, 'HM-D001');
         for (final status in <Map<String, Object>>[
           {'phase': 'ready', 'deviceId': 'new'},
           {'phase': 'ready', 'deviceId': 'new', 'deviceName': ''},

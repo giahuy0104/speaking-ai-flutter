@@ -11,7 +11,7 @@ void main() {
   test(
     'browser recognizes HOMI labels and clears a removed selected input',
     () async {
-      for (final name in ['HM-D001', 'H20', 'HOMI']) {
+      for (final name in ['HM-D001', 'HM-D001', 'HOMI']) {
         expect(isLikelyBrowserHfpLabel(name), isTrue);
       }
       final input = _Input();

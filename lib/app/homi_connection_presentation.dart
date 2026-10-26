@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../core/device/h20_connection_state.dart';
+import '../core/device/homi_connection_state.dart';
 import '../l10n/display_language.dart';
 
 /// User-facing status for the independently connected microphone and MAIN.
@@ -13,11 +13,11 @@ enum HomiConnectionPresentation {
   disconnected;
 
   static HomiConnectionPresentation from(
-    H20ConnectionState? state, {
+    HomiConnectionState? state, {
     required bool isReady,
   }) {
     if (state == null) return isReady ? ready : disconnected;
-    if (state.isH20Ready) return ready;
+    if (state.isHomiReady) return ready;
     if (state.hfpReady && state.bleReady) return microphoneMismatch;
     if (state.hfpReady) return mainUnavailable;
     if (state.bleReady) return microphoneUnavailable;

@@ -318,7 +318,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         return;
       }
       if (screenInteractive == false) {
-        // Locking the phone is an intended H20 learning mode. Keep the active
+        // Locking the phone is an intended HM-D001 learning mode. Keep the active
         // lesson/translation and its SCO route; only the always-on foreground
         // wake loop follows the coordinator's normal Android policy.
         _applyBackgroundLearningDirective(directive);
@@ -447,8 +447,8 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   Widget build(BuildContext context) {
     _builtDisplayLanguage = widget.controller.displayLanguage;
     _builtHomiStatus = HomiConnectionPresentation.from(
-      widget.controller.h20ConnectionState(),
-      isReady: widget.controller.isH20Ready,
+      widget.controller.homiConnectionState(),
+      isReady: widget.controller.isHomiReady,
     );
     _builtChildAge = widget.controller.childAge;
     final screenSize = MediaQuery.sizeOf(context);
@@ -503,8 +503,8 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                   HeroMode(
                     enabled: _page == 1,
                     child: VocabularyHomeScreen(
-                      isReady: widget.controller.isH20Ready,
-                      connectionState: widget.controller.h20ConnectionState(),
+                      isReady: widget.controller.isHomiReady,
+                      connectionState: widget.controller.homiConnectionState(),
                       ensureDeviceConnected: widget.ensureDeviceConnected,
                       isDeviceConnectionReady: widget.isDeviceConnectionReady,
                       isActive: _page == 1,
@@ -665,8 +665,8 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     // competing with a rebuild per audio sample.
     if (widget.controller.displayLanguage != _builtDisplayLanguage ||
         HomiConnectionPresentation.from(
-              widget.controller.h20ConnectionState(),
-              isReady: widget.controller.isH20Ready,
+              widget.controller.homiConnectionState(),
+              isReady: widget.controller.isHomiReady,
             ) !=
             _builtHomiStatus ||
         widget.controller.childAge != _builtChildAge) {

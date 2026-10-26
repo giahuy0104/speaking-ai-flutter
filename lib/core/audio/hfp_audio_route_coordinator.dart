@@ -34,7 +34,7 @@ abstract interface class HfpAudioRouteLeaseControl {
   Future<void> handoffAudioRoute();
 }
 
-/// Explicit output changes must not inherit the short H20 handoff window.
+/// Explicit output changes must not inherit the short HM-D001 handoff window.
 abstract interface class HfpImmediateRouteReleaseControl {
   Future<void> stopAudioRouteImmediately();
 }

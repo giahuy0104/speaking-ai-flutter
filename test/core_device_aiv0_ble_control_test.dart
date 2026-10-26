@@ -99,7 +99,7 @@ void main() {
             'stage': 'BLE_DISCONNECTED',
             'caller': 'Aiv0BleControlBridge',
             'eventEpochMs': 1_787_900_001_610,
-            'audioRoute': 'in=[BluetoothHFP:H20] out=[BluetoothHFP:H20]',
+            'audioRoute': 'in=[BluetoothHFP:HM-D001] out=[BluetoothHFP:HM-D001]',
             'systemIsReconnecting': true,
             'code': 'CBErrorDomain:7',
           },
@@ -107,7 +107,7 @@ void main() {
             'stage': 'HFP_ROUTE_CONFIRMED',
             'caller': 'HfpAudioBridge',
             'eventEpochMs': 1_787_900_001_420,
-            'audioRoute': 'in=[BluetoothHFP:H20] out=[BluetoothHFP:H20]',
+            'audioRoute': 'in=[BluetoothHFP:HM-D001] out=[BluetoothHFP:HM-D001]',
           },
         ],
         'remoteMainCount': 2,
@@ -220,17 +220,17 @@ void main() {
       );
     });
 
-    test('prefers the previously verified H20 address', () {
+    test('prefers the previously verified HM-D001 address', () {
       const devices = <Aiv0BleDevice>[
         Aiv0BleDevice(
           id: 'AA:AA',
-          name: 'H20 nearby',
+          name: 'HM-D001 nearby',
           rssi: -30,
           isLikelyAiv0: true,
         ),
         Aiv0BleDevice(
           id: 'BB:BB',
-          name: 'H20 saved',
+          name: 'HM-D001 saved',
           rssi: -80,
           isLikelyAiv0: true,
         ),
@@ -244,7 +244,7 @@ void main() {
 
     test('prefers an advertised control service over a name match', () {
       const devices = <Aiv0BleDevice>[
-        Aiv0BleDevice(id: 'NAME', name: 'H20', rssi: -20, isLikelyAiv0: true),
+        Aiv0BleDevice(id: 'NAME', name: 'HM-D001', rssi: -20, isLikelyAiv0: true),
         Aiv0BleDevice(
           id: 'SERVICE',
           name: 'Unknown',
@@ -257,11 +257,11 @@ void main() {
       expect(selectAiv0AutoConnectCandidate(devices)?.id, 'SERVICE');
     });
 
-    test('prefers HM-D001 when migrating a saved H20', () {
+    test('keeps a previously verified HM-D001 address', () {
       const devices = <Aiv0BleDevice>[
         Aiv0BleDevice(
           id: 'OLD',
-          name: 'H20',
+          name: 'HM-D001',
           rssi: -30,
           advertisesControlService: true,
         ),
@@ -277,15 +277,15 @@ void main() {
         selectAiv0AutoConnectCandidate(
           devices,
           savedDeviceId: 'OLD',
-          savedDeviceName: 'H20',
+          savedDeviceName: 'HM-D001',
         )?.id,
-        'NEW',
+        'OLD',
       );
       expect(
         selectAiv0AutoConnectCandidate(devices, savedDeviceId: 'OLD')?.id,
         'OLD',
       );
-      expect(selectAiv0AutoConnectCandidate(devices)?.id, 'NEW');
+      expect(selectAiv0AutoConnectCandidate(devices)?.id, 'OLD');
     });
 
     test('does not connect an unrelated BLE device', () {
@@ -330,7 +330,6 @@ void main() {
           expect(event.button, button);
           expect(event.gesture, gesture);
           expect(event.isObservedHmD001Packet, isTrue);
-          expect(event.isObservedH20Packet, isFalse);
           expect(event.isActionable, isTrue);
           expect(event.sequence, raw[4]);
           expect(event.batteryPercent, 79);
@@ -384,7 +383,7 @@ void main() {
       }
     });
 
-    test('decodes observed H20 MAIN packet without enabling APP State', () {
+    test('rejects an obsolete MAIN packet layout', () {
       const codec = Aiv0DraftProtocolCodec(confirmed: false);
       final event = codec.decodeButtonEvent(
         Uint8List.fromList(<int>[
@@ -403,19 +402,15 @@ void main() {
         ]),
       );
 
-      expect(event.isObservedH20Packet, isTrue);
+      expect(event.isObservedHmD001Packet, isFalse);
       expect(event.isDraftPacket, isFalse);
-      expect(event.isActionable, isTrue);
-      expect(event.button, Aiv0Button.main);
-      expect(event.gesture, Aiv0ButtonGesture.shortPress);
-      expect(event.sequence, 0x10);
-      expect(event.flags, 0x0401);
-      expect(event.batteryPercent, 62);
-      expect(event.uptimeMilliseconds, 782906);
+      expect(event.isActionable, isFalse);
+      expect(event.button, Aiv0Button.unknown);
+      expect(event.gesture, Aiv0ButtonGesture.unknown);
       expect(event.rawHex, '01 01 10 01 01 04 3E 00 3A F2 0B 00');
     });
 
-    test('does not invent long press or release for current H20 packets', () {
+    test('does not invent long press or release for current HM-D001 packets', () {
       const codec = Aiv0DraftProtocolCodec(confirmed: false);
       final longPress = codec.decodeButtonEvent(
         Uint8List.fromList(<int>[
@@ -452,11 +447,11 @@ void main() {
 
       expect(longPress.button, Aiv0Button.unknown);
       expect(longPress.gesture, Aiv0ButtonGesture.unknown);
-      expect(longPress.isObservedH20Packet, isFalse);
+      expect(longPress.isObservedHmD001Packet, isFalse);
       expect(longPress.isActionable, isFalse);
       expect(release.button, Aiv0Button.unknown);
       expect(release.gesture, Aiv0ButtonGesture.unknown);
-      expect(release.isObservedH20Packet, isFalse);
+      expect(release.isObservedHmD001Packet, isFalse);
       expect(release.isActionable, isFalse);
     });
 

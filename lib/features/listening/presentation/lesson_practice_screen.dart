@@ -4789,8 +4789,8 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       return 'iPhone chưa chuyển mic và loa sang HM-D001. Bạn kiểm tra kết nối HM-D001 rồi thử lại nhé.';
     }
     if (normalized.contains('hfp_route_lost') ||
-        normalized.contains('kết nối âm thanh h20 bị gián đoạn') ||
-        normalized.contains('mic h20 bị ngắt kết nối')) {
+        normalized.contains('kết nối âm thanh hm-d001 bị gián đoạn') ||
+        normalized.contains('mic hm-d001 bị ngắt kết nối')) {
       return 'Mic HM-D001 vừa mất đường âm thanh. HOMI đang kết nối lại; bạn thử ghi âm lại nhé.';
     }
     if (normalized.contains('ready_cue_')) {

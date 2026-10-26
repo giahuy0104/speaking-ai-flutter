@@ -113,4 +113,24 @@ void main() {
       expect(find.byKey(const Key('conversation-replay-result')), findsNothing);
     },
   );
+
+  testWidgets('shows the selected translation and can replay device speech', (
+    tester,
+  ) async {
+    var calls = 0;
+    final translated = ConversationResult.fromJson(<String, dynamic>{
+      'conversationId': 'conv_ko',
+      'sessionId': 'sess_ko',
+      'vietnameseText': 'Con cần nước.',
+      'englishText': '',
+      'targetLanguage': 'ko',
+      'translatedText': '물 주세요.',
+      'audioSource': 'device_tts',
+    }, backendBaseUri: Uri.parse('https://example.com'));
+    await pumpPanel(tester, result: translated, onPlay: () => calls++);
+    expect(find.text('Câu tiếng Hàn'), findsOneWidget);
+    expect(find.text('물 주세요.'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('conversation-replay-result')));
+    expect(calls, 1);
+  });
 }

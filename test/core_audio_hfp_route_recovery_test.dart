@@ -25,8 +25,8 @@ void main() {
           connectCall = call;
           return <String, dynamic>{
             'phase': 'ready',
-            'deviceId': 'h20',
-            'deviceName': 'H20',
+            'deviceId': 'hm-d001',
+            'deviceName': 'HM-D001',
             'routeActive': false,
           };
         case 'stopAudioRoute':
@@ -46,15 +46,15 @@ void main() {
     addTearDown(control.dispose);
 
     await control.connect(
-      const HfpAudioDevice(id: 'h20', name: 'H20', isConnected: true),
+      const HfpAudioDevice(id: 'hm-d001', name: 'HM-D001', isConnected: true),
     );
 
     expect(control.status.isConnected, isTrue);
-    expect(control.status.deviceId, 'h20');
+    expect(control.status.deviceId, 'hm-d001');
     expect(control.status.routeActive, isFalse);
     expect(connectCall?.arguments, <String, dynamic>{
-      'deviceId': 'h20',
-      'deviceName': 'H20',
+      'deviceId': 'hm-d001',
+      'deviceName': 'HM-D001',
     });
   });
 
@@ -71,8 +71,8 @@ void main() {
         case 'initialize':
           return <String, dynamic>{
             'phase': 'ready',
-            'deviceId': 'old-h20-uid',
-            'deviceName': 'H20',
+            'deviceId': 'old-hm-d001-uid',
+            'deviceName': 'HM-D001',
             'routeActive': false,
           };
         case 'startAudioRoute':
@@ -85,11 +85,11 @@ void main() {
           }
           return <String, dynamic>{
             'phase': 'recording',
-            'deviceId': 'new-h20-uid',
-            'deviceName': 'H20',
+            'deviceId': 'new-hm-d001-uid',
+            'deviceName': 'HM-D001',
             'routeActive': true,
-            'inputDeviceName': 'H20',
-            'outputDeviceName': 'H20',
+            'inputDeviceName': 'HM-D001',
+            'outputDeviceName': 'HM-D001',
           };
         case 'stopAudioRoute':
           return null;
@@ -111,7 +111,7 @@ void main() {
 
     expect(startCalls, 2);
     expect(control.status.routeActive, isTrue);
-    expect(control.status.deviceId, 'new-h20-uid');
+    expect(control.status.deviceId, 'new-hm-d001-uid');
   });
 
   test('retries a transient Android HFP route failure', () async {
@@ -129,8 +129,8 @@ void main() {
         case 'initialize':
           return <String, dynamic>{
             'phase': 'ready',
-            'deviceId': 'h20',
-            'deviceName': 'H20',
+            'deviceId': 'hm-d001',
+            'deviceName': 'HM-D001',
             'routeActive': false,
           };
         case 'startAudioRoute':
@@ -143,11 +143,11 @@ void main() {
           }
           return <String, dynamic>{
             'phase': 'recording',
-            'deviceId': 'h20',
-            'deviceName': 'H20',
+            'deviceId': 'hm-d001',
+            'deviceName': 'HM-D001',
             'routeActive': true,
-            'inputDeviceName': 'H20',
-            'outputDeviceName': 'H20',
+            'inputDeviceName': 'HM-D001',
+            'outputDeviceName': 'HM-D001',
           };
         case 'stopAudioRoute':
           return null;
@@ -172,7 +172,7 @@ void main() {
   });
 
   test(
-    'rejects a route snapshot without both selected H20 endpoints',
+    'rejects a route snapshot without both selected HM-D001 endpoints',
     () async {
       const methodChannel = MethodChannel('test_incomplete_hfp_route');
       const eventChannel = EventChannel('test_incomplete_hfp_route/events');
@@ -187,16 +187,16 @@ void main() {
           case 'initialize':
             return <String, dynamic>{
               'phase': 'ready',
-              'deviceId': 'h20',
-              'deviceName': 'H20',
+              'deviceId': 'hm-d001',
+              'deviceName': 'HM-D001',
             };
           case 'startAudioRoute':
             return <String, dynamic>{
               'phase': 'recording',
-              'deviceId': 'h20',
-              'deviceName': 'H20',
+              'deviceId': 'hm-d001',
+              'deviceName': 'HM-D001',
               'routeActive': true,
-              'inputDeviceName': 'H20',
+              'inputDeviceName': 'HM-D001',
               'outputDeviceName': null,
             };
           case 'stopAudioRoute':
@@ -236,8 +236,8 @@ void main() {
         case 'initialize':
           return <String, dynamic>{
             'phase': 'ready',
-            'deviceId': 'h20',
-            'deviceName': 'H20',
+            'deviceId': 'hm-d001',
+            'deviceName': 'HM-D001',
             'routeActive': false,
           };
         case 'startAudioRoute':

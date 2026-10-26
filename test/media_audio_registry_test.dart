@@ -29,7 +29,7 @@ void main() {
     await _expectVerifiedAssets(manifest);
   });
 
-  test('system-sfx pack registers H20 test and Star Ting', () async {
+  test('system-sfx pack registers HM-D001 test and Star Ting', () async {
     final raw =
         jsonDecode(
               await File('assets/data/system_sfx_audio.json').readAsString(),
@@ -40,7 +40,7 @@ void main() {
     expect(manifest.pack, 'system-sfx');
     expect(raw['allowTtsFallback'], isFalse);
     expect(manifest.prompts.map((prompt) => prompt.key.value).toSet(), <String>{
-      MediaAudioKeys.h20SpeakerTest,
+      MediaAudioKeys.homiSpeakerTest,
       MediaAudioKeys.rewardStarTing,
     });
     await _expectVerifiedAssets(manifest);

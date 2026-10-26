@@ -809,7 +809,7 @@ void main() {
   });
 
   testWidgets(
-    'opens the H20 microphone when iOS TTS omits its finish callback',
+    'opens the HM-D001 microphone when iOS TTS omits its finish callback',
     (tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
       addTearDown(() => debugDefaultTargetPlatformOverride = null);
@@ -1243,7 +1243,7 @@ void main() {
   }
 
   testWidgets(
-    'iOS Challenge allows the Apple Speech ready budget after H20 route startup',
+    'iOS Challenge allows the Apple Speech ready budget after HM-D001 route startup',
     (tester) async {
       await _usePhoneSurface(tester);
       final startGate = Completer<void>();
@@ -1883,7 +1883,7 @@ class _FakeLessonEnglishSpeechInput implements LessonEnglishSpeechInput {
     return StreamingSpeechCapture(
       sourceText: transcript,
       duration: const Duration(seconds: 1),
-      inputLabel: 'H20 Apple Speech',
+      inputLabel: 'HM-D001 Apple Speech',
       recordedAudio: recordedAudio,
       confidence: 1,
       firstResultMs: 120,
@@ -2091,7 +2091,7 @@ class _KeyedChallengeVoicePromptService extends _RecordingVoicePromptService
 class _FailingVoicePromptService extends _RecordingVoicePromptService {
   @override
   Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
-    throw StateError('H20 route unavailable');
+    throw StateError('HM-D001 route unavailable');
   }
 }
 

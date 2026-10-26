@@ -24,7 +24,7 @@ class PromptAudioUsageTest {
         assertTrue(PromptAudioUsage.usesCallStream(false, true, true, true))
     }
 
-    @Test fun ownedH20RouteKeepsThePromptOnTheCallStreamWhileScoComesUp() {
+    @Test fun ownedHomiRouteKeepsThePromptOnTheCallStreamWhileScoComesUp() {
         assertTrue(PromptAudioUsage.usesCallStream(false, false, true, false))
         assertFalse(PromptAudioUsage.usesCallStream(false, true, true, false))
     }

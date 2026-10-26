@@ -57,7 +57,7 @@ class DeviceIdentityNamesTest {
     }
 
     @Test
-    fun unnamedBleIsNotRenamedOrClassifiedAsH20() {
+    fun unnamedBleIsNotRenamedOrClassifiedAsHomi() {
         val device = device("AA:BB:CC:DD:EE:01")
         @Suppress("DEPRECATION")
         val scan = ScanResult(device, null, -40, 0)
@@ -81,10 +81,10 @@ class DeviceIdentityNamesTest {
     }
 
     @Test
-    fun realH20NameIsPreserved() {
+    fun realHomiNameIsPreserved() {
         val device = device("AA:BB:CC:DD:EE:01")
-        shadowOf(device).setName("H20")
-        assertEquals("H20", name(device))
+        shadowOf(device).setName("HM-D001")
+        assertEquals("HM-D001", name(device))
     }
 
     @Test
@@ -124,32 +124,32 @@ class DeviceIdentityNamesTest {
     fun explicitBleDisconnectSurvivesServiceAndBridgeRestart() {
         val preferences = context.getSharedPreferences("homi_android_runtime", Context.MODE_PRIVATE)
         preferences.edit()
-            .putString("h20_ble_device_id", "AA:BB:CC:DD:EE:01")
-            .putString("h20_ble_device_name", "HM-D001")
+            .putString("homi_ble_device_id", "AA:BB:CC:DD:EE:01")
+            .putString("homi_ble_device_name", "HM-D001")
             .commit()
         ble.onMethodCall(MethodCall("disconnect", null), Result())
-        assertTrue(preferences.getBoolean("h20_ble_manual_disconnect", false))
+        assertTrue(preferences.getBoolean("homi_ble_manual_disconnect", false))
         ble.dispose()
         ble = Aiv0BleControlBridge(HomiAndroidHost(context), NoopMessenger)
         ble.onBackgroundSessionStarted()
         shadowOf(Looper.getMainLooper()).idle()
         assertTrue(shadowOf(device("AA:BB:CC:DD:EE:01")).bluetoothGatts.isEmpty())
-        assertEquals("HM-D001", preferences.getString("h20_ble_device_name", null))
+        assertEquals("HM-D001", preferences.getString("homi_ble_device_name", null))
     }
 
     @Test
     fun cancelDoesNotOptOutAndAnExplicitConnectReenablesRecovery() {
         val preferences = context.getSharedPreferences("homi_android_runtime", Context.MODE_PRIVATE)
         ble.onMethodCall(MethodCall("cancelConnectionAttempt", null), Result())
-        assertFalse(preferences.getBoolean("h20_ble_manual_disconnect", false))
+        assertFalse(preferences.getBoolean("homi_ble_manual_disconnect", false))
         ble.onMethodCall(MethodCall("disconnect", null), Result())
         ble.onMethodCall(
             MethodCall("connect", mapOf("deviceId" to "AA:BB:CC:DD:EE:01")),
             Result(),
         )
-        assertFalse(preferences.getBoolean("h20_ble_manual_disconnect", true))
+        assertFalse(preferences.getBoolean("homi_ble_manual_disconnect", true))
         ble.onMethodCall(MethodCall("cancelConnectionAttempt", null), Result())
-        assertFalse(preferences.getBoolean("h20_ble_manual_disconnect", true))
+        assertFalse(preferences.getBoolean("homi_ble_manual_disconnect", true))
     }
 
     @Test

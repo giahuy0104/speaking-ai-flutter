@@ -470,7 +470,7 @@ final class IOSAudioSessionCoordinator: NSObject {
     sequence = 0
     trace(
       stage: "MAIN_RAW_RECEIVED",
-      caller: source == "ble" ? "Aiv0BleControlBridge" : "H20RemoteMainBridge",
+      caller: source == "ble" ? "Aiv0BleControlBridge" : "HomiRemoteMainBridge",
       message: rawHex,
       values: [
         "turnId": pendingTurnId ?? "",
@@ -691,7 +691,7 @@ final class IOSAudioSessionCoordinator: NSObject {
         let usesHfp = hasTwoWayHfpRoute()
         if mainAudioInputTarget == .hfp && !usesHfp {
           // A previous phone capture may still be draining after Dart's
-          // bounded pause. Never speak an H20 MAIN prompt on that graph.
+          // bounded pause. Never speak an HM-D001 MAIN prompt on that graph.
           throw IOSAudioSessionCoordinatorError.mainAudioSourceConflict
         }
         trace(
@@ -738,8 +738,8 @@ final class IOSAudioSessionCoordinator: NSObject {
     }
   }
 
-  /// Forces a short coach prompt to the iPhone speaker even when an H20 HFP
-  /// input is paired. The selected H20 UID remains owned by HfpAudioBridge and
+  /// Forces a short coach prompt to the iPhone speaker even when an HM-D001 HFP
+  /// input is paired. The selected HM-D001 UID remains owned by HfpAudioBridge and
   /// can be reactivated for the following sample/capture turn.
   func preparePhoneSpeaker(caller: String) throws {
     acquireSessionOwner(.prompt, caller: caller)
@@ -790,8 +790,8 @@ final class IOSAudioSessionCoordinator: NSObject {
     }
   }
 
-  /// Uses iOS media playback only when the selected H20 HFP route is not
-  /// available. Callers that have an H20 input must use `preparePrompt` so
+  /// Uses iOS media playback only when the selected HM-D001 HFP route is not
+  /// available. Callers that have an HM-D001 input must use `preparePrompt` so
   /// assistant speech stays on that device instead of falling back to the
   /// iPhone speaker.
   func prepareMediaPlayback(caller: String) throws {
@@ -820,7 +820,7 @@ final class IOSAudioSessionCoordinator: NSObject {
   ///
   /// The selected HFP UID is kept by `HfpAudioBridge`; only the live SCO/audio
   /// session is released. A later MAIN turn can therefore reactivate and
-  /// verify the same H20 input without keeping BLE-hostile SCO open at idle.
+  /// verify the same HM-D001 input without keeping BLE-hostile SCO open at idle.
   func releaseAudioSessionIfIdle(caller: String) {
     guard ownership.canDeactivate else {
       trace(
@@ -873,7 +873,7 @@ final class IOSAudioSessionCoordinator: NSObject {
       // and speaker override selected. Merely switching to playAndRecord does
       // not make iOS publish bluetoothHFP in that state, so Settings reports
       // no HFP even though the following lesson can renegotiate it. Clear both
-      // stale choices for discovery, or select the exact requested H20 input.
+      // stale choices for discovery, or select the exact requested HM-D001 input.
       try ensurePreferredInput(preferredInput, caller: caller)
       try ensureOutputOverride(.none, caller: caller)
     }
@@ -918,7 +918,7 @@ final class IOSAudioSessionCoordinator: NSObject {
     preferredHfpInputName = normalizedPreferredHfpValue(name)
   }
 
-  /// Returns the selected HFP input when it remains available. If no H20 has
+  /// Returns the selected HFP input when it remains available. If no HM-D001 has
   /// been selected yet, keep the existing first-HFP behaviour. Once a device
   /// is selected, never silently replace it with a different Bluetooth device.
   func selectedOrAvailableHfpInput() -> AVAudioSessionPortDescription? {
@@ -928,7 +928,7 @@ final class IOSAudioSessionCoordinator: NSObject {
     let currentInputs = session.currentRoute.inputs.filter {
       IOSHfpRoutePolicy.isHfpInput($0.portType)
     }
-    // iOS may republish H20 with a new UID. Resolve against available inputs
+    // iOS may republish HM-D001 with a new UID. Resolve against available inputs
     // before accepting an older currentRoute snapshot with the previous UID.
     // The latter remains a setup hint only when iOS has not populated
     // availableInputs yet; every playback/capture still verifies the live route.
@@ -1006,7 +1006,7 @@ final class IOSAudioSessionCoordinator: NSObject {
         onSpeechCaptureStarted?()
       }
     } catch {
-      // A failed route/capture preparation can still switch the H20 radio
+      // A failed route/capture preparation can still switch the HM-D001 radio
       // profile and invalidate its BLE notification subscription. Treat it as
       // a real capture end so BLE gets the same deterministic re-arm path.
       releaseCapture(caller: "\(caller).failed")
@@ -1388,7 +1388,7 @@ final class IOSAudioSessionCoordinator: NSObject {
           .uintValue ?? 0
       let options = AVAudioSession.InterruptionOptions(rawValue: rawOptions)
       guard options.contains(.shouldResume) else { return }
-      // This only rearms the explicit H20 learning session. Flutter still
+      // This only rearms the explicit HM-D001 learning session. Flutter still
       // requires a valid MAIN turn before opening the microphone again.
       onBackgroundLearningEvent?([
         "type": "background.resumable",

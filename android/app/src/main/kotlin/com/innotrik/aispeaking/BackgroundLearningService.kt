@@ -17,7 +17,7 @@ import android.util.Log
 import java.util.concurrent.CopyOnWriteArraySet
 
 /**
- * Keeps an explicitly-started HOMI/H20 learning session eligible to receive
+ * Keeps an explicitly-started HOMI/HM-D001 learning session eligible to receive
  * BLE MAIN events while the Flutter activity is covered or the screen locks.
  *
  * The service never opens the microphone itself. A physical MAIN event only
@@ -122,7 +122,7 @@ class BackgroundLearningService : Service() {
             instance?.updateActiveLearningLease(enabled)
         }
 
-        /** Called only after a validated H20 button notification. */
+        /** Called only after a validated HM-D001 button notification. */
         fun notePhysicalMain() {
             instance?.beginBoundedTurnLease()
         }
@@ -281,7 +281,7 @@ class BackgroundLearningService : Service() {
         releaseTurnWakeLock()
         val powerManager = getSystemService(PowerManager::class.java)
         turnWakeLock = powerManager
-            .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "$packageName:H20MainTurn")
+            .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "$packageName:HomiMainTurn")
             .apply {
                 setReferenceCounted(false)
                 acquire(TURN_WAKE_TIMEOUT_MS)

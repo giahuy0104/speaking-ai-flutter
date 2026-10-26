@@ -84,7 +84,7 @@ Uint8List normalizeAndroidLessonWav(Uint8List source) {
     leftEnergy += left * left;
     rightEnergy += right * right;
   }
-  // H20/OEM drivers can expose a stereo container even though only one
+  // HM-D001/OEM drivers can expose a stereo container even though only one
   // microphone channel carries speech. Averaging the two channels halves a
   // single live channel (~6 dB) and can cancel phase-inverted captures. Keep
   // the stronger complete channel instead; the backend still receives the

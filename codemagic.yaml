@@ -87,7 +87,7 @@ workflows:
           xcodebuild -version
 
           if [ "$AIV0_DRAFT_PROTOCOL_CONFIRMED" != "false" ]; then
-            echo "Unverified H20 firmware mappings must remain disabled."
+            echo "Unverified firmware mappings must remain disabled."
             exit 1
           fi
 
@@ -274,7 +274,7 @@ workflows:
           xcodebuild -version
 
           if [ "$AIV0_DRAFT_PROTOCOL_CONFIRMED" != "false" ]; then
-            echo "Unverified H20 firmware mappings must remain disabled."
+            echo "Unverified firmware mappings must remain disabled."
             exit 1
           fi
 

@@ -10,7 +10,7 @@ import 'package:ai_speaking_flutter_app/core/device/aiv0_ble_control.dart';
 import 'package:ai_speaking_flutter_app/core/device/bluetooth_power_controller.dart';
 import 'package:ai_speaking_flutter_app/core/device/device_connection_history.dart';
 import 'package:ai_speaking_flutter_app/core/device/device_connection_coordinator.dart';
-import 'package:ai_speaking_flutter_app/core/device/h20_connection_state.dart';
+import 'package:ai_speaking_flutter_app/core/device/homi_connection_state.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/application/conversation_settings_port.dart';
 import 'package:ai_speaking_flutter_app/features/settings/presentation/settings_sheet.dart';
 import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
@@ -67,7 +67,7 @@ void main() {
         ),
       ),
     );
-    await tester.tap(find.byKey(const Key('settings-audio-h20-section')));
+    await tester.tap(find.byKey(const Key('settings-audio-hm-d001-section')));
     await tester.pumpAndSettle();
     for (final enabled in <bool>[false, true]) {
       if (enabled) {
@@ -78,7 +78,7 @@ void main() {
         await tester.pumpAndSettle();
       }
       await Scrollable.ensureVisible(
-        tester.element(find.byKey(const Key('settings-h20-group'))),
+        tester.element(find.byKey(const Key('settings-hm-d001-group'))),
         alignment: 0.02,
       );
       await tester.pumpAndSettle();
@@ -243,7 +243,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text(unknown), findsOneWidget);
-      expect(find.text('H20'), findsNothing);
+      expect(find.text('HM-D001'), findsOneWidget);
       expect(
         tester.getTopLeft(find.text('HM-D001')).dy,
         lessThan(tester.getTopLeft(find.text(unknown)).dy),
@@ -453,10 +453,10 @@ void main() {
           ),
         ),
       );
-      await tester.tap(find.byKey(const Key('settings-audio-h20-section')));
+      await tester.tap(find.byKey(const Key('settings-audio-hm-d001-section')));
       await tester.pumpAndSettle();
       await Scrollable.ensureVisible(
-        tester.element(find.byKey(const Key('settings-h20-group'))),
+        tester.element(find.byKey(const Key('settings-hm-d001-group'))),
         alignment: 0.02,
       );
       await tester.pumpAndSettle();
@@ -694,7 +694,7 @@ Future<void> _openSettings(
       ),
     ),
   );
-  await tester.tap(find.byKey(const Key('settings-audio-h20-section')));
+  await tester.tap(find.byKey(const Key('settings-audio-hm-d001-section')));
   await tester.pumpAndSettle();
 }
 
@@ -735,8 +735,8 @@ class _Settings extends ChangeNotifier implements ConversationSettingsPort {
   @override
   ConnectionDeviceRecord? lastConnectedMicrophone;
   @override
-  H20ConnectionState h20ConnectionState({bool mainTurnActive = false}) =>
-      H20ConnectionState.from(
+  HomiConnectionState homiConnectionState({bool mainTurnActive = false}) =>
+      HomiConnectionState.from(
         hfpStatus: hfpAudioStatus,
         bleStatus: aiv0BleStatus,
         hfpInputSelected: false,

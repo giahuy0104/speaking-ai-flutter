@@ -9,7 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test(
-    'cancel during H20 route preparation prevents late fixed prompt playback',
+    'cancel during HM-D001 route preparation prevents late fixed prompt playback',
     () async {
       final media = _RecordingMediaService()..preparation = Completer<void>();
       final service = AssetFirstVocabularyFixedPromptAudioService(

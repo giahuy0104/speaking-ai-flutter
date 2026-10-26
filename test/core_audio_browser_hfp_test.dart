@@ -15,17 +15,17 @@ void main() {
     expect(isLikelyBrowserHfpLabel('Default - Microphone Array'), isFalse);
   });
 
-  test('automatic H20 selection ignores an unrelated connected headset', () {
+  test('automatic HM-D001 selection ignores an unrelated connected headset', () {
     const devices = <HfpAudioDevice>[
       HfpAudioDevice(id: 'airpods', name: 'AirPods Pro', isConnected: true),
-      HfpAudioDevice(id: 'h20', name: 'H20', isConnected: false),
+      HfpAudioDevice(id: 'hm-d001', name: 'HM-D001', isConnected: false),
     ];
 
-    expect(selectLikelyH20HfpDevice(devices, bleDeviceName: 'H20')?.id, 'h20');
+    expect(selectLikelyHomiHfpDevice(devices, bleDeviceName: 'HM-D001')?.id, 'hm-d001');
     expect(
-      selectLikelyH20HfpDevice(const <HfpAudioDevice>[
+      selectLikelyHomiHfpDevice(const <HfpAudioDevice>[
         HfpAudioDevice(id: 'airpods', name: 'AirPods Pro', isConnected: true),
-      ], bleDeviceName: 'H20'),
+      ], bleDeviceName: 'HM-D001'),
       isNull,
     );
   });
@@ -36,19 +36,19 @@ void main() {
       HfpAudioDevice(id: 'live', name: 'HM-D001', isConnected: true),
     ];
 
-    expect(selectLikelyH20HfpDevice(devices, connectedOnly: true)?.id, 'live');
+    expect(selectLikelyHomiHfpDevice(devices, connectedOnly: true)?.id, 'live');
     expect(
-      selectLikelyH20HfpDevice(devices.take(1), connectedOnly: true),
+      selectLikelyHomiHfpDevice(devices.take(1), connectedOnly: true),
       isNull,
     );
   });
 
-  test('automatic H20 selection accepts known ODM device names', () {
+  test('automatic HM-D001 selection accepts known ODM device names', () {
     const devices = <HfpAudioDevice>[
       HfpAudioDevice(id: 'odm', name: 'INNOTRIK HFP', isConnected: true),
     ];
 
-    expect(selectLikelyH20HfpDevice(devices)?.id, 'odm');
+    expect(selectLikelyHomiHfpDevice(devices)?.id, 'odm');
   });
 
   test('automatic HFP selection accepts HM-D001 without a BLE name', () {
@@ -57,9 +57,9 @@ void main() {
       HfpAudioDevice(id: 'hm', name: 'HM-D001', isConnected: true),
     ];
 
-    expect(selectLikelyH20HfpDevice(devices)?.id, 'hm');
+    expect(selectLikelyHomiHfpDevice(devices)?.id, 'hm');
     expect(
-      selectLikelyH20HfpDevice(const <HfpAudioDevice>[
+      selectLikelyHomiHfpDevice(const <HfpAudioDevice>[
         HfpAudioDevice(id: 'other', name: 'HM-D001-OTHER', isConnected: true),
       ]),
       isNull,
@@ -73,13 +73,13 @@ void main() {
         HfpAudioDevice(id: 'first', name: 'HM-D001', isConnected: true),
         HfpAudioDevice(id: 'second', name: 'HM-D001', isConnected: true),
       ];
-      expect(selectLikelyH20HfpDevice(devices), isNull);
+      expect(selectLikelyHomiHfpDevice(devices), isNull);
       expect(
-        selectLikelyH20HfpDevice(devices, preferredDeviceId: 'second')?.id,
+        selectLikelyHomiHfpDevice(devices, preferredDeviceId: 'second')?.id,
         'second',
       );
       expect(
-        selectLikelyH20HfpDevice(
+        selectLikelyHomiHfpDevice(
           devices,
           bleDeviceId: 'first',
           preferredDeviceId: 'second',
@@ -93,23 +93,30 @@ void main() {
     'an unnamed microphone never borrows its identifier as a device name',
     () {
       const device = HfpAudioDevice(
-        id: 'H20-looking-id',
+        id: 'HM-D001-looking-id',
         name: '',
         isConnected: true,
       );
       expect(device.displayName, isEmpty);
-      expect(selectLikelyH20HfpDevice([device]), isNull);
+      expect(selectLikelyHomiHfpDevice([device]), isNull);
     },
   );
 
-  test('automatic HFP selection prefers HM-D001 over legacy H20', () {
+  test('automatic HFP selection ignores a disconnected HM-D001', () {
     const devices = <HfpAudioDevice>[
-      HfpAudioDevice(id: 'h20', name: 'H20', isConnected: true),
-      HfpAudioDevice(id: 'hm', name: 'HM-D001', isConnected: false),
+      HfpAudioDevice(id: 'hm-d001', name: 'HM-D001', isConnected: false),
+      HfpAudioDevice(id: 'other', name: 'Other headset', isConnected: true),
     ];
 
-    expect(selectLikelyH20HfpDevice(devices)?.id, 'hm');
-    expect(selectLikelyH20HfpDevice(devices, bleDeviceName: 'H20')?.id, 'h20');
+    expect(selectLikelyHomiHfpDevice(devices, connectedOnly: true), isNull);
+    expect(
+      selectLikelyHomiHfpDevice(
+        devices,
+        bleDeviceName: 'HM-D001',
+        connectedOnly: true,
+      ),
+      isNull,
+    );
   });
 
   test(

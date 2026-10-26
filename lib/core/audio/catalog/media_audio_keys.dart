@@ -1,5 +1,5 @@
 abstract final class MediaAudioKeys {
-  static const h20SpeakerTest = 'system.h20.speaker_test';
+  static const homiSpeakerTest = 'system.hm-d001.speaker_test';
   static const rewardStarTing = 'system.reward.star_ting';
 
   static const songA067T05 = 'song.A067_T05.full.en';
@@ -8,7 +8,7 @@ abstract final class MediaAudioKeys {
   static const songA0810T03 = 'song.A0810_T03.full.en';
   static const songA0810T04 = 'song.A0810_T04.full.en';
 
-  static final Uri h20SpeakerTestUri = Uri(
+  static final Uri homiSpeakerTestUri = Uri(
     scheme: 'asset',
     path: 'assets/audio/A-3-5/GUIDE_RECORD/A035_GUIDE_RECORD_01.mp3',
   );
