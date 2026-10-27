@@ -3486,6 +3486,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     }
     final generation = ++_mainSpeakingHfpSessionGeneration;
     _isPreparingMainSpeakingHfpSession = true;
+    _synchronizeMainSpeakingSession();
     await _prepareMainSpeakingHfpSession(generation);
   }
 
@@ -3517,9 +3518,11 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (controller == null) {
       return;
     }
-    // A real HFP profile loss ends the session. Idle SCO release and a missing
-    // BLE MAIN link do not, since both leave the selected mic connected.
+    // iOS briefly drops the old HFP route while handing MAIN capture to the
+    // continuous session. Check for a real loss after preparation completes;
+    // ending the session here would close the newly opened route as well.
     if (_mainSpeakingSessionController.isActive &&
+        !_isPreparingMainSpeakingHfpSession &&
         controller.usesHfpInput &&
         !controller.hfpAudioStatus.isConnected &&
         !controller.hfpAudioStatus.isBusy) {
@@ -3528,7 +3531,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     }
     _mainSpeakingSessionController.synchronize(
       isRecording: controller.isRecording,
-      isBusy: controller.isRecordingStartBlocked,
+      isBusy:
+          _isPreparingMainSpeakingHfpSession ||
+          controller.isRecordingStartBlocked,
       isPlaying: controller.isPlaybackPlaying,
     );
     if (!_mainSpeakingSessionController.isActive ||
