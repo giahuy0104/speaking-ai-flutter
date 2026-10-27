@@ -511,7 +511,7 @@ void main() {
       await _tapVisible(tester, find.text('HM-D001'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
-      await tester.tap(find.text('Đúng thiết bị HOMI'));
+      await tester.tap(find.text('Đúng, dùng với HOMI'));
       await tester.pumpAndSettle();
       expect(controller.confirmedAssociation, isTrue);
     },
@@ -623,7 +623,7 @@ void main() {
       await tester.tap(find.text('HM-D001'));
       await tester.pumpAndSettle();
       expect(controller.connectedMicrophone, isNull);
-      await tester.tap(find.text('Đúng thiết bị HOMI'));
+      await tester.tap(find.text('Đúng, dùng với HOMI'));
       await tester.pumpAndSettle();
       expect(controller.confirmedAssociation, isTrue);
     },
@@ -648,7 +648,7 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text('HM-D001'));
         await tester.pumpAndSettle();
-        expect(find.text('Xác nhận micro HOMI'), findsOneWidget);
+        expect(find.text('Đây là micro của HOMI?'), findsOneWidget);
         controller.aiv0BleStatus = switchedDevice
             ? const Aiv0BleStatus(
                 phase: Aiv0BlePhase.connected,
@@ -662,7 +662,7 @@ void main() {
               );
         controller.notifyListeners();
         await tester.pump();
-        await tester.tap(find.text('Đúng thiết bị HOMI'));
+        await tester.tap(find.text('Đúng, dùng với HOMI'));
         await tester.pumpAndSettle();
         expect(controller.connectedMicrophone, isNull);
         expect(controller.confirmedAssociation, isFalse);

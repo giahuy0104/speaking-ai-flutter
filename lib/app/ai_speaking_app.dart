@@ -1873,18 +1873,13 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       language,
       deviceId: device.id,
     );
-    final ble = localizedDeviceName(
-      controller.aiv0BleStatus.deviceName,
-      language,
-      deviceId: controller.aiv0BleStatus.deviceId,
-    );
     final confirmed = await _showParentHomiGuidanceDialog(
-      title: language.choose('Xác nhận micro của HOMI', '确认 HOMI 麦克风'),
+      title: language.choose('Đây là micro của HOMI?', '这是 HOMI 的麦克风吗？'),
       message: language.choose(
-        'Micro $microphone (${device.id}) và thiết bị $ble (${controller.aiv0BleStatus.deviceId}) có mã định danh khác nhau. Chỉ xác nhận nếu đây là micro của chính thiết bị HOMI bạn đang sử dụng.',
-        '麦克风 $microphone（${device.id}）与设备 $ble（${controller.aiv0BleStatus.deviceId}）的标识不同。仅当该麦克风属于您正在使用的 HOMI 设备时才确认。',
+        'Micro “$microphone” có đi cùng thiết bị HOMI của bạn không? Nếu đúng, hãy xác nhận để tiếp tục kết nối.',
+        '麦克风“$microphone”是您的 HOMI 设备配套的吗？确认后即可继续连接。',
       ),
-      primaryLabel: language.choose('Đúng, đây là micro HOMI', '确认属于 HOMI'),
+      primaryLabel: language.choose('Đúng, tiếp tục', '是的，继续'),
     );
     return mounted &&
         confirmed &&
