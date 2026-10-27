@@ -4011,6 +4011,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
                   onOpenBluetoothSettings: _openBluetoothSettingsForOnboarding,
                   homiAudioBlocksMain:
                       deviceState?.issue == DeviceIssue.audioBlocksMain,
+                  homiMicrophoneSelectionRequired:
+                      deviceState?.issue == DeviceIssue.selectionRequired,
                   bluetoothPower: _bluetoothPermissionRequired
                       ? _bluetoothPower
                       : null,

@@ -14,7 +14,6 @@ import '../../../app/learning_scenery.dart';
 import '../../../app/mascot_assets.dart';
 import '../../listening/domain/listening_catalog.dart';
 import 'homi_pairing_guide.dart';
-import 'ios_startup_setup_screen.dart';
 
 enum _ParentSetupStep { privacy, profile, permissions }
 
@@ -34,6 +33,7 @@ class StartupSetupScreen extends StatefulWidget {
     this.homiAudioPaired = false,
     this.onOpenBluetoothSettings,
     this.homiAudioBlocksMain = false,
+    this.homiMicrophoneSelectionRequired = false,
     required this.selectedAge,
     required this.aiSubprocessors,
     required this.dataRetentionSummary,
@@ -79,6 +79,7 @@ class StartupSetupScreen extends StatefulWidget {
 
   /// The last round found HOMI audio connected but no BLE MAIN.
   final bool homiAudioBlocksMain;
+  final bool homiMicrophoneSelectionRequired;
   final bool allowPhoneMicFallback;
   final bool allowBleOnlySetup;
 
@@ -124,13 +125,17 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
 
   bool get _canUseBluetooth => widget.bluetoothPower?.canConnect ?? true;
 
+  bool get _isIos => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+
   bool get _bluetoothAvailable =>
       widget.bluetoothPower == null ||
       (widget.bluetoothPower!.hasChecked &&
           widget.bluetoothPower!.state == Aiv0BluetoothAdapterState.poweredOn);
 
   bool get _homiReady =>
-      _bluetoothAvailable && widget.homiBleConnected && widget.homiHfpConfigured;
+      _bluetoothAvailable &&
+      widget.homiBleConnected &&
+      widget.homiHfpConfigured;
 
   bool get _bleOnlySetupAccepted =>
       widget.allowBleOnlySetup && widget.homiBleConnected;
@@ -149,6 +154,10 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _legalReviewCompleted = widget.privacyConsentGranted;
+    if (_isIos && widget.privacyConsentGranted) {
+      _adultRoleConfirmed = true;
+      _legalAccepted = true;
+    }
     widget.bluetoothPower?.addListener(_onBluetoothPowerChanged);
   }
 
@@ -161,6 +170,10 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
     }
     if (!oldWidget.privacyConsentGranted && widget.privacyConsentGranted) {
       _legalReviewCompleted = true;
+      if (_isIos) {
+        _adultRoleConfirmed = true;
+        _legalAccepted = true;
+      }
     }
   }
 
@@ -229,38 +242,6 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
 
   @override
   Widget build(BuildContext context) {
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
-      return IosStartupSetupScreen(
-        profileLoading: widget.profileLoading,
-        permissionRequestInProgress: widget.permissionRequestInProgress,
-        privacyConfigurationComplete: widget.privacyConfigurationComplete,
-        privacyConsentGranted: widget.privacyConsentGranted,
-        limitedModeSelected: widget.limitedModeSelected,
-        microphoneGranted: widget.microphoneGranted,
-        bluetoothRequired: widget.bluetoothRequired,
-        bluetoothGranted: widget.bluetoothGranted,
-        homiBleConnected: widget.homiBleConnected,
-        homiHfpConfigured: widget.homiHfpConfigured,
-        selectedAge: widget.selectedAge,
-        aiSubprocessors: widget.aiSubprocessors,
-        dataRetentionSummary: widget.dataRetentionSummary,
-        onGrantPrivacyConsent: widget.onGrantPrivacyConsent,
-        onContinueWithoutVoice: widget.onContinueWithoutVoice,
-        onRetryPermissions: widget.onRetryPermissions,
-        onSetupHomi: widget.onSetupHomi,
-        onAgeSelected: widget.onAgeSelected,
-        onCompleteSetup: widget.onCompleteSetup,
-        allowPhoneMicFallback: widget.allowPhoneMicFallback,
-        allowBleOnlySetup: widget.allowBleOnlySetup,
-        onChooseHomiMicrophone: widget.onChooseHomiMicrophone,
-        onOpenBluetoothSettings: widget.onOpenBluetoothSettings,
-        homiDeviceName: widget.homiDeviceName,
-        privacyPolicyUri: widget.privacyPolicyUri,
-        termsUri: widget.termsUri,
-        supportUri: widget.supportUri,
-        permissionError: widget.permissionError,
-      );
-    }
     final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -714,7 +695,8 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
                     label: widget.homiAudioPaired && !widget.homiHfpConfigured
                         ? context.tr('Ghép đôi Bluetooth', '蓝牙配对')
                         : context.tr('Micro HOMI', 'HOMI 麦克风'),
-                    connected: widget.homiHfpConfigured || widget.homiAudioPaired,
+                    connected:
+                        widget.homiHfpConfigured || widget.homiAudioPaired,
                   ),
                 ],
               ),
@@ -727,7 +709,7 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
                 onPressed: _choiceInProgress ? null : _connectHomi,
                 child: Text(context.tr('Kết nối HOMI', '连接 HOMI')),
               ),
-            if (widget.allowPhoneMicFallback &&
+            if (widget.homiBleConnected &&
                 !widget.homiHfpConfigured &&
                 widget.onChooseHomiMicrophone != null) ...<Widget>[
               const SizedBox(height: 12),
@@ -737,7 +719,11 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
                     ? null
                     : _chooseHomiMicrophone,
                 icon: const Icon(Icons.headset_mic_rounded),
-                label: Text(context.tr('Chọn micro HOMI', '选择 HOMI 麦克风')),
+                label: Text(
+                  _isIos
+                      ? context.tr('Tìm micro HOMI', '查找 HOMI 麦克风')
+                      : context.tr('Chọn micro HOMI', '选择 HOMI 麦克风'),
+                ),
               ),
             ],
             if (widget.allowPhoneMicFallback && !_homiReady) ...<Widget>[
@@ -871,7 +857,9 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
     if (!mounted || _connectionInProgress) return;
     final guide = widget.homiAudioBlocksMain
         ? HomiAudioGuide.pauseAudio
-        : widget.homiBleConnected && !widget.homiHfpConfigured
+        : widget.homiBleConnected &&
+              !widget.homiHfpConfigured &&
+              (!_isIos || !widget.homiMicrophoneSelectionRequired)
         ? HomiAudioGuide.enableAudio
         : null;
     if (guide != null) await _showAudioGuide(guide);
@@ -900,8 +888,6 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
       _homiSetupRequested = true;
     });
     try {
-      // A new Android device may need Classic discovery, system pairing and
-      // MAIN verification before the separate HFP input can be selected.
       await widget.onSetupHomi().timeout(const Duration(seconds: 75));
     } on TimeoutException {
       if (mounted && generation == _connectionGeneration) {
@@ -937,18 +923,24 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
 
   Future<void> _chooseHomiMicrophone() async {
     final choose = widget.onChooseHomiMicrophone;
-    if (choose == null) return;
+    if (choose == null || _choiceInProgress || !_canUseBluetooth) return;
+    final generation = ++_connectionGeneration;
     setState(() {
       _choiceInProgress = true;
       _homiSetupRequested = true;
     });
     try {
-      await choose().timeout(
-        const Duration(seconds: 20),
-        onTimeout: () => false,
-      );
+      await choose().timeout(const Duration(seconds: 75));
+    } on TimeoutException {
+      if (generation == _connectionGeneration) {
+        await widget.onCancelHomiSetup?.call();
+      }
+    } catch (_) {
+      // The settled UI offers retry without claiming the microphone is ready.
     } finally {
-      if (mounted) setState(() => _choiceInProgress = false);
+      if (mounted && generation == _connectionGeneration) {
+        setState(() => _choiceInProgress = false);
+      }
     }
   }
 

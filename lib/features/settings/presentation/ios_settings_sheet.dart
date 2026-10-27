@@ -25,6 +25,7 @@ import 'homi_control_diagnostics_screen.dart';
 class IosSettingsSheet extends StatelessWidget {
   const IosSettingsSheet({
     required this.controller,
+    this.advancedOnly = false,
     this.themeMode = ThemeMode.system,
     this.onThemeModeChanged,
     this.onChildAgeChanged,
@@ -41,6 +42,7 @@ class IosSettingsSheet extends StatelessWidget {
   });
 
   final ConversationSettingsPort controller;
+  final bool advancedOnly;
   final ThemeMode themeMode;
   final ValueChanged<ThemeMode>? onThemeModeChanged;
   final ValueChanged<int>? onChildAgeChanged;
@@ -110,7 +112,9 @@ class IosSettingsSheet extends StatelessWidget {
                       children: <Widget>[
                         Expanded(
                           child: Text(
-                            context.tr('Thiết lập phụ huynh', '家长设置'),
+                            advancedOnly
+                                ? context.tr('Cài đặt nâng cao', '高级设置')
+                                : context.tr('Thiết lập phụ huynh', '家长设置'),
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                         ),
@@ -121,63 +125,66 @@ class IosSettingsSheet extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
-                    _AppearanceSelector(
-                      value: themeMode,
-                      onChanged: onThemeModeChanged,
-                    ),
-                    const SizedBox(height: 16),
-                    _SectionLabel(
-                      label: context.tr('Ngôn ngữ hiển thị', '显示语言'),
-                    ),
-                    const SizedBox(height: 10),
-                    if (MediaQuery.textScalerOf(context).scale(1) >= 1.5)
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: DisplayLanguage.values
-                            .map(
-                              (language) => ChoiceChip(
-                                label: Text(language.nativeLabel),
-                                selected:
-                                    controller.displayLanguage == language,
-                                onSelected: (_) =>
-                                    controller.setDisplayLanguage(language),
-                              ),
-                            )
-                            .toList(growable: false),
-                      )
-                    else
-                      SizedBox(
-                        width: double.infinity,
-                        child: SegmentedButton<DisplayLanguage>(
-                          showSelectedIcon: false,
-                          segments: DisplayLanguage.values
+                    if (!advancedOnly) ...<Widget>[
+                      const SizedBox(height: 10),
+                      _AppearanceSelector(
+                        value: themeMode,
+                        onChanged: onThemeModeChanged,
+                      ),
+                      const SizedBox(height: 16),
+                      _SectionLabel(
+                        label: context.tr('Ngôn ngữ hiển thị', '显示语言'),
+                      ),
+                      const SizedBox(height: 10),
+                      if (MediaQuery.textScalerOf(context).scale(1) >= 1.5)
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: DisplayLanguage.values
                               .map(
-                                (language) => ButtonSegment<DisplayLanguage>(
-                                  value: language,
+                                (language) => ChoiceChip(
                                   label: Text(language.nativeLabel),
+                                  selected:
+                                      controller.displayLanguage == language,
+                                  onSelected: (_) =>
+                                      controller.setDisplayLanguage(language),
                                 ),
                               )
                               .toList(growable: false),
-                          selected: <DisplayLanguage>{
-                            controller.displayLanguage,
-                          },
-                          onSelectionChanged: (selection) =>
-                              controller.setDisplayLanguage(selection.first),
+                        )
+                      else
+                        SizedBox(
+                          width: double.infinity,
+                          child: SegmentedButton<DisplayLanguage>(
+                            showSelectedIcon: false,
+                            segments: DisplayLanguage.values
+                                .map(
+                                  (language) => ButtonSegment<DisplayLanguage>(
+                                    value: language,
+                                    label: Text(language.nativeLabel),
+                                  ),
+                                )
+                                .toList(growable: false),
+                            selected: <DisplayLanguage>{
+                              controller.displayLanguage,
+                            },
+                            onSelectionChanged: (selection) =>
+                                controller.setDisplayLanguage(selection.first),
+                          ),
                         ),
+                      const SizedBox(height: 16),
+                      _SectionLabel(
+                        label: context.tr('Nhóm tuổi của trẻ', '孩子年龄组'),
                       ),
-                    const SizedBox(height: 16),
-                    _SectionLabel(
-                      label: context.tr('Nhóm tuổi của trẻ', '孩子年龄组'),
-                    ),
-                    const SizedBox(height: 10),
-                    _ChildAgeGroupSelector(
-                      childAge: controller.childAge,
-                      enabled: !controller.isBusy && onChildAgeChanged != null,
-                      onChanged: onChildAgeChanged,
-                    ),
-                    const SizedBox(height: 12),
+                      const SizedBox(height: 10),
+                      _ChildAgeGroupSelector(
+                        childAge: controller.childAge,
+                        enabled:
+                            !controller.isBusy && onChildAgeChanged != null,
+                        onChanged: onChildAgeChanged,
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     if (!kIsWeb) ...<Widget>[
                       _BackgroundMediaSwitchCard(
                         value:
@@ -494,146 +501,158 @@ class IosSettingsSheet extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    OutlinedButton.icon(
-                      onPressed: () => _showHistory(context),
-                      icon: const Icon(Icons.history_rounded),
-                      label: Text(context.tr('Xem lịch sử gần đây', '查看最近记录')),
-                    ),
-                    const SizedBox(height: 26),
-                    _SectionLabel(
-                      label: context.tr('Dữ liệu và quyền riêng tư', '数据与隐私'),
-                    ),
-                    const SizedBox(height: 10),
-                    HomiSurface(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 4,
-                        vertical: 2,
+                    if (!advancedOnly) ...<Widget>[
+                      const SizedBox(height: 16),
+                      OutlinedButton.icon(
+                        onPressed: () => _showHistory(context),
+                        icon: const Icon(Icons.history_rounded),
+                        label: Text(
+                          context.tr('Xem lịch sử gần đây', '查看最近记录'),
+                        ),
                       ),
-                      child: Column(
-                        children: <Widget>[
-                          _SettingsActionTile(
-                            key: const Key('settings-privacy-policy'),
-                            icon: Icons.privacy_tip_outlined,
-                            title: context.tr(
-                              'Chính sách quyền riêng tư',
-                              '隐私政策',
-                            ),
-                            detail: context.tr(
-                              'Xem dữ liệu được thu thập, nhà cung cấp AI, thời hạn lưu và cách yêu cầu xóa.',
-                              '查看所收集的数据、AI 服务商、保存期限和删除方式。',
-                            ),
-                            onTap: () => _openParentLink(
-                              context,
-                              config?.privacyPolicyUri,
-                              context.tr('Chính sách quyền riêng tư', '隐私政策'),
-                            ),
-                          ),
-                          const _SettingsDivider(),
-                          _SettingsActionTile(
-                            key: const Key('settings-terms'),
-                            icon: Icons.description_outlined,
-                            title: context.tr('Điều khoản sử dụng', '使用条款'),
-                            detail: context.tr(
-                              'Điều khoản dành cho phụ huynh và người giám hộ.',
-                              '面向家长和监护人的使用条款。',
-                            ),
-                            onTap: () => _openParentLink(
-                              context,
-                              config?.termsUri,
-                              context.tr('Điều khoản sử dụng', '使用条款'),
-                            ),
-                          ),
-                          const _SettingsDivider(),
-                          _SettingsActionTile(
-                            key: const Key('settings-support'),
-                            icon: Icons.support_agent_rounded,
-                            title: context.tr('Hỗ trợ', '支持'),
-                            detail: context.tr(
-                              'Liên hệ HOMI về quyền riêng tư, dữ liệu hoặc lỗi ứng dụng.',
-                              '就隐私、数据或应用问题联系 HOMI。',
-                            ),
-                            onTap: () => _openParentLink(
-                              context,
-                              config?.supportUri,
-                              context.tr('Hỗ trợ', '支持'),
-                            ),
-                          ),
-                          if (privacyConsentGranted &&
-                              !voiceAccessEnabled &&
-                              onRequestVoiceAccess != null) ...<Widget>[
-                            const _SettingsDivider(),
-                            _SettingsActionTile(
-                              key: const Key('settings-enable-voice'),
-                              icon: Icons.mic_rounded,
-                              title: context.tr('Cho phép micro', '允许麦克风'),
-                              detail: context.tr(
-                                'Mở hộp thoại quyền hệ thống. Audio chỉ được gửi sau khi có cả chấp thuận phụ huynh và quyền micro.',
-                                '打开系统权限对话框。只有家长同意并授予麦克风权限后才会发送音频。',
-                              ),
-                              onTap: onRequestVoiceAccess!,
-                            ),
-                          ],
-                          if (!privacyConsentGranted &&
-                              onManagePrivacyConsent != null) ...<Widget>[
-                            const _SettingsDivider(),
-                            _SettingsActionTile(
-                              key: const Key('settings-manage-privacy-consent'),
-                              icon: Icons.verified_user_outlined,
-                              title: context.tr(
-                                'Thiết lập tính năng giọng nói',
-                                '设置语音功能',
-                              ),
-                              detail: context.tr(
-                                'Quay lại màn hình dành cho phụ huynh để đọc thông tin và chọn đồng ý.',
-                                '返回家长设置页面，阅读说明并选择是否同意。',
-                              ),
-                              onTap: () {
-                                Navigator.of(context).pop();
-                                onManagePrivacyConsent!();
-                              },
-                            ),
-                          ],
-                          if (privacyConsentGranted &&
-                              onRevokePrivacyConsent != null) ...<Widget>[
-                            const _SettingsDivider(),
-                            _SettingsActionTile(
-                              key: const Key('settings-revoke-privacy-consent'),
-                              icon: Icons.delete_forever_outlined,
-                              title: context.tr(
-                                'Rút chấp thuận và xóa dữ liệu',
-                                '撤回同意并删除数据',
-                              ),
-                              detail: context.tr(
-                                'Yêu cầu backend xóa lịch sử trước, sau đó xóa nhóm tuổi cục bộ và đặt lại mã cài đặt iOS/Web.',
-                                '先请求后端删除历史记录，再删除本地年龄组并重置 iOS/Web 安装标识。',
-                              ),
-                              onTap: () => _revokeConsent(context),
-                            ),
-                          ],
-                          if (onStartTutorial != null) ...<Widget>[
-                            const _SettingsDivider(),
-                            _SettingsActionTile(
-                              key: const Key('settings-start-user-tutorial'),
-                              icon: Icons.school_rounded,
-                              title: context.tr('Hướng dẫn sử dụng', '使用指南'),
-                              detail: context.tr(
-                                'Xem lại cách giao tiếp, học từ vựng và luyện nghe theo chủ đề',
-                                '重新查看对话、词汇和主题听力的使用方法',
-                              ),
-                              onTap: () {
-                                final startTutorial = onStartTutorial!;
-                                Navigator.of(context).pop();
-                                Future<void>.delayed(
-                                  const Duration(milliseconds: 260),
-                                  startTutorial,
-                                );
-                              },
-                            ),
-                          ],
-                        ],
+                      const SizedBox(height: 26),
+                      _SectionLabel(
+                        label: context.tr('Dữ liệu và quyền riêng tư', '数据与隐私'),
                       ),
-                    ),
+                      const SizedBox(height: 10),
+                      HomiSurface(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 2,
+                        ),
+                        child: Column(
+                          children: <Widget>[
+                            _SettingsActionTile(
+                              key: const Key('settings-privacy-policy'),
+                              icon: Icons.privacy_tip_outlined,
+                              title: context.tr(
+                                'Chính sách quyền riêng tư',
+                                '隐私政策',
+                              ),
+                              detail: context.tr(
+                                'Xem dữ liệu được thu thập, nhà cung cấp AI, thời hạn lưu và cách yêu cầu xóa.',
+                                '查看所收集的数据、AI 服务商、保存期限和删除方式。',
+                              ),
+                              onTap: () => _openParentLink(
+                                context,
+                                config?.privacyPolicyUri,
+                                context.tr('Chính sách quyền riêng tư', '隐私政策'),
+                              ),
+                            ),
+                            const _SettingsDivider(),
+                            _SettingsActionTile(
+                              key: const Key('settings-terms'),
+                              icon: Icons.description_outlined,
+                              title: context.tr('Điều khoản sử dụng', '使用条款'),
+                              detail: context.tr(
+                                'Điều khoản dành cho phụ huynh và người giám hộ.',
+                                '面向家长和监护人的使用条款。',
+                              ),
+                              onTap: () => _openParentLink(
+                                context,
+                                config?.termsUri,
+                                context.tr('Điều khoản sử dụng', '使用条款'),
+                              ),
+                            ),
+                            if (privacyConsentGranted &&
+                                onRevokePrivacyConsent != null) ...<Widget>[
+                              const _SettingsDivider(),
+                              _SettingsActionTile(
+                                key: const Key(
+                                  'settings-revoke-privacy-consent',
+                                ),
+                                icon: Icons.delete_forever_outlined,
+                                title: context.tr(
+                                  'Rút chấp thuận và xóa dữ liệu',
+                                  '撤回同意并删除数据',
+                                ),
+                                detail: context.tr(
+                                  'Yêu cầu backend xóa lịch sử trước, sau đó xóa nhóm tuổi cục bộ và đặt lại mã cài đặt iOS/Web.',
+                                  '先请求后端删除历史记录，再删除本地年龄组并重置 iOS/Web 安装标识。',
+                                ),
+                                onTap: () =>
+                                    IosSettingsSheet.showPrivacyRevocation(
+                                      context,
+                                      onRevokePrivacyConsent!,
+                                    ),
+                              ),
+                            ],
+                            const _SettingsDivider(),
+                            _SettingsActionTile(
+                              key: const Key('settings-support'),
+                              icon: Icons.support_agent_rounded,
+                              title: context.tr('Hỗ trợ', '支持'),
+                              detail: context.tr(
+                                'Liên hệ HOMI về quyền riêng tư, dữ liệu hoặc lỗi ứng dụng.',
+                                '就隐私、数据或应用问题联系 HOMI。',
+                              ),
+                              onTap: () => _openParentLink(
+                                context,
+                                config?.supportUri,
+                                context.tr('Hỗ trợ', '支持'),
+                              ),
+                            ),
+                            if (privacyConsentGranted &&
+                                !voiceAccessEnabled &&
+                                onRequestVoiceAccess != null) ...<Widget>[
+                              const _SettingsDivider(),
+                              _SettingsActionTile(
+                                key: const Key('settings-enable-voice'),
+                                icon: Icons.mic_rounded,
+                                title: context.tr('Cho phép micro', '允许麦克风'),
+                                detail: context.tr(
+                                  'Mở hộp thoại quyền hệ thống. Audio chỉ được gửi sau khi có cả chấp thuận phụ huynh và quyền micro.',
+                                  '打开系统权限对话框。只有家长同意并授予麦克风权限后才会发送音频。',
+                                ),
+                                onTap: onRequestVoiceAccess!,
+                              ),
+                            ],
+                            if (!privacyConsentGranted &&
+                                onManagePrivacyConsent != null) ...<Widget>[
+                              const _SettingsDivider(),
+                              _SettingsActionTile(
+                                key: const Key(
+                                  'settings-manage-privacy-consent',
+                                ),
+                                icon: Icons.verified_user_outlined,
+                                title: context.tr(
+                                  'Thiết lập tính năng giọng nói',
+                                  '设置语音功能',
+                                ),
+                                detail: context.tr(
+                                  'Quay lại màn hình dành cho phụ huynh để đọc thông tin và chọn đồng ý.',
+                                  '返回家长设置页面，阅读说明并选择是否同意。',
+                                ),
+                                onTap: () {
+                                  Navigator.of(context).pop();
+                                  onManagePrivacyConsent!();
+                                },
+                              ),
+                            ],
+                            if (onStartTutorial != null) ...<Widget>[
+                              const _SettingsDivider(),
+                              _SettingsActionTile(
+                                key: const Key('settings-start-user-tutorial'),
+                                icon: Icons.school_rounded,
+                                title: context.tr('Hướng dẫn sử dụng', '使用指南'),
+                                detail: context.tr(
+                                  'Xem lại cách giao tiếp, học từ vựng và luyện nghe theo chủ đề',
+                                  '重新查看对话、词汇和主题听力的使用方法',
+                                ),
+                                onTap: () {
+                                  final startTutorial = onStartTutorial!;
+                                  Navigator.of(context).pop();
+                                  Future<void>.delayed(
+                                    const Duration(milliseconds: 260),
+                                    startTutorial,
+                                  );
+                                },
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -666,11 +685,11 @@ class IosSettingsSheet extends StatelessWidget {
     }
   }
 
-  Future<void> _revokeConsent(BuildContext context) async {
-    final revoke = onRevokePrivacyConsent;
-    if (revoke == null ||
-        !await showParentalGate(context) ||
-        !context.mounted) {
+  static Future<void> showPrivacyRevocation(
+    BuildContext context,
+    Future<void> Function() revoke,
+  ) async {
+    if (!await showParentalGate(context) || !context.mounted) {
       return;
     }
     final confirmed = await showDialog<bool>(

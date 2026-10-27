@@ -565,6 +565,46 @@ void main() {
     expect(find.byKey(const Key('settings-terms')), findsOneWidget);
     expect(find.byKey(const Key('settings-support')), findsOneWidget);
   });
+
+  testWidgets(
+    'iOS keeps data deletion between terms and support',
+    (tester) async {
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        playbackService: const _FakePlaybackService(),
+        repository: const DemoConversationRepository(),
+        childAge: 6,
+      );
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: Scaffold(
+            body: SettingsSheet(
+              controller: controller,
+              privacyConsentGranted: true,
+              onRevokePrivacyConsent: () async {},
+            ),
+          ),
+        ),
+      );
+      final terms = find.byKey(const Key('settings-terms'));
+      final revoke = find.byKey(const Key('settings-revoke-privacy-consent'));
+      final support = find.byKey(const Key('settings-support'));
+      expect(terms, findsOneWidget);
+      expect(revoke, findsOneWidget);
+      expect(support, findsOneWidget);
+      expect(
+        tester.getTopLeft(terms).dy,
+        lessThan(tester.getTopLeft(revoke).dy),
+      );
+      expect(
+        tester.getTopLeft(revoke).dy,
+        lessThan(tester.getTopLeft(support).dy),
+      );
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
 }
 
 Finder _settingsScrollable() => find

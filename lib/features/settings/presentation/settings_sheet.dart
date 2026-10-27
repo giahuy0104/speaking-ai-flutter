@@ -71,6 +71,8 @@ class _SettingsSheetState extends State<SettingsSheet> {
   bool get _canUseBluetooth =>
       widget.connectionCoordinator?.bluetoothPower?.canConnect ?? true;
 
+  bool get _isIos => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+
   @override
   void dispose() {
     _manualGeneration++;
@@ -88,24 +90,6 @@ class _SettingsSheetState extends State<SettingsSheet> {
 
   @override
   Widget build(BuildContext context) {
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
-      return IosSettingsSheet(
-        controller: controller,
-        themeMode: widget.themeMode,
-        onThemeModeChanged: widget.onThemeModeChanged,
-        onChildAgeChanged: widget.onChildAgeChanged,
-        onStartTutorial: widget.onStartTutorial,
-        config: widget.config,
-        privacyConsentGranted: widget.privacyConsentGranted,
-        voiceAccessEnabled: widget.voiceAccessEnabled,
-        onRequestVoiceAccess: widget.onRequestVoiceAccess,
-        onManagePrivacyConsent: widget.onManagePrivacyConsent,
-        onRevokePrivacyConsent: widget.onRevokePrivacyConsent,
-        stopMediaWhenBackgrounded: widget.stopMediaWhenBackgrounded,
-        onStopMediaWhenBackgroundedChanged:
-            widget.onStopMediaWhenBackgroundedChanged,
-      );
-    }
     return AnimatedBuilder(
       animation: Listenable.merge(<Listenable>[
         controller,
@@ -313,6 +297,31 @@ class _SettingsSheetState extends State<SettingsSheet> {
                                   context.tr('Điều khoản sử dụng', '使用条款'),
                                 ),
                               ),
+                              if (_isIos &&
+                                  widget.privacyConsentGranted &&
+                                  widget.onRevokePrivacyConsent !=
+                                      null) ...<Widget>[
+                                const _SettingsDivider(),
+                                _SettingsActionTile(
+                                  key: const Key(
+                                    'settings-revoke-privacy-consent',
+                                  ),
+                                  icon: Icons.delete_forever_outlined,
+                                  title: context.tr(
+                                    'Rút chấp thuận và xóa dữ liệu',
+                                    '撤回同意并删除数据',
+                                  ),
+                                  detail: context.tr(
+                                    'Yêu cầu backend xóa lịch sử trước, sau đó xóa nhóm tuổi cục bộ và đặt lại mã cài đặt iOS/Web.',
+                                    '先请求后端删除历史记录，再删除本地年龄组并重置 iOS/Web 安装标识。',
+                                  ),
+                                  onTap: () =>
+                                      IosSettingsSheet.showPrivacyRevocation(
+                                        context,
+                                        widget.onRevokePrivacyConsent!,
+                                      ),
+                                ),
+                              ],
                               const _SettingsDivider(),
                               _SettingsActionTile(
                                 key: const Key('settings-support'),
@@ -373,6 +382,21 @@ class _SettingsSheetState extends State<SettingsSheet> {
                           ),
                         ),
                       ),
+                      if (_isIos) ...<Widget>[
+                        const SizedBox(height: 26),
+                        _SettingsRaisedPanel(
+                          child: _SettingsActionTile(
+                            key: const Key('settings-ios-advanced'),
+                            icon: Icons.tune_rounded,
+                            title: context.tr('Cài đặt nâng cao', '高级设置'),
+                            detail: context.tr(
+                              'Âm thanh, nhận dạng giọng nói và chẩn đoán HOMI.',
+                              '音频、语音识别与 HOMI 诊断。',
+                            ),
+                            onTap: () => _openIosAdvancedSettings(context),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -383,6 +407,21 @@ class _SettingsSheetState extends State<SettingsSheet> {
       },
     );
   }
+
+  Future<void> _openIosAdvancedSettings(BuildContext context) =>
+      Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
+          builder: (_) => Scaffold(
+            body: IosSettingsSheet(
+              advancedOnly: true,
+              controller: controller,
+              stopMediaWhenBackgrounded: widget.stopMediaWhenBackgrounded,
+              onStopMediaWhenBackgroundedChanged:
+                  widget.onStopMediaWhenBackgroundedChanged,
+            ),
+          ),
+        ),
+      );
 
   bool _choiceSheetOpen = false;
 

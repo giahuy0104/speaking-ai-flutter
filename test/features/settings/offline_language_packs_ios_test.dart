@@ -31,8 +31,24 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      final mainScroll = find
+          .descendant(
+            of: find.byKey(const Key('settings-scroll-view')),
+            matching: find.byType(Scrollable),
+          )
+          .first;
+      final advanced = find.byKey(const Key('settings-ios-advanced'));
+      await tester.scrollUntilVisible(advanced, 350, scrollable: mainScroll);
+      await tester.tap(advanced);
+      await tester.pumpAndSettle();
       final section = find.byKey(const Key('settings-recognition-section'));
-      await tester.ensureVisible(section);
+      final advancedScroll = find
+          .descendant(
+            of: find.byKey(const Key('settings-scroll-view')).last,
+            matching: find.byType(Scrollable),
+          )
+          .first;
+      await tester.scrollUntilVisible(section, 350, scrollable: advancedScroll);
       await tester.tap(
         find.descendant(
           of: section,
