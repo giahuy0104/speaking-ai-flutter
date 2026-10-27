@@ -179,25 +179,31 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
-  testWidgets('Android does not launch the six-step guide after setup', (
-    tester,
-  ) async {
-    debugDefaultTargetPlatformOverride = TargetPlatform.android;
-    addTearDown(() => debugDefaultTargetPlatformOverride = null);
-    SharedPreferences.setMockInitialValues(<String, Object>{});
-    final controller = _controller();
-    addTearDown(controller.dispose);
+  for (final platform in <TargetPlatform>[
+    TargetPlatform.android,
+    TargetPlatform.iOS,
+  ]) {
+    testWidgets(
+      '${platform.name} does not launch the six-step guide after setup',
+      (tester) async {
+        debugDefaultTargetPlatformOverride = platform;
+        addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        SharedPreferences.setMockInitialValues(<String, Object>{});
+        final controller = _controller();
+        addTearDown(controller.dispose);
 
-    await tester.pumpWidget(
-      _app(
-        controller,
-        onboardingStore: const SharedPreferencesOnboardingProgressStore(),
-      ),
+        await tester.pumpWidget(
+          _app(
+            controller,
+            onboardingStore: const SharedPreferencesOnboardingProgressStore(),
+          ),
+        );
+        await tester.pump(const Duration(seconds: 1));
+        expect(find.byType(UserOnboardingTour), findsNothing);
+        debugDefaultTargetPlatformOverride = null;
+      },
     );
-    await tester.pump(const Duration(seconds: 1));
-    expect(find.byType(UserOnboardingTour), findsNothing);
-    debugDefaultTargetPlatformOverride = null;
-  });
+  }
 
   _rebuildCountTests();
   for (final entry in <String, String>{

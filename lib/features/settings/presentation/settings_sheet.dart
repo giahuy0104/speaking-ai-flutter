@@ -1361,14 +1361,19 @@ class _SettingsSheetState extends State<SettingsSheet> {
           final associationBleId = controller.aiv0BleStatus.deviceId
               ?.trim()
               .toUpperCase();
+          final microphoneName = localizedDeviceName(
+            selected.name,
+            controller.displayLanguage,
+            deviceId: selected.id,
+          );
           final confirmed = await _showOwnedDialog<bool>(
             context: context,
             builder: (dialogContext) => AlertDialog(
-              title: Text(context.tr('Xác nhận micro HOMI', '确认 HOMI 麦克风')),
+              title: Text(context.tr('Đây là micro của HOMI?', '这是 HOMI 的麦克风吗？')),
               content: Text(
                 context.tr(
-                  'Micro “${localizedDeviceName(selected.name, controller.displayLanguage, deviceId: selected.id)}” có thuộc thiết bị HOMI đang kết nối không? Chỉ xác nhận khi bạn biết đây là cùng một thiết bị.',
-                  '麦克风“${localizedDeviceName(selected.name, controller.displayLanguage, deviceId: selected.id)}”是否属于当前连接的 HOMI？请仅在确定是同一台设备时确认。',
+                  'Micro “$microphoneName” có đi cùng thiết bị HOMI của bạn không? Nếu chưa chắc, hãy chọn “Chỉ dùng micro”.',
+                  '麦克风“$microphoneName”是您的 HOMI 设备配套的吗？如果不确定，请选择“仅使用麦克风”。',
                 ),
               ),
               actions: <Widget>[
@@ -1378,7 +1383,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
                 ),
                 FilledButton(
                   onPressed: () => Navigator.of(dialogContext).pop(true),
-                  child: Text(context.tr('Đúng thiết bị HOMI', '是这台 HOMI')),
+                  child: Text(context.tr('Đúng, dùng với HOMI', '是的，连接 HOMI')),
                 ),
               ],
             ),

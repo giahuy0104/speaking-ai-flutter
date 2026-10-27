@@ -229,7 +229,8 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       );
     });
     if (widget.onboardingStore != null &&
-        defaultTargetPlatform != TargetPlatform.android) {
+        defaultTargetPlatform != TargetPlatform.android &&
+        !_isIos) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         unawaited(_showTutorialOnFirstUse());
       });
