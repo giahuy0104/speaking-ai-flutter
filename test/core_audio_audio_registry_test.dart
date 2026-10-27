@@ -17,6 +17,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
+import 'support/local_cloudinary_audio_client.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -591,9 +593,13 @@ void main() {
   });
 
   test('production factory loads generated packs into the registry', () async {
-    final main = createVoicePromptService(owner: AudioTurnOwner.mainAssistant);
+    final main = createVoicePromptService(
+      owner: AudioTurnOwner.mainAssistant,
+      httpClient: createLocalCloudinaryAudioClient(),
+    );
     final listening = createVoicePromptService(
       owner: AudioTurnOwner.listeningLesson,
+      httpClient: createLocalCloudinaryAudioClient(),
     );
     final vocabulary = createVoicePromptService(
       owner: AudioTurnOwner.vocabulary,
@@ -608,6 +614,35 @@ void main() {
     final mainRegistry = main as VoicePromptAudioRegistryAdapter;
     final listeningRegistry = listening as VoicePromptAudioRegistryAdapter;
     final vocabularyRegistry = vocabulary as VoicePromptAudioRegistryAdapter;
+
+    const suppliedTopicPrompts = <String, String>{
+      'assistant.topic.choose_10.vi':
+          'Có 10 Chủ đề. Bạn muốn chọn Chủ đề số mấy?',
+      'assistant.topic.invalid_10.vi': 'Bạn chọn Chủ đề từ số 1 đến số 10 nhé.',
+      'assistant.topic.choose_course_relearn.vi':
+          'Bạn đã hoàn thành khóa học rồi. Bạn muốn học lại Chủ đề số mấy?',
+    };
+    for (final registry in [mainRegistry, listeningRegistry]) {
+      for (final entry in suppliedTopicPrompts.entries) {
+        final resolved = await registry.resolver.resolve(
+          AudioPromptRequest(
+            key: AudioPromptKey(entry.key),
+            fallbackText: entry.value,
+            locale: 'vi-VN',
+            allowTtsFallback: false,
+          ),
+        );
+        expect(
+          resolved.source,
+          anyOf(AudioPromptSource.remote, AudioPromptSource.deviceCache),
+          reason: entry.key,
+        );
+        expect(
+          resolved.prompt!.asset,
+          'assets/audio/assistant-core/${entry.key}.mp3',
+        );
+      }
+    }
 
     expect(await mainRegistry.repository.activeManifests(), hasLength(3));
     expect(await listeningRegistry.repository.activeManifests(), hasLength(12));

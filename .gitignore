@@ -49,6 +49,7 @@ node_modules/
 .wrangler/
 .codex-spreadsheet/
 .codegraph/
+/.codex-build/
 dist/
 flutter_*.log
 

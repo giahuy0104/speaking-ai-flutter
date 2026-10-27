@@ -16,7 +16,10 @@ void main() {
     expect(packs, hasLength(16));
 
     final owners = <String, String>{};
-    final referencedAssets = <String>{};
+    // This direct song-screen cue has no semantic prompt-key owner.
+    final referencedAssets = <String>{
+      'assets/audio/assistant-core/assistant.main.song_skipped.vi.mp3',
+    };
     final checksumTextHashes = <String, Set<String>>{};
     for (final pack in packs) {
       final manifestFile = File(pack['manifest'] as String);

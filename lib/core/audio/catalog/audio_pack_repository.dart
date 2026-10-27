@@ -22,6 +22,7 @@ final class AudioPackRepository {
     this.maximumAudioBytes = 2 * 1024 * 1024,
     this.maximumManifestBytes = 1024 * 1024,
     this.maximumCacheBytes = 128 * 1024 * 1024,
+    this.remoteAudioTimeout = const Duration(seconds: 8),
     this.currentAppVersion = '1.0.8',
     this.telemetry,
   }) : bundledManifestAssets = List.unmodifiable(bundledManifestAssets),
@@ -40,6 +41,7 @@ final class AudioPackRepository {
   final int maximumAudioBytes;
   final int maximumManifestBytes;
   final int maximumCacheBytes;
+  final Duration remoteAudioTimeout;
   final String currentAppVersion;
   final AudioPackTelemetry? telemetry;
   final http.Client _httpClient;
@@ -54,6 +56,18 @@ final class AudioPackRepository {
   Future<void>? _loading;
   final Map<String, AudioPackManifest?> _rollbackManifests = {};
   final Map<String, Future<Uint8List>> _downloads = {};
+  Future<void> _cacheMaintenance = Future.value();
+
+  Future<void> trimCache() {
+    final operation = _cacheMaintenance.catchError((_) {}).then((_) async {
+      await cache.pruneObjects(
+        protectedChecksums: const {},
+        maximumBytes: maximumCacheBytes,
+      );
+    });
+    _cacheMaintenance = operation;
+    return operation;
+  }
 
   Future<void> ensureLoaded() => _loading ??= _loadBundledManifests();
 
@@ -319,7 +333,8 @@ final class AudioPackRepository {
     if (uri == null || !isAllowedRemote(uri)) {
       throw const FormatException('Audio URL is not allowed.');
     }
-    final response = await _httpClient.get(uri);
+    // Fail within the prompt budget so an unavailable CDN can use TTS.
+    final response = await _httpClient.get(uri).timeout(remoteAudioTimeout);
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw StateError('Audio download failed (${response.statusCode}).');
     }
