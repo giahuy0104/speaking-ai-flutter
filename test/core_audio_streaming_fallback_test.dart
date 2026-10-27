@@ -1767,6 +1767,39 @@ void main() {
     },
   );
 
+  test(
+    'Android offline without language data explains the next step',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final repository = _FallbackRepository();
+      final controller = ConversationController(
+        audioInput: _FakeChunkedInput(
+          available: true,
+          bluetooth: false,
+          label: 'Phone',
+        ),
+        streamingSpeechInput: _FakeStreamingSpeechInput(
+          sourceText: 'Hôm nay trời đẹp quá',
+        ),
+        playbackService: const _FakePlaybackService(),
+        repository: repository,
+        networkTransportAvailable: () async => false,
+        childAge: 6,
+        initialAsrMode: AsrMode.androidStreaming,
+      );
+
+      await controller.startRecording();
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      await controller.stopRecording(manual: true);
+
+      expect(controller.phase, ConversationPhase.error);
+      expect(controller.errorMessage, contains('Gói nói và dịch tiếng Anh'));
+      expect(repository.streamingTextRequests, 0);
+      controller.dispose();
+    },
+  );
+
   test('successful backend does not invoke on-device translation', () async {
     final translator = _FakeOfflineTranslator(
       translatedText: 'This must not be used.',

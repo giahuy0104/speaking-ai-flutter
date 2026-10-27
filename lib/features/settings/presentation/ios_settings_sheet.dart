@@ -443,7 +443,7 @@ class IosSettingsSheet extends StatelessWidget {
                             trailing: context.tr('Mặc định', '默认'),
                             stateColor: AppColors.success,
                           ),
-                        if (isAndroid || isIOS) ...<Widget>[
+                        if (isAndroid) ...<Widget>[
                           const SizedBox(height: 10),
                           const _OfflineLanguagePacksCard(),
                         ],
@@ -1177,20 +1177,13 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
       );
   late final OfflineVietnameseEnglishTranslator _translator =
       MlKitOfflineVietnameseEnglishTranslator();
-  final AppleOfflineSpeechAssetService _appleSpeech =
-      const AppleOfflineSpeechAssetService();
-
   AndroidOfflineSpeechModelConsent _consent =
       AndroidOfflineSpeechModelConsent.undecided;
   AndroidOfflineSpeechModelStatus? _status;
   AndroidOfflineSpeechModelPreparationResult? _preparation;
   bool _busy = true;
-  bool _preparingIosModels = false;
   int _request = 0;
   Timer? _refreshTimer;
-
-  bool get _isAndroid =>
-      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
   @override
   void initState() {
@@ -1202,31 +1195,17 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
     final request = ++_request;
     try {
       final consent = await _consentStore.read();
-      final AndroidOfflineSpeechModelStatus speechStatus;
-      if (_isAndroid) {
-        final translationReady = await _translator.modelsReady();
-        final statuses = await Future.wait<AndroidOfflineSpeechModelStatus>([
-          _service.status(locale: 'en-US'),
-          _service.status(locale: 'vi-VN'),
-        ]);
-        speechStatus = _combineAndroidStatuses(
-          statuses,
-          translationReady: translationReady,
-          automaticDownloadAllowed:
-              consent == AndroidOfflineSpeechModelConsent.allowed,
-        );
-      } else {
-        final translationReady = await _translator.modelsReady();
-        speechStatus = AndroidOfflineSpeechModelStatus(
-          state: translationReady
-              ? AndroidOfflineSpeechModelState.installed
-              : _preparingIosModels
-              ? AndroidOfflineSpeechModelState.pending
-              : AndroidOfflineSpeechModelState.missing,
-          appManaged: true,
-          modelId: 'apple-speech+mlkit-vi-en',
-        );
-      }
+      final translationReady = await _translator.modelsReady();
+      final statuses = await Future.wait<AndroidOfflineSpeechModelStatus>([
+        _service.status(locale: 'en-US'),
+        _service.status(locale: 'vi-VN'),
+      ]);
+      final speechStatus = _combineAndroidStatuses(
+        statuses,
+        translationReady: translationReady,
+        automaticDownloadAllowed:
+            consent == AndroidOfflineSpeechModelConsent.allowed,
+      );
       if (!mounted || request != _request) {
         return;
       }
@@ -1320,20 +1299,9 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
         unawaited(_prepareAllModels());
         return;
       } else {
-        if (_isAndroid) {
-          await _service.cancelDownload();
-        }
+        await _service.cancelDownload();
       }
-      final AndroidOfflineSpeechModelStatus status;
-      if (_isAndroid) {
-        status = await _service.status();
-      } else {
-        status = AndroidOfflineSpeechModelStatus(
-          state: AndroidOfflineSpeechModelState.missing,
-          appManaged: true,
-          modelId: 'apple-speech',
-        );
-      }
+      final status = await _service.status();
       if (!mounted || request != _request) {
         return;
       }
@@ -1363,29 +1331,21 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
   }
 
   Future<void> _prepareAllModels() async {
-    _preparingIosModels = !_isAndroid;
     try {
       if (await _consentStore.read() !=
           AndroidOfflineSpeechModelConsent.allowed) {
         return;
       }
-      if (_isAndroid) {
-        await Future.wait<AndroidOfflineSpeechModelPreparationResult>([
-          _coordinator.prepare(locale: 'en-US'),
-          _coordinator.prepare(locale: 'vi-VN'),
-        ]);
-      } else {
-        for (final locale in const <String>['vi-VN', 'en-US']) {
-          await _appleSpeech.prepareLocale(locale);
-        }
-      }
+      await Future.wait<AndroidOfflineSpeechModelPreparationResult>([
+        _coordinator.prepare(locale: 'en-US'),
+        _coordinator.prepare(locale: 'vi-VN'),
+      ]);
       if (mounted &&
           await _consentStore.read() ==
               AndroidOfflineSpeechModelConsent.allowed) {
         await _translator.downloadModels(wifiOnly: true);
       }
     } finally {
-      _preparingIosModels = false;
       if (mounted) {
         await _refresh();
       }
@@ -1412,23 +1372,6 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
   }
 
   void _showResultMessage(AndroidOfflineSpeechModelPreparationResult? result) {
-    if (!_isAndroid &&
-        result ==
-            AndroidOfflineSpeechModelPreparationResult.downloadRequested) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(
-              context.tr(
-                'HOMI sẽ chuẩn bị giọng nói và tải gói dịch offline qua Wi-Fi.',
-                'HOMI 将准备离线语音，并通过 Wi-Fi 下载离线翻译模型。',
-              ),
-            ),
-          ),
-        );
-      return;
-    }
     final message = switch (result) {
       AndroidOfflineSpeechModelPreparationResult.downloadRequested =>
         context.tr(
@@ -1459,29 +1402,6 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
   String _detail(BuildContext context) {
     if (_busy) {
       return context.tr('Đang kiểm tra các gói offline…', '正在检查离线模型…');
-    }
-    if (!_isAndroid) {
-      if (_status?.state == AndroidOfflineSpeechModelState.installed) {
-        return context.tr(
-          'Dịch Việt–Anh và Anh–Việt đã sẵn sàng trên thiết bị. Giọng nói offline phụ thuộc model Apple Speech của thiết bị.',
-          '设备上的越英双向翻译已准备好。离线语音取决于设备的 Apple Speech 模型。',
-        );
-      }
-      if (_preparingIosModels) {
-        return context.tr(
-          'HOMI đang chuẩn bị giọng nói và tải gói dịch offline qua Wi-Fi. Bạn có thể tiếp tục dùng ứng dụng.',
-          'HOMI 正在准备语音并通过 Wi-Fi 下载离线翻译模型；您可以继续使用应用。',
-        );
-      }
-      return _consent == AndroidOfflineSpeechModelConsent.allowed
-          ? context.tr(
-              'Đã cho phép chuẩn bị giọng nói và tải gói dịch Việt–Anh/Anh–Việt qua Wi-Fi. Các gói dịch chưa sẵn sàng; cần iPhone thật để tải và dùng offline.',
-              '已允许准备语音并通过 Wi-Fi 下载越英双向翻译模型。翻译模型尚未准备好；下载和离线使用需要实体 iPhone。',
-            )
-          : context.tr(
-              'Bật để HOMI chuẩn bị Apple Speech và tải gói dịch Việt–Anh/Anh–Việt qua Wi-Fi cho iPhone.',
-              '开启后 HOMI 会准备 Apple Speech，并通过 Wi-Fi 为 iPhone 下载越英双向翻译模型。',
-            );
     }
     switch (_status?.state) {
       case AndroidOfflineSpeechModelState.installed:
@@ -1518,6 +1438,12 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
           return context.tr(
             'Đã cho phép. HOMI sẽ tự tải en-US khi có Wi-Fi, không dùng dữ liệu di động.',
             '已允许。连接 Wi-Fi 后 HOMI 将自动下载 en-US，不使用移动数据。',
+          );
+        }
+        if (_consent == AndroidOfflineSpeechModelConsent.undecided) {
+          return context.tr(
+            'Tiếng Anh cho Chủ đề được tự tải qua Wi-Fi khi vào Home. Bật mục này để tải thêm tiếng Việt và bộ dịch.',
+            '进入首页后会通过 Wi-Fi 自动下载主题学习所需的英语模型。开启此项可额外下载越南语和翻译模型。',
           );
         }
         return _consent == AndroidOfflineSpeechModelConsent.allowed

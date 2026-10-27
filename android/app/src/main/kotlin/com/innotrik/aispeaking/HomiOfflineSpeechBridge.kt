@@ -90,6 +90,10 @@ class HomiOfflineSpeechBridge(
                     result.success(true)
                 }
             }
+            "translation.scheduleDownload" -> {
+                HomiOfflineTranslationModel.scheduleDownload(appContext)
+                result.success(true)
+            }
             "stream.start" -> startLiveRecognition(call, result)
             "stream.stop" -> stopLiveRecognition(call, result)
             "stream.cancel" -> {

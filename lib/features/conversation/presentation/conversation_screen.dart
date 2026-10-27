@@ -18,6 +18,8 @@ class ConversationScreen extends StatefulWidget {
     required this.controller,
     required this.onOpenHistory,
     required this.onOpenSettings,
+    this.isOffline = false,
+    this.offlineLanguageReady,
     this.ensureDeviceConnected,
     this.isDeviceConnectionReady,
     this.sessionActive = false,
@@ -31,6 +33,8 @@ class ConversationScreen extends StatefulWidget {
   });
 
   final ConversationController controller;
+  final bool isOffline;
+  final bool? offlineLanguageReady;
   final VoidCallback onOpenHistory;
   final VoidCallback onOpenSettings;
   final Future<bool> Function()? ensureDeviceConnected;
@@ -141,6 +145,40 @@ class _ConversationScreenState extends State<ConversationScreen> {
                         isReady: widget.controller.isHomiReady,
                       ),
                     ),
+                    if (widget.isOffline)
+                      Padding(
+                        key: const Key('conversation-offline-status'),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 6,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            const Icon(Icons.wifi_off_rounded, size: 18),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                widget.offlineLanguageReady == null
+                                    ? context.tr(
+                                        'Đang ngoại tuyến. HOMI đang kiểm tra dữ liệu offline trên thiết bị.',
+                                        '当前离线，正在检查设备上的离线数据。',
+                                      )
+                                    : widget.offlineLanguageReady!
+                                    ? context.tr(
+                                        'Đang ngoại tuyến. Bạn vẫn có thể nói và dịch sang tiếng Anh.',
+                                        '当前离线，仍可在设备上说话并翻译成英语。',
+                                      )
+                                    : context.tr(
+                                        'Đang ngoại tuyến. Gói nói và dịch tiếng Anh chưa sẵn sàng; HOMI sẽ tải khi có Wi-Fi.',
+                                        '当前离线，英语语音和翻译包尚未就绪；连接 Wi-Fi 后会自动下载。',
+                                      ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     Expanded(
                       child: Center(
                         child: ConstrainedBox(

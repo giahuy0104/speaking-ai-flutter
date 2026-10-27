@@ -106,6 +106,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   bool _recordingStartPending = false;
   bool _recordingUsesIosSpeech = false;
   bool _busy = false;
+  LessonRecording? _pendingEvaluationRecording;
   String? _message;
   int _request = 0;
   int _mainPauseGeneration = 0;
@@ -735,6 +736,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
       }
       if (!mounted || _pausedForMainAssistant || request != _request) return;
       setState(() {
+        _pendingEvaluationRecording = null;
         _recording = true;
         _recordingStartPending = false;
         _recordingUsesIosSpeech = usesIosSpeech;
@@ -774,16 +776,30 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     }
   }
 
-  Future<void> _stopRecording() async {
-    if (!_recording || _busy || !mounted) return;
+  Future<void> _stopRecording() => _finishRecording();
+
+  Future<void> _retryEvaluation() =>
+      _finishRecording(retryRecording: _pendingEvaluationRecording);
+
+  Future<void> _finishRecording({LessonRecording? retryRecording}) async {
+    if ((retryRecording == null && !_recording) ||
+        _busy ||
+        !mounted ||
+        _pausedForMainAssistant ||
+        _playingPrompt) {
+      return;
+    }
     final request = _request;
     final pauseGeneration = _mainPauseGeneration;
     _recordingEndpointDetector.cancel();
     _cancelIosRecordingCompletion();
-    setState(() => _busy = true);
+    setState(() {
+      _busy = true;
+      _message = null;
+    });
     var shouldOpenMicrophoneAgain = false;
     try {
-      final usesIosSpeech = _recordingUsesIosSpeech;
+      final usesIosSpeech = retryRecording == null && _recordingUsesIosSpeech;
       final LessonAttemptOutcome outcome;
       LessonRecording? completedRecording;
       final evaluatedAttemptNumber = _attemptNumber + 1;
@@ -792,7 +808,8 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         outcome = result.$1;
         completedRecording = result.$2;
       } else {
-        final recording = await widget.mediaService.stopRecording();
+        final recording =
+            retryRecording ?? await widget.mediaService.stopRecording();
         completedRecording = recording;
         if (!mounted || _pausedForMainAssistant || request != _request) {
           return;
@@ -801,6 +818,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
           _recording = false;
           _recordingUsesIosSpeech = false;
         });
+        _pendingEvaluationRecording = recording;
         LessonAttemptOutcome? evaluatedOutcome;
         await Future.wait<void>(<Future<void>>[
           _playAttemptRecordingToCompletion(recording),
@@ -843,6 +861,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         _recording = false;
         _recordingUsesIosSpeech = false;
       });
+      _pendingEvaluationRecording = null;
       shouldOpenMicrophoneAgain = await _applyOutcome(outcome);
     } catch (error) {
       if (!mounted || _pausedForMainAssistant || request != _request) return;
@@ -914,6 +933,11 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
         'HOMI iOS challenge recognition returned no usable speech: '
         'code=${error.code ?? 'unknown'}',
       );
+      if (isLessonRecognitionServiceFailure(error.code)) {
+        throw const LessonAttemptEvaluationException(
+          'Chưa thể nhận diện trên máy. Không tính là trả lời sai. Hãy thử lại khi bộ nhận diện sẵn sàng.',
+        );
+      }
       return (nativeLessonRecognitionFailureOutcome(error.code), recording);
     } catch (error) {
       debugPrint('HOMI iOS challenge recognition failed locally: $error');
@@ -1047,6 +1071,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   }
 
   Future<bool> _advance() async {
+    _pendingEvaluationRecording = null;
     if (_pausedForMainAssistant) return false;
     final request = _request;
     if (_challengeIndex < widget.challenges.length - 1) {
@@ -1117,7 +1142,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     if (text.contains('micro') || text.contains('Micro')) {
       return 'Ứng dụng cần quyền micro để nghe câu trả lời.';
     }
-    return 'Chưa chấm được câu trả lời. Bạn thử nói lại nhé.';
+    return 'Chưa chấm được câu trả lời, không tính là sai. Bạn có thể thử lại khi sẵn sàng.';
   }
 
   @override
@@ -1204,6 +1229,16 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
                         ),
                       ),
                     ],
+                    if (_pendingEvaluationRecording != null && !_recording)
+                      TextButton.icon(
+                        key: const Key('retry-challenge-evaluation'),
+                        onPressed:
+                            _busy || _playingPrompt || _pausedForMainAssistant
+                            ? null
+                            : _retryEvaluation,
+                        icon: const Icon(Icons.refresh_rounded),
+                        label: Text(context.tr('Chấm lại bản ghi', '重新评分')),
+                      ),
                     const SizedBox(height: 14),
                     Column(
                       mainAxisSize: MainAxisSize.min,

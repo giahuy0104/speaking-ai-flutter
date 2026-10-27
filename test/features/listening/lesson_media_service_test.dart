@@ -191,6 +191,48 @@ void main() {
     );
 
     test(
+      'simulated HOMI session: lost mic blocks phone fallback and reconnect allows a new recording',
+      () async {
+        await start();
+        expect(recorder.lastConfig?.device, _FakeLessonRecorder.homi);
+        final failed = media.recordingErrors.first;
+        hfp.status = const BluetoothAudioStatus(
+          phase: BluetoothAudioConnectionPhase.ready,
+          deviceId: '00:11:22:33:44:55',
+          deviceName: 'HM-D001',
+        );
+        recorder.devices = const [_FakeLessonRecorder.phone];
+        statuses.add(hfp.status);
+        final failure = await failed;
+        expect(recorder.cancelCalls, 1);
+        await expectLater(media.stopRecording(), throwsA(same(failure)));
+
+        // The phone input exists, but a selected HOMI must not fall back to it.
+        await expectLater(start(), throwsA(isA<LessonMediaException>()));
+        expect(recorder.startCalls, 1);
+        expect(recorder.lastConfig?.device, _FakeLessonRecorder.homi);
+
+        hfp.status = const BluetoothAudioStatus(
+          phase: BluetoothAudioConnectionPhase.recording,
+          deviceId: '00:11:22:33:44:55',
+          deviceName: 'HM-D001',
+          routeActive: true,
+        );
+        recorder.devices = const [
+          _FakeLessonRecorder.phone,
+          _FakeLessonRecorder.homi,
+        ];
+        statuses.add(hfp.status);
+        await start();
+        expect(recorder.startCalls, 2);
+        expect(recorder.lastConfig?.device, _FakeLessonRecorder.homi);
+        final recording = await media.stopRecording();
+        expect(await File(recording.filePath).exists(), isTrue);
+        expect(recorder.cancelCalls, 1);
+      },
+    );
+
+    test(
       'delayed loss from an old capture cannot cancel a newer one',
       () async {
         await start();

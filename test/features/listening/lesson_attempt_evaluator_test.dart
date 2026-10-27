@@ -1,3 +1,7 @@
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ai_speaking_flutter_app/features/listening/application/topic_offline_model_preparation_service.dart';
+import 'package:ai_speaking_flutter_app/features/listening/application/android_offline_speech_model_service.dart';
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:ai_speaking_flutter_app/config/app_config.dart';
@@ -13,6 +17,170 @@ import 'package:http/testing.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  for (final alreadyInstalled in [false, true]) {
+    test(
+      'Android preparation to offline scoring uses one model, installed=$alreadyInstalled',
+      () async {
+        SharedPreferences.setMockInitialValues({});
+        const channel = MethodChannel('test.topic.offline.pipeline');
+        var modelState = alreadyInstalled ? 'installed' : 'missing';
+        final calls = <MethodCall>[];
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, (call) async {
+              calls.add(call);
+              switch (call.method) {
+                case 'model.status':
+                  return {'state': modelState};
+                case 'model.requestDownload':
+                  modelState = 'pending';
+                  return {'state': 'requested'};
+                case 'recognizeFile':
+                  if (modelState != 'installed') {
+                    throw PlatformException(
+                      code: 'ON_DEVICE_SPEECH_UNAVAILABLE',
+                    );
+                  }
+                  return {'text': 'I am ready', 'alternatives': <String>[]};
+              }
+              return null;
+            });
+        addTearDown(
+          () => TestDefaultBinaryMessengerBinding
+              .instance
+              .defaultBinaryMessenger
+              .setMockMethodCallHandler(channel, null),
+        );
+        final preparation = TopicOfflineModelPreparationService(
+          service: const MethodChannelAndroidOfflineSpeechModelService(
+            channel: channel,
+          ),
+        );
+        addTearDown(preparation.dispose);
+        final backend = _FakeAttemptEvaluator.outcome(
+          LessonAttemptOutcome.retry,
+        );
+        final evaluator = AndroidOnDeviceFirstLessonAttemptEvaluator(
+          backendEvaluator: backend,
+          recognizer: const MethodChannelLessonRecordedSpeechRecognizer(
+            channel: channel,
+          ),
+          networkTransportAvailable: () async => false,
+        );
+        await preparation.prepare();
+        await preparation
+            .prepare(); // Home/resume must not replace pending work.
+        if (!alreadyInstalled) {
+          await expectLater(
+            _evaluateBackendFirst(evaluator),
+            throwsA(isA<LessonAttemptEvaluationException>()),
+          );
+          expect(backend.calls, 0);
+          // Native installation completes later, independently of the current view.
+          modelState = 'installed';
+        }
+        await preparation.prepare();
+        expect(
+          await _evaluateBackendFirst(evaluator),
+          LessonAttemptOutcome.good,
+        );
+        expect(
+          backend.calls,
+          0,
+        ); // No API even though transport is explicitly offline.
+        expect(
+          calls.where((c) => c.method == 'model.requestDownload'),
+          hasLength(alreadyInstalled ? 0 : 1),
+        );
+        for (final call in calls.where((c) => c.method == 'recognizeFile')) {
+          expect(call.arguments, containsPair('locale', 'en-US'));
+          expect(call.arguments, containsPair('requireOnDevice', true));
+          expect(
+            call.arguments,
+            containsPair('path', r'C:\recordings\attempt.wav'),
+          );
+        }
+        expect(
+          await const SharedPreferencesAndroidOfflineSpeechModelConsentStore()
+              .read(),
+          AndroidOfflineSpeechModelConsent.undecided,
+        );
+      },
+    );
+  }
+
+  test(
+    'missing offline model and no transport produces no grading outcome',
+    () async {
+      final backend = _FakeAttemptEvaluator.outcome(LessonAttemptOutcome.retry);
+      final evaluator = AndroidOnDeviceFirstLessonAttemptEvaluator(
+        backendEvaluator: backend,
+        recognizer: _FakeLessonRecordedSpeechRecognizer.error(
+          'ON_DEVICE_SPEECH_UNAVAILABLE',
+        ),
+        networkTransportAvailable: () async => false,
+      );
+      await expectLater(
+        _evaluateBackendFirst(evaluator),
+        throwsA(
+          isA<LessonAttemptEvaluationException>().having(
+            (e) => e.backendUnavailable,
+            'offline',
+            true,
+          ),
+        ),
+      );
+      expect(backend.calls, 0);
+    },
+  );
+
+  for (final stallBody in [false, true]) {
+    test(
+      'network ${stallBody ? "body" : "installation identity"} stall has a bounded unavailable result',
+      () async {
+        final body = StreamController<List<int>>();
+        final identity = Completer<String>();
+        final client = MockClient.streaming((request, _) async {
+          if (request.method == 'GET') {
+            return http.StreamedResponse(Stream.value([1, 2, 3]), 200);
+          }
+          return http.StreamedResponse(body.stream, 200);
+        });
+        final evaluator = BackendLessonAttemptEvaluator(
+          client: client,
+          clientIdProvider: stallBody
+              ? () async => 'test'
+              : () => identity.future,
+          evaluationTimeout: const Duration(milliseconds: 30),
+        );
+        await expectLater(
+          _evaluate(evaluator),
+          throwsA(
+            isA<LessonAttemptEvaluationException>().having(
+              (e) => e.backendUnavailable,
+              'unavailable',
+              true,
+            ),
+          ),
+        );
+        if (!stallBody) identity.complete('test');
+        unawaited(body.close());
+        evaluator.dispose();
+      },
+    );
+  }
+
+  test('technical native failures are distinct from child silence', () {
+    for (final code in [
+      'NETWORK_ERROR',
+      'NETWORK_TIMEOUT',
+      'ON_DEVICE_SPEECH_UNAVAILABLE',
+      'HFP_ROUTE_LOST',
+    ]) {
+      expect(isLessonRecognitionServiceFailure(code), isTrue);
+    }
+    expect(isLessonRecognitionServiceFailure('NO_SPEECH'), isFalse);
+  });
 
   group('shared iOS on-device grading', () {
     test('silence does not consume an incorrect-answer retry', () {

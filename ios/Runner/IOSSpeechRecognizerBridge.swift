@@ -1,6 +1,7 @@
 import AVFoundation
 import Darwin
 import Flutter
+import Network
 import Speech
 import UIKit
 
@@ -416,9 +417,26 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       result(false)
     case "speech.prepare":
       prepare(locale: Self.defaultLocale, result: result)
-    case "speech.prepareLocale":
-      let arguments = call.arguments as? [String: Any]
-      prepare(locale: Self.locale(from: arguments?["locale"]), result: result)
+    case "speech.prepareTopicAssets", "speech.prepareBackgroundAssets":
+      // Keep asset warm-up separate from prepareBestEngine: no permission dialog,
+      // prepared-engine mutation or cancellation of an active MAIN/lesson turn.
+      Task { @IOSNativeWorkActor [weak self] in
+        guard let self else { result("unavailable"); return }
+        let arguments = call.arguments as? [String: Any]
+        let locale = Self.locale(from: arguments?["locale"] ?? "en-US")
+        if #available(iOS 26.0, *),
+          await IOSSpeechAnalyzerSession.supports(locale: locale)
+        {
+          do {
+            result(try await IOSSpeechAnalyzerSession.prepareBackgroundAssets(locale: locale))
+          } catch {
+            result("deferred")
+          }
+        } else {
+          // Legacy Apple Speech exposes capability, not an asset download API.
+          result(self.onDeviceLegacyRecognizer(locale: locale) != nil ? "installed" : "unavailable")
+        }
+      }
     case "speech.start":
       let arguments = call.arguments as? [String: Any]
       let turnId = (arguments?["turnId"] as? NSNumber)?.intValue
@@ -1915,6 +1933,57 @@ private final class IOSSpeechAnalyzerSession {
     guard SpeechTranscriber.isAvailable else { return false }
     let supportedLocale = await SpeechTranscriber.supportedLocale(equivalentTo: locale)
     return supportedLocale != nil
+  }
+
+  /// Only starts a new Apple-managed request on non-expensive Wi-Fi. Apple
+  /// owns subsequent network scheduling/retries; there is no per-request
+  /// cellular policy or supported cancellation API in AssetInstallationRequest.
+  static func prepareBackgroundAssets(locale: Locale) async throws -> String {
+    guard let supportedLocale = await SpeechTranscriber.supportedLocale(equivalentTo: locale)
+    else { return "unavailable" }
+    let transcriber = SpeechTranscriber(
+      locale: supportedLocale,
+      transcriptionOptions: [],
+      reportingOptions: [.volatileResults, .fastResults, .alternativeTranscriptions],
+      attributeOptions: []
+    )
+    let status = await AssetInventory.status(forModules: [transcriber])
+    switch status {
+    case .installed: return "installed"
+    case .downloading: return "pending"
+    case .unsupported: return "unavailable"
+    case .supported: break
+    @unknown default: return "unavailable"
+    }
+    guard await backgroundWifiAvailable() else { return "waitingForWifi" }
+    if let request = try await AssetInventory.assetInstallationRequest(supporting: [transcriber]) {
+      try await request.downloadAndInstall()
+    }
+    return await AssetInventory.status(forModules: [transcriber]) == .installed
+      ? "installed" : "deferred"
+  }
+
+  private static func backgroundWifiAvailable() async -> Bool {
+    await withCheckedContinuation { continuation in
+      let monitor = NWPathMonitor()
+      let queue = DispatchQueue(label: "homi.speech.assets.network")
+      // The first update is asynchronous. A bounded fallback prevents a stuck
+      // network monitor from holding Dart's single-flight preparation forever.
+      var finished = false
+      func finish(_ available: Bool) {
+        guard !finished else { return }
+        finished = true
+        monitor.pathUpdateHandler = nil
+        monitor.cancel()
+        continuation.resume(returning: available)
+      }
+      monitor.pathUpdateHandler = { path in
+        finish(path.status == .satisfied && path.usesInterfaceType(.wifi)
+          && !path.isExpensive && !path.isConstrained)
+      }
+      monitor.start(queue: queue)
+      queue.asyncAfter(deadline: .now() + 3) { finish(false) }
+    }
   }
 
   static func installAssets(locale: Locale) async throws {

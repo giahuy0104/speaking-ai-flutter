@@ -232,7 +232,9 @@ class BackendFirstLessonAttemptEvaluator
     final checker = _networkTransportAvailable;
     if (checker != null) {
       try {
-        hasNetworkTransport = await checker();
+        hasNetworkTransport = await checker().timeout(
+          const Duration(seconds: 2),
+        );
       } catch (_) {
         // Preserve backend-first behaviour when the optional platform signal
         // cannot be read.
@@ -461,7 +463,9 @@ class AndroidOnDeviceFirstLessonAttemptEvaluator
     if (checker != null) {
       bool? hasNetworkTransport;
       try {
-        hasNetworkTransport = await checker();
+        hasNetworkTransport = await checker().timeout(
+          const Duration(seconds: 2),
+        );
       } catch (_) {
         // An unavailable network signal is not proof that the API is offline.
       }
@@ -517,6 +521,7 @@ LessonAttemptEvaluator createDefaultLessonAttemptEvaluator({
 class BackendLessonAttemptEvaluator
     implements LessonAttemptEvaluator, DisposableLessonAttemptEvaluator {
   factory BackendLessonAttemptEvaluator({
+    Duration evaluationTimeout = const Duration(seconds: 30),
     AppConfig? config,
     http.Client? client,
     Future<String> Function()? clientIdProvider,
@@ -537,6 +542,7 @@ class BackendLessonAttemptEvaluator
     final resolvedClientIdResetter =
         clientIdResetter ?? clientIdentity?.resetClientId;
     return BackendLessonAttemptEvaluator._(
+      evaluationTimeout: evaluationTimeout,
       config: resolvedConfig,
       clientIdProvider: resolvedClientIdProvider,
       client:
@@ -551,6 +557,7 @@ class BackendLessonAttemptEvaluator
   }
 
   BackendLessonAttemptEvaluator._({
+    required this.evaluationTimeout,
     required AppConfig config,
     required Future<String> Function() clientIdProvider,
     required http.Client client,
@@ -560,6 +567,7 @@ class BackendLessonAttemptEvaluator
        _client = client,
        _retryDelay = retryDelay;
 
+  final Duration evaluationTimeout;
   final AppConfig _config;
   final Future<String> Function() _clientIdProvider;
   final http.Client _client;
@@ -567,6 +575,42 @@ class BackendLessonAttemptEvaluator
 
   @override
   Future<LessonAttemptOutcome> evaluate({
+    required String lessonCode,
+    required String sentenceId,
+    required String expectedEnglish,
+    required String recordingPath,
+    required Duration recordingDuration,
+    required int attemptNumber,
+    required int childAge,
+    Iterable<String> acceptedVariants = const <String>[],
+    bool requireAllExpectedTokens = false,
+  }) async {
+    try {
+      return await _evaluate(
+        lessonCode: lessonCode,
+        sentenceId: sentenceId,
+        expectedEnglish: expectedEnglish,
+        recordingPath: recordingPath,
+        recordingDuration: recordingDuration,
+        attemptNumber: attemptNumber,
+        childAge: childAge,
+        acceptedVariants: acceptedVariants,
+        requireAllExpectedTokens: requireAllExpectedTokens,
+      ).timeout(evaluationTimeout);
+    } on TimeoutException {
+      throw const LessonAttemptEvaluationException(
+        'Chưa kết nối được máy chủ. Bản ghi được giữ lại để thử chấm lại.',
+        backendUnavailable: true,
+      );
+    } on http.ClientException {
+      throw const LessonAttemptEvaluationException(
+        'Kết nối bị gián đoạn. Bản ghi được giữ lại để thử chấm lại.',
+        backendUnavailable: true,
+      );
+    }
+  }
+
+  Future<LessonAttemptOutcome> _evaluate({
     required String lessonCode,
     required String sentenceId,
     required String expectedEnglish,
@@ -1048,6 +1092,23 @@ LessonAttemptOutcome evaluateNativeLessonTranscripts({
       ? LessonAttemptOutcome.good
       : LessonAttemptOutcome.retry;
 }
+
+/// Service/route failures are not evidence of a child's answer or silence.
+bool isLessonRecognitionServiceFailure(String? code) => const <String>{
+  'NETWORK',
+  'NETWORK_ERROR',
+  'NETWORK_TIMEOUT',
+  'SERVICE_UNAVAILABLE',
+  'ON_DEVICE_SPEECH_UNAVAILABLE',
+  'IOS_NATIVE_SPEECH_UNAVAILABLE',
+  'HFP_INPUT_UNAVAILABLE',
+  'HFP_ROUTE_LOST',
+  'AUDIO_ROUTE_MISMATCH',
+  'AUDIO_INPUT_UNAVAILABLE',
+  'AUDIO_ENGINE_START_FAILED',
+  'AUDIO_BUFFER_TIMEOUT',
+  'SPEECH_START_CANCELLED',
+}.contains(code?.toUpperCase());
 
 LessonAttemptOutcome nativeLessonRecognitionFailureOutcome(String? code) =>
     switch (code) {

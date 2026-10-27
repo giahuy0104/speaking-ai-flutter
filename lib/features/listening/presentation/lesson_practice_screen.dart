@@ -139,6 +139,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   bool _mediaBusy = false;
   bool _evaluatingAttempt = false;
   String? _recordingPath;
+  bool _evaluationUnavailable = false;
   Duration? _recordingDuration;
   String? _message;
   bool _showSkip = false;
@@ -517,6 +518,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     } else if (mounted) {
       setState(() {
         _recordingPath = null;
+        _evaluationUnavailable = false;
         _recordingDuration = null;
       });
     }
@@ -1040,6 +1042,11 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
                                     if (_recordingPath != null)
                                       _PostRecordingActions(
                                         busy: interactionBusy,
+                                        onRetryEvaluation:
+                                            _evaluationUnavailable &&
+                                                !_usesIosNativeLessonRecognition
+                                            ? _retryRecordedAttempt
+                                            : null,
                                         onPlaySample: _playSample,
                                         onPlayRecording: _playRecording,
                                         onRecordAgain: _startRecording,
@@ -1287,6 +1294,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     setState(() {
       _recording = false;
       _recordingPath = null;
+      _evaluationUnavailable = false;
       _recordingDuration = null;
       _mediaBusy = false;
       _message = 'Chưa phát lại được bản ghi. Con hãy ghi âm lại nhé.';
@@ -1556,69 +1564,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         // The successful recording remains usable even if progress sync fails.
       }
       if (_usesGuideV2) {
-        final evaluationRequest = _lessonSession.beginAttemptEvaluation();
-        final evaluatedSentenceIndex = _sentenceIndex;
-        final evaluatedSentence = _sentence;
-        final evaluatedAttemptNumber = _attemptNumber;
-        setState(() => _evaluatingAttempt = true);
-        var shouldOpenMicrophoneAgain = false;
-        try {
-          LessonAttemptOutcome? evaluatedOutcome;
-          var replayedRecording = false;
-          // Recognition/scoring and child-voice replay are independent. Start
-          // them together, but apply feedback only after replay has completed
-          // so assistant audio can never overlap the child's voice.
-          await Future.wait<void>(<Future<void>>[
-            _playAttemptRecordingToCompletion(
-              recording,
-            ).then<void>((replayed) => replayedRecording = replayed),
-            _attemptEvaluator
-                .evaluate(
-                  lessonCode: widget.lesson.code,
-                  sentenceId: evaluatedSentence.id,
-                  expectedEnglish: evaluatedSentence.english,
-                  recordingPath: recording.filePath,
-                  recordingDuration: recording.duration,
-                  attemptNumber: evaluatedAttemptNumber,
-                  childAge: widget.startAge,
-                  acceptedVariants: evaluatedSentence.recognitionVariants,
-                  requireAllExpectedTokens:
-                      evaluatedSentence.requiresAllExpectedTokens,
-                )
-                .then<void>((outcome) => evaluatedOutcome = outcome),
-          ]);
-          if (!_isCurrentEvaluation(
-            evaluationRequest,
-            evaluatedSentenceIndex,
-            evaluatedSentence.id,
-          )) {
-            return;
-          }
-          if (widget.lesson.usesV4Flow && !replayedRecording) {
-            _showAttemptReplayFailure();
-            return;
-          }
-          setState(() => _mediaBusy = false);
-          shouldOpenMicrophoneAgain = await _applyAttemptOutcome(
-            evaluatedOutcome!,
-            evaluationRequest: evaluationRequest,
-            sentenceIndex: evaluatedSentenceIndex,
-            sentence: evaluatedSentence,
-            attemptNumber: evaluatedAttemptNumber,
-          );
-        } finally {
-          if (mounted &&
-              _lessonSession.isCurrentAttemptEvaluation(evaluationRequest)) {
-            setState(() => _evaluatingAttempt = false);
-          }
-        }
-        if (shouldOpenMicrophoneAgain) {
-          await _reopenRecordingAfterUnclear(
-            evaluationRequest: evaluationRequest,
-            sentenceIndex: evaluatedSentenceIndex,
-            sentenceId: evaluatedSentence.id,
-          );
-        }
+        await _evaluateRecordedAttempt(recording);
       } else {
         await _playAttemptRecordingToCompletion(recording);
         if (!mounted ||
@@ -1646,6 +1592,117 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       if (_recordingPath == null) {
         _scheduleIdleReminder();
       }
+    }
+  }
+
+  Future<void> _retryRecordedAttempt() async {
+    final path = _recordingPath;
+    final duration = _recordingDuration;
+    if (!_evaluationUnavailable ||
+        path == null ||
+        duration == null ||
+        _mediaBusy ||
+        _evaluatingAttempt ||
+        _recording ||
+        _pausedForMainAssistant) {
+      return;
+    }
+    setState(() {
+      _mediaBusy = true;
+      _message = null;
+    });
+    await _evaluateRecordedAttempt(
+      LessonRecording(filePath: path, duration: duration),
+    );
+  }
+
+  Future<void> _evaluateRecordedAttempt(LessonRecording recording) async {
+    _evaluationUnavailable = false;
+    final evaluationRequest = _lessonSession.beginAttemptEvaluation();
+    final evaluatedSentenceIndex = _sentenceIndex;
+    final evaluatedSentence = _sentence;
+    final evaluatedAttemptNumber = _attemptNumber;
+    setState(() => _evaluatingAttempt = true);
+    var shouldOpenMicrophoneAgain = false;
+    var evaluationCompleted = false;
+    try {
+      LessonAttemptOutcome? evaluatedOutcome;
+      var replayedRecording = false;
+      // Recognition/scoring and child-voice replay are independent. Start
+      // them together, but apply feedback only after replay has completed
+      // so assistant audio can never overlap the child's voice.
+      await Future.wait<void>(<Future<void>>[
+        _playAttemptRecordingToCompletion(
+          recording,
+        ).then<void>((replayed) => replayedRecording = replayed),
+        _attemptEvaluator
+            .evaluate(
+              lessonCode: widget.lesson.code,
+              sentenceId: evaluatedSentence.id,
+              expectedEnglish: evaluatedSentence.english,
+              recordingPath: recording.filePath,
+              recordingDuration: recording.duration,
+              attemptNumber: evaluatedAttemptNumber,
+              childAge: widget.startAge,
+              acceptedVariants: evaluatedSentence.recognitionVariants,
+              requireAllExpectedTokens:
+                  evaluatedSentence.requiresAllExpectedTokens,
+            )
+            .then<void>((outcome) => evaluatedOutcome = outcome),
+      ]);
+      evaluationCompleted = true;
+      if (!_isCurrentEvaluation(
+        evaluationRequest,
+        evaluatedSentenceIndex,
+        evaluatedSentence.id,
+      )) {
+        return;
+      }
+      if (widget.lesson.usesV4Flow && !replayedRecording) {
+        _showAttemptReplayFailure();
+        return;
+      }
+      setState(() => _mediaBusy = false);
+      shouldOpenMicrophoneAgain = await _applyAttemptOutcome(
+        evaluatedOutcome!,
+        evaluationRequest: evaluationRequest,
+        sentenceIndex: evaluatedSentenceIndex,
+        sentence: evaluatedSentence,
+        attemptNumber: evaluatedAttemptNumber,
+      );
+    } catch (error) {
+      if (!_isCurrentEvaluation(
+        evaluationRequest,
+        evaluatedSentenceIndex,
+        evaluatedSentence.id,
+      )) {
+        return;
+      }
+      if (evaluationCompleted) {
+        _setMessage(error.toString());
+        return;
+      }
+      setState(() {
+        _evaluationUnavailable = true;
+        _mediaBusy = false;
+        _message = context.tr(
+          'Chưa chấm được câu trả lời. Bản ghi được giữ lại, không tính là sai. Bạn có thể nghe lại hoặc thử chấm lại khi sẵn sàng.',
+          '暂时无法评分。录音已保留，不计为错误。可以重听或稍后重试评分。',
+        );
+      });
+      debugPrint('HOMI lesson evaluation unavailable: $error');
+    } finally {
+      if (mounted &&
+          _lessonSession.isCurrentAttemptEvaluation(evaluationRequest)) {
+        setState(() => _evaluatingAttempt = false);
+      }
+    }
+    if (shouldOpenMicrophoneAgain) {
+      await _reopenRecordingAfterUnclear(
+        evaluationRequest: evaluationRequest,
+        sentenceIndex: evaluatedSentenceIndex,
+        sentenceId: evaluatedSentence.id,
+      );
     }
   }
 
@@ -1689,6 +1746,15 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           duration: recordedAudio.duration,
         );
         captureDuration = recordedAudio.duration;
+      }
+      if (isLessonRecognitionServiceFailure(error.code)) {
+        setState(() {
+          _recordingPath = recording?.filePath;
+          _recordingDuration = recording?.duration;
+        });
+        throw const LessonAttemptEvaluationException(
+          'Chưa thể nhận diện trên máy. Bản ghi được giữ lại, không tính là sai. Hãy thử lại khi bộ nhận diện sẵn sàng.',
+        );
       }
       outcome = nativeLessonRecognitionFailureOutcome(error.code);
       debugPrint(
@@ -1943,6 +2009,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
             : LessonGuideFlowV2.unclear;
         setState(() {
           _recordingPath = null;
+          _evaluationUnavailable = false;
           _recordingDuration = null;
           _message = prompt.text;
         });
@@ -1965,6 +2032,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         final feedback = _feedbackMessage(LessonFeedbackKind.noResponse);
         setState(() {
           _recordingPath = null;
+          _evaluationUnavailable = false;
           _recordingDuration = null;
           _message = feedback;
         });
@@ -1992,6 +2060,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         setState(() {
           _attemptNumber = 2;
           _recordingPath = null;
+          _evaluationUnavailable = false;
           _recordingDuration = null;
           _message = prompt.text;
         });
@@ -2066,6 +2135,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     _pausedAfterNoResponse = true;
     setState(() {
       _recordingPath = null;
+      _evaluationUnavailable = false;
       _recordingDuration = null;
       _message = 'Mình tạm dừng nhé.';
     });
@@ -2112,6 +2182,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       _attemptNumber = 1;
       _guidedSequenceStarted = false;
       _recordingPath = null;
+      _evaluationUnavailable = false;
       _recordingDuration = null;
       _message = null;
     });
@@ -2170,6 +2241,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         : LessonGuideFlowV2.needsPractice;
     setState(() {
       _recordingPath = null;
+      _evaluationUnavailable = false;
       _recordingDuration = null;
       _message = prompt.text;
     });
@@ -2466,6 +2538,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     setState(() {
       _sentenceIndex = nextSentence;
       _recordingPath = null;
+      _evaluationUnavailable = false;
       _recordingDuration = null;
       _message = null;
     });
@@ -2505,6 +2578,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     setState(() {
       _sentenceIndex = previousSentence;
       _recordingPath = null;
+      _evaluationUnavailable = false;
       _recordingDuration = null;
       _message = null;
     });
@@ -3403,6 +3477,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       _skippedSentenceIndexes.clear();
       _needsPracticeSentenceIndexes.clear();
       _recordingPath = null;
+      _evaluationUnavailable = false;
       _recordingDuration = null;
       _recording = false;
       _recordingStartPending = false;
@@ -5294,6 +5369,7 @@ class _PostRecordingActions extends StatelessWidget {
     required this.onPrevious,
     required this.canGoPrevious,
     required this.finalSentence,
+    this.onRetryEvaluation,
   });
 
   final bool busy;
@@ -5304,6 +5380,7 @@ class _PostRecordingActions extends StatelessWidget {
   final VoidCallback onPrevious;
   final bool canGoPrevious;
   final bool finalSentence;
+  final VoidCallback? onRetryEvaluation;
 
   @override
   Widget build(BuildContext context) {
@@ -5311,6 +5388,14 @@ class _PostRecordingActions extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
     final actions = <Widget>[
+      if (onRetryEvaluation != null)
+        _CompactAction(
+          key: const Key('retry-lesson-evaluation'),
+          icon: Icons.refresh_rounded,
+          label: context.tr('Chấm lại bản ghi', '重新评分'),
+          onPressed: busy ? null : onRetryEvaluation,
+          filled: true,
+        ),
       _CompactAction(
         icon: Icons.volume_up_rounded,
         label: context.tr('Nghe câu mẫu', '听示范'),

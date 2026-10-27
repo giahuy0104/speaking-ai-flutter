@@ -13,10 +13,12 @@ import 'package:ai_speaking_flutter_app/core/audio/learning_audio_dependencies.d
 import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
+import 'package:ai_speaking_flutter_app/features/listening/application/android_offline_speech_model_service.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_attempt_evaluator.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_guide_audio_library.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_completion_choice_recognizer.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
+import 'package:ai_speaking_flutter_app/features/listening/application/topic_offline_model_preparation_service.dart';
 import 'package:ai_speaking_flutter_app/features/listening/data/listening_progress_store.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/lesson_guide_flow.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_audio_keys.dart';
@@ -36,8 +38,274 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/services.dart';
 import 'package:crypto/crypto.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  testWidgets(
+    'simulated HOMI session: model recovers while offline and same recording earns a Star',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final native = _SimulatedTopicNative()..modelState = 'missing';
+      native.install();
+      addTearDown(native.close);
+      final progress = _MemoryProgressStore();
+      final media = _GuidedMediaService();
+      final backend = _CallerOwnedAttemptEvaluator();
+      final evaluator = native.evaluator(backend);
+      await native.preparation.prepare(); // Same operation Home triggers.
+      expect(native.modelState, 'pending');
+      await tester.pumpWidget(
+        _subject(
+          _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+          media,
+          progressStore: progress,
+          attemptEvaluator: evaluator,
+          guideAudioLibrary: _silentGuideAudioLibrary(),
+          voicePromptService: _FakeVoicePromptService(),
+        ),
+      );
+      await _pumpGuidedSpeechTurn(tester);
+      await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+      await _pumpGuidedSpeechTurn(tester);
+      final retry = find.byKey(const Key('retry-lesson-evaluation'));
+      expect(retry, findsOneWidget);
+      expect(progress.sessionResults, isEmpty);
+      expect(progress.earnedStars, isEmpty);
+      expect(backend.evaluationCalls, 0);
+      // A prior background download finishes. The user is offline again. Merely
+      // installing the model must not grade a pending recording or advance UI.
+      native.modelState = 'installed';
+      await native.preparation.prepare();
+      await tester.pump(const Duration(seconds: 1));
+      expect(native.recognizedPaths, hasLength(1));
+      expect(progress.earnedStars, isEmpty);
+      expect(find.text('Sentence 1'), findsOneWidget);
+      await tester.ensureVisible(retry);
+      await tester.tap(retry);
+      await _pumpGuidedSpeechTurn(tester);
+      expect(native.recognizedPaths, hasLength(2));
+      expect(native.recognizedPaths.toSet(), hasLength(1));
+      expect(media.startedSentenceIds, hasLength(1));
+      expect(progress.earnedStars, contains('core:GUIDED-FLOW_S1'));
+      expect(progress.needsPractice, isEmpty);
+      expect(backend.evaluationCalls, 0);
+      expect(native.downloadRequests, 1);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  testWidgets(
+    'simulated HOMI session: wrong offline transcript is not automatically accepted',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final native = _SimulatedTopicNative()..transcript = 'I like apples';
+      native.install();
+      addTearDown(native.close);
+      final progress = _MemoryProgressStore();
+      final backend = _CallerOwnedAttemptEvaluator();
+      await tester.pumpWidget(
+        _subject(
+          _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+          _GuidedMediaService(),
+          progressStore: progress,
+          attemptEvaluator: native.evaluator(backend),
+          guideAudioLibrary: _silentGuideAudioLibrary(),
+          voicePromptService: _FakeVoicePromptService(),
+        ),
+      );
+      await _pumpGuidedSpeechTurn(tester);
+      await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+      await _pumpGuidedSpeechTurn(tester);
+      expect(native.recognizedPaths, hasLength(1));
+      expect(progress.earnedStars, isEmpty);
+      expect(find.text('Sentence 1'), findsOneWidget);
+      expect(backend.evaluationCalls, 0);
+      expect(find.byKey(const Key('retry-lesson-evaluation')), findsNothing);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  testWidgets(
+    'simulated HOMI session: MAIN cancels late offline recognition effects',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final native = _SimulatedTopicNative()
+        ..recognitionGate = Completer<void>();
+      native.install();
+      addTearDown(native.close);
+      final progress = _MemoryProgressStore();
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final backend = _CallerOwnedAttemptEvaluator();
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _subject(
+            _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+            _GuidedMediaService(),
+            progressStore: progress,
+            attemptEvaluator: native.evaluator(backend),
+            guideAudioLibrary: _silentGuideAudioLibrary(),
+            voicePromptService: _FakeVoicePromptService(),
+          ),
+        ),
+      );
+      await _pumpGuidedSpeechTurn(tester);
+      await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+      await _pumpGuidedSpeechTurn(tester);
+      expect(native.recognizedPaths, hasLength(1));
+      await registry
+          .pauseForMainAssistant(); // Same entry used by MAIN dispatch.
+      native.recognitionGate!.complete();
+      await _pumpGuidedSpeechTurn(tester);
+      expect(progress.earnedStars, isEmpty);
+      expect(progress.sessionResults, isEmpty);
+      expect(find.text('Sentence 1'), findsOneWidget);
+      expect(backend.evaluationCalls, 0);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  for (final code in ['ON_DEVICE_SPEECH_UNAVAILABLE', 'NETWORK_ERROR']) {
+    testWidgets(
+      'iOS Core $code never records a wrong answer or advances offline',
+      (tester) async {
+        await _usePhoneSurface(tester);
+        final speech = _UnavailableOfflineIosSpeechInput(code);
+        final progress = _MemoryProgressStore();
+        await tester.pumpWidget(
+          _subject(
+            _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+            _IosLessonMediaService(),
+            controller: _IosLearningAudioDependencies(speech),
+            useOwnedEvaluator: true,
+            progressStore: progress,
+            guideAudioLibrary: _silentGuideAudioLibrary(),
+            voicePromptService: _FakeVoicePromptService(),
+          ),
+        );
+        await _pumpGuidedSpeechTurn(tester);
+        expect(speech.started, isTrue);
+        await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+        await _pumpGuidedSpeechTurn(tester);
+        expect(find.text('Sentence 1'), findsOneWidget);
+        expect(progress.earnedStars, isEmpty);
+        expect(progress.sessionResults, isEmpty);
+        expect(progress.needsPractice, isEmpty);
+        expect(progress.currentSentence, 0);
+        expect(find.textContaining('không tính là sai'), findsOneWidget);
+        await tester.pumpWidget(const SizedBox.shrink());
+        unawaited(speech.dispose());
+        await tester.pump();
+      },
+      variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+    );
+  }
+
+  testWidgets(
+    'MAIN ignores a late successful retry after an offline Core failure',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final result = Completer<LessonAttemptOutcome>();
+      final progress = _MemoryProgressStore();
+      final evaluator = _ScriptedAttemptEvaluator([
+        const LessonAttemptEvaluationException(
+          'offline',
+          backendUnavailable: true,
+        ),
+        result.future,
+      ]);
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _subject(
+            _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+            _GuidedMediaService(),
+            progressStore: progress,
+            attemptEvaluator: evaluator,
+            guideAudioLibrary: _silentGuideAudioLibrary(),
+            voicePromptService: _FakeVoicePromptService(),
+          ),
+        ),
+      );
+      await _pumpGuidedSpeechTurn(tester);
+      await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+      await _pumpGuidedSpeechTurn(tester);
+      final retry = find.byKey(const Key('retry-lesson-evaluation'));
+      await tester.ensureVisible(retry);
+      await tester.tap(retry);
+      await tester.pump();
+      expect(evaluator.evaluationCalls, 2);
+      await registry.pauseForMainAssistant();
+      result.complete(LessonAttemptOutcome.good);
+      await _pumpGuidedSpeechTurn(tester);
+      expect(progress.earnedStars, isEmpty);
+      expect(progress.needsPractice, isEmpty);
+      expect(find.text('Sentence 1'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+  );
+
+  testWidgets(
+    'Core offline failure retains recording and retry does not spend an attempt or Star',
+    (tester) async {
+      await _usePhoneSurface(tester);
+      final media = _GuidedMediaService();
+      final progress = _MemoryProgressStore();
+      final evaluator = _ScriptedAttemptEvaluator([
+        const LessonAttemptEvaluationException(
+          'offline',
+          backendUnavailable: true,
+        ),
+        const LessonAttemptEvaluationException(
+          'still offline',
+          backendUnavailable: true,
+        ),
+        LessonAttemptOutcome.good,
+      ]);
+      await tester.pumpWidget(
+        _subject(
+          _lesson(code: 'C35-L1-T01-B01', sentenceCount: 2, v4: true),
+          media,
+          progressStore: progress,
+          attemptEvaluator: evaluator,
+          guideAudioLibrary: _silentGuideAudioLibrary(),
+          voicePromptService: _FakeVoicePromptService(),
+        ),
+      );
+      await _pumpGuidedSpeechTurn(tester);
+      await tester.tap(find.byKey(const Key('record-lesson-sentence')));
+      await _pumpGuidedSpeechTurn(tester);
+      for (var retry = 0; retry < 2; retry++) {
+        expect(find.text('Sentence 1'), findsOneWidget);
+        expect(progress.earnedStars, isEmpty);
+        expect(progress.needsPractice, isEmpty);
+        expect(progress.sessionResults, isEmpty);
+        expect(media.startedSentenceIds, hasLength(1));
+        final button = find.byKey(const Key('retry-lesson-evaluation'));
+        await tester.ensureVisible(button);
+        await tester.tap(button);
+        await _pumpGuidedSpeechTurn(tester);
+      }
+      expect(evaluator.attemptNumbers, [1, 1, 1]);
+      expect(evaluator.recordingPaths.toSet(), hasLength(1));
+      expect(progress.earnedStars, contains('core:GUIDED-FLOW_S1'));
+      expect(progress.needsPractice, isEmpty);
+      expect(find.byKey(const Key('retry-lesson-evaluation')), findsNothing);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+  );
+
   for (final guided in <bool>[false, true]) {
     for (final cancel in <bool>[false, true]) {
       testWidgets(
@@ -4222,7 +4490,9 @@ ListeningLessonContent _lesson({
 class _ScriptedAttemptEvaluator implements LessonAttemptEvaluator {
   _ScriptedAttemptEvaluator(this._outcomes);
 
-  final List<LessonAttemptOutcome> _outcomes;
+  final List<Object> _outcomes;
+  final List<int> attemptNumbers = [];
+  final List<String> recordingPaths = [];
   int _index = 0;
   int get evaluationCalls => _index;
 
@@ -4240,6 +4510,10 @@ class _ScriptedAttemptEvaluator implements LessonAttemptEvaluator {
   }) async {
     final outcome = _outcomes[_index.clamp(0, _outcomes.length - 1)];
     _index += 1;
+    attemptNumbers.add(attemptNumber);
+    recordingPaths.add(recordingPath);
+    if (outcome is Future<LessonAttemptOutcome>) return await outcome;
+    if (outcome is! LessonAttemptOutcome) throw outcome;
     return outcome;
   }
 }
@@ -5450,4 +5724,75 @@ Future<void> _pumpGuidedSpeechTurn(WidgetTester tester) async {
 Future<void> _usePhoneSurface(WidgetTester tester) async {
   await tester.binding.setSurfaceSize(const Size(390, 844));
   addTearDown(() => tester.binding.setSurfaceSize(null));
+}
+
+class _UnavailableOfflineIosSpeechInput
+    extends _MissingRecordingIosSpeechInput {
+  _UnavailableOfflineIosSpeechInput(this.code);
+  final String code;
+  @override
+  Future<StreamingSpeechCapture> stop() async {
+    throw StreamingSpeechInputException(
+      'Offline recognizer unavailable',
+      code: code,
+    );
+  }
+}
+
+/// Simulates OS model and ASR responses, never a grading outcome. The real
+/// preparation service, evaluator/matcher, lesson UI and progress rules run.
+class _SimulatedTopicNative {
+  static const channel = MethodChannel('test.simulated.homi.offline');
+  String modelState = 'installed';
+  String transcript = 'Sentence 1';
+  Completer<void>? recognitionGate;
+  int downloadRequests = 0;
+  final recognizedPaths = <String>[];
+  final preparation = TopicOfflineModelPreparationService(
+    service: const MethodChannelAndroidOfflineSpeechModelService(
+      channel: channel,
+    ),
+  );
+
+  void install() {
+    SharedPreferences.setMockInitialValues({});
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          final args = call.arguments as Map;
+          expect(args['locale'], 'en-US');
+          switch (call.method) {
+            case 'model.status':
+              return {'state': modelState};
+            case 'model.requestDownload':
+              downloadRequests++;
+              modelState = 'pending';
+              return {'state': 'requested'};
+            case 'recognizeFile':
+              recognizedPaths.add(args['path'] as String);
+              expect(args['requireOnDevice'], isTrue);
+              if (modelState != 'installed') {
+                throw PlatformException(code: 'ON_DEVICE_SPEECH_UNAVAILABLE');
+              }
+              await recognitionGate?.future;
+              return {'text': transcript, 'alternatives': <String>[]};
+          }
+          return null;
+        });
+  }
+
+  AndroidOnDeviceFirstLessonAttemptEvaluator evaluator(
+    LessonAttemptEvaluator backend,
+  ) => AndroidOnDeviceFirstLessonAttemptEvaluator(
+    backendEvaluator: backend,
+    recognizer: const MethodChannelLessonRecordedSpeechRecognizer(
+      channel: channel,
+    ),
+    networkTransportAvailable: () async => false,
+  );
+
+  void close() {
+    preparation.dispose();
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, null);
+  }
 }

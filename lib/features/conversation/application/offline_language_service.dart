@@ -202,20 +202,27 @@ class MlKitOfflineVietnameseEnglishTranslator
 
   Future<bool> _downloadModels({required bool wifiOnly}) async {
     try {
-      for (final languageCode in const <String>[
-        _vietnameseCode,
-        _englishCode,
-      ]) {
+      Future<bool> ensureModel(String languageCode) async {
         if (_closed) return false;
         if (!await _adapter.isModelDownloaded(languageCode)) {
           if (_closed) return false;
-          final downloaded = await _adapter.downloadModel(
-            languageCode,
-            wifiOnly: wifiOnly,
-          );
-          if (!downloaded) {
-            return false;
-          }
+          return _adapter.downloadModel(languageCode, wifiOnly: wifiOnly);
+        }
+        return true;
+      }
+
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
+        final results = await Future.wait<bool>(<Future<bool>>[
+          ensureModel(_vietnameseCode),
+          ensureModel(_englishCode),
+        ]);
+        if (results.any((ready) => !ready)) return false;
+      } else {
+        for (final languageCode in const <String>[
+          _vietnameseCode,
+          _englishCode,
+        ]) {
+          if (!await ensureModel(languageCode)) return false;
         }
       }
       return modelsReady();
@@ -329,22 +336,28 @@ class AppleOfflineSpeechAssetService {
 
   final MethodChannel _channel;
 
-  Future<bool> prepareLocale(String locale) async {
+  /// Asset-only preparation: no permission prompt or audio session mutation.
+  /// Native checks installed assets first and only starts downloads on Wi-Fi.
+  Future<String> prepareTopicInBackground() async {
+    return await _channel.invokeMethod<String>(
+          'speech.prepareTopicAssets',
+          const <String, dynamic>{'locale': 'en-US'},
+        ) ??
+        'unavailable';
+  }
+
+  Future<String> prepareBackgroundLocale(String locale) async {
     try {
-      return await _channel.invokeMethod<bool>(
-            'speech.prepareLocale',
-            <String, dynamic>{
-              'locale': locale,
-              'preferOnDevice': true,
-              'requireOnDevice': true,
-            },
+      return await _channel.invokeMethod<String>(
+            'speech.prepareBackgroundAssets',
+            <String, dynamic>{'locale': locale},
           ) ??
-          false;
+          'unavailable';
     } on MissingPluginException {
-      return false;
+      return 'unavailable';
     } on PlatformException catch (error) {
       debugPrint('Apple offline speech locale $locale is unavailable: $error');
-      return false;
+      return 'deferred';
     }
   }
 }

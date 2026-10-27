@@ -48,9 +48,6 @@ class StartupSetupScreen extends StatefulWidget {
     this.onCancelHomiSetup,
     this.allowPhoneMicFallback = false,
     this.allowBleOnlySetup = false,
-    this.androidOfflineEnglishModelOptionAvailable = false,
-    this.androidOfflineEnglishModelDownloadAllowed = false,
-    this.onAndroidOfflineEnglishModelDownloadChanged,
     this.onChooseHomiMicrophone,
     this.homiDeviceName,
     this.privacyPolicyUri,
@@ -100,10 +97,6 @@ class StartupSetupScreen extends StatefulWidget {
   final Future<bool> Function()? onChooseHomiMicrophone;
   final ValueChanged<int> onAgeSelected;
   final Future<void> Function() onCompleteSetup;
-  final bool androidOfflineEnglishModelOptionAvailable;
-  final bool androidOfflineEnglishModelDownloadAllowed;
-  final Future<void> Function(bool)?
-  onAndroidOfflineEnglishModelDownloadChanged;
   final String? permissionError;
 
   @override
@@ -259,12 +252,6 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
         onCompleteSetup: widget.onCompleteSetup,
         allowPhoneMicFallback: widget.allowPhoneMicFallback,
         allowBleOnlySetup: widget.allowBleOnlySetup,
-        androidOfflineEnglishModelOptionAvailable:
-            widget.androidOfflineEnglishModelOptionAvailable,
-        androidOfflineEnglishModelDownloadAllowed:
-            widget.androidOfflineEnglishModelDownloadAllowed,
-        onAndroidOfflineEnglishModelDownloadChanged:
-            widget.onAndroidOfflineEnglishModelDownloadChanged,
         onChooseHomiMicrophone: widget.onChooseHomiMicrophone,
         onOpenBluetoothSettings: widget.onOpenBluetoothSettings,
         homiDeviceName: widget.homiDeviceName,

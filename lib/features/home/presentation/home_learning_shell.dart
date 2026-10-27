@@ -6,6 +6,7 @@ import '../../../core/audio/voice_prompt_service.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 import '../../../app/app_theme.dart';
 import '../../../app/homi_bottom_navigation.dart';
@@ -45,6 +46,8 @@ class HomeLearningShell extends StatefulWidget {
   const HomeLearningShell({
     required this.controller,
     required this.config,
+    this.onReady,
+    this.offlineLanguageReady,
     this.voiceNavigationController,
     this.speakingSessionController,
     this.themeMode = ThemeMode.system,
@@ -82,6 +85,10 @@ class HomeLearningShell extends StatefulWidget {
 
   final ConversationController controller;
   final AppConfig config;
+
+  /// Starts app-owned background work after Home is visible, once per mount.
+  final VoidCallback? onReady;
+  final Future<bool> Function()? offlineLanguageReady;
   final DeviceConnectionCoordinator? connectionCoordinator;
   final VoiceNavigationController? voiceNavigationController;
   final MainSpeakingSessionController? speakingSessionController;
@@ -156,6 +163,10 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   final VocabularyHomeNavigationController _vocabularyNavigationController =
       VocabularyHomeNavigationController();
   int _lifecycleDecisionGeneration = 0;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  bool? _hasNetworkTransport;
+  bool? _offlineLanguageReady;
+  int _networkStatusGeneration = 0;
 
   bool get _isIos => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
 
@@ -200,7 +211,16 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     unawaited(_loadParentMediaSettings());
     _attachVoiceNavigationHandler();
     widget.controller.addListener(_onConversationControllerChanged);
+    if (widget.offlineLanguageReady != null) {
+      _connectivitySubscription = Connectivity().onConnectivityChanged.listen(
+        (results) => unawaited(_updateNetworkStatus(results)),
+        onError: (Object _) {},
+      );
+      unawaited(_refreshNetworkStatus());
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      widget.onReady?.call();
       unawaited(
         _backgroundLearningCoordinator.initialize(
           voiceAccessEnabled: widget.voiceAccessEnabled,
@@ -273,6 +293,8 @@ class _HomeLearningShellState extends State<HomeLearningShell>
 
   @override
   void dispose() {
+    _networkStatusGeneration++;
+    unawaited(_connectivitySubscription?.cancel());
     _releasePreparedTopicVoiceGate();
     WidgetsBinding.instance.removeObserver(this);
     _voiceNavigationRestartTimer?.cancel();
@@ -289,8 +311,52 @@ class _HomeLearningShellState extends State<HomeLearningShell>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed &&
+        widget.offlineLanguageReady != null) {
+      unawaited(_refreshNetworkStatus());
+    }
     final generation = ++_lifecycleDecisionGeneration;
     unawaited(_handleAppLifecycleState(state, generation));
+  }
+
+  Future<void> _refreshNetworkStatus() async {
+    try {
+      await _updateNetworkStatus(await Connectivity().checkConnectivity());
+    } catch (_) {
+      // A missing optional signal keeps the normal online flow available.
+    }
+  }
+
+  Future<void> _updateNetworkStatus(List<ConnectivityResult> results) async {
+    final generation = ++_networkStatusGeneration;
+    final hasTransport = results.any(
+      (result) => result != ConnectivityResult.none,
+    );
+    if (!hasTransport) {
+      if (mounted) {
+        setState(() {
+          _hasNetworkTransport = false;
+          _offlineLanguageReady = null;
+        });
+      }
+      bool ready;
+      try {
+        ready = await widget.offlineLanguageReady?.call() ?? false;
+      } catch (_) {
+        ready = false;
+      }
+      if (!mounted || generation != _networkStatusGeneration) return;
+      setState(() {
+        _hasNetworkTransport = false;
+        _offlineLanguageReady = ready;
+      });
+      return;
+    }
+    if (!mounted || generation != _networkStatusGeneration) return;
+    setState(() {
+      _hasNetworkTransport = true;
+      _offlineLanguageReady = null;
+    });
   }
 
   Future<void> _handleAppLifecycleState(
@@ -447,8 +513,8 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     _builtChildAge = widget.controller.childAge;
     final screenSize = MediaQuery.sizeOf(context);
     final safeTop = MediaQuery.paddingOf(context).top;
-    final railTop = (screenSize.height * 0.195)
-        .clamp(safeTop + 132, screenSize.height - 238)
+    final railTop = (screenSize.height * 0.33)
+        .clamp(safeTop + 148, screenSize.height - 238)
         .toDouble();
     return DisplayLanguageScope(
       language: widget.controller.displayLanguage,
@@ -481,6 +547,8 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                     enabled: _page == 0,
                     child: ConversationScreen(
                       controller: widget.controller,
+                      isOffline: _hasNetworkTransport == false,
+                      offlineLanguageReady: _offlineLanguageReady,
                       ensureDeviceConnected: widget.ensureDeviceConnected,
                       isDeviceConnectionReady: widget.isDeviceConnectionReady,
                       sessionActive: widget.sessionActive,
