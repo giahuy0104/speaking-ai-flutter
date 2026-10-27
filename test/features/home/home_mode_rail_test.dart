@@ -62,9 +62,8 @@ void main() {
         );
         final button = find.byType(HomeModeRail);
         final rect = tester.getRect(button);
-        expect(rect.width, greaterThanOrEqualTo(48));
-        expect(rect.width, lessThanOrEqualTo(56));
-        expect(rect.height, greaterThan(120));
+        expect(rect.width, inInclusiveRange(60, 68));
+        expect(rect.height, 210);
         expect(
           tester.widget<RotatedBox>(find.byType(RotatedBox)).quarterTurns,
           edge == HomeRailEdge.left ? 3 : 1,

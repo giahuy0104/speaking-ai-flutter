@@ -31,8 +31,6 @@ class VoiceHero extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isRecording = phase == ConversationPhase.recording;
-    final showStatusCopy =
-        isPreparingMicrophone || phase != ConversationPhase.idle;
     final compact = MediaQuery.sizeOf(context).height < 900;
     final motionDuration = MediaQuery.disableAnimationsOf(context)
         ? Duration.zero
@@ -78,53 +76,6 @@ class VoiceHero extends StatelessWidget {
               ],
             ),
           ),
-          if (showStatusCopy) ...<Widget>[
-            SizedBox(height: compact ? 2 : 6),
-            Semantics(
-              liveRegion: true,
-              child: Text(
-                isPreparingMicrophone
-                    ? context.tr('Đang chuẩn bị micro…', '正在准备麦克风…')
-                    : _statusLabel(context),
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: isRecording
-                      ? AppColors.coral
-                      : isDark
-                      ? colorScheme.primary
-                      : AppColors.indigoDark,
-                  fontSize: compact ? 27 : 31,
-                  shadows: <Shadow>[
-                    Shadow(
-                      color: isDark ? Colors.black54 : Colors.white,
-                      blurRadius: 12,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              isPreparingMicrophone
-                  ? context.tr(
-                      'Đợi một chút rồi nói khi màn hình báo đang nghe nhé',
-                      '请稍候，显示正在聆听后再开始说话',
-                    )
-                  : _supportingText(context),
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: isDark ? colorScheme.onSurfaceVariant : AppColors.muted,
-                fontSize: compact ? 15 : 17,
-                fontWeight: FontWeight.w600,
-                shadows: <Shadow>[
-                  Shadow(
-                    color: isDark ? Colors.black54 : Colors.white,
-                    blurRadius: 10,
-                  ),
-                ],
-              ),
-            ),
-          ],
           SizedBox(
             height: compact ? 52 : 58,
             child: Center(
@@ -147,99 +98,85 @@ class VoiceHero extends StatelessWidget {
               ),
             ),
           ),
-          if (!isRecording && !isPreparingMicrophone)
-            Text(
-              _helperText(context),
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: isDark ? colorScheme.onSurfaceVariant : AppColors.muted,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                shadows: <Shadow>[
-                  Shadow(
-                    color: isDark ? Colors.black54 : Colors.white,
-                    blurRadius: 7,
+          Padding(
+            padding: EdgeInsets.only(top: compact ? 6 : 8),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 24),
+              child: Center(
+                child: Semantics(
+                  liveRegion: true,
+                  child: Text(
+                    _statusText(context),
+                    key: const Key('conversation-wave-status'),
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: isDark
+                          ? colorScheme.onSurfaceVariant
+                          : AppColors.muted,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      shadows: <Shadow>[
+                        Shadow(
+                          color: isDark ? Colors.black54 : Colors.white,
+                          blurRadius: 7,
+                        ),
+                        Shadow(
+                          color: isDark ? Colors.black54 : Colors.white,
+                          blurRadius: 14,
+                        ),
+                      ],
+                    ),
                   ),
-                  Shadow(
-                    color: isDark ? Colors.black54 : Colors.white,
-                    blurRadius: 14,
-                  ),
-                ],
+                ),
               ),
             ),
+          ),
         ],
       ),
     );
   }
 
-  String _statusLabel(BuildContext context) => switch (phase) {
-    ConversationPhase.idle => '',
-    ConversationPhase.recording => context.tr('Mình đang nghe…', '正在聆听…'),
-    ConversationPhase.processing => switch (processingStage) {
-      ConversationProcessingStage.recognizing => context.tr(
-        'Đang nhận giọng nói…',
-        '正在识别语音…',
+  String _statusText(BuildContext context) {
+    if (isPreparingMicrophone) {
+      return context.tr('Đang chuẩn bị micro…', '正在准备麦克风…');
+    }
+    if (needsDeviceConnection &&
+        (phase == ConversationPhase.idle ||
+            phase == ConversationPhase.ready ||
+            phase == ConversationPhase.error)) {
+      return context.tr(
+        'Kết nối với HOMI để bắt đầu sử dụng',
+        '连接 HOMI 即可开始使用',
+      );
+    }
+    return switch (phase) {
+      ConversationPhase.idle => context.tr(
+        'Bấm nút micro bên dưới để bắt đầu',
+        '点击下方麦克风按钮开始',
       ),
-      ConversationProcessingStage.translating => context.tr(
-        'Đang dịch sang tiếng Anh…',
-        '正在翻译成英语…',
+      ConversationPhase.recording => context.tr('Mình đang nghe…', '正在聆听…'),
+      ConversationPhase.processing => switch (processingStage) {
+        ConversationProcessingStage.recognizing => context.tr(
+          'Đang nhận giọng nói…',
+          '正在识别语音…',
+        ),
+        ConversationProcessingStage.translating => context.tr(
+          'Đang dịch…',
+          '正在翻译…',
+        ),
+        ConversationProcessingStage.preparingAudio => context.tr(
+          'Đang chuẩn bị âm thanh…',
+          '正在准备语音…',
+        ),
+      },
+      ConversationPhase.ready => context.tr(
+        'Bấm “Nói câu mới” để tiếp tục',
+        '点击“说新句子”继续',
       ),
-      ConversationProcessingStage.preparingAudio => context.tr(
-        'Đang chuẩn bị âm thanh…',
-        '正在准备语音…',
+      ConversationPhase.error => context.tr(
+        'Bấm “Thử lại” khi bạn sẵn sàng',
+        '准备好后点击“重试”',
       ),
-    },
-    ConversationPhase.ready => context.tr('Đã có câu tiếng Anh', '英语句子已准备好'),
-    ConversationPhase.error => context.tr('Mình thử lại nhé', '我们再试一次'),
-  };
-
-  String _supportingText(BuildContext context) => switch (phase) {
-    ConversationPhase.idle => '',
-    ConversationPhase.recording => context.tr(
-      'Nói tự nhiên và rõ ràng nhé',
-      '请自然、清晰地说话',
-    ),
-    ConversationPhase.processing => switch (processingStage) {
-      ConversationProcessingStage.recognizing => context.tr(
-        'Cloudflare đang nghe lại câu bạn vừa nói',
-        'Cloudflare 正在识别刚才说的话',
-      ),
-      ConversationProcessingStage.translating => context.tr(
-        'Sắp có câu tiếng Anh rồi',
-        '英语句子马上就好',
-      ),
-      ConversationProcessingStage.preparingAudio => context.tr(
-        'Sắp phát câu tiếng Anh cho bạn',
-        '马上播放英语句子',
-      ),
-    },
-    ConversationPhase.ready => context.tr(
-      'Bạn có thể nghe lại câu bên dưới',
-      '可以播放下面的句子',
-    ),
-    ConversationPhase.error => context.tr(
-      'Kiểm tra micro hoặc kết nối',
-      '请检查麦克风或网络连接',
-    ),
-  };
-
-  String _helperText(BuildContext context) => switch (phase) {
-    ConversationPhase.idle || ConversationPhase.ready || ConversationPhase.error
-        when needsDeviceConnection =>
-      context.tr('Kết nối với HOMI để bắt đầu sử dụng', '连接 HOMI 即可开始使用'),
-    ConversationPhase.idle => context.tr(
-      'Bấm nút micro bên dưới để bắt đầu',
-      '点击下方麦克风按钮开始',
-    ),
-    ConversationPhase.processing => '',
-    ConversationPhase.ready => context.tr(
-      'Bấm “Nói câu mới” để tiếp tục',
-      '点击“说新句子”继续',
-    ),
-    ConversationPhase.error => context.tr(
-      'Bấm “Thử lại” khi bạn sẵn sàng',
-      '准备好后点击“重试”',
-    ),
-    ConversationPhase.recording => '',
-  };
+    };
+  }
 }

@@ -12,6 +12,7 @@ import 'package:ai_speaking_flutter_app/features/conversation/presentation/conve
 import 'package:ai_speaking_flutter_app/features/home/presentation/home_learning_shell.dart';
 import 'package:ai_speaking_flutter_app/features/home/presentation/home_mode_rail.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/topic_listening_screen.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -58,6 +59,86 @@ void main() {
       );
     },
     variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  testWidgets(
+    'translation menu overlays HOMI without moving the home content',
+    (tester) async {
+      final controller = await _pumpGoldenApp(
+        tester,
+        deviceReady: false,
+        showTranslationTargets: true,
+        initialResult: _homeReferenceResult,
+      );
+      addTearDown(controller.dispose);
+      final mascot = find.image(
+        const AssetImage('assets/images/mascot/penguin-listen.png'),
+      );
+      final wave = find.byKey(const Key('conversation-static-waveform'));
+      final result = find.byKey(const Key('conversation-vietnamese-bubble'));
+      final mascotBefore = tester.getRect(mascot);
+      final waveBefore = tester.getRect(wave);
+      final resultBefore = tester.getRect(result);
+
+      await tester.tap(find.byKey(const Key('translation-output-language')));
+      await tester.pumpAndSettle();
+      final menu = find.byKey(const Key('translation-language-menu'));
+      expect(menu, findsOneWidget);
+      expect(tester.getRect(menu).overlaps(mascotBefore), isTrue);
+      expect(tester.getRect(mascot), mascotBefore);
+      expect(tester.getRect(wave), waveBefore);
+      expect(tester.getRect(result), resultBefore);
+      for (final language in TranslationOutputLanguage.values) {
+        expect(
+          find.byKey(Key('translation-language-${language.apiValue}')),
+          findsOneWidget,
+        );
+      }
+      await expectLater(
+        find.byType(MaterialApp),
+        matchesGoldenFile(
+          'goldens/home-translation-menu-${defaultTargetPlatform.name}-390x844.png',
+        ),
+      );
+
+      await tester.tap(find.byKey(const Key('translation-language-ja')));
+      await tester.pumpAndSettle();
+      expect(controller.outputLanguage, TranslationOutputLanguage.japanese);
+      expect(menu, findsNothing);
+      expect(find.text('Tiếng Nhật'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('translation-output-language')));
+      await tester.pumpAndSettle();
+      await tester.tapAt(tester.getCenter(wave));
+      await tester.pumpAndSettle();
+      expect(menu, findsNothing);
+      expect(controller.outputLanguage, TranslationOutputLanguage.japanese);
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
+  testWidgets(
+    'translation selector fits a small screen with large text',
+    (tester) async {
+      final controller = await _pumpGoldenApp(
+        tester,
+        surfaceSize: const Size(320, 568),
+        textScale: 2,
+        showTranslationTargets: true,
+      );
+      addTearDown(controller.dispose);
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.byKey(const Key('translation-output-language')));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('translation-language-menu')),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
   );
 
   testWidgets('disconnected home matches the approved cloud tabs', (

@@ -424,8 +424,8 @@ void main() {
       final topicTabRect = tester.getRect(
         find.byKey(const Key('topic-listening-edge-tab')),
       );
-      expect(vocabularyTabRect.width, inInclusiveRange(48, 56));
-      expect(vocabularyTabRect.height, greaterThan(120));
+      expect(vocabularyTabRect.width, 60);
+      expect(vocabularyTabRect.height, 210);
       expect(topicTabRect.size, vocabularyTabRect.size);
       expect(vocabularyTabRect.left, 0);
       expect(topicTabRect.right, 390);

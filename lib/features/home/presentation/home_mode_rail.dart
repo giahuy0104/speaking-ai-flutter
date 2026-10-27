@@ -27,8 +27,8 @@ class HomeModeRail extends StatefulWidget {
   static const double _expandedWidth = 138;
   static const double _expandedHeight = 184;
 
-  static const double collapsedWidth = 48;
-  static const double collapsedHeight = 168;
+  static const double collapsedWidth = 60;
+  static const double collapsedHeight = 210;
 
   @override
   State<HomeModeRail> createState() => _HomeModeRailState();
@@ -78,9 +78,9 @@ class _HomeModeRailState extends State<HomeModeRail>
 
   @override
   Widget build(BuildContext context) {
-    final textScale = MediaQuery.textScalerOf(context).scale(15) / 15;
+    final textScale = MediaQuery.textScalerOf(context).scale(17) / 17;
     final collapsedWidth = (HomeModeRail.collapsedWidth + (textScale - 1) * 8)
-        .clamp(HomeModeRail.collapsedWidth, 56.0)
+        .clamp(HomeModeRail.collapsedWidth, 68.0)
         .toDouble();
     final animationDuration = MediaQuery.disableAnimationsOf(context)
         ? Duration.zero
@@ -152,7 +152,7 @@ class _HomeModeRailState extends State<HomeModeRail>
                         label: widget.label,
                         icon: widget.icon,
                         badge: widget.badge,
-                        contentWidth: collapsedWidth - 20,
+                        contentWidth: collapsedWidth - 18,
                       ),
                     ),
                   ),
@@ -222,18 +222,18 @@ class _CloudRailContent extends StatelessWidget {
           ),
         ),
         Positioned(
-          top: 46,
+          top: 56,
           left: isLeft ? 0 : null,
           right: isLeft ? null : 0,
-          width: isLeft ? contentWidth : contentWidth - 5,
-          height: 94,
+          width: isLeft ? contentWidth : 27,
+          height: 118,
           child: Column(
             children: <Widget>[
               Icon(
                 icon,
                 key: const Key('home-mode-rail-icon'),
                 color: foreground,
-                size: 21,
+                size: 25,
               ),
               Expanded(
                 child: RotatedBox(
@@ -247,8 +247,8 @@ class _CloudRailContent extends StatelessWidget {
                       softWrap: false,
                       style: TextStyle(
                         color: foreground,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
                         height: 1.2,
                       ),
                     ),

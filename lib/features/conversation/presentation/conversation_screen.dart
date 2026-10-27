@@ -52,6 +52,248 @@ class ConversationScreen extends StatefulWidget {
   State<ConversationScreen> createState() => _ConversationScreenState();
 }
 
+class _TranslationLanguageSelector extends StatefulWidget {
+  const _TranslationLanguageSelector({
+    required this.selected,
+    required this.enabled,
+    required this.onSelected,
+  });
+
+  final TranslationOutputLanguage selected;
+  final bool enabled;
+  final ValueChanged<TranslationOutputLanguage> onSelected;
+
+  @override
+  State<_TranslationLanguageSelector> createState() =>
+      _TranslationLanguageSelectorState();
+}
+
+class _TranslationLanguageSelectorState
+    extends State<_TranslationLanguageSelector> {
+  final MenuController _menu = MenuController();
+
+  @override
+  void didUpdateWidget(_TranslationLanguageSelector oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_menu.isOpen &&
+        (!widget.enabled || widget.selected != oldWidget.selected)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _menu.isOpen) _menu.close();
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final navy = isDark ? AppColors.darkPrimary : AppColors.primaryNavy;
+    final stacked = MediaQuery.textScalerOf(context).scale(17) > 23;
+    final menuWidth = (MediaQuery.sizeOf(context).width - 56)
+        .clamp(0.0, 220.0)
+        .toDouble();
+    final languages = TranslationOutputLanguage.values;
+    return MenuAnchor(
+      controller: _menu,
+      alignmentOffset: const Offset(4, 6),
+      style: MenuStyle(
+        backgroundColor: WidgetStatePropertyAll(
+          isDark ? AppColors.darkSurfaceRaised : Colors.white,
+        ),
+        surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
+        elevation: const WidgetStatePropertyAll(3),
+        shadowColor: const WidgetStatePropertyAll(Color(0x260B2C66)),
+        padding: const WidgetStatePropertyAll(EdgeInsets.all(8)),
+        shape: WidgetStatePropertyAll(
+          RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(22),
+            side: BorderSide(
+              color: isDark ? AppColors.darkOutline : AppColors.mintBorder,
+            ),
+          ),
+        ),
+      ),
+      menuChildren: <Widget>[
+        SizedBox(
+          key: const Key('translation-language-menu'),
+          width: menuWidth,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              for (
+                var row = 0;
+                row < (languages.length + 1) ~/ 2;
+                row++
+              ) ...<Widget>[
+                if (row > 0) const SizedBox(height: 6),
+                Row(
+                  children: <Widget>[
+                    for (var column = 0; column < 2; column++) ...<Widget>[
+                      if (column > 0) const SizedBox(width: 6),
+                      Expanded(
+                        child: row * 2 + column < languages.length
+                            ? _languageOption(
+                                languages[row * 2 + column],
+                                isDark: isDark,
+                                navy: navy,
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+      builder: (context, controller, _) {
+        final label = Text(
+          context.tr('Dịch sang', '翻译成'),
+          style: TextStyle(
+            color: navy,
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+          ),
+        );
+        final pill = Material(
+          color: isDark ? AppColors.darkSurfaceRaised : Colors.white,
+          borderRadius: BorderRadius.circular(25),
+          child: InkWell(
+            key: const Key('translation-output-language'),
+            onTap: widget.enabled
+                ? () =>
+                      controller.isOpen ? controller.close() : controller.open()
+                : null,
+            borderRadius: BorderRadius.circular(25),
+            child: Container(
+              height: stacked ? 68 : 46,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: isDark
+                      ? AppColors.darkOutline
+                      : const Color(0xFF9CECCE),
+                ),
+                borderRadius: BorderRadius.circular(25),
+              ),
+              child: Row(
+                mainAxisSize: stacked ? MainAxisSize.max : MainAxisSize.min,
+                children: <Widget>[
+                  Icon(
+                    Icons.translate_rounded,
+                    color: isDark ? AppColors.darkMint : AppColors.mint,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  if (stacked)
+                    Expanded(
+                      child: Text(
+                        widget.selected.label,
+                        maxLines: 2,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: widget.enabled ? navy : theme.disabledColor,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    )
+                  else
+                    Text(
+                      widget.selected.label,
+                      style: TextStyle(
+                        color: widget.enabled ? navy : theme.disabledColor,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  const SizedBox(width: 10),
+                  Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: navy,
+                    size: 21,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+        if (stacked) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              label,
+              const SizedBox(height: 6),
+              SizedBox(width: menuWidth, child: pill),
+            ],
+          );
+        }
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[label, const SizedBox(width: 10), pill],
+        );
+      },
+    );
+  }
+
+  Widget _languageOption(
+    TranslationOutputLanguage language, {
+    required bool isDark,
+    required Color navy,
+  }) {
+    final selected = language == widget.selected;
+    return Semantics(
+      selected: selected,
+      child: Material(
+        color: selected
+            ? (isDark ? AppColors.darkSurfaceStrong : AppColors.mintSoft)
+            : (isDark ? AppColors.darkSurface : const Color(0xFFF3F6FC)),
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          key: Key('translation-language-${language.apiValue}'),
+          onTap: widget.enabled
+              ? () {
+                  _menu.close();
+                  widget.onSelected(language);
+                }
+              : null,
+          borderRadius: BorderRadius.circular(16),
+          child: SizedBox(
+            height: 38,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 11),
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        language.label,
+                        maxLines: 1,
+                        style: TextStyle(
+                          color: navy,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (selected) ...<Widget>[
+                    const SizedBox(width: 4),
+                    Icon(Icons.check_circle_rounded, color: navy, size: 21),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _ConversationScreenState extends State<ConversationScreen> {
   bool _waitingForDevice = false;
   bool _stoppingSession = false;
@@ -159,6 +401,10 @@ class _ConversationScreenState extends State<ConversationScreen> {
       animation: widget.controller,
       builder: (context, _) {
         final compact = MediaQuery.sizeOf(context).height < 900;
+        final mobileLanguageMenu =
+            !kIsWeb &&
+            (defaultTargetPlatform == TargetPlatform.android ||
+                defaultTargetPlatform == TargetPlatform.iOS);
         final needsDeviceConnection =
             widget.ensureDeviceConnected != null &&
             !(widget.isDeviceConnectionReady?.call() ??
@@ -232,46 +478,65 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                     .supportsTranslationTargets)
                                   Padding(
                                     padding: const EdgeInsets.only(bottom: 16),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: <Widget>[
-                                        Text(context.tr('Dịch sang', '翻译成')),
-                                        const SizedBox(width: 12),
-                                        DropdownButton<
-                                          TranslationOutputLanguage
-                                        >(
-                                          key: const Key(
-                                            'translation-output-language',
-                                          ),
-                                          value:
-                                              widget.controller.outputLanguage,
-                                          onChanged:
-                                              widget.controller.isBusy ||
-                                                  widget
-                                                      .controller
-                                                      .sentenceQueueActive
-                                              ? null
-                                              : (language) {
-                                                  if (language != null) {
-                                                    widget.controller
-                                                        .setOutputLanguage(
-                                                          language,
-                                                        );
-                                                  }
-                                                },
-                                          items: [
-                                            for (final language
-                                                in TranslationOutputLanguage
-                                                    .values)
-                                              DropdownMenuItem(
-                                                value: language,
-                                                child: Text(language.label),
+                                    child: mobileLanguageMenu
+                                        ? _TranslationLanguageSelector(
+                                            selected: widget
+                                                .controller
+                                                .outputLanguage,
+                                            enabled:
+                                                !widget.controller.isBusy &&
+                                                !widget
+                                                    .controller
+                                                    .sentenceQueueActive,
+                                            onSelected: widget
+                                                .controller
+                                                .setOutputLanguage,
+                                          )
+                                        : Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: <Widget>[
+                                              Text(
+                                                context.tr('Dịch sang', '翻译成'),
                                               ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
+                                              const SizedBox(width: 12),
+                                              DropdownButton<
+                                                TranslationOutputLanguage
+                                              >(
+                                                key: const Key(
+                                                  'translation-output-language',
+                                                ),
+                                                value: widget
+                                                    .controller
+                                                    .outputLanguage,
+                                                onChanged:
+                                                    widget.controller.isBusy ||
+                                                        widget
+                                                            .controller
+                                                            .sentenceQueueActive
+                                                    ? null
+                                                    : (language) {
+                                                        if (language != null) {
+                                                          widget.controller
+                                                              .setOutputLanguage(
+                                                                language,
+                                                              );
+                                                        }
+                                                      },
+                                                items: [
+                                                  for (final language
+                                                      in TranslationOutputLanguage
+                                                          .values)
+                                                    DropdownMenuItem(
+                                                      value: language,
+                                                      child: Text(
+                                                        language.label,
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
                                   ),
                                 VoiceHero(
                                   needsDeviceConnection: needsDeviceConnection,
