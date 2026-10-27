@@ -312,8 +312,8 @@ class _SettingsSheetState extends State<SettingsSheet> {
                                     '撤回同意并删除数据',
                                   ),
                                   detail: context.tr(
-                                    'Yêu cầu backend xóa lịch sử trước, sau đó xóa nhóm tuổi cục bộ và đặt lại mã cài đặt iOS/Web.',
-                                    '先请求后端删除历史记录，再删除本地年龄组并重置 iOS/Web 安装标识。',
+                                    'Xóa lịch sử trò chuyện và đặt lại thiết lập của bé trên thiết bị này.',
+                                    '删除对话记录，并重置此设备上的儿童设置。',
                                   ),
                                   onTap: () =>
                                       IosSettingsSheet.showPrivacyRevocation(

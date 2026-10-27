@@ -201,12 +201,16 @@ class _TranslationLanguageSelectorState
                       ),
                     )
                   else
-                    Text(
-                      widget.selected.label,
-                      style: TextStyle(
-                        color: widget.enabled ? navy : theme.disabledColor,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
+                    Flexible(
+                      child: Text(
+                        widget.selected.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: widget.enabled ? navy : theme.disabledColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   const SizedBox(width: 8),
@@ -232,7 +236,11 @@ class _TranslationLanguageSelectorState
         }
         return Row(
           mainAxisSize: MainAxisSize.min,
-          children: <Widget>[label, const SizedBox(width: 8), pill],
+          children: <Widget>[
+            label,
+            const SizedBox(width: 8),
+            Flexible(child: pill),
+          ],
         );
       },
     );

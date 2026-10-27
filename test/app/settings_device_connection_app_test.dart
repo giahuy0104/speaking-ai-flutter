@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:ai_speaking_flutter_app/app/ai_speaking_app.dart';
 import 'package:ai_speaking_flutter_app/app/scenic_app_header.dart';
+import 'package:ai_speaking_flutter_app/config/app_config.dart';
 import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_control.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabulary_home_screen.dart';
 import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
@@ -198,7 +199,22 @@ Future<_NativeAppHarness> _pumpApp(
   final app = _NativeAppHarness(tester);
   app.installChannels();
   addTearDown(app.close);
-  await tester.pumpWidget(const AiSpeakingApp());
+  await tester.pumpWidget(
+    AiSpeakingApp(
+      config: grantPrivacy
+          ? AppConfig(
+              backendBaseUri: Uri.parse('https://example.com'),
+              useDemoBackend: true,
+              childAge: 6,
+              privacyPolicyUri: Uri.parse('https://example.com/privacy'),
+              termsUri: Uri.parse('https://example.com/terms'),
+              supportUri: Uri.parse('https://example.com/support'),
+              aiSubprocessors: 'HOMI backend',
+              dataRetentionSummary: 'Audio được xóa sau 24 giờ.',
+            )
+          : null,
+    ),
+  );
   await tester.pumpAndSettle();
   // Drain the optional backend preload deadline before testing connection
   // actions; widget tests intentionally block network traffic.

@@ -567,8 +567,8 @@ class IosSettingsSheet extends StatelessWidget {
                                   '撤回同意并删除数据',
                                 ),
                                 detail: context.tr(
-                                  'Yêu cầu backend xóa lịch sử trước, sau đó xóa nhóm tuổi cục bộ và đặt lại mã cài đặt iOS/Web.',
-                                  '先请求后端删除历史记录，再删除本地年龄组并重置 iOS/Web 安装标识。',
+                                  'Xóa lịch sử trò chuyện và đặt lại thiết lập của bé trên thiết bị này.',
+                                  '删除对话记录，并重置此设备上的儿童设置。',
                                 ),
                                 onTap: () =>
                                     IosSettingsSheet.showPrivacyRevocation(
@@ -692,21 +692,26 @@ class IosSettingsSheet extends StatelessWidget {
     if (!await showParentalGate(context) || !context.mounted) {
       return;
     }
+    final title = context.tr('Rút chấp thuận và xóa dữ liệu?', '撤回同意并删除数据？');
+    final message = context.tr(
+      'HOMI sẽ xóa lịch sử trò chuyện và đặt lại thiết lập của bé trên thiết bị này. Nếu chưa thể hoàn tất, chấp thuận vẫn được giữ để bạn thử lại.',
+      'HOMI 将删除对话记录，并重置此设备上的儿童设置。如果操作未能完成，同意状态会保留，您可以稍后重试。',
+    );
+    final cancelLabel = context.tr('Hủy', '取消');
+    final confirmLabel = context.tr('Tiếp tục xóa', '继续删除');
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Rút chấp thuận và yêu cầu xóa dữ liệu?'),
-        content: const Text(
-          'HOMI sẽ gửi yêu cầu xóa history tới backend trước khi xóa chấp thuận, nhóm tuổi lưu cục bộ và mã cài đặt iOS/Web. Nếu máy chủ không xác nhận, thao tác sẽ dừng và hiển thị lỗi.',
-        ),
+        title: Text(title),
+        content: Text(message),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Hủy'),
+            child: Text(cancelLabel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Tiếp tục xóa'),
+            child: Text(confirmLabel),
           ),
         ],
       ),
@@ -719,14 +724,17 @@ class IosSettingsSheet extends StatelessWidget {
       if (context.mounted) {
         Navigator.of(context).pop();
       }
-    } catch (error) {
+    } catch (_) {
       if (!context.mounted) {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Chưa thể xác nhận xóa dữ liệu trên máy chủ. Chấp thuận vẫn được giữ: $error',
+            context.tr(
+              'Chưa thể xóa dữ liệu. Chấp thuận vẫn được giữ; vui lòng thử lại hoặc liên hệ Hỗ trợ.',
+              '暂时无法删除数据。同意状态仍会保留；请重试或联系支持。',
+            ),
           ),
         ),
       );
