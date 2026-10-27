@@ -12,6 +12,7 @@ import 'package:ai_speaking_flutter_app/features/conversation/presentation/conve
 import 'package:ai_speaking_flutter_app/features/home/presentation/home_learning_shell.dart';
 import 'package:ai_speaking_flutter_app/features/home/presentation/home_mode_rail.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/topic_listening_screen.dart';
+import 'package:ai_speaking_flutter_app/features/conversation/presentation/widgets/speak_action_bar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -85,6 +86,7 @@ void main() {
       final menu = find.byKey(const Key('translation-language-menu'));
       expect(menu, findsOneWidget);
       expect(tester.getRect(menu).overlaps(mascotBefore), isTrue);
+      expect(tester.getRect(menu).bottom, lessThan(resultBefore.top));
       expect(tester.getRect(mascot), mascotBefore);
       expect(tester.getRect(wave), waveBefore);
       expect(tester.getRect(result), resultBefore);
@@ -112,6 +114,34 @@ void main() {
       await tester.pumpAndSettle();
       expect(menu, findsNothing);
       expect(controller.outputLanguage, TranslationOutputLanguage.japanese);
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
+  testWidgets(
+    'both translation cards fit above the main action on a phone',
+    (tester) async {
+      final controller = await _pumpGoldenApp(
+        tester,
+        safeInsets: const EdgeInsets.only(top: 44, bottom: 34),
+        deviceReady: true,
+        showTranslationTargets: true,
+      );
+      addTearDown(controller.dispose);
+      final vietnamese = tester.getRect(
+        find.byKey(const Key('conversation-vietnamese-bubble')),
+      );
+      final translation = tester.getRect(
+        find.byKey(const Key('conversation-english-bubble')),
+      );
+      final action = tester.getRect(find.byType(SpeakActionBar));
+      expect(vietnamese.height, greaterThanOrEqualTo(122));
+      expect(translation.height, greaterThanOrEqualTo(122));
+      expect(translation.bottom, lessThanOrEqualTo(action.top));
+      expect(tester.takeException(), isNull);
     },
     variant: TargetPlatformVariant({
       TargetPlatform.android,

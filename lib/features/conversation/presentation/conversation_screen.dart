@@ -90,7 +90,7 @@ class _TranslationLanguageSelectorState
     final navy = isDark ? AppColors.darkPrimary : AppColors.primaryNavy;
     final stacked = MediaQuery.textScalerOf(context).scale(17) > 23;
     final menuWidth = (MediaQuery.sizeOf(context).width - 56)
-        .clamp(0.0, 220.0)
+        .clamp(0.0, stacked ? 220.0 : 204.0)
         .toDouble();
     final languages = TranslationOutputLanguage.values;
     return MenuAnchor(
@@ -103,7 +103,7 @@ class _TranslationLanguageSelectorState
         surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
         elevation: const WidgetStatePropertyAll(3),
         shadowColor: const WidgetStatePropertyAll(Color(0x260B2C66)),
-        padding: const WidgetStatePropertyAll(EdgeInsets.all(8)),
+        padding: const WidgetStatePropertyAll(EdgeInsets.all(6)),
         shape: WidgetStatePropertyAll(
           RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(22),
@@ -125,17 +125,18 @@ class _TranslationLanguageSelectorState
                 row < (languages.length + 1) ~/ 2;
                 row++
               ) ...<Widget>[
-                if (row > 0) const SizedBox(height: 6),
+                if (row > 0) const SizedBox(height: 5),
                 Row(
                   children: <Widget>[
                     for (var column = 0; column < 2; column++) ...<Widget>[
-                      if (column > 0) const SizedBox(width: 6),
+                      if (column > 0) const SizedBox(width: 5),
                       Expanded(
                         child: row * 2 + column < languages.length
                             ? _languageOption(
                                 languages[row * 2 + column],
                                 isDark: isDark,
                                 navy: navy,
+                                largeText: stacked,
                               )
                             : const SizedBox.shrink(),
                       ),
@@ -152,7 +153,7 @@ class _TranslationLanguageSelectorState
           context.tr('Dịch sang', '翻译成'),
           style: TextStyle(
             color: navy,
-            fontSize: 17,
+            fontSize: 16,
             fontWeight: FontWeight.w700,
           ),
         );
@@ -167,8 +168,8 @@ class _TranslationLanguageSelectorState
                 : null,
             borderRadius: BorderRadius.circular(25),
             child: Container(
-              height: stacked ? 68 : 46,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
+              height: stacked ? 68 : 42,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
                 border: Border.all(
                   color: isDark
@@ -183,9 +184,9 @@ class _TranslationLanguageSelectorState
                   Icon(
                     Icons.translate_rounded,
                     color: isDark ? AppColors.darkMint : AppColors.mint,
-                    size: 18,
+                    size: 17,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 7),
                   if (stacked)
                     Expanded(
                       child: Text(
@@ -194,7 +195,7 @@ class _TranslationLanguageSelectorState
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: widget.enabled ? navy : theme.disabledColor,
-                          fontSize: 17,
+                          fontSize: 16,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -204,15 +205,15 @@ class _TranslationLanguageSelectorState
                       widget.selected.label,
                       style: TextStyle(
                         color: widget.enabled ? navy : theme.disabledColor,
-                        fontSize: 17,
+                        fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Icon(
                     Icons.keyboard_arrow_down_rounded,
                     color: navy,
-                    size: 21,
+                    size: 19,
                   ),
                 ],
               ),
@@ -231,7 +232,7 @@ class _TranslationLanguageSelectorState
         }
         return Row(
           mainAxisSize: MainAxisSize.min,
-          children: <Widget>[label, const SizedBox(width: 10), pill],
+          children: <Widget>[label, const SizedBox(width: 8), pill],
         );
       },
     );
@@ -241,6 +242,7 @@ class _TranslationLanguageSelectorState
     TranslationOutputLanguage language, {
     required bool isDark,
     required Color navy,
+    required bool largeText,
   }) {
     final selected = language == widget.selected;
     return Semantics(
@@ -260,9 +262,9 @@ class _TranslationLanguageSelectorState
               : null,
           borderRadius: BorderRadius.circular(16),
           child: SizedBox(
-            height: 38,
+            height: largeText ? 44 : 38,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 11),
+              padding: const EdgeInsets.symmetric(horizontal: 9),
               child: Row(
                 children: <Widget>[
                   Expanded(
@@ -274,7 +276,7 @@ class _TranslationLanguageSelectorState
                         maxLines: 1,
                         style: TextStyle(
                           color: navy,
-                          fontSize: 15,
+                          fontSize: 14,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -401,7 +403,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
       animation: widget.controller,
       builder: (context, _) {
         final compact = MediaQuery.sizeOf(context).height < 900;
-        final mobileLanguageMenu =
+        final isMobileLayout =
             !kIsWeb &&
             (defaultTargetPlatform == TargetPlatform.android ||
                 defaultTargetPlatform == TargetPlatform.iOS);
@@ -466,9 +468,11 @@ class _ConversationScreenState extends State<ConversationScreen> {
                           child: SingleChildScrollView(
                             key: const Key('conversation-home-scroll'),
                             padding: EdgeInsets.fromLTRB(
-                              24,
-                              compact ? 24 : 64,
-                              24,
+                              isMobileLayout ? 20 : 24,
+                              isMobileLayout
+                                  ? (compact ? 12 : 56)
+                                  : (compact ? 24 : 64),
+                              isMobileLayout ? 20 : 24,
                               10,
                             ),
                             child: Column(
@@ -477,8 +481,10 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                     .controller
                                     .supportsTranslationTargets)
                                   Padding(
-                                    padding: const EdgeInsets.only(bottom: 16),
-                                    child: mobileLanguageMenu
+                                    padding: EdgeInsets.only(
+                                      bottom: isMobileLayout ? 8 : 16,
+                                    ),
+                                    child: isMobileLayout
                                         ? _TranslationLanguageSelector(
                                             selected: widget
                                                 .controller
@@ -539,6 +545,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                           ),
                                   ),
                                 VoiceHero(
+                                  useMobileSizing: isMobileLayout,
                                   needsDeviceConnection: needsDeviceConnection,
                                   phase: widget.controller.phase,
                                   processingStage:
@@ -552,7 +559,11 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                     ),
                                   ),
                                 ),
-                                SizedBox(height: compact ? 8 : 18),
+                                SizedBox(
+                                  height: isMobileLayout
+                                      ? (compact ? 5 : 14)
+                                      : (compact ? 8 : 18),
+                                ),
                                 if (widget.controller.sentenceProgress != null)
                                   Text(widget.controller.sentenceProgress!),
                                 if (widget.controller.sentenceQueueActive)
@@ -588,6 +599,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                   ),
                                 ResultPanel(
                                   key: widget.resultPanelKey,
+                                  sectionMinHeight: isMobileLayout ? 122 : 110,
                                   result: widget.controller.result,
                                   outputLanguage:
                                       widget.controller.outputLanguage,

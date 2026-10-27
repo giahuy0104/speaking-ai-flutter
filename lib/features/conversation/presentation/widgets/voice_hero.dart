@@ -13,6 +13,7 @@ class VoiceHero extends StatelessWidget {
     required this.phase,
     required this.processingStage,
     required this.amplitude,
+    this.useMobileSizing = false,
     this.isPreparingMicrophone = false,
     this.needsDeviceConnection = false,
     required this.onStop,
@@ -22,6 +23,7 @@ class VoiceHero extends StatelessWidget {
   final ConversationPhase phase;
   final ConversationProcessingStage processingStage;
   final double amplitude;
+  final bool useMobileSizing;
   final bool isPreparingMicrophone;
   final bool needsDeviceConnection;
   final VoidCallback onStop;
@@ -41,13 +43,15 @@ class VoiceHero extends StatelessWidget {
       child: Column(
         children: <Widget>[
           SizedBox(
-            height: compact ? 205 : 232,
+            height: useMobileSizing
+                ? (compact ? 190 : 216)
+                : (compact ? 205 : 232),
             child: Stack(
               alignment: Alignment.center,
               children: <Widget>[
                 Positioned.fill(
                   child: Transform.scale(
-                    scale: 1.32,
+                    scale: useMobileSizing ? 1.26 : 1.32,
                     child: Opacity(
                       opacity: isDark ? 0.18 : 1,
                       child: Image.asset(
@@ -62,7 +66,7 @@ class VoiceHero extends StatelessWidget {
                   duration: motionDuration,
                   scale: isRecording ? 0.96 + (amplitude * 0.08) : 1,
                   child: Transform.scale(
-                    scale: 1.12,
+                    scale: useMobileSizing ? 1.06 : 1.12,
                     child: Padding(
                       padding: const EdgeInsets.only(top: 12),
                       child: Image.asset(
@@ -77,7 +81,7 @@ class VoiceHero extends StatelessWidget {
             ),
           ),
           SizedBox(
-            height: compact ? 52 : 58,
+            height: useMobileSizing ? (compact ? 47 : 56) : (compact ? 52 : 58),
             child: Center(
               child: HomiWaveform(
                 key: Key(
@@ -99,7 +103,9 @@ class VoiceHero extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: EdgeInsets.only(top: compact ? 6 : 8),
+            padding: EdgeInsets.only(
+              top: useMobileSizing ? (compact ? 3 : 6) : (compact ? 6 : 8),
+            ),
             child: ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 24),
               child: Center(
