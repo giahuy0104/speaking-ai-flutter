@@ -1,7 +1,9 @@
 import 'package:ai_speaking_flutter_app/app/app_theme.dart';
+import 'package:ai_speaking_flutter_app/app/homi_ui.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_models.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/widgets/speak_action_bar.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/widgets/voice_hero.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -21,7 +23,7 @@ void main() {
         ),
         (
           stage: ConversationProcessingStage.translating,
-          heroLabel: 'Đang dịch sang tiếng Anh…',
+          heroLabel: 'Đang dịch…',
           actionLabel: 'Đang dịch…',
         ),
         (
@@ -62,7 +64,16 @@ void main() {
         ),
       );
 
-      expect(find.text(testCase.heroLabel), findsWidgets);
+      final hero = find.byType(VoiceHero);
+      final status = find.descendant(
+        of: hero,
+        matching: find.byKey(const Key('conversation-wave-status')),
+      );
+      expect(tester.widget<Text>(status).data, testCase.heroLabel);
+      expect(
+        find.descendant(of: hero, matching: find.byType(Text)),
+        findsOneWidget,
+      );
       expect(find.text(testCase.actionLabel), findsWidgets);
       expect(find.byType(CircularProgressIndicator), findsNothing);
       expect(
@@ -73,6 +84,75 @@ void main() {
         tester.getSize(find.byKey(const Key('conversation-animated-waveform'))),
         const Size(228, 44),
       );
+    });
+  }
+
+  for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
+    testWidgets('${platform.name} keeps one status below a steady waveform', (
+      tester,
+    ) async {
+      debugDefaultTargetPlatformOverride = platform;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final states =
+          <({ConversationPhase phase, bool preparing, String status})>[
+            (
+              phase: ConversationPhase.idle,
+              preparing: false,
+              status: 'Bấm nút micro bên dưới để bắt đầu',
+            ),
+            (
+              phase: ConversationPhase.idle,
+              preparing: true,
+              status: 'Đang chuẩn bị micro…',
+            ),
+            (
+              phase: ConversationPhase.recording,
+              preparing: false,
+              status: 'Mình đang nghe…',
+            ),
+            (
+              phase: ConversationPhase.ready,
+              preparing: false,
+              status: 'Bấm “Nói câu mới” để tiếp tục',
+            ),
+            (
+              phase: ConversationPhase.error,
+              preparing: false,
+              status: 'Bấm “Thử lại” khi bạn sẵn sàng',
+            ),
+          ];
+      double? waveTop;
+      for (final state in states) {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: buildAppTheme(),
+            home: Scaffold(
+              body: VoiceHero(
+                phase: state.phase,
+                processingStage: ConversationProcessingStage.recognizing,
+                amplitude: 0,
+                isPreparingMicrophone: state.preparing,
+                onStop: () {},
+              ),
+            ),
+          ),
+        );
+        final status = find.byKey(const Key('conversation-wave-status'));
+        expect(tester.widget<Text>(status).data, state.status);
+        expect(
+          find.descendant(
+            of: find.byType(VoiceHero),
+            matching: find.byType(Text),
+          ),
+          findsOneWidget,
+        );
+        final waveform = find.byType(HomiWaveform);
+        final currentTop = tester.getTopLeft(waveform).dy;
+        waveTop ??= currentTop;
+        expect(currentTop, waveTop);
+        expect(tester.getTopLeft(status).dy, greaterThan(currentTop));
+      }
+      debugDefaultTargetPlatformOverride = null;
     });
   }
 

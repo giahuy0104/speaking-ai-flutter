@@ -26,8 +26,6 @@ class TopicListeningBindings {
   const TopicListeningBindings({
     this.controller,
     this.ensureDeviceConnected,
-    this.onMainPressed,
-    this.onVocabularyRequested,
     this.onVoiceNavigationPause,
     this.onVoiceNavigationResume,
     this.initialVoiceActivationGate,
@@ -47,8 +45,6 @@ class TopicListeningBindings {
 
   final LearningAudioDependencies? controller;
   final Future<bool> Function()? ensureDeviceConnected;
-  final Future<void> Function()? onMainPressed;
-  final VoidCallback? onVocabularyRequested;
   final Future<void> Function()? onVoiceNavigationPause;
   final VoidCallback? onVoiceNavigationResume;
   final Future<void>? initialVoiceActivationGate;
@@ -71,8 +67,6 @@ class TopicLessonListBindings {
   const TopicLessonListBindings({
     this.controller,
     this.ensureDeviceConnected,
-    this.onMainPressed,
-    this.onVocabularyRequested,
     this.onVoiceNavigationPause,
     this.onVoiceNavigationResume,
     this.progressStore = const ListeningProgressStore(),
@@ -87,8 +81,6 @@ class TopicLessonListBindings {
 
   final LearningAudioDependencies? controller;
   final Future<bool> Function()? ensureDeviceConnected;
-  final Future<void> Function()? onMainPressed;
-  final VoidCallback? onVocabularyRequested;
   final Future<void> Function()? onVoiceNavigationPause;
   final VoidCallback? onVoiceNavigationResume;
   final ListeningProgressStore progressStore;

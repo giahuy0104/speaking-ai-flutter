@@ -11,6 +11,7 @@ import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/data/demo_conversation_repository.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
 import 'package:ai_speaking_flutter_app/features/settings/presentation/settings_sheet.dart';
+import 'package:ai_speaking_flutter_app/features/settings/presentation/ios_settings_sheet.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -565,6 +566,83 @@ void main() {
     expect(find.byKey(const Key('settings-terms')), findsOneWidget);
     expect(find.byKey(const Key('settings-support')), findsOneWidget);
   });
+
+  testWidgets(
+    'iOS keeps data deletion between terms and support',
+    (tester) async {
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        playbackService: const _FakePlaybackService(),
+        repository: const DemoConversationRepository(),
+        childAge: 6,
+      );
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: Scaffold(
+            body: SettingsSheet(
+              controller: controller,
+              privacyConsentGranted: true,
+              onRevokePrivacyConsent: () async {},
+            ),
+          ),
+        ),
+      );
+      final terms = find.byKey(const Key('settings-terms'));
+      final revoke = find.byKey(const Key('settings-revoke-privacy-consent'));
+      final support = find.byKey(const Key('settings-support'));
+      expect(terms, findsOneWidget);
+      expect(revoke, findsOneWidget);
+      expect(support, findsOneWidget);
+      expect(
+        tester.getTopLeft(terms).dy,
+        lessThan(tester.getTopLeft(revoke).dy),
+      );
+      expect(
+        tester.getTopLeft(revoke).dy,
+        lessThan(tester.getTopLeft(support).dy),
+      );
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  testWidgets(
+    'privacy deletion explains failure in the selected language without exposing an exception',
+    (tester) async {
+      var revokeCalls = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: DisplayLanguageScope(
+            language: DisplayLanguage.simplifiedChinese,
+            child: Scaffold(
+              body: Builder(
+                builder: (context) => TextButton(
+                  onPressed: () =>
+                      IosSettingsSheet.showPrivacyRevocation(context, () async {
+                        revokeCalls++;
+                        throw StateError('private backend detail');
+                      }),
+                  child: const Text('open'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      expect(find.text('撤回同意并删除数据？'), findsOneWidget);
+      expect(find.textContaining('HOMI 将删除对话记录'), findsOneWidget);
+      await tester.tap(find.text('继续删除'));
+      await tester.pumpAndSettle();
+      expect(revokeCalls, 1);
+      expect(find.textContaining('暂时无法删除数据'), findsOneWidget);
+      expect(find.textContaining('private backend detail'), findsNothing);
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
 }
 
 Finder _settingsScrollable() => find

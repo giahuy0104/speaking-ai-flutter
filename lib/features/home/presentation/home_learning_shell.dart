@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 import '../../../app/app_theme.dart';
-import '../../../app/homi_bottom_navigation.dart';
 import '../../../app/homi_connection_presentation.dart';
 import '../../../config/app_config.dart';
 import '../../../l10n/display_language.dart';
@@ -55,7 +54,6 @@ class HomeLearningShell extends StatefulWidget {
     this.onChildAgeChanged,
     this.onActiveLearningExitCommitted,
     this.onMainSpeakingModeStarted,
-    this.onScreenMainPressed,
     this.ensureDeviceConnected,
     this.sessionActive = false,
     this.isStoppingSession = false,
@@ -97,7 +95,6 @@ class HomeLearningShell extends StatefulWidget {
   final ValueChanged<int>? onChildAgeChanged;
   final VoidCallback? onActiveLearningExitCommitted;
   final Future<void> Function()? onMainSpeakingModeStarted;
-  final Future<void> Function()? onScreenMainPressed;
   final Future<bool> Function()? ensureDeviceConnected;
   final bool sessionActive;
   final bool isStoppingSession;
@@ -527,7 +524,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         },
         child: Scaffold(
           backgroundColor: Colors.transparent,
-          extendBody: !_isIos,
+          extendBody: true,
           body: Stack(
             children: <Widget>[
               PageView(
@@ -648,23 +645,6 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                 ),
             ],
           ),
-          bottomNavigationBar: _isIos
-              ? HomiBottomNavigation(
-                  selectedIndex: _page == 0 ? 0 : 3,
-                  onConversation: _showConversation,
-                  onTopics: _openTopicListening,
-                  onMain: widget.onScreenMainPressed == null
-                      ? null
-                      : () => unawaited(widget.onScreenMainPressed!()),
-                  onVocabulary: _showVocabulary,
-                  onHistory: _showHistory,
-                  conversationKey: const Key('home-conversation-tab'),
-                  topicsKey: const Key('home-topics-tab'),
-                  mainKey: const Key('home-main-button'),
-                  vocabularyKey: const Key('home-vocabulary-tab'),
-                  historyKey: const Key('home-history-tab'),
-                )
-              : null,
         ),
       ),
     );
@@ -1590,8 +1570,6 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           bindings: () => TopicListeningBindings(
             controller: widget.controller,
             ensureDeviceConnected: widget.ensureDeviceConnected,
-            onMainPressed: widget.onScreenMainPressed,
-            onVocabularyRequested: _showVocabulary,
             initialVoiceActivationGate: initialVoiceActivationGate,
             onVoiceNavigationPause: () =>
                 _pauseVoiceNavigation('listening_media_opened'),

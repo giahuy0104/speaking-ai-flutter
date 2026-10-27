@@ -52,10 +52,8 @@ void main() {
       await tester.tap(section);
       await tester.pumpAndSettle();
       final button = find.byKey(const Key('open-hm-d001-control-diagnostics'));
-      expect(
-        button,
-        platform == TargetPlatform.iOS ? findsOneWidget : findsNothing,
-      );
+      expect(button, findsNothing);
+      expect(find.byKey(const Key('settings-ios-advanced')), findsNothing);
       expect(find.byType(HomiControlDiagnosticsScreen), findsNothing);
       expect(fixture.controls.diagnosticsActive, isFalse);
       expect(fixture.controls.executeTests, isFalse);

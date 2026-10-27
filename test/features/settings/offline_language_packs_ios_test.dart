@@ -14,7 +14,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets(
-    'iOS settings has no manual offline download control',
+    'iOS parent settings has no advanced or manual offline controls',
     (tester) async {
       SharedPreferences.setMockInitialValues({});
       final controller = ConversationController(
@@ -31,15 +31,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      final section = find.byKey(const Key('settings-recognition-section'));
-      await tester.ensureVisible(section);
-      await tester.tap(
-        find.descendant(
-          of: section,
-          matching: find.text('Nhận dạng giọng nói'),
-        ),
-      );
-      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('settings-ios-advanced')), findsNothing);
+      expect(find.byKey(const Key('settings-recognition-section')), findsNothing);
       expect(
         find.byKey(const Key('settings-offline-language-packs')),
         findsNothing,

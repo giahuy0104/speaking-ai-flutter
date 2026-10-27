@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
-import '../../../app/homi_bottom_navigation.dart';
 import '../../../app/learning_scenery.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/audio/learning_audio_dependencies.dart';
@@ -19,7 +18,6 @@ import '../domain/listening_catalog.dart';
 import '../domain/listening_audio_keys.dart';
 import '../domain/listening_content.dart';
 import '../domain/listening_curriculum_flow.dart';
-import 'lesson_recording_history_sheet.dart';
 import 'song_karaoke_screen.dart';
 
 class TopicLessonListScreen extends StatefulWidget {
@@ -33,8 +31,6 @@ class TopicLessonListScreen extends StatefulWidget {
     this.levelContent,
     this.controller,
     this.ensureDeviceConnected,
-    this.onMainPressed,
-    this.onVocabularyRequested,
     this.onVoiceNavigationPause,
     this.onVoiceNavigationResume,
     this.progressStore = const ListeningProgressStore(),
@@ -61,8 +57,6 @@ class TopicLessonListScreen extends StatefulWidget {
   final ListeningLevelContent? levelContent;
   final LearningAudioDependencies? controller;
   final Future<bool> Function()? ensureDeviceConnected;
-  final Future<void> Function()? onMainPressed;
-  final VoidCallback? onVocabularyRequested;
   final Future<void> Function()? onVoiceNavigationPause;
   final VoidCallback? onVoiceNavigationResume;
   final ListeningProgressStore progressStore;
@@ -489,54 +483,11 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
             ],
           ),
         ),
-        bottomNavigationBar:
-            !kIsWeb &&
-                defaultTargetPlatform == TargetPlatform.iOS &&
-                !_coveredForInitialLesson
-            ? HomiBottomNavigation(
-                selectedIndex: 1,
-                onConversation: () =>
-                    Navigator.of(context).popUntil((route) => route.isFirst),
-                onTopics: _goBack,
-                onMain: widget.onMainPressed == null
-                    ? null
-                    : () => unawaited(widget.onMainPressed!()),
-                onVocabulary: _openVocabulary,
-                onHistory: () => unawaited(_openHistory()),
-                conversationKey: const Key('listening-conversation-tab'),
-                topicsKey: const Key('listening-topics-tab'),
-                mainKey: const Key('listening-main-button'),
-                vocabularyKey: const Key('listening-vocabulary-tab'),
-                historyKey: const Key('listening-history-tab'),
-              )
-            : null,
       ),
     );
   }
 
   void _goBack() => Navigator.of(context).pop();
-
-  void _openVocabulary() {
-    Navigator.of(context).popUntil((route) => route.isFirst);
-    widget.onVocabularyRequested?.call();
-  }
-
-  Future<void> _openHistory() async {
-    await widget.onVoiceNavigationPause?.call();
-    try {
-      if (!mounted) return;
-      await showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        useSafeArea: true,
-        showDragHandle: true,
-        builder: (_) =>
-            LessonRecordingHistorySheet(mediaService: _mediaService),
-      );
-    } finally {
-      if (mounted) widget.onVoiceNavigationResume?.call();
-    }
-  }
 
   Future<void> _openInitialLesson() async {
     final lessonNumber = widget.initialLessonNumber;

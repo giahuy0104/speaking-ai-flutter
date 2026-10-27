@@ -5,12 +5,61 @@ import 'package:ai_speaking_flutter_app/core/device/aiv0_ble_control.dart';
 import 'package:ai_speaking_flutter_app/core/device/bluetooth_power_controller.dart';
 import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
 import 'package:ai_speaking_flutter_app/features/onboarding/presentation/startup_setup_screen.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../support/onboarding_actions.dart';
 
 void main() {
+  testWidgets('iOS resumes an existing parent consent without asking again', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: StartupSetupScreen(
+          profileLoading: false,
+          permissionRequestInProgress: false,
+          privacyConfigurationComplete: true,
+          privacyConsentGranted: true,
+          limitedModeSelected: false,
+          microphoneGranted: true,
+          bluetoothRequired: true,
+          bluetoothGranted: true,
+          homiBleConnected: false,
+          homiHfpConfigured: false,
+          selectedAge: 8,
+          aiSubprocessors: 'HOMI',
+          dataRetentionSummary: 'Test',
+          onGrantPrivacyConsent: () async {},
+          onContinueWithoutVoice: () async {},
+          onRetryPermissions: () {},
+          onSetupHomi: () async => false,
+          onAgeSelected: (_) {},
+          onCompleteSetup: () async {},
+        ),
+      ),
+    );
+    expect(
+      tester
+          .widget<Checkbox>(find.byKey(const Key('startup-confirm-adult-role')))
+          .value,
+      isTrue,
+    );
+    expect(
+      tester
+          .widget<Checkbox>(find.byKey(const Key('startup-accept-legal')))
+          .value,
+      isTrue,
+    );
+    final next = find.byKey(const Key('startup-next'));
+    expect(tester.widget<ButtonStyleButton>(next).onPressed, isNotNull);
+    debugDefaultTargetPlatformOverride = null;
+  });
+
   for (final language in DisplayLanguage.values) {
     for (final unsupported in <bool>[true, false]) {
       testWidgets(
@@ -97,7 +146,10 @@ void main() {
           );
           expect(find.byKey(const Key('startup-confirm-age')), findsNothing);
           if (unsupported) {
-            expect(find.byKey(const Key('startup-setup-hm-d001')), findsNothing);
+            expect(
+              find.byKey(const Key('startup-setup-hm-d001')),
+              findsNothing,
+            );
           } else {
             expect(
               find.text(
@@ -454,7 +506,9 @@ void main() {
       );
       expect(find.text('Chưa kết nối'), findsOneWidget);
 
-      await tester.ensureVisible(find.byKey(const Key('startup-setup-hm-d001')));
+      await tester.ensureVisible(
+        find.byKey(const Key('startup-setup-hm-d001')),
+      );
       await tester.tap(find.byKey(const Key('startup-setup-hm-d001')));
       await tester.pumpAndSettle();
       expect(find.text('HOMI đã sẵn sàng!'), findsOneWidget);
@@ -533,9 +587,11 @@ void main() {
     expect(completed, isTrue);
   });
 
-  testWidgets('iOS phone microphone fallback can finish without HM-D001', (
+  testWidgets('iOS phone microphone fallback does not search before MAIN', (
     tester,
   ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
     await tester.binding.setSurfaceSize(const Size(390, 844));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     var completed = false;
@@ -590,22 +646,22 @@ void main() {
     final microphonePicker = find.byKey(
       const Key('startup-choose-hm-d001-microphone'),
     );
-    await tester.ensureVisible(microphonePicker);
-    expect(microphonePicker, findsOneWidget);
-    await tester.tap(microphonePicker);
-    await tester.pumpAndSettle();
-    expect(microphonePickerOpened, isTrue);
+    expect(microphonePicker, findsNothing);
+    expect(microphonePickerOpened, isFalse);
     final completeButton = find.byKey(const Key('startup-confirm-age'));
     await tester.ensureVisible(completeButton);
     expect(tester.widget<FilledButton>(completeButton).onPressed, isNotNull);
     await tester.tap(completeButton);
     await tester.pump();
     expect(completed, isTrue);
+    debugDefaultTargetPlatformOverride = null;
   });
 
   testWidgets('legacy iOS fallback accepts BLE without claiming HOMI success', (
     tester,
   ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
     await tester.binding.setSurfaceSize(const Size(390, 844));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     var bleConnected = false;
@@ -665,9 +721,11 @@ void main() {
       find.byKey(const Key('startup-choose-hm-d001-microphone')),
       findsOneWidget,
     );
+    expect(find.text('Tìm micro HOMI'), findsOneWidget);
     final completeButton = find.byKey(const Key('startup-confirm-age'));
     await tester.ensureVisible(completeButton);
     expect(tester.widget<FilledButton>(completeButton).onPressed, isNotNull);
+    debugDefaultTargetPlatformOverride = null;
   });
 
   testWidgets('legacy BLE-only opt-in never claims full HOMI success', (

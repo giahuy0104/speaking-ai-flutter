@@ -9,18 +9,23 @@ class ResultPanel extends StatelessWidget {
     required this.result,
     required this.onPlay,
     this.outputLanguage = TranslationOutputLanguage.english,
+    this.sectionMinHeight = 110,
     super.key,
   });
 
   final ConversationResult? result;
   final VoidCallback onPlay;
   final TranslationOutputLanguage outputLanguage;
+  final double sectionMinHeight;
 
   @override
   Widget build(BuildContext context) {
     final currentResult = result;
     final language = currentResult?.outputLanguage ?? outputLanguage;
-    final vietnameseLanguageName = language.label.replaceFirst('Tiếng', 'tiếng');
+    final vietnameseLanguageName = language.label.replaceFirst(
+      'Tiếng',
+      'tiếng',
+    );
     final chineseLanguageName = switch (language) {
       TranslationOutputLanguage.english => '英语',
       TranslationOutputLanguage.chinese => '中文',
@@ -34,6 +39,7 @@ class ResultPanel extends StatelessWidget {
       children: <Widget>[
         _TranslationSection(
           key: const Key('conversation-vietnamese-bubble'),
+          minHeight: sectionMinHeight,
           icon: Icons.chat_bubble_rounded,
           label: context.tr('Câu tiếng Việt', '越南语句子'),
           text: currentResult?.vietnameseText,
@@ -42,6 +48,7 @@ class ResultPanel extends StatelessWidget {
         const SizedBox(height: 14),
         _TranslationSection(
           key: const Key('conversation-english-bubble'),
+          minHeight: sectionMinHeight,
           isEnglish: true,
           icon: Icons.translate_rounded,
           label: context.tr(
@@ -102,6 +109,7 @@ class _TranslationSection extends StatelessWidget {
     required this.label,
     required this.text,
     required this.placeholder,
+    required this.minHeight,
     this.isEnglish = false,
     this.trailing,
     super.key,
@@ -111,6 +119,7 @@ class _TranslationSection extends StatelessWidget {
   final String label;
   final String? text;
   final String placeholder;
+  final double minHeight;
   final bool isEnglish;
   final Widget? trailing;
 
@@ -134,7 +143,7 @@ class _TranslationSection extends StatelessWidget {
     return AnimatedContainer(
       duration: duration,
       width: double.infinity,
-      constraints: const BoxConstraints(minHeight: 110),
+      constraints: BoxConstraints(minHeight: minHeight),
       padding: const EdgeInsets.fromLTRB(26, 16, 26, 18),
       decoration: ShapeDecoration(
         color: fill,

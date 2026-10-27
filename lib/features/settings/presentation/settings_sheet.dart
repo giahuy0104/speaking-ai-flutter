@@ -71,6 +71,8 @@ class _SettingsSheetState extends State<SettingsSheet> {
   bool get _canUseBluetooth =>
       widget.connectionCoordinator?.bluetoothPower?.canConnect ?? true;
 
+  bool get _isIos => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+
   @override
   void dispose() {
     _manualGeneration++;
@@ -88,24 +90,6 @@ class _SettingsSheetState extends State<SettingsSheet> {
 
   @override
   Widget build(BuildContext context) {
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
-      return IosSettingsSheet(
-        controller: controller,
-        themeMode: widget.themeMode,
-        onThemeModeChanged: widget.onThemeModeChanged,
-        onChildAgeChanged: widget.onChildAgeChanged,
-        onStartTutorial: widget.onStartTutorial,
-        config: widget.config,
-        privacyConsentGranted: widget.privacyConsentGranted,
-        voiceAccessEnabled: widget.voiceAccessEnabled,
-        onRequestVoiceAccess: widget.onRequestVoiceAccess,
-        onManagePrivacyConsent: widget.onManagePrivacyConsent,
-        onRevokePrivacyConsent: widget.onRevokePrivacyConsent,
-        stopMediaWhenBackgrounded: widget.stopMediaWhenBackgrounded,
-        onStopMediaWhenBackgroundedChanged:
-            widget.onStopMediaWhenBackgroundedChanged,
-      );
-    }
     return AnimatedBuilder(
       animation: Listenable.merge(<Listenable>[
         controller,
@@ -313,6 +297,31 @@ class _SettingsSheetState extends State<SettingsSheet> {
                                   context.tr('Điều khoản sử dụng', '使用条款'),
                                 ),
                               ),
+                              if (_isIos &&
+                                  widget.privacyConsentGranted &&
+                                  widget.onRevokePrivacyConsent !=
+                                      null) ...<Widget>[
+                                const _SettingsDivider(),
+                                _SettingsActionTile(
+                                  key: const Key(
+                                    'settings-revoke-privacy-consent',
+                                  ),
+                                  icon: Icons.delete_forever_outlined,
+                                  title: context.tr(
+                                    'Rút chấp thuận và xóa dữ liệu',
+                                    '撤回同意并删除数据',
+                                  ),
+                                  detail: context.tr(
+                                    'Xóa lịch sử trò chuyện và đặt lại thiết lập của bé trên thiết bị này.',
+                                    '删除对话记录，并重置此设备上的儿童设置。',
+                                  ),
+                                  onTap: () =>
+                                      IosSettingsSheet.showPrivacyRevocation(
+                                        context,
+                                        widget.onRevokePrivacyConsent!,
+                                      ),
+                                ),
+                              ],
                               const _SettingsDivider(),
                               _SettingsActionTile(
                                 key: const Key('settings-support'),

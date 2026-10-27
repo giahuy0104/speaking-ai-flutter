@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
@@ -49,6 +50,258 @@ class ConversationScreen extends StatefulWidget {
 
   @override
   State<ConversationScreen> createState() => _ConversationScreenState();
+}
+
+class _TranslationLanguageSelector extends StatefulWidget {
+  const _TranslationLanguageSelector({
+    required this.selected,
+    required this.enabled,
+    required this.onSelected,
+  });
+
+  final TranslationOutputLanguage selected;
+  final bool enabled;
+  final ValueChanged<TranslationOutputLanguage> onSelected;
+
+  @override
+  State<_TranslationLanguageSelector> createState() =>
+      _TranslationLanguageSelectorState();
+}
+
+class _TranslationLanguageSelectorState
+    extends State<_TranslationLanguageSelector> {
+  final MenuController _menu = MenuController();
+
+  @override
+  void didUpdateWidget(_TranslationLanguageSelector oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_menu.isOpen &&
+        (!widget.enabled || widget.selected != oldWidget.selected)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _menu.isOpen) _menu.close();
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final navy = isDark ? AppColors.darkPrimary : AppColors.primaryNavy;
+    final stacked = MediaQuery.textScalerOf(context).scale(17) > 23;
+    final menuWidth = (MediaQuery.sizeOf(context).width - 56)
+        .clamp(0.0, stacked ? 220.0 : 204.0)
+        .toDouble();
+    final languages = TranslationOutputLanguage.values;
+    return MenuAnchor(
+      controller: _menu,
+      alignmentOffset: const Offset(4, 6),
+      style: MenuStyle(
+        backgroundColor: WidgetStatePropertyAll(
+          isDark ? AppColors.darkSurfaceRaised : Colors.white,
+        ),
+        surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
+        elevation: const WidgetStatePropertyAll(3),
+        shadowColor: const WidgetStatePropertyAll(Color(0x260B2C66)),
+        padding: const WidgetStatePropertyAll(EdgeInsets.all(6)),
+        shape: WidgetStatePropertyAll(
+          RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(22),
+            side: BorderSide(
+              color: isDark ? AppColors.darkOutline : AppColors.mintBorder,
+            ),
+          ),
+        ),
+      ),
+      menuChildren: <Widget>[
+        SizedBox(
+          key: const Key('translation-language-menu'),
+          width: menuWidth,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              for (
+                var row = 0;
+                row < (languages.length + 1) ~/ 2;
+                row++
+              ) ...<Widget>[
+                if (row > 0) const SizedBox(height: 5),
+                Row(
+                  children: <Widget>[
+                    for (var column = 0; column < 2; column++) ...<Widget>[
+                      if (column > 0) const SizedBox(width: 5),
+                      Expanded(
+                        child: row * 2 + column < languages.length
+                            ? _languageOption(
+                                languages[row * 2 + column],
+                                isDark: isDark,
+                                navy: navy,
+                                largeText: stacked,
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+      builder: (context, controller, _) {
+        final label = Text(
+          context.tr('Dịch sang', '翻译成'),
+          style: TextStyle(
+            color: navy,
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+          ),
+        );
+        final pill = Material(
+          color: isDark ? AppColors.darkSurfaceRaised : Colors.white,
+          borderRadius: BorderRadius.circular(25),
+          child: InkWell(
+            key: const Key('translation-output-language'),
+            onTap: widget.enabled
+                ? () =>
+                      controller.isOpen ? controller.close() : controller.open()
+                : null,
+            borderRadius: BorderRadius.circular(25),
+            child: Container(
+              height: stacked ? 68 : 42,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: isDark
+                      ? AppColors.darkOutline
+                      : const Color(0xFF9CECCE),
+                ),
+                borderRadius: BorderRadius.circular(25),
+              ),
+              child: Row(
+                mainAxisSize: stacked ? MainAxisSize.max : MainAxisSize.min,
+                children: <Widget>[
+                  Icon(
+                    Icons.translate_rounded,
+                    color: isDark ? AppColors.darkMint : AppColors.mint,
+                    size: 17,
+                  ),
+                  const SizedBox(width: 7),
+                  if (stacked)
+                    Expanded(
+                      child: Text(
+                        widget.selected.label,
+                        maxLines: 2,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: widget.enabled ? navy : theme.disabledColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    )
+                  else
+                    Flexible(
+                      child: Text(
+                        widget.selected.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: widget.enabled ? navy : theme.disabledColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: navy,
+                    size: 19,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+        if (stacked) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              label,
+              const SizedBox(height: 6),
+              SizedBox(width: menuWidth, child: pill),
+            ],
+          );
+        }
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            label,
+            const SizedBox(width: 8),
+            Flexible(child: pill),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _languageOption(
+    TranslationOutputLanguage language, {
+    required bool isDark,
+    required Color navy,
+    required bool largeText,
+  }) {
+    final selected = language == widget.selected;
+    return Semantics(
+      selected: selected,
+      child: Material(
+        color: selected
+            ? (isDark ? AppColors.darkSurfaceStrong : AppColors.mintSoft)
+            : (isDark ? AppColors.darkSurface : const Color(0xFFF3F6FC)),
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          key: Key('translation-language-${language.apiValue}'),
+          onTap: widget.enabled
+              ? () {
+                  _menu.close();
+                  widget.onSelected(language);
+                }
+              : null,
+          borderRadius: BorderRadius.circular(16),
+          child: SizedBox(
+            height: largeText ? 44 : 38,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 9),
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        language.label,
+                        maxLines: 1,
+                        style: TextStyle(
+                          color: navy,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (selected) ...<Widget>[
+                    const SizedBox(width: 4),
+                    Icon(Icons.check_circle_rounded, color: navy, size: 21),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _ConversationScreenState extends State<ConversationScreen> {
@@ -109,12 +362,59 @@ class _ConversationScreenState extends State<ConversationScreen> {
     }
   }
 
+  String _offlineStatusText(BuildContext context) {
+    final ready = widget.offlineLanguageReady;
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+      if (widget.controller.outputLanguage !=
+          TranslationOutputLanguage.english) {
+        return context.tr(
+          'Bạn đang ngoại tuyến. Ngôn ngữ này cần Internet; hãy kết nối mạng rồi thử lại nhé.',
+          '当前处于离线状态。此语言需要网络连接，请联网后重试。',
+        );
+      }
+      if (ready == null) {
+        return context.tr(
+          'Bạn đang ngoại tuyến. HOMI đang kiểm tra dữ liệu trên thiết bị.',
+          '当前处于离线状态。HOMI 正在检查设备上的数据。',
+        );
+      }
+      return ready
+          ? context.tr(
+              'Bạn đang ngoại tuyến. HOMI vẫn có thể nghe và dịch tiếng Anh trên thiết bị.',
+              '当前处于离线状态。HOMI 仍可在设备上识别语音并翻译成英语。',
+            )
+          : context.tr(
+              'Bạn đang ngoại tuyến. Nói và dịch tiếng Anh chưa sẵn sàng trên thiết bị; hãy kết nối mạng rồi thử lại nhé.',
+              '当前处于离线状态。设备上的英语语音和翻译尚未就绪，请联网后重试。',
+            );
+    }
+    if (ready == null) {
+      return context.tr(
+        'Đang ngoại tuyến. HOMI đang kiểm tra dữ liệu offline trên thiết bị.',
+        '当前离线，正在检查设备上的离线数据。',
+      );
+    }
+    return ready
+        ? context.tr(
+            'Đang ngoại tuyến. Bạn vẫn có thể nói và dịch sang tiếng Anh.',
+            '当前离线，仍可在设备上说话并翻译成英语。',
+          )
+        : context.tr(
+            'Đang ngoại tuyến. Gói nói và dịch tiếng Anh chưa sẵn sàng; HOMI sẽ tải khi có Wi-Fi.',
+            '当前离线，英语语音和翻译包尚未就绪；连接 Wi-Fi 后会自动下载。',
+          );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: widget.controller,
       builder: (context, _) {
         final compact = MediaQuery.sizeOf(context).height < 900;
+        final isMobileLayout =
+            !kIsWeb &&
+            (defaultTargetPlatform == TargetPlatform.android ||
+                defaultTargetPlatform == TargetPlatform.iOS);
         final needsDeviceConnection =
             widget.ensureDeviceConnected != null &&
             !(widget.isDeviceConnectionReady?.call() ??
@@ -158,22 +458,12 @@ class _ConversationScreenState extends State<ConversationScreen> {
                             const Icon(Icons.wifi_off_rounded, size: 18),
                             const SizedBox(width: 8),
                             Flexible(
-                              child: Text(
-                                widget.offlineLanguageReady == null
-                                    ? context.tr(
-                                        'Đang ngoại tuyến. HOMI đang kiểm tra dữ liệu offline trên thiết bị.',
-                                        '当前离线，正在检查设备上的离线数据。',
-                                      )
-                                    : widget.offlineLanguageReady!
-                                    ? context.tr(
-                                        'Đang ngoại tuyến. Bạn vẫn có thể nói và dịch sang tiếng Anh.',
-                                        '当前离线，仍可在设备上说话并翻译成英语。',
-                                      )
-                                    : context.tr(
-                                        'Đang ngoại tuyến. Gói nói và dịch tiếng Anh chưa sẵn sàng; HOMI sẽ tải khi có Wi-Fi.',
-                                        '当前离线，英语语音和翻译包尚未就绪；连接 Wi-Fi 后会自动下载。',
-                                      ),
-                                textAlign: TextAlign.center,
+                              child: Semantics(
+                                liveRegion: true,
+                                child: Text(
+                                  _offlineStatusText(context),
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
                             ),
                           ],
@@ -186,9 +476,11 @@ class _ConversationScreenState extends State<ConversationScreen> {
                           child: SingleChildScrollView(
                             key: const Key('conversation-home-scroll'),
                             padding: EdgeInsets.fromLTRB(
-                              24,
-                              compact ? 24 : 64,
-                              24,
+                              isMobileLayout ? 20 : 24,
+                              isMobileLayout
+                                  ? (compact ? 12 : 56)
+                                  : (compact ? 24 : 64),
+                              isMobileLayout ? 20 : 24,
                               10,
                             ),
                             child: Column(
@@ -197,49 +489,71 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                     .controller
                                     .supportsTranslationTargets)
                                   Padding(
-                                    padding: const EdgeInsets.only(bottom: 16),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: <Widget>[
-                                        Text(context.tr('Dịch sang', '翻译成')),
-                                        const SizedBox(width: 12),
-                                        DropdownButton<
-                                          TranslationOutputLanguage
-                                        >(
-                                          key: const Key(
-                                            'translation-output-language',
-                                          ),
-                                          value:
-                                              widget.controller.outputLanguage,
-                                          onChanged:
-                                              widget.controller.isBusy ||
-                                                  widget
-                                                      .controller
-                                                      .sentenceQueueActive
-                                              ? null
-                                              : (language) {
-                                                  if (language != null) {
-                                                    widget.controller
-                                                        .setOutputLanguage(
-                                                          language,
-                                                        );
-                                                  }
-                                                },
-                                          items: [
-                                            for (final language
-                                                in TranslationOutputLanguage
-                                                    .values)
-                                              DropdownMenuItem(
-                                                value: language,
-                                                child: Text(language.label),
-                                              ),
-                                          ],
-                                        ),
-                                      ],
+                                    padding: EdgeInsets.only(
+                                      bottom: isMobileLayout ? 8 : 16,
                                     ),
+                                    child: isMobileLayout
+                                        ? _TranslationLanguageSelector(
+                                            selected: widget
+                                                .controller
+                                                .outputLanguage,
+                                            enabled:
+                                                !widget.controller.isBusy &&
+                                                !widget
+                                                    .controller
+                                                    .sentenceQueueActive,
+                                            onSelected: widget
+                                                .controller
+                                                .setOutputLanguage,
+                                          )
+                                        : Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: <Widget>[
+                                              Text(
+                                                context.tr('Dịch sang', '翻译成'),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              DropdownButton<
+                                                TranslationOutputLanguage
+                                              >(
+                                                key: const Key(
+                                                  'translation-output-language',
+                                                ),
+                                                value: widget
+                                                    .controller
+                                                    .outputLanguage,
+                                                onChanged:
+                                                    widget.controller.isBusy ||
+                                                        widget
+                                                            .controller
+                                                            .sentenceQueueActive
+                                                    ? null
+                                                    : (language) {
+                                                        if (language != null) {
+                                                          widget.controller
+                                                              .setOutputLanguage(
+                                                                language,
+                                                              );
+                                                        }
+                                                      },
+                                                items: [
+                                                  for (final language
+                                                      in TranslationOutputLanguage
+                                                          .values)
+                                                    DropdownMenuItem(
+                                                      value: language,
+                                                      child: Text(
+                                                        language.label,
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
                                   ),
                                 VoiceHero(
+                                  useMobileSizing: isMobileLayout,
                                   needsDeviceConnection: needsDeviceConnection,
                                   phase: widget.controller.phase,
                                   processingStage:
@@ -253,7 +567,11 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                     ),
                                   ),
                                 ),
-                                SizedBox(height: compact ? 8 : 18),
+                                SizedBox(
+                                  height: isMobileLayout
+                                      ? (compact ? 5 : 14)
+                                      : (compact ? 8 : 18),
+                                ),
                                 if (widget.controller.sentenceProgress != null)
                                   Text(widget.controller.sentenceProgress!),
                                 if (widget.controller.sentenceQueueActive)
@@ -289,6 +607,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                   ),
                                 ResultPanel(
                                   key: widget.resultPanelKey,
+                                  sectionMinHeight: isMobileLayout ? 122 : 110,
                                   result: widget.controller.result,
                                   outputLanguage:
                                       widget.controller.outputLanguage,
