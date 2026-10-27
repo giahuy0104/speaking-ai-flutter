@@ -10,7 +10,7 @@ coverage/
 .toolhome/
 
 # Android generated/local
-android/.gradle/
+.gradle/
 android/.kotlin/
 android/local.properties
 android/app/debug/

@@ -924,10 +924,11 @@ void main() {
   );
 
   test(
-    'completion choice repeats its question on Continue and keeps local actions',
+    'completion choice routes Continue to next lesson and keeps local actions',
     () async {
       for (final entry in <String, ActiveLearningCommand>{
         'Bài tiếp theo': ActiveLearningCommand.nextLesson,
+        'Tiếp tục': ActiveLearningCommand.nextLesson,
         'Học lại bài này': ActiveLearningCommand.restart,
         'Dừng lại': ActiveLearningCommand.stop,
       }.entries) {
@@ -943,23 +944,6 @@ void main() {
         expect(turn.navigationBeforePrompt, isNull, reason: entry.key);
         expect(turn.navigationAfterPrompt, isNull, reason: entry.key);
       }
-
-      final flow = MainVoiceAssistantFlow()
-        ..beginActiveLearning(
-          kind: ActiveLearningModuleKind.listeningLesson,
-          voiceContext: const _CompletionVoiceContext(
-            V4CompletionStage.lessonEnd,
-          ),
-        );
-      final continueTurn = await flow.handle('Tiếp tục');
-      expect(
-        continueTurn.promptText,
-        const _CompletionVoiceContext(
-          V4CompletionStage.lessonEnd,
-        ).mainVoicePrompt,
-      );
-      expect(continueTurn.continueListening, isTrue);
-      expect(continueTurn.activeLearningCommand, isNull);
     },
   );
 
