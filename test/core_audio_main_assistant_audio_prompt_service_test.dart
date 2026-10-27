@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_loudness_manifest.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/local_cloudinary_audio_client.dart';
+
 void main() {
   setUp(AudioLoudnessManifest.resetForTesting);
   tearDown(AudioLoudnessManifest.resetForTesting);
@@ -21,6 +23,7 @@ void main() {
         delegate: delegate,
         enabled: true,
         preferBundledAudio: true,
+        httpClient: createLocalCloudinaryAudioClient(),
       );
       addTearDown(service.dispose);
       const prompts = <String, String>{

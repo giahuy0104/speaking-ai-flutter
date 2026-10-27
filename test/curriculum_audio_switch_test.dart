@@ -4,6 +4,8 @@ import 'package:ai_speaking_flutter_app/features/listening/domain/listening_audi
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/local_cloudinary_audio_client.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -27,6 +29,7 @@ void main() {
     );
     final service = createVoicePromptService(
       owner: AudioTurnOwner.listeningLesson,
+      httpClient: createLocalCloudinaryAudioClient(),
     );
     await service.speakAndWait('Quả táo: Apple hay Ball?');
     expect(calls.single.method, 'playAuthoredAudioAndWait');

@@ -175,6 +175,7 @@ void main() {
         'challenge-13-15',
       ]);
       expect(actual, {
+        'assets/audio/assistant-core/assistant.main.song_skipped.vi.mp3',
         ..._allowedAudioPaths,
         ...assistantCorePaths,
         ...gap66Paths,
@@ -195,69 +196,52 @@ void main() {
     },
   );
 
-  test(
-    'pubspec bundles approved media, assistant-core and GAP66 independently',
-    () async {
-      final pubspec = await File('pubspec.yaml').readAsString();
+  test('pubspec keeps audio manifests and excludes every audio file', () async {
+    final pubspec = await File('pubspec.yaml').readAsString();
+    expect(pubspec, isNot(contains('    - assets/audio/')));
+    expect(pubspec, contains('assets/data/remote_audio_catalog.json'));
+    expect(pubspec, contains('assets/data/assistant_core_audio.json'));
+    expect(pubspec, contains('assets/data/homi_gap66_audio.json'));
+    expect(pubspec, contains('assets/data/listening_common_audio.json'));
+    expect(pubspec, contains('assets/data/vocabulary_common_audio.json'));
+    expect(pubspec, contains('assets/data/vocabulary_built_in_audio.json'));
+    expect(pubspec, contains('assets/data/songs_audio.json'));
+    expect(pubspec, contains('assets/data/system_sfx_audio.json'));
+    for (final ages in const ['3-5', '6-7', '8-10', '11-12', '13-15']) {
       expect(
         pubspec,
-        contains('assets/audio/A-3-5/GUIDE_RECORD/A035_GUIDE_RECORD_01.mp3'),
-      );
-      expect(pubspec, contains('assets/audio/MAIN/SFX_STAR_TING.mp3'));
-      expect(pubspec, contains('assets/audio/assistant-core/'));
-      expect(pubspec, contains('assets/data/assistant_core_audio.json'));
-      expect(pubspec, contains('assets/audio/MAIN/GAP66/'));
-      expect(pubspec, contains('assets/data/homi_gap66_audio.json'));
-      expect(pubspec, contains('assets/audio/listening-common/'));
-      expect(pubspec, contains('assets/audio/LESSON_HOOKS/'));
-      expect(pubspec, contains('assets/data/listening_common_audio.json'));
-      expect(pubspec, contains('assets/audio/vocabulary-common/'));
-      expect(pubspec, contains('assets/data/vocabulary_common_audio.json'));
-      expect(pubspec, contains('assets/data/vocabulary_built_in_audio.json'));
-      expect(pubspec, contains('assets/data/songs_audio.json'));
-      expect(pubspec, contains('assets/data/system_sfx_audio.json'));
-      for (final ages in const ['3-5', '6-7', '8-10', '11-12', '13-15']) {
-        expect(pubspec, contains('assets/audio/listening-$ages/'));
-        expect(
-          pubspec,
-          contains(
-            'assets/data/listening_${ages.replaceAll('-', '_')}_audio.json',
-          ),
-        );
-        expect(pubspec, contains('assets/audio/challenge-$ages/'));
-        expect(
-          pubspec,
-          contains(
-            'assets/data/challenge_${ages.replaceAll('-', '_')}_audio.json',
-          ),
-        );
-      }
-      expect(
-        pubspec,
-        isNot(
-          matches(RegExp(r'^\s*- assets/audio/MAIN/\s*$', multiLine: true)),
+        contains(
+          'assets/data/listening_${ages.replaceAll('-', '_')}_audio.json',
         ),
       );
       expect(
         pubspec,
-        isNot(
-          matches(
-            RegExp(r'^\s*- assets/audio/CURRICULUM/\s*$', multiLine: true),
-          ),
+        contains(
+          'assets/data/challenge_${ages.replaceAll('-', '_')}_audio.json',
         ),
       );
-      for (final manifest in const [
-        'main_assistant_audio.json',
-        'homi_missing_audio_v1.json',
-        'curriculum_audio.json',
-        'listening_audio_manifest_v4.json',
-        'cloudinary_audio_manifest.json',
-      ]) {
-        expect(pubspec, isNot(contains(manifest)), reason: manifest);
-        expect(File('assets/data/$manifest').existsSync(), isFalse);
-      }
-    },
-  );
+    }
+    expect(
+      pubspec,
+      isNot(matches(RegExp(r'^\s*- assets/audio/MAIN/\s*$', multiLine: true))),
+    );
+    expect(
+      pubspec,
+      isNot(
+        matches(RegExp(r'^\s*- assets/audio/CURRICULUM/\s*$', multiLine: true)),
+      ),
+    );
+    for (final manifest in const [
+      'main_assistant_audio.json',
+      'homi_missing_audio_v1.json',
+      'curriculum_audio.json',
+      'listening_audio_manifest_v4.json',
+      'cloudinary_audio_manifest.json',
+    ]) {
+      expect(pubspec, isNot(contains(manifest)), reason: manifest);
+      expect(File('assets/data/$manifest').existsSync(), isFalse);
+    }
+  });
 
   test(
     'lesson data contains only the five approved remote song URLs',

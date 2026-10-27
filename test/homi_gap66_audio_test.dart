@@ -7,6 +7,10 @@ import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+
+import 'support/local_cloudinary_audio_client.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -40,6 +44,16 @@ void main() {
         expected.map((e) => e['text']).toSet(),
       );
       expect(groups, homiGap66AudioGroups.keys.toSet());
+      final catalog =
+          jsonDecode(
+                File(
+                  'assets/data/remote_audio_catalog.json',
+                ).readAsStringSync(),
+              )
+              as Map;
+      final bundled = (await AssetManifest.loadFromAssetBundle(
+        rootBundle,
+      )).listAssets();
       final all = [
         for (final path in [
           MainAssistantAudioPromptService.manifestAsset,
@@ -50,9 +64,9 @@ void main() {
       for (final e in entries) {
         expect(e['enabled'], true);
         expect(
-          e.containsKey('url'),
-          false,
-          reason: 'New fixed pack is bundled; no CDN dependency.',
+          e['url'],
+          catalog['assets'][e['asset']]['url'],
+          reason: 'GAP66 delivers the reviewed recording through the catalog.',
         );
         final matches = all.where(
           (p) =>
@@ -70,6 +84,8 @@ void main() {
           ).readAsStringSync(),
         );
         expect(sha256.convert(bytes).toString(), e['sha256']);
+        expect(bytes.length, e['sizeBytes']);
+        expect(catalog['assets'][e['asset']]['sha256'], e['sha256']);
         expect(
           receipt['finalSha256'],
           replacedReceiptHashes[e['id']] ?? e['sha256'],
@@ -91,10 +107,10 @@ void main() {
         });
         expect(e['durationSeconds'], inExclusiveRange(0, 45));
         expect(bytes.length, lessThan(2 * 1024 * 1024));
-        expect(await rootBundle.load(e['asset'] as String), isA<ByteData>());
+        expect(bundled, isNot(contains(e['asset'])));
       }
       final pubspec = File('pubspec.yaml').readAsStringSync();
-      expect(pubspec, contains('    - assets/audio/MAIN/GAP66/'));
+      expect(pubspec, isNot(contains('    - assets/audio/')));
       expect(pubspec, isNot(contains('    - deliverables/')));
     },
   );
@@ -115,6 +131,7 @@ void main() {
       );
       final service = createVoicePromptService(
         owner: AudioTurnOwner.mainAssistant,
+        httpClient: createLocalCloudinaryAudioClient(),
       );
       addTearDown(() async {
         await service.dispose();
@@ -168,6 +185,7 @@ void main() {
       delegate: delegate,
       enabled: true,
       additionalManifestAssets: const [homiGap66ManifestAsset],
+      httpClient: createLocalCloudinaryAudioClient(),
     );
     addTearDown(service.dispose);
 
@@ -199,6 +217,7 @@ void main() {
           enabled: true,
           additionalManifestAssets: const [homiGap66ManifestAsset],
           groupEnabled: {group: false},
+          httpClient: createLocalCloudinaryAudioClient(),
         );
         addTearDown(service.dispose);
         for (final e in entries) {
@@ -226,6 +245,7 @@ void main() {
           delegate: delegate,
           enabled: true,
           bundle: _FailureBundle(failure),
+          httpClient: MockClient((_) async => http.Response('offline', 503)),
           additionalManifestAssets: const [homiGap66ManifestAsset],
         );
         addTearDown(service.dispose);
