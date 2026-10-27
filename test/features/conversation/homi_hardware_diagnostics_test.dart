@@ -347,6 +347,41 @@ void main() {
     controller.dispose();
   });
 
+  test('an old iOS HFP open cannot outlive stop and reopen', () async {
+    final opening = Completer<void>();
+    final speechInput = _FakeContinuousHfpStreamingSpeechInput(
+      pendingSessionBegin: opening,
+    );
+    final controller = ConversationController(
+      audioInput: _FakeAudioInput(),
+      streamingSpeechInput: speechInput,
+      hfpAudioControl: _FakeHfpAudioControl(),
+      playbackService: _FakePlaybackService(),
+      repository: _NoNetworkRepository(),
+      childAge: 6,
+      initialAsrMode: AsrMode.hfpStreaming,
+    );
+    addTearDown(controller.dispose);
+
+    final oldOpen = controller.beginContinuousHfpSession();
+    await _flushAsyncEvents();
+    expect(speechInput.beginSessionCount, 1);
+
+    final close = controller.endContinuousHfpSession();
+    final newOpen = controller.beginContinuousHfpSession();
+    await _flushAsyncEvents();
+    expect(speechInput.beginSessionCount, 1);
+
+    opening.complete();
+    expect(await oldOpen, isFalse);
+    await close;
+    expect(await newOpen, isTrue);
+    expect(speechInput.beginSessionCount, 2);
+    expect(controller.isContinuousHfpSessionActive, isTrue);
+    await controller.endContinuousHfpSession();
+    expect(speechInput.isContinuousHfpSessionActive, isFalse);
+  });
+
   test(
     'continuous HFP recording start does not wait for BLE coexistence',
     () async {
@@ -888,8 +923,12 @@ class _FakeContinuousHfpStreamingSpeechInput
         StreamingSpeechInput,
         HfpRouteOwningStreamingSpeechInput,
         ContinuousHfpSessionStreamingSpeechInput {
-  _FakeContinuousHfpStreamingSpeechInput({this.pendingSessionEnd});
+  _FakeContinuousHfpStreamingSpeechInput({
+    this.pendingSessionBegin,
+    this.pendingSessionEnd,
+  });
 
+  final Completer<void>? pendingSessionBegin;
   final Completer<void>? pendingSessionEnd;
   int cancelCount = 0;
   int beginSessionCount = 0;
@@ -938,6 +977,7 @@ class _FakeContinuousHfpStreamingSpeechInput
   @override
   Future<void> beginContinuousHfpSession() async {
     beginSessionCount += 1;
+    if (pendingSessionBegin != null) await pendingSessionBegin!.future;
     _sessionActive = true;
   }
 

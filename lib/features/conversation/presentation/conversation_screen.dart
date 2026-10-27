@@ -309,6 +309,16 @@ class _ConversationScreenState extends State<ConversationScreen> {
   bool _stoppingSession = false;
   int _actionGeneration = 0;
 
+  // iOS can keep verified HFP audio while its independent BLE MAIN link recovers.
+  bool get _iosTranslationAudioReady =>
+      !kIsWeb &&
+      defaultTargetPlatform == TargetPlatform.iOS &&
+      widget.controller.isHomiAudioReady;
+
+  bool get _translationDeviceReady =>
+      _iosTranslationAudioReady ||
+      (widget.isDeviceConnectionReady?.call() ?? widget.controller.isHomiReady);
+
   Future<void> _openOtherScreen(VoidCallback open) async {
     if (widget.controller.sentenceQueueActive) {
       await widget.controller.cancelCurrentMainAction();
@@ -348,7 +358,11 @@ class _ConversationScreenState extends State<ConversationScreen> {
     _waitingForDevice = true;
     try {
       final ensureConnected = widget.ensureDeviceConnected;
-      if (ensureConnected != null && !await ensureConnected()) return;
+      if (!_iosTranslationAudioReady &&
+          ensureConnected != null &&
+          !await ensureConnected()) {
+        return;
+      }
       if (!mounted ||
           generation != _actionGeneration ||
           !identical(controller, widget.controller) ||
@@ -416,9 +430,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
             (defaultTargetPlatform == TargetPlatform.android ||
                 defaultTargetPlatform == TargetPlatform.iOS);
         final needsDeviceConnection =
-            widget.ensureDeviceConnected != null &&
-            !(widget.isDeviceConnectionReady?.call() ??
-                widget.controller.isHomiReady);
+            widget.ensureDeviceConnected != null && !_translationDeviceReady;
         return DisplayLanguageScope(
           language: widget.controller.displayLanguage,
           child: Scaffold(

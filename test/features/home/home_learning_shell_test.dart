@@ -119,6 +119,42 @@ void main() {
     },
   );
 
+  testWidgets(
+    'translation uses iOS audio readiness while BLE recovers',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final speech = _FakeStreamingSpeechInput();
+      final controller = _ObservedPrimaryActionController(speech)
+        ..audioReadyWhileBleReconnects = true
+        ..onlyCountActions = true;
+      addTearDown(controller.dispose);
+      var connectionChecks = 0;
+      await tester.pumpWidget(
+        _app(
+          controller,
+          ensureDeviceConnected: () async {
+            connectionChecks++;
+            return false;
+          },
+          isDeviceConnectionReady: () => false,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(controller.isHomiReady, isFalse);
+      final isIos = defaultTargetPlatform == TargetPlatform.iOS;
+      expect(find.text(isIos ? 'Bắt đầu nói' : 'Kết nối HOMI'), findsOneWidget);
+      await tester.tap(find.text(isIos ? 'Bắt đầu nói' : 'Kết nối HOMI'));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(connectionChecks, isIos ? 0 : 1);
+      expect(controller.primaryActionPhases.length, isIos ? 1 : 0);
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+    variant: TargetPlatformVariant(<TargetPlatform>{
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
   testWidgets('cancelled device gate keeps Home idle and tabs browsable', (
     tester,
   ) async {
@@ -1962,6 +1998,53 @@ void main() {
     }),
   );
 
+  testWidgets('a late vocabulary exit cannot undo a newer tab request', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final speechInput = _FakeStreamingSpeechInput();
+    final voiceNavigationController = VoiceNavigationController(
+      speechInput: speechInput,
+      ownsSpeechInput: true,
+    );
+    final blockedAudio = _DelayedVocabularyAudioService();
+    final controller = _controller();
+    addTearDown(controller.dispose);
+    addTearDown(voiceNavigationController.dispose);
+    await tester.pumpWidget(
+      _app(
+        controller,
+        voiceNavigationController: voiceNavigationController,
+        vocabularyAudioService: blockedAudio,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-family-card')));
+    await tester.pumpAndSettle();
+
+    blockedAudio.blockStops = true;
+    await tester.tap(find.byKey(const Key('vocabulary-home-back-button')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('vocabulary-home-back-button')));
+    await tester.pump();
+    expect(blockedAudio.stopCount, greaterThan(1));
+    expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
+    expect(find.byType(ConversationScreen).hitTestable(), findsNothing);
+
+    expect(await voiceNavigationController.activateFromMainButton(), isTrue);
+    final returnToVocabulary = voiceNavigationController.dispatchRecognizedText(
+      'Bộ từ vựng',
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    blockedAudio.release();
+    expect(await returnToVocabulary, isTrue);
+    await tester.pumpAndSettle();
+    expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
+  }, variant: TargetPlatformVariant(<TargetPlatform>{TargetPlatform.iOS}));
+
   testWidgets(
     'leaving listening waits for the continuous translation microphone handoff',
     (tester) async {
@@ -2938,10 +3021,17 @@ class _ObservedPrimaryActionController extends ConversationController {
       );
 
   final List<ConversationPhase> primaryActionPhases = <ConversationPhase>[];
+  bool audioReadyWhileBleReconnects = false;
+  bool onlyCountActions = false;
+
+  @override
+  bool get isHomiAudioReady =>
+      audioReadyWhileBleReconnects || super.isHomiAudioReady;
 
   @override
   Future<void> onPrimaryAction() {
     primaryActionPhases.add(phase);
+    if (onlyCountActions) return Future<void>.value();
     return super.onPrimaryAction();
   }
 }
