@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 
 import 'audio_diagnostics.dart';
 import 'audio_loudness_manifest.dart';
+import 'remote_audio_catalog.dart';
 import 'voice_prompt_service_base.dart';
 
 /// Allowlisted fixed assistant prompts. It is wrapped INSIDE the existing
@@ -381,10 +382,20 @@ class MainAssistantAudioPromptService
     int generation,
     int promptId,
   ) async {
-    // Navigation and vocabulary menus are packaged with the Android app. Use
-    // their verified bytes before trying the optional CDN copy; a network
-    // outage must not add a timeout to each selection. Missing curriculum
-    // files still use the remote/TTS policy below.
+    // Production audio is delivered remotely. The asset path is retained only
+    // as a logical identifier and for injected legacy/test bundles.
+    if (identical(_bundle, rootBundle) && entry['url'] is String) {
+      final remote = RemoteAudioEntry(
+        asset: asset,
+        uri: Uri.parse(entry['url'] as String),
+        sha256Checksum: entry['sha256'] as String,
+        sizeBytes: entry['sizeBytes'] as int,
+      );
+      return _bounded(
+        RemoteAudioStore.shared.read(remote, _httpClient),
+        remoteAudioLoadTimeout,
+      );
+    }
     if (preferBundledAudio && !_unavailableBundledAudio.contains(asset)) {
       try {
         final data = await _bounded(_bundle.load(asset), assetLoadTimeout);

@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:ai_speaking_flutter_app/core/audio/audio_loudness_manifest.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
+import 'package:ai_speaking_flutter_app/core/audio/remote_audio_catalog.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,6 +19,7 @@ import 'support/controlled_audio_playback.dart';
 /// in the loudness work.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(RemoteAudioCatalog.load);
 
   const levelChannel = MethodChannel('ailingo_voice_prompt');
   const sessionChannel = MethodChannel('com.ryanheise.audio_session');

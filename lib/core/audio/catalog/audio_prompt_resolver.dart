@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
@@ -73,7 +72,9 @@ final class AudioPromptResolver {
       _diagnoseFailure(request, 'cache', error);
     }
 
-    if (prompt.asset != null) {
+    if (prompt.asset != null &&
+        !(identical(repository.bundle, rootBundle) &&
+            prompt.remoteUri != null)) {
       try {
         final data = await repository.bundle.load(prompt.asset!);
         final bytes = data.buffer.asUint8List(
@@ -95,12 +96,18 @@ final class AudioPromptResolver {
     if (prompt.remoteUri != null) {
       try {
         final bytes = await repository.downloadPrompt(prompt);
-        await repository.cache.putVerified(
-          pack: indexed.pack.pack,
-          sha256: prompt.sha256,
-          bytes: bytes,
-          maximumBytes: repository.maximumAudioBytes,
-        );
+        try {
+          await repository.cache.putVerified(
+            pack: indexed.pack.pack,
+            sha256: prompt.sha256,
+            bytes: bytes,
+            maximumBytes: repository.maximumAudioBytes,
+          );
+          await repository.trimCache();
+        } catch (error) {
+          // Verified audio can still play when storage is full/unavailable.
+          _diagnoseFailure(request, 'cache_write', error);
+        }
         return AudioPromptResolution(
           source: AudioPromptSource.remote,
           bytes: bytes,
