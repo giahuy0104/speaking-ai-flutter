@@ -413,9 +413,6 @@ class ConversationController extends ChangeNotifier
   int? _iosMediaOutputRouteSequence;
   bool _iosMediaOutputSawBluetooth = false;
   bool _continuousHfpSessionActive = false;
-  // Stop must drain a pending native open before the next session acquires HFP.
-  Future<void> _continuousHfpSessionOperation = Future<void>.value();
-  int _continuousHfpSessionGeneration = 0;
   bool _hfpInputSelected;
   bool _preparingMicrophone = false;
   Future<void>? _pendingHfpStartOperation;
@@ -1064,25 +1061,8 @@ class ConversationController extends ChangeNotifier
   /// combinations temporarily lose BLE while HFP capture is active, so waiting
   /// for BLE here would make microphone preparation block for several seconds
   /// without improving the audio route.
-  Future<bool> beginContinuousHfpSession() {
-    if (_disposed || _handlingHfpRouteLoss) return Future<bool>.value(false);
-    final generation = ++_continuousHfpSessionGeneration;
-    final operation = _continuousHfpSessionOperation.then(
-      (_) => _beginContinuousHfpSession(generation),
-    );
-    _continuousHfpSessionOperation = operation.then<void>(
-      (_) {},
-      onError: (Object _, StackTrace _) {},
-    );
-    return operation;
-  }
-
-  Future<bool> _beginContinuousHfpSession(int generation) async {
-    if (_disposed ||
-        _handlingHfpRouteLoss ||
-        generation != _continuousHfpSessionGeneration) {
-      return false;
-    }
+  Future<bool> beginContinuousHfpSession() async {
+    if (_disposed || _handlingHfpRouteLoss) return false;
     final speechInput = _streamingSpeechInput;
     if (_continuousHfpSessionActive) return true;
     if (!usesHfpInput ||
@@ -1109,9 +1089,6 @@ class ConversationController extends ChangeNotifier
       // it before waiting for BLE; otherwise iOS cannot restore GATT/Notify and
       // the wait itself would keep the transport permanently unavailable.
       await activeSpeechInput.cancel();
-      if (generation != _continuousHfpSessionGeneration || _disposed) {
-        return false;
-      }
       recordAiv0MainDiagnostic('MAIN_CONTINUOUS_HFP_PREVIOUS_CAPTURE_RELEASED');
 
       if (!aiv0BleStatus.isConnected) {
@@ -1126,10 +1103,6 @@ class ConversationController extends ChangeNotifier
       }
 
       await continuousInput.beginContinuousHfpSession();
-      if (generation != _continuousHfpSessionGeneration || _disposed) {
-        await continuousInput.endContinuousHfpSession();
-        return false;
-      }
       _continuousHfpSessionActive =
           continuousInput.isContinuousHfpSessionActive;
       if (_continuousHfpSessionActive) {
@@ -1143,27 +1116,12 @@ class ConversationController extends ChangeNotifier
         'MAIN_CONTINUOUS_HFP_OPEN_FAILED',
         message: '$error',
       );
-      await _endContinuousHfpSession();
+      await endContinuousHfpSession();
       return false;
     }
   }
 
-  Future<void> endContinuousHfpSession() {
-    if (_streamingSpeechInput is! ContinuousHfpSessionStreamingSpeechInput) {
-      return Future<void>.value();
-    }
-    ++_continuousHfpSessionGeneration;
-    final operation = _continuousHfpSessionOperation.then(
-      (_) => _endContinuousHfpSession(),
-    );
-    _continuousHfpSessionOperation = operation.then<void>(
-      (_) {},
-      onError: (Object _, StackTrace _) {},
-    );
-    return operation;
-  }
-
-  Future<void> _endContinuousHfpSession() async {
+  Future<void> endContinuousHfpSession() async {
     final speechInput = _streamingSpeechInput;
     final continuousInput =
         speechInput is ContinuousHfpSessionStreamingSpeechInput
@@ -5311,7 +5269,6 @@ class ConversationController extends ChangeNotifier
   @override
   void dispose() {
     _disposed = true;
-    ++_continuousHfpSessionGeneration;
     _cancelSentenceQueue();
     _deviceOperationGeneration += 1;
     _activeDeviceOperation = null;

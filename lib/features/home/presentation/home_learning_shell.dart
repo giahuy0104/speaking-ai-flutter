@@ -140,7 +140,6 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   int? _builtChildAge;
   int _requestedPage = 0;
   int _pageNavigationGeneration = 0;
-  int _homeTabRequestGeneration = 0;
   bool _openingTopics = false;
   Completer<void>? _preparedTopicVoiceGate;
   Route<void>? _preparedTopicRoute;
@@ -1365,7 +1364,6 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   }
 
   Future<void> _showVocabularyAndWait({bool autoStartToday = true}) async {
-    if (_isIos) ++_homeTabRequestGeneration;
     AudioDiagnostics.event('screen.vocabulary.activate');
     if (AudioDiagnostics.enabled) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1379,9 +1377,9 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   }
 
   void _showConversation() {
-    // iOS must finish the previous vocabulary route before exposing the
-    // translation microphone. Android retains its existing tap handling.
-    unawaited(_showConversationAndWait(requireStoppedAudio: _isIos));
+    // A tap commits the visible page change immediately. Only a voice transfer
+    // that opens another microphone must wait for vocabulary audio to settle.
+    unawaited(_showConversationAndWait(requireStoppedAudio: false));
   }
 
   Future<bool> _showConversationAndWait({
@@ -1389,7 +1387,6 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     bool animate = true,
     bool deferNavigationExitToPracticeClose = false,
   }) async {
-    final tabRequest = _isIos ? ++_homeTabRequestGeneration : 0;
     if (_page == 1) {
       // A slow native stop can outlive the vocabulary cleanup's two-second
       // bound. Keep the old page and do not open translation's microphone in
@@ -1403,9 +1400,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         'settled': settled,
       });
       if (!requireStoppedAudio) unawaited(cleanup);
-      if (!mounted || (_isIos && tabRequest != _homeTabRequestGeneration)) {
-        return false;
-      }
+      if (!mounted) return false;
       if (!settled) {
         _showVoiceNavigationMessage(
           'Âm thanh Từ vựng chưa dừng hẳn. Hãy thử chuyển lại sau một chút.',
@@ -1416,9 +1411,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           ? false
           : await _vocabularyNavigationController
                 .closePracticeForOtherContent();
-      if (!mounted || (_isIos && tabRequest != _homeTabRequestGeneration)) {
-        return false;
-      }
+      if (!mounted) return false;
       _vocabularyActivationController.deactivate();
       if (!closedPractice && !deferNavigationExitToPracticeClose) {
         ActiveLearningModuleScope.notifyNavigationExit(context);
@@ -1523,15 +1516,6 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   }
 
   void _handlePageChanged(int page) {
-    if (_isIos && page != _requestedPage) {
-      unawaited(
-        _moveToRequestedPage(
-          animate: false,
-          generation: _pageNavigationGeneration,
-        ),
-      );
-      return;
-    }
     if (page == 1) {
       _vocabularyActivationController.activate();
     } else {
