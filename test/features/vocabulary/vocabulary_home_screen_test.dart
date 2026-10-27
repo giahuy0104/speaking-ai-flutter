@@ -312,6 +312,51 @@ void main() {
       );
     }
   }
+
+  testWidgets(
+    'Android voice root speaks after an activation load was interrupted',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final sessions = _DelayedEntrySessionStore();
+      final activation = VocabularyActivationController();
+      final navigation = VocabularyHomeNavigationController();
+      final prompts = _RecordingVoicePromptService();
+      addTearDown(activation.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
+          theme: buildAppTheme(),
+          home: VocabularyHomeScreen(
+            isReady: true,
+            isActive: false,
+            autoStartToday: true,
+            activationController: activation,
+            navigationController: navigation,
+            store: _MemoryVocabularyStore(),
+            sessionStore: sessions,
+            voicePromptService: prompts,
+            mediaService: _ImmediateLessonMediaService(),
+            fixedPromptAudioService:
+                const _UnavailableFixedPromptAudioService(),
+            onReturnToConversation: () {},
+            onHistory: () {},
+            onSettings: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      activation.activate();
+      await tester.pump();
+      await navigation.openVoiceRoot();
+      sessions.entry.complete(true);
+      await tester.pumpAndSettle();
+
+      expect(prompts.spokenTexts, <String>[VocabularyFlowV3.menu]);
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
   setUp(() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
   });

@@ -220,6 +220,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   final GlobalKey<VocabularyPracticeScreenState> _practiceScreenKey =
       GlobalKey<VocabularyPracticeScreenState>();
   bool _startingToday = false;
+  bool _restartTodayAfterCurrent = false;
   int _automaticEntryGeneration = 0;
   bool _todayOffered = false;
   bool _playingCollection = false;
@@ -1792,6 +1793,10 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       );
     } finally {
       _startingToday = false;
+      if (_restartTodayAfterCurrent) {
+        _restartTodayAfterCurrent = false;
+        unawaited(_maybeStartToday());
+      }
     }
   }
 
@@ -1804,7 +1809,14 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     if (!mounted || !_isEffectivelyActive) return;
     _pausedForMainAssistant = false;
     _playbackQueue = const <VocabularyEntry>[];
-    if (settled) await _maybeStartToday();
+    if (!settled) return;
+    if (_startingToday) {
+      // The activation's pending Today load was invalidated by the cleanup
+      // above. Retry the voice root after that load releases its start guard.
+      _restartTodayAfterCurrent = true;
+    } else {
+      await _maybeStartToday();
+    }
   }
 
   Future<void> _startReview({
