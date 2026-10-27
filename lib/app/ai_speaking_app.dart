@@ -2624,6 +2624,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         cache: deviceAudioCache,
         audioTurnCoordinator: audioTurnCoordinator,
         audioTurnOwner: AudioTurnOwner.continuousTranslation,
+        manageIosAudioSession: true,
       ),
       voicePromptService: createVoicePromptService(
         coordinator: audioTurnCoordinator,
