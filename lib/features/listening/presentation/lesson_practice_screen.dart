@@ -1148,10 +1148,13 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
               ],
             ),
           ),
-          bottomNavigationBar: ListeningNavigationBar(
-            onCommunication: _returnToCommunication,
-            onHistory: _showHistory,
-          ),
+          bottomNavigationBar:
+              !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
+              ? null
+              : ListeningNavigationBar(
+                  onCommunication: _returnToCommunication,
+                  onHistory: _showHistory,
+                ),
         ),
       ),
     );

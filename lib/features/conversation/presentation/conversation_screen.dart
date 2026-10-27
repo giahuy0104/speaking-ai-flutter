@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
@@ -109,6 +110,49 @@ class _ConversationScreenState extends State<ConversationScreen> {
     }
   }
 
+  String _offlineStatusText(BuildContext context) {
+    final ready = widget.offlineLanguageReady;
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+      if (widget.controller.outputLanguage !=
+          TranslationOutputLanguage.english) {
+        return context.tr(
+          'Bạn đang ngoại tuyến. Ngôn ngữ này cần Internet; hãy kết nối mạng rồi thử lại nhé.',
+          '当前处于离线状态。此语言需要网络连接，请联网后重试。',
+        );
+      }
+      if (ready == null) {
+        return context.tr(
+          'Bạn đang ngoại tuyến. HOMI đang kiểm tra dữ liệu trên thiết bị.',
+          '当前处于离线状态。HOMI 正在检查设备上的数据。',
+        );
+      }
+      return ready
+          ? context.tr(
+              'Bạn đang ngoại tuyến. HOMI vẫn có thể nghe và dịch tiếng Anh trên thiết bị.',
+              '当前处于离线状态。HOMI 仍可在设备上识别语音并翻译成英语。',
+            )
+          : context.tr(
+              'Bạn đang ngoại tuyến. Nói và dịch tiếng Anh chưa sẵn sàng trên thiết bị; hãy kết nối mạng rồi thử lại nhé.',
+              '当前处于离线状态。设备上的英语语音和翻译尚未就绪，请联网后重试。',
+            );
+    }
+    if (ready == null) {
+      return context.tr(
+        'Đang ngoại tuyến. HOMI đang kiểm tra dữ liệu offline trên thiết bị.',
+        '当前离线，正在检查设备上的离线数据。',
+      );
+    }
+    return ready
+        ? context.tr(
+            'Đang ngoại tuyến. Bạn vẫn có thể nói và dịch sang tiếng Anh.',
+            '当前离线，仍可在设备上说话并翻译成英语。',
+          )
+        : context.tr(
+            'Đang ngoại tuyến. Gói nói và dịch tiếng Anh chưa sẵn sàng; HOMI sẽ tải khi có Wi-Fi.',
+            '当前离线，英语语音和翻译包尚未就绪；连接 Wi-Fi 后会自动下载。',
+          );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -158,22 +202,12 @@ class _ConversationScreenState extends State<ConversationScreen> {
                             const Icon(Icons.wifi_off_rounded, size: 18),
                             const SizedBox(width: 8),
                             Flexible(
-                              child: Text(
-                                widget.offlineLanguageReady == null
-                                    ? context.tr(
-                                        'Đang ngoại tuyến. HOMI đang kiểm tra dữ liệu offline trên thiết bị.',
-                                        '当前离线，正在检查设备上的离线数据。',
-                                      )
-                                    : widget.offlineLanguageReady!
-                                    ? context.tr(
-                                        'Đang ngoại tuyến. Bạn vẫn có thể nói và dịch sang tiếng Anh.',
-                                        '当前离线，仍可在设备上说话并翻译成英语。',
-                                      )
-                                    : context.tr(
-                                        'Đang ngoại tuyến. Gói nói và dịch tiếng Anh chưa sẵn sàng; HOMI sẽ tải khi có Wi-Fi.',
-                                        '当前离线，英语语音和翻译包尚未就绪；连接 Wi-Fi 后会自动下载。',
-                                      ),
-                                textAlign: TextAlign.center,
+                              child: Semantics(
+                                liveRegion: true,
+                                child: Text(
+                                  _offlineStatusText(context),
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
                             ),
                           ],

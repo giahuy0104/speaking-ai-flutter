@@ -36,8 +36,6 @@ void main() {
     ValueListenable<int>? iosTopicRecognitionFailureRevision,
     ValueChanged<int>? onChildAgeChanged,
     Future<bool> Function()? onRequestParentAccess,
-    Future<void> Function()? onMainPressed,
-    VoidCallback? onVocabularyRequested,
     LessonMediaService? mediaService,
     VoicePromptService? voicePromptService,
   }) {
@@ -65,8 +63,6 @@ void main() {
               iosTopicRecognitionFailureRevision,
           onChildAgeChanged: onChildAgeChanged,
           onRequestParentAccess: onRequestParentAccess,
-          onMainPressed: onMainPressed,
-          onVocabularyRequested: onVocabularyRequested,
           mediaService: mediaService,
           voicePromptService:
               voicePromptService ?? _ImmediateVoicePromptService(),
@@ -245,15 +241,22 @@ void main() {
     }
   });
 
-  testWidgets('topic page has no shared bottom navigation', (tester) async {
-    await tester.pumpWidget(buildSubject());
-    await tester.pumpAndSettle();
+  testWidgets(
+    'topic page has no shared bottom navigation',
+    (tester) async {
+      await tester.pumpWidget(buildSubject());
+      await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('listening-main-button')), findsNothing);
-    expect(find.byKey(const Key('listening-topics-tab')), findsNothing);
-    expect(find.byKey(const Key('listening-vocabulary-tab')), findsNothing);
-    expect(find.byTooltip('Quay lại'), findsOneWidget);
-  });
+      expect(find.byKey(const Key('listening-main-button')), findsNothing);
+      expect(find.byKey(const Key('listening-topics-tab')), findsNothing);
+      expect(find.byKey(const Key('listening-vocabulary-tab')), findsNothing);
+      expect(find.byTooltip('Quay lại'), findsOneWidget);
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
 
   testWidgets('topic prompts prepare and use the selected HM-D001 output', (
     tester,

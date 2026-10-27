@@ -6,6 +6,8 @@ import 'package:ai_speaking_flutter_app/config/app_config.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/data/demo_conversation_repository.dart';
+import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_models.dart';
+import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_repository.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
 import 'package:ai_speaking_flutter_app/features/home/presentation/home_learning_shell.dart';
 import 'package:ai_speaking_flutter_app/features/home/presentation/home_mode_rail.dart';
@@ -32,11 +34,23 @@ void main() {
   testWidgets(
     'home communication matches image one',
     (tester) async {
-      final controller = await _pumpGoldenApp(tester);
+      final controller = await _pumpGoldenApp(
+        tester,
+        deviceReady: false,
+        showTranslationTargets: true,
+        initialResult: _homeReferenceResult,
+      );
       addTearDown(controller.dispose);
-      expect(find.byKey(const Key('home-main-button')), findsOneWidget);
-      expect(find.byKey(const Key('home-conversation-tab')), findsOneWidget);
-      expect(find.byKey(const Key('home-history-tab')), findsOneWidget);
+      expect(find.byKey(const Key('home-main-button')), findsNothing);
+      expect(find.byKey(const Key('home-conversation-tab')), findsNothing);
+      expect(find.byKey(const Key('home-history-tab')), findsNothing);
+      expect(find.text('Kết nối HOMI'), findsOneWidget);
+      expect(find.text('Con muốn đi xem phim'), findsOneWidget);
+      expect(find.text('I want to go watch a movie.'), findsOneWidget);
+      expect(
+        find.byKey(const Key('translation-output-language')),
+        findsOneWidget,
+      );
 
       await expectLater(
         find.byType(HomeLearningShell),
@@ -215,7 +229,7 @@ void main() {
         themeMode: ThemeMode.dark,
       );
       addTearDown(controller.dispose);
-      expect(find.byKey(const Key('home-main-button')), findsOneWidget);
+      expect(find.byKey(const Key('home-main-button')), findsNothing);
 
       await expectLater(
         find.byType(HomeLearningShell),
@@ -267,6 +281,8 @@ Future<ConversationController> _pumpGoldenApp(
   EdgeInsets safeInsets = EdgeInsets.zero,
   bool? deviceReady,
   double textScale = 1,
+  bool showTranslationTargets = false,
+  ConversationResult? initialResult,
 }) async {
   SharedPreferences.setMockInitialValues(<String, Object>{});
   await _loadGoldenFonts();
@@ -287,9 +303,11 @@ Future<ConversationController> _pumpGoldenApp(
   final controller = ConversationController(
     audioInput: _FakeAudioInput(),
     playbackService: const _FakePlaybackService(),
-    repository: const DemoConversationRepository(),
+    repository: showTranslationTargets
+        ? const _GoldenTranslationRepository()
+        : const DemoConversationRepository(),
     childAge: 6,
-  );
+  )..result = initialResult;
   await tester.pumpWidget(
     MaterialApp(
       onGenerateRoute: createAppRouter().onGenerateRoute,
@@ -313,7 +331,6 @@ Future<ConversationController> _pumpGoldenApp(
           isDeviceConnectionReady: deviceReady == null
               ? null
               : () => deviceReady,
-          onScreenMainPressed: () async {},
           config: AppConfig(
             backendBaseUri: Uri.parse('https://example.com'),
             useDemoBackend: true,
@@ -349,6 +366,33 @@ Future<ConversationController> _pumpGoldenApp(
   await tester.pumpAndSettle();
   return controller;
 }
+
+class _GoldenTranslationRepository extends DemoConversationRepository
+    implements TranslationTargetRepository {
+  const _GoldenTranslationRepository();
+
+  @override
+  void setTranslationTarget(TranslationOutputLanguage language) {}
+}
+
+const _homeReferenceResult = ConversationResult(
+  conversationId: 'golden-home-reference',
+  sessionId: 'golden-session',
+  context: PracticeContext.outside,
+  vietnameseText: 'Con muốn đi xem phim',
+  englishText: 'I want to go watch a movie.',
+  audioUri: null,
+  processingMode: 'rule',
+  textSource: 'phrase_rule',
+  audioSource: 'device_tts',
+  asrMode: 'ios_native',
+  latency: ConversationLatency(
+    asrMs: 0,
+    llmMs: 0,
+    ttsMs: 0,
+    timeToFirstAudioMs: 0,
+  ),
+);
 
 Future<void> _expectCloudContentOnWhiteFace(
   WidgetTester tester,

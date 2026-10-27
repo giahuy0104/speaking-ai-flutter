@@ -8,11 +8,60 @@ import 'package:ai_speaking_flutter_app/features/conversation/presentation/conve
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/topic_listening_screen.dart';
 import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets('iOS offline notice matches available language data', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final controller = ConversationController(
+      audioInput: const _PreviewAudioInput(),
+      playbackService: const _PreviewPlaybackService(),
+      repository: const _PreviewRepository(),
+      childAge: 6,
+    );
+    addTearDown(controller.dispose);
+
+    Future<void> showNotice(bool? ready, {bool offline = true}) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: ConversationScreen(
+            controller: controller,
+            isOffline: offline,
+            offlineLanguageReady: ready,
+            onOpenHistory: _noopCallback,
+            onOpenSettings: _noopCallback,
+          ),
+        ),
+      );
+      await tester.pump();
+    }
+
+    await showNotice(null);
+    expect(find.textContaining('đang kiểm tra dữ liệu'), findsOneWidget);
+
+    await showNotice(true);
+    expect(find.textContaining('vẫn có thể nghe và dịch'), findsOneWidget);
+
+    controller.outputLanguage = TranslationOutputLanguage.japanese;
+    await showNotice(true);
+    expect(find.textContaining('Ngôn ngữ này cần Internet'), findsOneWidget);
+
+    controller.outputLanguage = TranslationOutputLanguage.english;
+    await showNotice(false);
+    expect(find.textContaining('chưa sẵn sàng trên thiết bị'), findsOneWidget);
+
+    await showNotice(false, offline: false);
+    expect(find.byKey(const Key('conversation-offline-status')), findsNothing);
+    debugDefaultTargetPlatformOverride = null;
+  });
+
   testWidgets('idle screen keeps the compact hero above the fold', (
     tester,
   ) async {
@@ -188,7 +237,6 @@ void main() {
         home: const TopicListeningScreen(
           language: DisplayLanguage.vietnamese,
           childAge: 6,
-          onMainPressed: _noopMainPress,
         ),
       ),
     );
@@ -218,8 +266,6 @@ void main() {
 }
 
 void _noopCallback() {}
-
-Future<void> _noopMainPress() async {}
 
 Widget _disableAnimations(BuildContext context, Widget? child) => MediaQuery(
   data: MediaQuery.of(context).copyWith(disableAnimations: true),

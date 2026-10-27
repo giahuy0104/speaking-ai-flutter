@@ -150,7 +150,6 @@ void main() {
       shell = tester.widget<HomeLearningShell>(find.byType(HomeLearningShell));
       expect(shell.privacyConsentGranted, isTrue);
       expect(shell.voiceAccessEnabled, isTrue);
-      expect(shell.onScreenMainPressed, isNotNull);
       expect(preferences.getInt('homi.parental-privacy-consent.version'), 3);
       expect(
         preferences.getBool('homi.parental-privacy-consent.limited-mode'),
@@ -321,7 +320,6 @@ void main() {
         app.speechCalls.where((c) => c.method == 'speech.cancel'),
         isNotEmpty,
       );
-      await app.drain(stoppingShell.onScreenMainPressed!());
       await app.drain(stoppingShell.onMainSpeakingModeStarted!());
       expect(session.isActive, isFalse);
       expect(

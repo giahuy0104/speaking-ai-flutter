@@ -593,6 +593,16 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         await _offlineTranslator.modelsReady();
   }
 
+  Future<bool> _iosOfflineLanguageReady() async {
+    final states = await Future.wait<bool>(<Future<bool>>[
+      _appleOfflineSpeechAssetService
+          .prepareBackgroundLocale('vi-VN')
+          .then((state) => state == 'installed'),
+      _offlineTranslator.modelsReady(),
+    ]);
+    return states.every((ready) => ready);
+  }
+
   Future<void> _prepareOfflineLanguageModels() async {
     if (!_supportsOfflineLanguagePacks ||
         _offlineSpeechModelPreparationRunning ||
@@ -3896,7 +3906,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
                 fit: StackFit.expand,
                 children: <Widget>[
                   child ?? const SizedBox.shrink(),
-                  if (voiceController != null &&
+                  if (!_usesIosHfpLifecycle &&
+                      voiceController != null &&
                       !_isGlobalModalOpen &&
                       !_deviceActionDialogOpen &&
                       _startupReady &&
@@ -3943,6 +3954,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
                   onReady: _onHomeReady,
                   offlineLanguageReady: isAndroidRuntime
                       ? _androidOfflineLanguageReady
+                      : _usesIosHfpLifecycle
+                      ? _iosOfflineLanguageReady
                       : null,
                   controller: controller,
                   config: _config,
@@ -3964,9 +3977,6 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
                   onActiveLearningExitCommitted:
                       _appFlowCoordinator.forgetPausedModule,
                   onMainSpeakingModeStarted: _startMainSpeakingMode,
-                  onScreenMainPressed: _voiceAccessEnabled
-                      ? _handleScreenMainShortPress
-                      : null,
                   onVocabularyVoiceChoiceRequested: _voiceAccessEnabled
                       ? _requestVocabularyVoiceChoice
                       : null,

@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
-import '../../../app/homi_bottom_navigation.dart';
 import '../../../app/learning_scenery.dart';
 import '../../../app/mascot_assets.dart';
 import '../../../core/audio/voice_prompt_service.dart';
@@ -23,7 +22,6 @@ import '../domain/listening_audio_keys.dart';
 import '../domain/listening_curriculum_flow.dart';
 import '../../voice_navigation/application/main_voice_assistant_flow.dart';
 import '../../voice_navigation/domain/main_assistant_audio_keys.dart';
-import 'lesson_recording_history_sheet.dart';
 
 typedef TopicLessonSelectionPrompt =
     Future<void> Function({
@@ -48,8 +46,6 @@ class TopicListeningScreen extends StatefulWidget {
     required this.childAge,
     this.controller,
     this.ensureDeviceConnected,
-    this.onMainPressed,
-    this.onVocabularyRequested,
     this.onVoiceNavigationPause,
     this.onVoiceNavigationResume,
     this.initialVoiceTarget,
@@ -72,8 +68,6 @@ class TopicListeningScreen extends StatefulWidget {
   final int childAge;
   final LearningAudioDependencies? controller;
   final Future<bool> Function()? ensureDeviceConnected;
-  final Future<void> Function()? onMainPressed;
-  final VoidCallback? onVocabularyRequested;
   final Future<void> Function()? onVoiceNavigationPause;
   final VoidCallback? onVoiceNavigationResume;
   final ListeningVoiceNavigationTarget? initialVoiceTarget;
@@ -369,51 +363,8 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
             ),
           ),
         ),
-        bottomNavigationBar:
-            !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
-            ? KeyedSubtree(
-                key: const Key('listening-bottom-navigation'),
-                child: HomiBottomNavigation(
-                  selectedIndex: 1,
-                  onConversation: () => Navigator.of(context).pop(),
-                  onTopics: () {},
-                  onMain: widget.onMainPressed == null
-                      ? null
-                      : () => unawaited(widget.onMainPressed!()),
-                  onVocabulary: _openVocabulary,
-                  onHistory: () => unawaited(_openHistory()),
-                  conversationKey: const Key('listening-conversation-tab'),
-                  topicsKey: const Key('listening-topics-tab'),
-                  mainKey: const Key('listening-main-button'),
-                  vocabularyKey: const Key('listening-vocabulary-tab'),
-                  historyKey: const Key('listening-history-tab'),
-                ),
-              )
-            : null,
       ),
     );
-  }
-
-  void _openVocabulary() {
-    Navigator.of(context).pop();
-    widget.onVocabularyRequested?.call();
-  }
-
-  Future<void> _openHistory() async {
-    await widget.onVoiceNavigationPause?.call();
-    try {
-      if (!mounted) return;
-      await showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        useSafeArea: true,
-        showDragHandle: true,
-        builder: (_) =>
-            LessonRecordingHistorySheet(mediaService: _historyMediaService),
-      );
-    } finally {
-      if (mounted) widget.onVoiceNavigationResume?.call();
-    }
   }
 
   Widget _buildHeader(BuildContext context) {
@@ -928,8 +879,6 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
           bindings: () => TopicLessonListBindings(
             controller: widget.controller,
             ensureDeviceConnected: widget.ensureDeviceConnected,
-            onMainPressed: widget.onMainPressed,
-            onVocabularyRequested: widget.onVocabularyRequested,
             onVoiceNavigationPause: widget.onVoiceNavigationPause,
             onVoiceNavigationResume: widget.onVoiceNavigationResume,
             progressStore: widget.progressStore,
@@ -1073,8 +1022,6 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
           bindings: () => TopicLessonListBindings(
             controller: widget.controller,
             ensureDeviceConnected: widget.ensureDeviceConnected,
-            onMainPressed: widget.onMainPressed,
-            onVocabularyRequested: widget.onVocabularyRequested,
             onVoiceNavigationPause: widget.onVoiceNavigationPause,
             onVoiceNavigationResume: widget.onVoiceNavigationResume,
             progressStore: widget.progressStore,

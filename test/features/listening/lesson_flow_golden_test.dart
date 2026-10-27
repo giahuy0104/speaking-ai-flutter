@@ -55,7 +55,6 @@ void main() {
           content: topicContent,
           progressStore: progressStore,
           mediaService: mediaService,
-          onMainPressed: _noopMainPress,
         ),
       ),
     );
@@ -90,7 +89,6 @@ void main() {
           content: favoriteFoodContent,
           progressStore: progressStore,
           mediaService: mediaService,
-          onMainPressed: _noopMainPress,
         ),
       ),
     );
@@ -125,7 +123,6 @@ void main() {
           content: numbersContent,
           progressStore: progressStore,
           mediaService: mediaService,
-          onMainPressed: _noopMainPress,
         ),
       ),
     );
@@ -573,8 +570,6 @@ void main() {
     );
   });
 }
-
-Future<void> _noopMainPress() async {}
 
 class _GoldenApp extends StatelessWidget {
   const _GoldenApp({required this.child, this.themeMode = ThemeMode.light});

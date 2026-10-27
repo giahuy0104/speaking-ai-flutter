@@ -18,6 +18,7 @@ import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_c
 import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_practice_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_intro_screen.dart';
 import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -1146,6 +1147,28 @@ void main() {
     await tester.pump();
 
     expect(communicationRequests, 1);
+  });
+
+  testWidgets('iOS practice keeps lesson controls without bottom tabs', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    await _usePhoneSurface(tester);
+
+    await tester.pumpWidget(
+      _subject(
+        _lessonWithSentences(1),
+        _MemoryProgressStore(),
+        const Key('ios-practice-without-tabs'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('listening-bottom-navigation')), findsNothing);
+    expect(find.byTooltip('Quay lại'), findsOneWidget);
+    expect(find.byKey(const Key('previous-lesson-sentence')), findsOneWidget);
+    debugDefaultTargetPlatformOverride = null;
   });
 
   testWidgets('previous sentence is persisted and restored after re-entry', (
