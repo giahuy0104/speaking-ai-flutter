@@ -382,21 +382,6 @@ class _SettingsSheetState extends State<SettingsSheet> {
                           ),
                         ),
                       ),
-                      if (_isIos) ...<Widget>[
-                        const SizedBox(height: 26),
-                        _SettingsRaisedPanel(
-                          child: _SettingsActionTile(
-                            key: const Key('settings-ios-advanced'),
-                            icon: Icons.tune_rounded,
-                            title: context.tr('Cài đặt nâng cao', '高级设置'),
-                            detail: context.tr(
-                              'Âm thanh, nhận dạng giọng nói và chẩn đoán HOMI.',
-                              '音频、语音识别与 HOMI 诊断。',
-                            ),
-                            onTap: () => _openIosAdvancedSettings(context),
-                          ),
-                        ),
-                      ],
                     ],
                   ),
                 ),
@@ -407,21 +392,6 @@ class _SettingsSheetState extends State<SettingsSheet> {
       },
     );
   }
-
-  Future<void> _openIosAdvancedSettings(BuildContext context) =>
-      Navigator.of(context).push<void>(
-        MaterialPageRoute<void>(
-          builder: (_) => Scaffold(
-            body: IosSettingsSheet(
-              advancedOnly: true,
-              controller: controller,
-              stopMediaWhenBackgrounded: widget.stopMediaWhenBackgrounded,
-              onStopMediaWhenBackgroundedChanged:
-                  widget.onStopMediaWhenBackgroundedChanged,
-            ),
-          ),
-        ),
-      );
 
   bool _choiceSheetOpen = false;
 

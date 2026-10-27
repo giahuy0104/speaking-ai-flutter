@@ -53,29 +53,7 @@ void main() {
       await tester.pumpAndSettle();
       final button = find.byKey(const Key('open-hm-d001-control-diagnostics'));
       expect(button, findsNothing);
-      if (platform == TargetPlatform.iOS) {
-        final advanced = find.byKey(const Key('settings-ios-advanced'));
-        await tester.scrollUntilVisible(advanced, 350, scrollable: scroll);
-        await tester.tap(advanced);
-        await tester.pumpAndSettle();
-        final advancedScroll = find
-            .descendant(
-              of: find.byKey(const Key('settings-scroll-view')).last,
-              matching: find.byType(Scrollable),
-            )
-            .first;
-        final advancedSection = find
-            .byKey(const Key('settings-audio-hm-d001-section'))
-            .last;
-        await tester.scrollUntilVisible(
-          advancedSection,
-          350,
-          scrollable: advancedScroll,
-        );
-        await tester.tap(advancedSection);
-        await tester.pumpAndSettle();
-        expect(button, findsOneWidget);
-      }
+      expect(find.byKey(const Key('settings-ios-advanced')), findsNothing);
       expect(find.byType(HomiControlDiagnosticsScreen), findsNothing);
       expect(fixture.controls.diagnosticsActive, isFalse);
       expect(fixture.controls.executeTests, isFalse);
