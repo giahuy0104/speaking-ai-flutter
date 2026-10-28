@@ -1008,6 +1008,41 @@ void main() {
     },
   );
 
+  test('iOS song skip advances after its MAIN acknowledgment fails', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final speech = _FakeNavigationSpeechInput();
+    final prompt = _FailingMainTurnPromptService()..failNext = false;
+    final commands = <ActiveLearningCommand>[];
+    final controller = VoiceNavigationController(
+      speechInput: speech,
+      voicePromptService: prompt,
+      activeLearningCommandHandler: (command) async {
+        commands.add(command);
+        return const ActiveLearningCommandResult.handled();
+      },
+    );
+
+    expect(
+      await controller.activateFromMainButton(
+        activeLearning: true,
+        activeLearningKind: ActiveLearningModuleKind.listeningLesson,
+        activeVoiceContext: const _SongVoiceContext(),
+      ),
+      isTrue,
+    );
+    prompt.failNext = true;
+    expect(await controller.dispatchRecognizedText('Bỏ qua bài hát'), isTrue);
+
+    expect(commands, <ActiveLearningCommand>[ActiveLearningCommand.nextItem]);
+    expect(prompt.endedReasons, contains('prompt_failed'));
+    expect(controller.isMainButtonSessionActive, isFalse);
+    expect(controller.lastError, isNull);
+
+    controller.dispose();
+    await speech.dispose();
+  });
+
   test(
     'failed iOS-style navigation acknowledgment still opens vocabulary',
     () async {
