@@ -111,7 +111,6 @@ void _checkProductionComposition(
     'onChildAgeChanged': 'child-age persistence callback',
     'onActiveLearningExitCommitted': 'active-learning session handoff',
     'onMainSpeakingModeStarted': 'MAIN speaking-session handoff',
-    'onScreenMainPressed': 'screen MAIN action',
     'onVocabularyVoiceChoiceRequested': 'vocabulary voice-choice callback',
     'onModalVisibilityChanged': 'global modal visibility coordination',
     'privacyConsentGranted': 'privacy consent state',

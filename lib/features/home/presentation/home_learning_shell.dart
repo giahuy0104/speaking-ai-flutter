@@ -15,7 +15,7 @@ import '../../../l10n/display_language.dart';
 import '../../../core/navigation/app_navigator.dart';
 import '../../../core/navigation/app_page_transitions.dart';
 import '../../../presentation/navigation/view_bindings.dart';
-import '../../../core/navigation/view_arguments/topic_listening_arguments.dart';
+import '../../../presentation/navigation/view_arguments/topic_listening_arguments.dart';
 import '../../../core/device/active_learning_module.dart';
 import '../../../core/platform/background_learning_session.dart';
 import '../../../core/platform/platform_access_policy.dart';

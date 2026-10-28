@@ -12,7 +12,7 @@ import '../domain/listening_catalog.dart';
 import '../domain/listening_content.dart';
 import '../../../core/navigation/app_navigator.dart';
 import '../../../presentation/navigation/view_bindings.dart';
-import '../../../core/navigation/view_arguments/lesson_practice_arguments.dart';
+import '../../../presentation/navigation/view_arguments/lesson_practice_arguments.dart';
 
 /// Compatibility route for old deep links. New navigation no longer opens this
 /// route; an old link is forwarded directly into the lesson.

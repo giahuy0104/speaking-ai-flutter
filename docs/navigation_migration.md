@@ -24,8 +24,8 @@ Bloc, a DI container, go_router, a new tab stack or a project-wide migration.
   carry a caller-owned screen builder.
 - `core/navigation/app_route_names.dart`: centralized names;
   `ListeningRouteNames` remains a compatibility alias.
-- `core/navigation/view_arguments/`: nine view-input classes. They contain no
-  device/audio services or callbacks.
+- `presentation/navigation/view_arguments/`: nine view-input classes. They can
+  carry feature data types, but contain no device/audio services or callbacks.
 - `presentation/navigation/app_view_registry.dart`: central registration of the
   twelve page/sheet/continuation destinations and their screen constructors.
 - `presentation/navigation/view_bindings.dart`: typed holders for existing

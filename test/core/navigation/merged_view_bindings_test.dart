@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:ai_speaking_flutter_app/core/navigation/app_navigator.dart';
 import 'package:ai_speaking_flutter_app/core/navigation/app_router.dart';
-import 'package:ai_speaking_flutter_app/core/navigation/view_arguments/topic_lessons_arguments.dart';
-import 'package:ai_speaking_flutter_app/core/navigation/view_arguments/topic_listening_arguments.dart';
+import 'package:ai_speaking_flutter_app/presentation/navigation/view_arguments/topic_lessons_arguments.dart';
+import 'package:ai_speaking_flutter_app/presentation/navigation/view_arguments/topic_listening_arguments.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_catalog.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_content.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/topic_lesson_list_screen.dart';

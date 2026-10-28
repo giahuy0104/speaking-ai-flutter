@@ -10,7 +10,7 @@ import '../../../core/audio/learning_audio_dependencies.dart';
 import '../../../l10n/display_language.dart';
 import '../../../core/navigation/app_navigator.dart';
 import '../../../presentation/navigation/view_bindings.dart';
-import '../../../core/navigation/view_arguments/lesson_intro_arguments.dart';
+import '../../../presentation/navigation/view_arguments/lesson_intro_arguments.dart';
 import '../application/lesson_media_service.dart';
 import '../data/listening_progress_store.dart';
 import '../data/active_listening_session_store.dart';

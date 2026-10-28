@@ -13,9 +13,9 @@ import '../application/lesson_media_service.dart';
 import '../domain/listening_audio_keys.dart';
 import '../domain/listening_content.dart';
 import '../../../core/navigation/app_navigator.dart';
-import '../../../core/navigation/view_arguments/lesson_review_arguments.dart';
+import '../../../presentation/navigation/view_arguments/lesson_review_arguments.dart';
 
-export '../../../core/navigation/view_arguments/lesson_review_arguments.dart'
+export '../../../presentation/navigation/view_arguments/lesson_review_arguments.dart'
     show LessonReviewMode;
 
 enum LessonReviewAction { nextLesson, restartLesson, returnToListening }

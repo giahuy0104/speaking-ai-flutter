@@ -1,5 +1,5 @@
 import 'package:ai_speaking_flutter_app/core/navigation/app_route_names.dart';
-import 'package:ai_speaking_flutter_app/core/navigation/view_arguments/topic_listening_arguments.dart';
+import 'package:ai_speaking_flutter_app/presentation/navigation/view_arguments/topic_listening_arguments.dart';
 import 'package:ai_speaking_flutter_app/app/ai_speaking_app.dart';
 import 'package:ai_speaking_flutter_app/app/device_connection_feedback_overlay.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_screen.dart';

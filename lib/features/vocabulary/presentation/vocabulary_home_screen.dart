@@ -16,7 +16,7 @@ import '../../../core/device/active_learning_module.dart';
 import '../../../core/device/homi_connection_state.dart';
 import '../../../core/navigation/app_navigator.dart';
 import '../../../presentation/navigation/view_bindings.dart';
-import '../../../core/navigation/view_arguments/vocabulary_practice_arguments.dart';
+import '../../../presentation/navigation/view_arguments/vocabulary_practice_arguments.dart';
 import '../../../l10n/display_language.dart';
 import '../../listening/application/lesson_media_service.dart';
 import '../../listening/domain/lesson_guide_flow.dart';

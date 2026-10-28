@@ -1,7 +1,7 @@
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/core/navigation/app_navigator.dart';
 import 'package:ai_speaking_flutter_app/core/navigation/app_router.dart';
-import 'package:ai_speaking_flutter_app/core/navigation/view_arguments/topic_listening_arguments.dart';
+import 'package:ai_speaking_flutter_app/presentation/navigation/view_arguments/topic_listening_arguments.dart';
 import 'package:ai_speaking_flutter_app/l10n/display_language.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';

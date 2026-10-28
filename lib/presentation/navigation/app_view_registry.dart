@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-import 'package:ai_speaking_flutter_app/core/navigation/view_arguments/lesson_challenge_arguments.dart';
-import 'package:ai_speaking_flutter_app/core/navigation/view_arguments/lesson_intro_arguments.dart';
-import 'package:ai_speaking_flutter_app/core/navigation/view_arguments/lesson_practice_arguments.dart';
-import 'package:ai_speaking_flutter_app/core/navigation/view_arguments/lesson_review_arguments.dart';
-import 'package:ai_speaking_flutter_app/core/navigation/view_arguments/song_karaoke_arguments.dart';
-import 'package:ai_speaking_flutter_app/core/navigation/view_arguments/song_stage_arguments.dart';
-import 'package:ai_speaking_flutter_app/core/navigation/view_arguments/topic_lessons_arguments.dart';
-import 'package:ai_speaking_flutter_app/core/navigation/view_arguments/topic_listening_arguments.dart';
-import 'package:ai_speaking_flutter_app/core/navigation/view_arguments/vocabulary_practice_arguments.dart';
+import 'package:ai_speaking_flutter_app/presentation/navigation/view_arguments/lesson_challenge_arguments.dart';
+import 'package:ai_speaking_flutter_app/presentation/navigation/view_arguments/lesson_intro_arguments.dart';
+import 'package:ai_speaking_flutter_app/presentation/navigation/view_arguments/lesson_practice_arguments.dart';
+import 'package:ai_speaking_flutter_app/presentation/navigation/view_arguments/lesson_review_arguments.dart';
+import 'package:ai_speaking_flutter_app/presentation/navigation/view_arguments/song_karaoke_arguments.dart';
+import 'package:ai_speaking_flutter_app/presentation/navigation/view_arguments/song_stage_arguments.dart';
+import 'package:ai_speaking_flutter_app/presentation/navigation/view_arguments/topic_lessons_arguments.dart';
+import 'package:ai_speaking_flutter_app/presentation/navigation/view_arguments/topic_listening_arguments.dart';
+import 'package:ai_speaking_flutter_app/presentation/navigation/view_arguments/vocabulary_practice_arguments.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_challenge_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_intro_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_practice_screen.dart';
