@@ -16,6 +16,7 @@ import '../presentation/navigation/app_view_registry.dart';
 import '../core/auth/installation_auth_session.dart';
 import '../core/audio/audio_playback_service.dart';
 import '../core/audio/audio_turn_coordinator.dart';
+import '../core/audio/catalog/listening_audio_prefetcher.dart';
 import '../core/audio/browser_hfp_audio_control.dart';
 import '../core/audio/device_audio_cache.dart';
 import '../core/audio/hfp_audio_control.dart';
@@ -152,6 +153,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   final HomiBatteryNotifications _homiBatteryNotifications =
       HomiBatteryNotifications();
   final HomiBatteryAlertPolicy _homiBatteryAlertPolicy = HomiBatteryAlertPolicy();
+  final ListeningAudioPrefetcher _listeningAudioPrefetcher =
+      ListeningAudioPrefetcher();
   late final _MainOverlayNavigatorObserver _mainOverlayNavigatorObserver;
   final ActiveLearningModuleRegistry _activeLearningModules =
       ActiveLearningModuleRegistry();
@@ -546,9 +549,11 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed) {
+      _listeningAudioPrefetcher.pause();
       _hideIosBleReconnectNotice();
       return;
     }
+    _listeningAudioPrefetcher.resume();
     final bleStatus = _aiv0BleControl?.status;
     if (bleStatus != null) _updateIosBleReconnectNotice(bleStatus);
     if (_bluetoothPower.hasChecked) unawaited(_bluetoothPower.refresh());
@@ -746,6 +751,16 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     return null;
   }
 
+  String? _audioAgeGroup(int? age) {
+    if (age == null) return null;
+    for (final catalog in listeningCatalogs) {
+      if (age >= catalog.startAge && age <= catalog.endAge) {
+        return '${catalog.startAge}-${catalog.endAge}';
+      }
+    }
+    return null;
+  }
+
   void _propagateChildAge(int age) {
     _controller?.setChildAge(age);
     _voiceNavigationController?.setChildAge(age);
@@ -758,6 +773,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       return;
     }
     _propagateChildAge(validAge);
+    if (_privacyConsentGranted) {
+      _listeningAudioPrefetcher.selectAgeGroup(_audioAgeGroup(validAge));
+    }
     if (mounted) {
       setState(() {
         _childAge = validAge;
@@ -1023,6 +1041,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   }
 
   Future<void> _revokePrivacyConsent() async {
+    _listeningAudioPrefetcher.selectAgeGroup(null);
     final controller = _controller;
     if (controller != null) {
       await controller.clearHistory();
@@ -2785,6 +2804,10 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       return;
     }
     _backgroundWorkStarted = true;
+    if (!kIsWeb) {
+      _listeningAudioPrefetcher.selectAgeGroup(_audioAgeGroup(_childAge));
+      _listeningAudioPrefetcher.start();
+    }
     final nativeStreamingSpeechInput = _nativeStreamingSpeechInput;
     if (nativeStreamingSpeechInput != null && !_usesIosHfpLifecycle) {
       // Android may safely prepare SpeechRecognizer in the background. Apple
@@ -3837,6 +3860,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   @override
   void dispose() {
     _topicOfflineModelPreparation.dispose();
+    _listeningAudioPrefetcher.dispose();
     unawaited(_onboardingDevice?.dispose());
     _deviceAttemptGeneration += 1;
     _deviceAttemptCancelled.complete();

@@ -78,25 +78,30 @@ void main() {
     expect(manifests, expectedManifests);
   });
 
-  test('built Flutter bundle contains metadata and zero audio files', () async {
-    final assets = (await AssetManifest.loadFromAssetBundle(
-      rootBundle,
-    )).listAssets();
-    expect(assets, contains(RemoteAudioCatalog.assetKey));
-    expect(
-      assets.where(
-        (p) => RegExp(
-          r'\.(mp3|wav|m4a|aac|ogg|flac|opus)$',
-          caseSensitive: false,
-        ).hasMatch(p),
-      ),
-      isEmpty,
-    );
-    expect(assets.where((p) => p.startsWith('assets/audio/')), isEmpty);
-  });
+  test(
+    'built Flutter bundle contains essential prompts and remote metadata',
+    () async {
+      final assets = (await AssetManifest.loadFromAssetBundle(
+        rootBundle,
+      )).listAssets().toSet();
+      expect(assets, contains(RemoteAudioCatalog.assetKey));
+      expect(
+        assets,
+        containsAll(<String>[
+          'assets/audio/assistant-core/assistant.main.open_menu.vi.mp3',
+          'assets/audio/listening-common/listening.lesson.c810-l1-t01-b01.intro.vi.mp3',
+          'assets/audio/LESSON_HOOKS/may-gio-roi-nhi.mp3',
+        ]),
+      );
+      expect(
+        assets.where((p) => p.startsWith('assets/audio/listening-8-10/')),
+        isEmpty,
+      );
+    },
+  );
 
   test(
-    'every enabled static registry prompt resolves remotely without TTS',
+    'every enabled static registry prompt resolves to verified audio',
     () async {
       final paths = Directory('assets/data')
           .listSync()
@@ -140,7 +145,11 @@ void main() {
           );
           expect(
             result.source,
-            anyOf(AudioPromptSource.remote, AudioPromptSource.deviceCache),
+            anyOf(
+              AudioPromptSource.bundledAsset,
+              AudioPromptSource.remote,
+              AudioPromptSource.deviceCache,
+            ),
             reason: prompt.key.value,
           );
           checked++;

@@ -64,34 +64,26 @@ void main() {
   });
 
   test(
-    'release bundle excludes assistant files; enabled prompts download then cache',
+    'release bundle plays verified assistant prompts without a CDN request',
     () async {
       final bundle = await AssetManifest.loadFromAssetBundle(rootBundle);
-      expect(
-        bundle.listAssets().where(
-          (p) => p.startsWith('assets/audio/assistant-core/'),
-        ),
-        isEmpty,
-      );
+      final bundledPaths = bundle.listAssets().toSet();
       final repository = AudioPackRepository(
         bundledManifestAssets: const [path],
         cache: MemoryAudioPackCache(),
-        httpClient: createLocalCloudinaryAudioClient(),
+        httpClient: MockClient((_) => throw StateError('CDN was requested')),
       );
       addTearDown(repository.dispose);
       final resolver = AudioPromptResolver(repository: repository);
       for (final p in prompts.where((p) => p['enabled'] == true)) {
+        expect(bundledPaths, contains(p['asset']), reason: p['key'] as String);
         final first = await resolver.resolve(request(p));
         expect(
           first.source,
-          anyOf(AudioPromptSource.remote, AudioPromptSource.deviceCache),
+          AudioPromptSource.bundledAsset,
           reason: p['key'] as String,
         );
         expect(sha256.convert(first.bytes!).toString(), p['sha256']);
-        expect(
-          (await resolver.resolve(request(p))).source,
-          AudioPromptSource.deviceCache,
-        );
       }
     },
   );
@@ -103,7 +95,7 @@ void main() {
       final client = MockClient((_) => pending.future);
       final repository = AudioPackRepository(
         bundledManifestAssets: const [
-          path,
+          'assets/data/listening_8_10_audio.json',
           'assets/data/listening_common_audio.json',
         ],
         cache: MemoryAudioPackCache(),
@@ -112,8 +104,18 @@ void main() {
       );
       addTearDown(repository.dispose);
       final resolver = AudioPromptResolver(repository: repository);
+      final agePack = (await repository.activeManifests()).singleWhere(
+        (p) => p.pack == 'listening-8-10',
+      );
+      final uncached = agePack.prompts.firstWhere((p) => p.enabled);
       expect(
-        (await resolver.resolve(request(prompts.first))).source,
+        (await resolver.resolve(
+          AudioPromptRequest(
+            key: uncached.key,
+            fallbackText: uncached.sourceText ?? '',
+            locale: uncached.locale,
+          ),
+        )).source,
         AudioPromptSource.tts,
       );
       final lessonPack = (await repository.activeManifests()).singleWhere(
@@ -143,17 +145,24 @@ void main() {
   test(
     'verified remote recording still plays when cache storage fails',
     () async {
+      const agePath = 'assets/data/listening_8_10_audio.json';
       final repository = AudioPackRepository(
-        bundledManifestAssets: const [path],
+        bundledManifestAssets: const [agePath],
         cache: _UnavailableCache(),
         httpClient: createLocalCloudinaryAudioClient(),
       );
       addTearDown(repository.dispose);
-      final result = await AudioPromptResolver(
-        repository: repository,
-      ).resolve(request(prompts.first));
+      final prompt = (await repository.activeManifests()).single.prompts
+          .firstWhere((p) => p.enabled);
+      final result = await AudioPromptResolver(repository: repository).resolve(
+        AudioPromptRequest(
+          key: prompt.key,
+          fallbackText: prompt.sourceText ?? '',
+          locale: prompt.locale,
+        ),
+      );
       expect(result.source, AudioPromptSource.remote);
-      expect(sha256.convert(result.bytes!).toString(), prompts.first['sha256']);
+      expect(sha256.convert(result.bytes!).toString(), prompt.sha256);
     },
   );
 }
