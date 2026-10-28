@@ -9,6 +9,7 @@ import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/device/active_learning_module.dart';
 import '../../listening/domain/listening_content.dart';
 import '../domain/homi_fallback_catalog.dart';
+import '../domain/main_assistant_audio_keys.dart';
 import 'main_voice_assistant_flow.dart';
 import 'voice_navigation_intent_resolver.dart';
 
@@ -646,14 +647,23 @@ class VoiceNavigationController extends ChangeNotifier {
     // its completion callback even though the command was recognized and the
     // prompt started. A terminal feature transfer (including continuous
     // translation) must still honor that accepted command after the prompt
-    // service has stopped and released its audio turn. Questions that need
-    // another spoken answer remain blocked on prompt failure so the microphone
-    // never opens for a question the child did not hear.
+    // service has stopped and released its audio turn. An accepted Song skip
+    // must also advance; questions that need another spoken answer remain
+    // blocked so the microphone never opens for a question the child did not
+    // hear.
     final canCompleteRecognizedNavigation =
         !promptCompleted &&
         !turn.continueListening &&
         turn.navigationAfterPrompt != null;
-    if (!promptCompleted && !canCompleteRecognizedNavigation) {
+    final canCompleteRecognizedSongSkip =
+        iosNavigation &&
+        !promptCompleted &&
+        !turn.continueListening &&
+        turn.activeLearningCommand == ActiveLearningCommand.nextItem &&
+        turn.promptAudioKey == MainAssistantAudioKeys.songSkipped;
+    if (!promptCompleted &&
+        !canCompleteRecognizedNavigation &&
+        !canCompleteRecognizedSongSkip) {
       if (turn.exhaustedUnrecognizedInput) {
         _reportIosTopicRecognitionFailure(stage: choiceStage);
       }
@@ -663,6 +673,11 @@ class VoiceNavigationController extends ChangeNotifier {
       AudioDiagnostics.event('main.prompt.failed_navigation_continues', {
         'generation': generation,
         'destination': turn.navigationAfterPrompt!.destination.name,
+      });
+    }
+    if (canCompleteRecognizedSongSkip) {
+      AudioDiagnostics.event('main.prompt.failed_song_skip_continues', {
+        'generation': generation,
       });
     }
 
@@ -724,6 +739,9 @@ class VoiceNavigationController extends ChangeNotifier {
       final handler = _activeLearningCommandHandler;
       if (handler != null) {
         final result = await handler(activeLearningCommand);
+        if (canCompleteRecognizedSongSkip && result.wasHandled) {
+          _lastError = null;
+        }
         if (!kIsWeb &&
             defaultTargetPlatform == TargetPlatform.iOS &&
             !result.wasHandled) {
@@ -921,8 +939,8 @@ class VoiceNavigationController extends ChangeNotifier {
         _lastError = error;
         // A failed/cancelled HM-D001 prompt is not a completed question. Opening
         // recognition here both hides the failure and records the tail of a
-        // prompt whose native completion was lost. Keep the lesson paused and
-        // let the next explicit MAIN press retry with a fresh turn.
+        // prompt whose native completion was lost. The caller may still
+        // dispatch an already recognized terminal action after this cleanup.
         await _suspendForExternalSpeechHandoff();
         await _endNativeMainTurn('prompt_failed', generation: generation);
       }
