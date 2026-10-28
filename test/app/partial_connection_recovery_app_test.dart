@@ -1,13 +1,16 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:ai_speaking_flutter_app/app/ai_speaking_app.dart';
+import 'package:ai_speaking_flutter_app/config/app_config.dart';
 import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_control.dart';
 import 'package:ai_speaking_flutter_app/core/device/aivo_control_dispatcher.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_screen.dart';
 import 'package:ai_speaking_flutter_app/features/home/presentation/home_learning_shell.dart';
 import 'package:ai_speaking_flutter_app/features/onboarding/presentation/startup_setup_screen.dart';
+import 'package:ai_speaking_flutter_app/features/voice_navigation/application/main_speaking_session_controller.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/presentation/main_voice_assistant_button.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -417,6 +420,62 @@ void main() {
     },
     variant: TargetPlatformVariant({TargetPlatform.android}),
   );
+
+  testWidgets(
+    'iOS repeats MAIN translation after a temporary HFP handoff gap',
+    (tester) async {
+      final app = await _pumpApp(tester, grantPrivacy: true);
+      await app.finishStartupScans();
+      await app.emitBle('connected');
+      expect((await app.controller.connectHfpDevice(mic)).succeeded, isTrue);
+
+      final shell = tester.widget<HomeLearningShell>(
+        find.byType(HomeLearningShell),
+      );
+      final session = shell.speakingSessionController!;
+      await app.drain(shell.onMainSpeakingModeStarted!());
+      expect(session.isActive, isTrue);
+      expect(app.controller.isContinuousHfpSessionActive, isTrue);
+      expect(app.controller.isRecording, isTrue);
+      await app.drain(shell.onStopSession!());
+      expect(session.isActive, isFalse);
+      expect(app.controller.isRecording, isFalse);
+
+      final startsBeforeRetry = app.speechCalls
+          .where((call) => call.method == 'speech.start')
+          .length;
+      app.hfpRouteStart = Completer<Map<String, Object?>>();
+      final retry = shell.onMainSpeakingModeStarted!();
+      await _pumpAsync(tester);
+      expect(session.isActive, isTrue);
+      expect(session.state, MainSpeakingSessionState.processing);
+
+      // The previous capture's route can briefly report idle before the new
+      // continuous HFP lease has finished opening.
+      await app.emitHfpStatus('idle');
+      expect(session.isActive, isTrue);
+      await tester.pump(const Duration(seconds: 11));
+      expect(session.isActive, isTrue);
+
+      app.hfpRouteStart!.complete(_NativeAppHarness.recordingHfpRoute);
+      await app.drain(retry);
+      expect(session.isActive, isTrue);
+      expect(app.controller.isContinuousHfpSessionActive, isTrue);
+      expect(app.controller.isRecording, isTrue);
+      expect(
+        app.speechCalls.where((call) => call.method == 'speech.start').length,
+        greaterThan(startsBeforeRetry),
+      );
+
+      // A real profile loss after the handoff still ends the session.
+      await app.emitHfpStatus('error', hasSelectedInput: false);
+      await _pumpAsync(tester);
+      expect(session.isActive, isFalse);
+      expect(app.controller.isContinuousHfpSessionActive, isFalse);
+      await app.close();
+    },
+    variant: TargetPlatformVariant({TargetPlatform.iOS}),
+  );
 }
 
 Future<void> _pumpAsync(WidgetTester tester) async {
@@ -444,7 +503,21 @@ Future<_NativeAppHarness> _pumpApp(
   final app = _NativeAppHarness(tester);
   app.installChannels();
   addTearDown(app.close);
-  await tester.pumpWidget(AiSpeakingApp(deviceConnectionNow: () => app.now));
+  await tester.pumpWidget(
+    AiSpeakingApp(
+      config: AppConfig(
+        backendBaseUri: Uri.parse('https://example.test'),
+        useDemoBackend: true,
+        childAge: 6,
+        privacyPolicyUri: Uri.parse('https://example.test/privacy'),
+        termsUri: Uri.parse('https://example.test/terms'),
+        supportUri: Uri.parse('https://example.test/support'),
+        aiSubprocessors: 'Test provider',
+        dataRetentionSummary: 'Test retention policy',
+      ),
+      deviceConnectionNow: () => app.now,
+    ),
+  );
   await tester.pumpAndSettle();
   // Drain the optional backend preload deadline before testing connection
   // actions; widget tests intentionally block network traffic.
@@ -479,6 +552,16 @@ class _NativeAppHarness {
   final nativeCalls = <String>[];
   bool failBleConnect = true;
   Completer<void>? speechCancellation;
+  Completer<Map<String, Object?>>? hfpRouteStart;
+
+  static const recordingHfpRoute = <String, Object?>{
+    'phase': 'recording',
+    'deviceId': 'AA:BB:CC:DD:EE:FF',
+    'deviceName': 'HM-D001',
+    'routeActive': true,
+    'inputDeviceName': 'HM-D001',
+    'outputDeviceName': 'HM-D001',
+  };
 
   Future<void> finishStartupScans() async {
     for (final scan in scans) {
@@ -543,6 +626,7 @@ class _NativeAppHarness {
     MethodChannel('ailingo_offline_intent/events'),
     MethodChannel('com.llfbandit.record/messages'),
     MethodChannel('com.ryanheise.audio_session'),
+    MethodChannel('dev.fluttercommunity.plus/connectivity_status'),
     MethodChannel('plugins.flutter.io/path_provider'),
   ];
 
@@ -589,8 +673,11 @@ class _NativeAppHarness {
         if (channel.name == 'ailingo_hfp_audio') {
           hfpCalls.add(call);
           if (call.method == 'startAudioRoute') {
+            if (hfpRouteStart != null) return hfpRouteStart!.future;
             return {
-              'phase': 'ready',
+              'phase': defaultTargetPlatform == TargetPlatform.iOS
+                  ? 'recording'
+                  : 'ready',
               'deviceId': 'AA:BB:CC:DD:EE:FF',
               'deviceName': 'HM-D001',
               'routeActive': true,
@@ -681,6 +768,24 @@ class _NativeAppHarness {
     await _pumpAsync(tester);
   }
 
+  Future<void> emitHfpStatus(
+    String nextPhase, {
+    bool hasSelectedInput = true,
+  }) async {
+    await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+      'ailingo_hfp_audio/events',
+      const StandardMethodCodec().encodeSuccessEnvelope(<String, Object?>{
+        'phase': nextPhase,
+        'hasSelectedInput': hasSelectedInput,
+        'deviceId': mic.id,
+        'deviceName': mic.name,
+        'routeActive': false,
+      }),
+      (_) {},
+    );
+    await _pumpAsync(tester);
+  }
+
   void clearChannels() {
     final messenger = tester.binding.defaultBinaryMessenger;
     for (final channel in _channels) {
@@ -693,6 +798,9 @@ class _NativeAppHarness {
     _closed = true;
     if (speechCancellation?.isCompleted == false) {
       speechCancellation!.complete();
+    }
+    if (hfpRouteStart?.isCompleted == false) {
+      hfpRouteStart!.complete(recordingHfpRoute);
     }
     await tester.pumpWidget(const SizedBox.shrink());
     for (final scan in scans) {
