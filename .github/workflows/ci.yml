@@ -50,6 +50,17 @@ jobs:
       - run: flutter pub get
       - run: dart run tool/check_architecture_boundaries.dart
 
+  audio-manifest:
+    name: Verify audio loudness manifest
+    needs: resolve
+    runs-on: macos-26
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.resolve.outputs.sha }}
+      - run: python3 tool/measure_audio_loudness.py --check
+
   validate:
     name: Analyze and test Flutter
     needs: resolve
@@ -130,8 +141,6 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      - name: Verify audio loudness manifest
-        run: python3 tool/measure_audio_loudness.py --check
       - name: Prepare Simulator translation adapter
         run: python3 tool/prepare_ios_translation_pods.py simulator
       - name: Build Simulator app without signing
