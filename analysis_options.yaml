@@ -5,3 +5,4 @@ analyzer:
     avoid_print: error
   exclude:
     - build/**
+    - third_party/flutter_nnnoiseless/example/**

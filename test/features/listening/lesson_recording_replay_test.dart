@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
+import 'package:ai_speaking_flutter_app/features/listening/application/lesson_recording_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -144,9 +145,70 @@ void main() {
       await player.dispose();
     },
   );
+
+  test(
+    'replay selects the cleaned copy without changing the scoring file',
+    () async {
+      final cleaned = await File(
+        '${directory.path}/take.normalized.replay-cleaned.wav',
+      ).writeAsBytes([3]);
+      final player = _ReplayPolicyProbe(denoiser: (_) async => cleaned.path);
+      await player.playRecordingToCompletion(recording(normalized.path));
+      expect(player.uri, Uri.file(cleaned.path));
+      expect(await normalized.readAsBytes(), [2]);
+      await player.dispose();
+    },
+  );
+
+  test('replay uses the original if denoising fails', () async {
+    final player = _ReplayPolicyProbe(
+      denoiser: (_) async => throw StateError('denoise failed'),
+    );
+    await player.playRecordingToCompletion(recording(normalized.path));
+    expect(player.uri, Uri.file(normalized.path));
+    await player.dispose();
+  });
+
+  test('replay skips the denoiser for a missing local file', () async {
+    var calls = 0;
+    final missingPath = '${directory.path}/missing.wav';
+    final player = _ReplayPolicyProbe(
+      denoiser: (path) async {
+        calls++;
+        return path;
+      },
+    );
+    await player.playRecordingToCompletion(recording(missingPath));
+    expect(calls, 0);
+    expect(player.uri, Uri.file(missingPath));
+    await player.dispose();
+  });
+
+  test(
+    'cached cleaned audio is reused and deleted with its recording',
+    () async {
+      final cleaned = await File(
+        '${directory.path}/take.normalized.replay-cleaned.wav',
+      ).writeAsBytes(List<int>.filled(45, 1));
+      expect(
+        await prepareLessonRecordingForReplay(normalized.path),
+        cleaned.path,
+      );
+      expect(
+        await prepareLessonRecordingForReplay(normalized.path),
+        cleaned.path,
+      );
+      await media.deleteRecording(normalized.path);
+      expect(await normalized.exists(), isFalse);
+      expect(await cleaned.exists(), isFalse);
+    },
+  );
 }
 
 class _ReplayPolicyProbe extends LessonMediaService {
+  _ReplayPolicyProbe({Future<String> Function(String)? denoiser})
+    : super(replayDenoiser: denoiser ?? _unchangedReplayPath);
+
   Uri? uri;
   double? gain;
   bool? fixed;
@@ -170,3 +232,5 @@ class _ReplayPolicyProbe extends LessonMediaService {
     if (fail) throw const LessonMediaException('Playback failed');
   }
 }
+
+Future<String> _unchangedReplayPath(String path) async => path;
