@@ -30,6 +30,7 @@ Decoding uses afconvert, which ships with macOS; no extra tooling is required.
 
 import argparse
 import array
+import difflib
 import json
 import math
 import os
@@ -160,6 +161,12 @@ def main():
         if current != serialized:
             print("assets/data/audio_loudness.json is stale; regenerate it.",
                   file=sys.stderr)
+            diff = difflib.unified_diff(
+                current.splitlines(), serialized.splitlines(),
+                fromfile="committed manifest", tofile="measured audio", lineterm="",
+            )
+            for line in list(diff)[:30]:
+                print(line, file=sys.stderr)
             return 1
         return 0
 

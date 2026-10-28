@@ -134,6 +134,7 @@
     "assets/audio/assistant-core/assistant.main.no_speech.vi.mp3": -9.88,
     "assets/audio/assistant-core/assistant.main.open_menu.vi.mp3": -9.82,
     "assets/audio/assistant-core/assistant.main.song_replay.vi.mp3": -8.65,
+    "assets/audio/assistant-core/assistant.main.song_skipped.vi.mp3": -8.65,
     "assets/audio/assistant-core/assistant.main.start_now.vi.mp3": -10.47,
     "assets/audio/assistant-core/assistant.main.switched_to_listening.vi.mp3": -8.9,
     "assets/audio/assistant-core/assistant.main.switched_to_translation.vi.mp3": -10.43,
