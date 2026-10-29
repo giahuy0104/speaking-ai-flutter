@@ -94,6 +94,7 @@ class AiSpeakingApp extends StatefulWidget {
     super.key,
     this.config,
     this.deviceConnectionNow,
+    this.listeningAudioPrefetcher,
     this.useDeviceConnectionService = const bool.fromEnvironment(
       'DEVICE_CONNECTION_SERVICE_ONBOARDING',
       defaultValue: true,
@@ -108,6 +109,9 @@ class AiSpeakingApp extends StatefulWidget {
   /// Allows retry deadlines to be exercised without changing their cadence.
   @visibleForTesting
   final DateTime Function()? deviceConnectionNow;
+
+  @visibleForTesting
+  final ListeningAudioPrefetcher? listeningAudioPrefetcher;
 
   @override
   State<AiSpeakingApp> createState() => _AiSpeakingAppState();
@@ -153,8 +157,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   final HomiBatteryNotifications _homiBatteryNotifications =
       HomiBatteryNotifications();
   final HomiBatteryAlertPolicy _homiBatteryAlertPolicy = HomiBatteryAlertPolicy();
-  final ListeningAudioPrefetcher _listeningAudioPrefetcher =
-      ListeningAudioPrefetcher();
+  late final ListeningAudioPrefetcher _listeningAudioPrefetcher;
   late final _MainOverlayNavigatorObserver _mainOverlayNavigatorObserver;
   final ActiveLearningModuleRegistry _activeLearningModules =
       ActiveLearningModuleRegistry();
@@ -469,6 +472,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   @override
   void initState() {
     super.initState();
+    _listeningAudioPrefetcher =
+        widget.listeningAudioPrefetcher ?? ListeningAudioPrefetcher();
     WidgetsBinding.instance.addObserver(this);
     _appFlowCoordinator = AppFlowCoordinator(registry: _activeLearningModules);
     _mainAssistantSession = MainAssistantSession(
@@ -773,7 +778,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       return;
     }
     _propagateChildAge(validAge);
-    if (_privacyConsentGranted) {
+    if (_privacyConsentGranted &&
+        !kIsWeb &&
+        defaultTargetPlatform == TargetPlatform.android) {
       _listeningAudioPrefetcher.selectAgeGroup(_audioAgeGroup(validAge));
     }
     if (mounted) {
@@ -2804,7 +2811,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       return;
     }
     _backgroundWorkStarted = true;
-    if (!kIsWeb) {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       _listeningAudioPrefetcher.selectAgeGroup(_audioAgeGroup(_childAge));
       _listeningAudioPrefetcher.start();
     }

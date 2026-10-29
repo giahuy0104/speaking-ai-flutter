@@ -3,10 +3,12 @@ import 'dart:io';
 
 import 'package:ai_speaking_flutter_app/app/ai_speaking_app.dart';
 import 'package:ai_speaking_flutter_app/config/app_config.dart';
+import 'package:ai_speaking_flutter_app/core/audio/catalog/listening_audio_prefetcher.dart';
 import 'package:ai_speaking_flutter_app/features/home/presentation/home_learning_shell.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/android_offline_speech_model_service.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/topic_listening_screen.dart';
 import 'package:ai_speaking_flutter_app/features/onboarding/presentation/startup_setup_screen.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -15,6 +17,34 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   final ios = TargetPlatformVariant.only(TargetPlatform.iOS);
+
+  testWidgets(
+    'completed setup starts age audio prefetch on Android only',
+    (tester) async {
+      var wifiChecks = 0;
+      final prefetcher = ListeningAudioPrefetcher(
+        wifiAvailable: () async {
+          wifiChecks += 1;
+          return false;
+        },
+        wifiChanges: () => const Stream<bool>.empty(),
+      );
+      final native = await _launch(
+        tester,
+        fullConsent: true,
+        listeningAudioPrefetcher: prefetcher,
+      );
+      expect(
+        wifiChecks,
+        defaultTargetPlatform == TargetPlatform.android ? 1 : 0,
+      );
+      await native.close();
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
 
   testWidgets('iOS does not prepare Topic assets before onboarding completes', (
     tester,
@@ -185,6 +215,7 @@ Future<_NativeAssets> _launch(
   AndroidOfflineSpeechModelConsent consent =
       AndroidOfflineSpeechModelConsent.undecided,
   Future<String> Function()? prepare,
+  ListeningAudioPrefetcher? listeningAudioPrefetcher,
 }) async {
   tester.view.physicalSize = const Size(430, 844);
   tester.view.devicePixelRatio = 1;
@@ -205,6 +236,7 @@ Future<_NativeAssets> _launch(
   addTearDown(native.close);
   await tester.pumpWidget(
     AiSpeakingApp(
+      listeningAudioPrefetcher: listeningAudioPrefetcher,
       config: fullConsent
           ? AppConfig(
               backendBaseUri: Uri.parse('https://example.com'),

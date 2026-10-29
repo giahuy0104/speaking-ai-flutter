@@ -219,6 +219,154 @@ void main() {
     expect(requested, lessThanOrEqualTo(2));
     prefetcher.dispose();
   });
+
+  test(
+    'Wi-Fi recovery during a pending check retries the selected age',
+    () async {
+      final wifiChanges = StreamController<bool>.broadcast();
+      addTearDown(wifiChanges.close);
+      final firstCheck = Completer<bool>();
+      final repositoryCreated = Completer<void>();
+      var checks = 0;
+      final prefetcher = ListeningAudioPrefetcher(
+        wifiAvailable: () {
+          checks += 1;
+          return checks == 1 ? firstCheck.future : Future<bool>.value(true);
+        },
+        wifiChanges: () => wifiChanges.stream,
+        repositoryFactory: (assets) {
+          repositoryCreated.complete();
+          return AudioPackRepository(
+            bundledManifestAssets: assets,
+            bundle: _ageBundle(ageManifest, const []),
+            cache: MemoryAudioPackCache(),
+          );
+        },
+      );
+      addTearDown(prefetcher.dispose);
+
+      prefetcher.selectAgeGroup('8-10');
+      prefetcher.start();
+      expect(checks, 1);
+      wifiChanges.add(true);
+      await Future<void>.delayed(Duration.zero);
+      firstCheck.complete(false);
+
+      await repositoryCreated.future.timeout(const Duration(seconds: 3));
+      expect(checks, 2);
+    },
+  );
+
+  test('resume rechecks Wi-Fi even when the last event was offline', () async {
+    final wifiChanges = StreamController<bool>.broadcast();
+    addTearDown(wifiChanges.close);
+    final repositoryCreated = Completer<void>();
+    var wifiAvailable = false;
+    var checks = 0;
+    final prefetcher = ListeningAudioPrefetcher(
+      wifiAvailable: () async {
+        checks += 1;
+        return wifiAvailable;
+      },
+      wifiChanges: () => wifiChanges.stream,
+      repositoryFactory: (assets) {
+        repositoryCreated.complete();
+        return AudioPackRepository(
+          bundledManifestAssets: assets,
+          bundle: _ageBundle(ageManifest, const []),
+          cache: MemoryAudioPackCache(),
+        );
+      },
+    );
+    addTearDown(prefetcher.dispose);
+
+    prefetcher.selectAgeGroup('8-10');
+    prefetcher.start();
+    wifiChanges.add(false);
+    await Future<void>.delayed(Duration.zero);
+    expect(checks, 1);
+
+    prefetcher.pause();
+    wifiAvailable = true;
+    prefetcher.resume();
+    await repositoryCreated.future.timeout(const Duration(seconds: 3));
+    expect(checks, 2);
+  });
+
+  test(
+    'Wi-Fi recovery during a download retries missing audio immediately',
+    () async {
+      final selected = prompts.firstWhere((item) => item['enabled'] == true);
+      final wifiChanges = StreamController<bool>.broadcast();
+      addTearDown(wifiChanges.close);
+      final firstRequest = Completer<void>();
+      final firstResponse = Completer<http.Response>();
+      final completed = Completer<void>();
+      final cache = MemoryAudioPackCache();
+      var requests = 0;
+      final prefetcher = ListeningAudioPrefetcher(
+        wifiAvailable: () async => true,
+        wifiChanges: () => wifiChanges.stream,
+        repositoryFactory: (assets) => AudioPackRepository(
+          bundledManifestAssets: assets,
+          bundle: _ageBundle(ageManifest, [selected]),
+          cache: cache,
+          httpClient: MockClient((_) {
+            requests += 1;
+            if (requests == 1) {
+              firstRequest.complete();
+              return firstResponse.future;
+            }
+            return Future.value(
+              http.Response.bytes(
+                File(selected['asset'] as String).readAsBytesSync(),
+                200,
+              ),
+            );
+          }),
+          telemetry: (event, metadata) {
+            if (event == 'audio_pack_preload_completed' &&
+                metadata['complete'] == true &&
+                !completed.isCompleted) {
+              completed.complete();
+            }
+          },
+        ),
+      );
+      addTearDown(prefetcher.dispose);
+
+      prefetcher.selectAgeGroup('8-10');
+      prefetcher.start();
+      await firstRequest.future.timeout(const Duration(seconds: 3));
+      wifiChanges.add(false);
+      wifiChanges.add(true);
+      await Future<void>.delayed(Duration.zero);
+      firstResponse.complete(http.Response('temporary failure', 503));
+
+      await completed.future.timeout(const Duration(seconds: 3));
+      expect(requests, 2);
+    },
+  );
+}
+
+_MemoryAssetBundle _ageBundle(
+  Map<String, dynamic> ageManifest,
+  List<Map<String, dynamic>> selectedPrompts,
+) {
+  final lessonManifest = Map<String, dynamic>.of(ageManifest)
+    ..['prompts'] = selectedPrompts;
+  final challengeManifest = Map<String, dynamic>.of(
+    jsonDecode(File('assets/data/challenge_8_10_audio.json').readAsStringSync())
+        as Map<String, dynamic>,
+  )..['prompts'] = <Object>[];
+  return _MemoryAssetBundle({
+    'assets/data/listening_8_10_audio.json': Uint8List.fromList(
+      utf8.encode(jsonEncode(lessonManifest)),
+    ),
+    'assets/data/challenge_8_10_audio.json': Uint8List.fromList(
+      utf8.encode(jsonEncode(challengeManifest)),
+    ),
+  });
 }
 
 final class _MemoryAssetBundle extends CachingAssetBundle {

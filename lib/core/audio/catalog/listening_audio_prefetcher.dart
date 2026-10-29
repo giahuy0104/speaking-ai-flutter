@@ -34,12 +34,15 @@ final class ListeningAudioPrefetcher {
   bool _foreground = true;
   bool _checkingWifi = false;
   bool? _wifiConnected;
+  int _wifiRevision = 0;
+  bool _retryRequested = false;
   bool _disposed = false;
 
   void start() {
     if (_started || _disposed) return;
     _started = true;
     _wifiSubscription = _wifiChanges().listen((available) {
+      _wifiRevision += 1;
       _wifiConnected = available;
       if (available) {
         _retryTimer?.cancel();
@@ -73,16 +76,22 @@ final class ListeningAudioPrefetcher {
     if (!_started ||
         !_foreground ||
         _disposed ||
-        _checkingWifi ||
-        _work != null ||
         _ageGroup == null ||
         _ageGroup == _completedGroup) {
+      return;
+    }
+    if (_checkingWifi || _work != null) {
+      _retryRequested = true;
       return;
     }
     final requestedGroup = _ageGroup;
     _checkingWifi = true;
     try {
-      if (!await _wifiAvailable() || _wifiConnected == false) return;
+      final wifiRevision = _wifiRevision;
+      final wifiAvailable = await _wifiAvailable();
+      if (_wifiRevision != wifiRevision && _wifiConnected == false) return;
+      _wifiConnected = wifiAvailable;
+      if (!wifiAvailable) return;
       final group = _ageGroup;
       if (group == null || !_foreground || _disposed || _work != null) return;
       final suffix = group.replaceAll('-', '_');
@@ -98,7 +107,9 @@ final class ListeningAudioPrefetcher {
     } finally {
       _checkingWifi = false;
       _work = null;
-      if (_ageGroup != requestedGroup && _ageGroup != _completedGroup) {
+      if (_retryRequested ||
+          (_ageGroup != requestedGroup && _ageGroup != _completedGroup)) {
+        _retryRequested = false;
         _retryTimer?.cancel();
         unawaited(_tryPreload());
       }
