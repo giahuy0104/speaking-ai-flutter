@@ -46,12 +46,14 @@ class LessonMediaService {
     AudioTurnOwner audioTurnOwner = AudioTurnOwner.listeningLesson,
     LessonRecordingHistoryStore? historyStore,
     Stream<AudioInterruptionEvent>? audioInterruptionEvents,
+    Future<String> Function(String)? replayDenoiser,
   }) : _recorder = recorder,
        _playbackService = playbackService,
        _hfpAudioControl = hfpAudioControl,
        _audioTurnCoordinator = audioTurnCoordinator,
        _audioTurnOwner = audioTurnOwner,
        _audioInterruptionEvents = audioInterruptionEvents,
+       _replayDenoiser = replayDenoiser ?? prepareLessonRecordingForReplay,
        historyStore = historyStore ?? const LessonRecordingHistoryStore() {
     if (!kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.android ||
@@ -97,6 +99,7 @@ class LessonMediaService {
   final AudioTurnCoordinator? _audioTurnCoordinator;
   final AudioTurnOwner _audioTurnOwner;
   final Stream<AudioInterruptionEvent>? _audioInterruptionEvents;
+  final Future<String> Function(String) _replayDenoiser;
   DateTime? _recordingStartedAt;
   String? _activePath;
   _ActiveLessonRecording? _activeContext;
@@ -927,18 +930,32 @@ class LessonMediaService {
   }
 
   /// Shared replay policy for prepared topic and challenge recordings.
-  Future<void> playRecordingToCompletion(LessonRecording recording) {
-    final parsed = Uri.tryParse(recording.filePath);
-    final isWindowsPath = RegExp(
+  Future<void> playRecordingToCompletion(LessonRecording recording) async {
+    var playbackPath = recording.filePath;
+    final originalUri = Uri.tryParse(playbackPath);
+    final originalIsWindowsPath = RegExp(
       r'^[a-zA-Z]:[/\\]',
-    ).hasMatch(recording.filePath);
+    ).hasMatch(playbackPath);
+    if (!kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS) &&
+        (originalIsWindowsPath || originalUri == null || !originalUri.hasScheme) &&
+        isLocalLessonRecordingFile(playbackPath)) {
+      try {
+        playbackPath = await _replayDenoiser(playbackPath);
+      } catch (error) {
+        debugPrint('Lesson replay denoise failed; using original: $error');
+      }
+    }
+    final parsed = Uri.tryParse(playbackPath);
+    final isWindowsPath = RegExp(r'^[a-zA-Z]:[/\\]').hasMatch(playbackPath);
     final uri = isWindowsPath
-        ? Uri.file(recording.filePath, windows: true)
+        ? Uri.file(playbackPath, windows: true)
         : parsed != null && parsed.hasScheme
         ? parsed
-        : Uri.file(recording.filePath);
+        : Uri.file(playbackPath);
     final requestedTimeout = recording.duration + const Duration(seconds: 5);
-    return playToCompletion(
+    await playToCompletion(
       uri,
       timeout: requestedTimeout < const Duration(seconds: 10)
           ? const Duration(seconds: 10)

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_nnnoiseless/flutter_nnnoiseless.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'lesson_wav_normalizer.dart';
@@ -9,6 +10,64 @@ import 'lesson_wav_normalizer.dart';
 const MethodChannel _iosLessonRecordingChannel = MethodChannel(
   'ailingo_voice_prompt',
 );
+const double _replayNoiseSuppressionWet = 0.8;
+final Map<String, Future<String>> _pendingReplayDenoising = {};
+
+bool isLocalLessonRecordingFile(String path) => File(path).existsSync();
+
+String _replayDenoisedPath(String path) =>
+    '${path.replaceFirst(RegExp(r'\.[^./\\]+$'), '')}.replay-cleaned.wav';
+
+Future<String> prepareLessonRecordingForReplay(String path) async {
+  final pending = _pendingReplayDenoising.putIfAbsent(
+    path,
+    () => _prepareLessonRecordingForReplay(path),
+  );
+  try {
+    return await pending;
+  } finally {
+    if (identical(_pendingReplayDenoising[path], pending)) {
+      _pendingReplayDenoising.remove(path);
+    }
+  }
+}
+
+Future<String> _prepareLessonRecordingForReplay(String path) async {
+  final source = File(path);
+  if (!await source.exists()) throw StateError('Recording is missing.');
+  final output = File(_replayDenoisedPath(path));
+  final sourceModified = await source.lastModified();
+  if (await output.exists() &&
+      await output.length() > 44 &&
+      !(await output.lastModified()).isBefore(sourceModified)) {
+    debugPrint('Lesson replay denoise cache hit');
+    return output.path;
+  }
+
+  final staging = File(
+    '${output.path.substring(0, output.path.length - 4)}.'
+    '${DateTime.now().microsecondsSinceEpoch}.tmp.wav',
+  );
+  final timer = Stopwatch()..start();
+  try {
+    await Noiseless.instance.denoiseFile(
+      inputPathStr: path,
+      outputPathStr: staging.path,
+      wet: _replayNoiseSuppressionWet,
+    );
+    if (!await staging.exists() || await staging.length() <= 44) {
+      throw StateError('Denoiser produced no playable WAV.');
+    }
+    if (await output.exists()) await output.delete();
+    await staging.rename(output.path);
+    debugPrint(
+      'Lesson replay denoise complete: ${timer.elapsedMilliseconds} ms',
+    );
+    return output.path;
+  } finally {
+    if (await staging.exists()) await staging.delete();
+  }
+}
 
 String lessonRecordingFileExtension({TargetPlatform? platform}) =>
     (platform ?? defaultTargetPlatform) == TargetPlatform.android
@@ -50,6 +109,16 @@ Future<String?> retainStarRecording(String path) async {
 }
 
 Future<void> deleteLessonRecording(String path) async {
+  final pending = _pendingReplayDenoising[path];
+  if (pending != null) {
+    try {
+      await pending;
+    } catch (_) {
+      // Delete both paths even if denoising failed.
+    }
+  }
+  final replayFile = File(_replayDenoisedPath(path));
+  if (await replayFile.exists()) await replayFile.delete();
   final file = File(path);
   if (await file.exists()) {
     await file.delete();
