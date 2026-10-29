@@ -12,6 +12,25 @@ import 'audio_prompt_key.dart';
 typedef AudioPackTelemetry =
     void Function(String event, Map<String, Object?> metadata);
 
+final class AudioPackPreloadResult {
+  const AudioPackPreloadResult({
+    required this.total,
+    required this.cached,
+    required this.downloaded,
+    required this.failed,
+    required this.interrupted,
+  });
+
+  final int total;
+  final int cached;
+  final int downloaded;
+  final int failed;
+  final bool interrupted;
+
+  bool get isComplete =>
+      total > 0 && !interrupted && failed == 0 && cached + downloaded == total;
+}
+
 final class AudioPackRepository {
   AudioPackRepository({
     required List<String> bundledManifestAssets,
@@ -210,7 +229,11 @@ final class AudioPackRepository {
     }
   }
 
-  Future<int> preloadAgeGroup(String ageGroup) async {
+  Future<AudioPackPreloadResult> preloadAgeGroup(
+    String ageGroup, {
+    bool Function()? shouldContinue,
+    void Function(AudioPackPreloadResult progress)? onProgress,
+  }) async {
     await ensureLoaded();
     final normalized = ageGroup.trim();
     final manifests = _index.manifests.where(
@@ -220,31 +243,89 @@ final class AudioPackRepository {
               manifest.pack == 'assistant-core' ||
               manifest.pack.endsWith('-common')),
     );
-    var downloaded = 0;
+    final unique = <String, ({String pack, AudioPackPrompt prompt})>{};
     for (final manifest in manifests) {
       for (final prompt in manifest.prompts.where((item) => item.enabled)) {
         if (prompt.remoteUri == null) continue;
-        final cached = await cache.readVerified(
-          pack: manifest.pack,
-          sha256: prompt.sha256,
-          maximumBytes: maximumAudioBytes,
+        unique.putIfAbsent(
+          prompt.sha256,
+          () => (pack: manifest.pack, prompt: prompt),
         );
-        if (cached != null) continue;
-        final bytes = await downloadPrompt(prompt);
-        await cache.putVerified(
-          pack: manifest.pack,
-          sha256: prompt.sha256,
-          bytes: bytes,
-          maximumBytes: maximumAudioBytes,
-        );
-        downloaded += 1;
       }
     }
+    var cached = 0;
+    var downloaded = 0;
+    var failed = 0;
+    var interrupted = false;
+    final pending = <({String pack, AudioPackPrompt prompt})>[];
+    AudioPackPreloadResult progress() => AudioPackPreloadResult(
+      total: unique.length,
+      cached: cached,
+      downloaded: downloaded,
+      failed: failed,
+      interrupted: interrupted,
+    );
+    for (final item in unique.values) {
+      if (shouldContinue?.call() == false) {
+        interrupted = true;
+        break;
+      }
+      final bytes = await cache.readVerified(
+        pack: item.pack,
+        sha256: item.prompt.sha256,
+        maximumBytes: maximumAudioBytes,
+      );
+      if (bytes == null) {
+        pending.add(item);
+      } else {
+        cached += 1;
+      }
+    }
+    if (!interrupted) {
+      var next = 0;
+      var consecutiveFailures = 0;
+      Future<void> downloadWorker() async {
+        while (next < pending.length && !interrupted) {
+          if (shouldContinue?.call() == false) {
+            interrupted = true;
+            break;
+          }
+          final item = pending[next++];
+          try {
+            final bytes = await downloadPrompt(item.prompt);
+            await cache.putVerified(
+              pack: item.pack,
+              sha256: item.prompt.sha256,
+              bytes: bytes,
+              maximumBytes: maximumAudioBytes,
+            );
+            downloaded += 1;
+            consecutiveFailures = 0;
+          } catch (error) {
+            failed += 1;
+            consecutiveFailures += 1;
+            telemetry?.call('audio_pack_preload_failure', <String, Object?>{
+              'key': item.prompt.key.value,
+              'reason': error.runtimeType.toString(),
+            });
+            if (consecutiveFailures >= 3) interrupted = true;
+          }
+          onProgress?.call(progress());
+        }
+      }
+
+      await Future.wait<void>([downloadWorker(), downloadWorker()]);
+    }
+    if (downloaded > 0) await trimCache();
+    final result = progress();
     telemetry?.call('audio_pack_preload_completed', <String, Object?>{
       'ageGroup': normalized,
       'downloadedCount': downloaded,
+      'cachedCount': cached,
+      'failedCount': failed,
+      'complete': result.isComplete,
     });
-    return downloaded;
+    return result;
   }
 
   Future<bool> rollback(String pack) async {

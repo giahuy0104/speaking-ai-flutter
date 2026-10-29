@@ -36,6 +36,10 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - assets/audio/assistant-core/
+    - assets/audio/listening-common/
+    - assets/audio/LESSON_HOOKS/
+    - assets/audio/vocabulary-common/
     - assets/data/audio_loudness.json
     - assets/data/listening_lessons.json
     - assets/data/listening_topic_patch_v42.json

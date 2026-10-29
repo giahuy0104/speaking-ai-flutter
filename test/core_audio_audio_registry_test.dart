@@ -634,7 +634,7 @@ void main() {
         );
         expect(
           resolved.source,
-          anyOf(AudioPromptSource.remote, AudioPromptSource.deviceCache),
+          AudioPromptSource.bundledAsset,
           reason: entry.key,
         );
         expect(

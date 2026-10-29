@@ -22,6 +22,7 @@ final class AudioPromptResolver {
   AudioPromptResolver({required this.repository});
 
   final AudioPackRepository repository;
+  static Future<Set<String>>? _rootBundledAssets;
 
   Future<AudioPromptResolution> resolve(AudioPromptRequest request) async {
     var indexed = await repository.find(request.key, request.locale);
@@ -72,9 +73,7 @@ final class AudioPromptResolver {
       _diagnoseFailure(request, 'cache', error);
     }
 
-    if (prompt.asset != null &&
-        !(identical(repository.bundle, rootBundle) &&
-            prompt.remoteUri != null)) {
+    if (prompt.asset != null && await _hasBundledAsset(prompt.asset!)) {
       try {
         final data = await repository.bundle.load(prompt.asset!);
         final bytes = data.buffer.asUint8List(
@@ -133,6 +132,20 @@ final class AudioPromptResolver {
 
   static bool _isUnkeyed(AudioPromptRequest request) =>
       request.key.value == 'runtime.tts.unkeyed';
+
+  Future<bool> _hasBundledAsset(String asset) async {
+    if (!identical(repository.bundle, rootBundle)) return true;
+    try {
+      final paths = await (_rootBundledAssets ??=
+          AssetManifest.loadFromAssetBundle(
+            rootBundle,
+          ).then((manifest) => manifest.listAssets().toSet()));
+      return paths.contains(asset);
+    } catch (_) {
+      _rootBundledAssets = null;
+      return false;
+    }
+  }
 
   bool _withinLimits(AudioPackPrompt prompt) =>
       prompt.durationSeconds <= 45 &&
