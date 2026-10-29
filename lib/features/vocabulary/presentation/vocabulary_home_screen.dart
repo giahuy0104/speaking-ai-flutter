@@ -160,6 +160,7 @@ class VocabularyHomeScreen extends StatefulWidget {
     this.childAge = 5,
     this.autoStartToday = false,
     this.onRequestVoiceChoice,
+    this.onOtherContentRequested,
     this.navigationController,
     super.key,
   });
@@ -192,6 +193,7 @@ class VocabularyHomeScreen extends StatefulWidget {
     String? noSpeechExitPrompt,
   })?
   onRequestVoiceChoice;
+  final Future<void> Function()? onOtherContentRequested;
 
   @override
   State<VocabularyHomeScreen> createState() => _VocabularyHomeScreenState();
@@ -1936,6 +1938,17 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         onRoutePushed = null;
         final result = await routeResult;
         if (!mounted) return;
+        if (result == VocabularyPracticeResult.otherContent) {
+          await _finishPracticeExit(session);
+          if (!mounted) return;
+          if (widget.onOtherContentRequested case final onOtherContent?) {
+            await onOtherContent();
+          } else {
+            widget.onReturnToConversation();
+          }
+          if (mounted) await _load();
+          return;
+        }
         await _load();
         if (result == null) {
           return; // Back preserves the active checkpoint silently.
@@ -1948,13 +1961,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         }
         if (result == VocabularyPracticeResult.parentAdded ||
             result == VocabularyPracticeResult.stars) {
-          final active = await widget.sessionStore.readActive();
-          if (session.mode == VocabularyPracticeMode.today && active == null) {
-            await widget.sessionStore.suppressToday(DateTime.now());
-          } else if (session.mode == VocabularyPracticeMode.review &&
-              active == null) {
-            await widget.sessionStore.endReviewSession();
-          }
+          await _finishPracticeExit(session);
           final journey = result == VocabularyPracticeResult.stars
               ? _VocabularyJourney.stars
               : _VocabularyJourney.family;
@@ -1963,13 +1970,11 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
           return;
         }
         if (result != VocabularyPracticeResult.continueLearning) {
-          final active = await widget.sessionStore.readActive();
-          if (session.mode == VocabularyPracticeMode.today && active == null) {
-            await widget.sessionStore.suppressToday(DateTime.now());
+          final completed = await _finishPracticeExit(session);
+          if (completed && session.mode == VocabularyPracticeMode.today) {
             await _speakAndRequestChoice(VocabularyFlowV3.menu);
-          } else if (session.mode == VocabularyPracticeMode.review &&
-              active == null) {
-            await widget.sessionStore.endReviewSession();
+          } else if (completed &&
+              session.mode == VocabularyPracticeMode.review) {
             await _speakAndRequestChoice(VocabularyFlowV3.reviewOtherMenu);
           }
           return;
@@ -1997,6 +2002,16 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     } finally {
       _openingPractice = false;
     }
+  }
+
+  Future<bool> _finishPracticeExit(VocabularyPracticeSession session) async {
+    if (await widget.sessionStore.readActive() != null) return false;
+    if (session.mode == VocabularyPracticeMode.today) {
+      await widget.sessionStore.suppressToday(DateTime.now());
+    } else {
+      await widget.sessionStore.endReviewSession();
+    }
+    return true;
   }
 
   Future<void> _runAudioCommand(Future<void> Function() action) async {

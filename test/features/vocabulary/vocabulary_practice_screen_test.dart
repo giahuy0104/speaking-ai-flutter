@@ -895,6 +895,77 @@ void main() {
   );
 
   testWidgets(
+    'Review completion sends Other content when its button is tapped',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      const store = VocabularyStore();
+      const sessions = VocabularySessionStore();
+      await store.upsertLessonSentence(
+        lessonCode: 'L01',
+        sentenceId: 'S1',
+        english: 'After school.',
+        vietnamese: 'Sau giờ học.',
+        collection: VocabularyCollection.review,
+        source: VocabularySource.topicCore,
+      );
+      final session = (await sessions.prepareReview(store))!;
+      final media = _FakeLessonMediaService();
+      addTearDown(media.close);
+      VocabularyPracticeResult? result;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
+          theme: buildAppTheme(),
+          home: Builder(
+            builder: (context) => FilledButton(
+              onPressed: () async {
+                result = await Navigator.of(context).push(
+                  MaterialPageRoute<VocabularyPracticeResult>(
+                    builder: (_) => VocabularyPracticeScreen(
+                      language: DisplayLanguage.vietnamese,
+                      childAge: 6,
+                      session: session,
+                      store: store,
+                      sessionStore: sessions,
+                      mediaService: media,
+                      attemptEvaluator: _QueuedAttemptEvaluator(
+                        <LessonAttemptOutcome>[LessonAttemptOutcome.good],
+                      ),
+                      voicePromptService: _FakeVoicePromptService(),
+                      samplePause: Duration.zero,
+                      autoStart: false,
+                    ),
+                  ),
+                );
+              },
+              child: const Text('Open Review'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Open Review'));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const Key('vocabulary-practice-main-action')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const Key('vocabulary-practice-main-action')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('vocabulary-other-content')), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('vocabulary-other-content')));
+      await tester.pumpAndSettle();
+
+      expect(result, VocabularyPracticeResult.otherContent);
+      expect(find.byType(VocabularyPracticeScreen), findsNothing);
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  testWidgets(
     'Review block waits after a silent MAIN resume and continues only on choice',
     (tester) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});

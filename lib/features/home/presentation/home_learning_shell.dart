@@ -61,6 +61,7 @@ class HomeLearningShell extends StatefulWidget {
     this.connectionCoordinator,
     this.isDeviceConnectionReady,
     this.onVocabularyVoiceChoiceRequested,
+    this.onVocabularyOtherContentRequested,
     this.vocabularySuggestionProvider,
     this.vocabularyAudioService,
     this.vocabularyMediaService,
@@ -105,6 +106,7 @@ class HomeLearningShell extends StatefulWidget {
     String? noSpeechExitPrompt,
   })?
   onVocabularyVoiceChoiceRequested;
+  final Future<void> Function()? onVocabularyOtherContentRequested;
   final VocabularySuggestionProvider? vocabularySuggestionProvider;
   final VocabularyContentAudioService? vocabularyAudioService;
   final LessonMediaService? vocabularyMediaService;
@@ -578,6 +580,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                       autoStartToday: true,
                       onRequestVoiceChoice:
                           widget.onVocabularyVoiceChoiceRequested,
+                      onOtherContentRequested: _openOtherContentFromVocabulary,
                       suggestionProvider:
                           widget.vocabularySuggestionProvider ??
                           _authoredVocabularySuggestionProvider.call,
@@ -1382,6 +1385,11 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     unawaited(_showConversationAndWait(requireStoppedAudio: false));
   }
 
+  Future<void> _openOtherContentFromVocabulary() async {
+    if (!await _showConversationAndWait()) return;
+    await widget.onVocabularyOtherContentRequested?.call();
+  }
+
   Future<bool> _showConversationAndWait({
     bool requireStoppedAudio = true,
     bool animate = true,
@@ -1416,7 +1424,12 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       if (!closedPractice && !deferNavigationExitToPracticeClose) {
         ActiveLearningModuleScope.notifyNavigationExit(context);
       }
-      unawaited(widget.voiceNavigationController?.pause());
+      final pause = widget.voiceNavigationController?.pause();
+      if (requireStoppedAudio) {
+        await pause;
+      } else {
+        unawaited(pause);
+      }
     }
     // An opaque practice route mutes the shell's tickers. Waiting for a page
     // animation underneath it would prevent us from ever closing that route.
