@@ -68,7 +68,7 @@ class VocabularyHomeNavigationController {
   Object? _owner;
   Future<bool> Function()? _handleBack;
   Future<bool> Function()? _leaveForOtherContent;
-  Future<bool> Function()? _closePracticeForOtherContent;
+  Future<bool> Function({bool forVoiceTarget})? _closePracticeForOtherContent;
   bool Function()? _hasReviewPractice;
   Future<bool> Function()? _closeReviewPracticeForTranslation;
   Future<void> Function(VoiceVocabularyTarget target)? _openVoiceTarget;
@@ -81,8 +81,13 @@ class VocabularyHomeNavigationController {
   Future<bool> leaveForOtherContent() async =>
       await _leaveForOtherContent?.call() ?? true;
 
-  Future<bool> closePracticeForOtherContent() async =>
-      await _closePracticeForOtherContent?.call() ?? false;
+  Future<bool> closePracticeForOtherContent({
+    bool forVoiceTarget = false,
+  }) async =>
+      await _closePracticeForOtherContent?.call(
+        forVoiceTarget: forVoiceTarget,
+      ) ??
+      false;
 
   bool get hasReviewPractice => _hasReviewPractice?.call() ?? false;
 
@@ -105,7 +110,8 @@ class VocabularyHomeNavigationController {
     Object owner, {
     required Future<bool> Function() handleBack,
     required Future<bool> Function() leaveForOtherContent,
-    required Future<bool> Function() closePracticeForOtherContent,
+    required Future<bool> Function({bool forVoiceTarget})
+    closePracticeForOtherContent,
     required bool Function() hasReviewPractice,
     required Future<bool> Function() closeReviewPracticeForTranslation,
     required Future<void> Function(VoiceVocabularyTarget target)
@@ -410,10 +416,12 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         announceMenu: false,
         notifyNavigationExit: false,
       ),
-      closePracticeForOtherContent: () async {
+      closePracticeForOtherContent: ({bool forVoiceTarget = false}) async {
         final practice = _practiceScreenKey.currentState;
         if (practice == null) return false;
-        return practice.leaveForOtherContent();
+        return forVoiceTarget
+            ? practice.leaveForVocabularyTarget()
+            : practice.leaveForOtherContent();
       },
       hasReviewPractice: () =>
           _practiceScreenKey.currentState?.isReviewPractice ?? false,

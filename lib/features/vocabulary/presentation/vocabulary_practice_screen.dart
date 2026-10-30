@@ -110,6 +110,7 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   bool _recordingProcessing = false;
   bool _capturePending = false;
   bool _paused = false;
+  Future<void>? _pauseForMainCleanup;
   bool _pausedAfterNoResponse = false;
   bool _completed = false;
   bool _todayEnViCompleted = false;
@@ -898,9 +899,22 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   }
 
   @override
-  Future<void> pauseForMainAssistant() async {
-    if (_paused) return;
+  Future<void> pauseForMainAssistant() {
+    final pending = _pauseForMainCleanup;
+    if (pending != null) return pending;
+    if (_paused) return Future<void>.value();
     _paused = true;
+    late final Future<void> cleanup;
+    cleanup = _pauseForMainAssistant().whenComplete(() {
+      if (identical(_pauseForMainCleanup, cleanup)) {
+        _pauseForMainCleanup = null;
+      }
+    });
+    _pauseForMainCleanup = cleanup;
+    return cleanup;
+  }
+
+  Future<void> _pauseForMainAssistant() async {
     _generation += 1;
     _praiseFireworksTimer?.cancel();
     _praiseFireworksTimer = null;
@@ -1737,6 +1751,20 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     final route = ModalRoute.of(context);
     if (route == null || !route.isCurrent) return false;
     _commitNavigationExit();
+    Navigator.of(context).pop();
+    await route.completed;
+    return true;
+  }
+
+  Future<bool> leaveForVocabularyTarget() async {
+    if (!mounted || _exiting || !_isReview) return false;
+    final route = ModalRoute.of(context);
+    if (route == null || !route.isCurrent) return false;
+    await pauseForMainAssistant();
+    if (!mounted || _exiting || !route.isCurrent) return false;
+    if (!await preserveForNavigation()) return false;
+    if (!mounted || _exiting || !route.isCurrent) return false;
+    _commitNavigationExit(saveCheckpoint: false, releaseMedia: false);
     Navigator.of(context).pop();
     await route.completed;
     return true;

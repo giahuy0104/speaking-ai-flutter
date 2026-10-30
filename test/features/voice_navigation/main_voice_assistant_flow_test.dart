@@ -987,8 +987,22 @@ void main() {
 
       final leaveTurn = await flow.handle('Mình muốn học cái khác');
       expect(leaveTurn.promptText, MasterNavigationContract.translationSwitch);
+      expect(
+        leaveTurn.promptAudioKey,
+        MainAssistantAudioKeys.chooseTranslation,
+      );
       expect(leaveTurn.continueListening, isTrue);
       expect(flow.stage, MainVoiceAssistantStage.chooseModuleSwitch);
+
+      final repeatedChoice = await flow.handle('Học nội dung khác');
+      expect(
+        repeatedChoice.promptText,
+        MasterNavigationContract.translationSwitch,
+      );
+      expect(
+        repeatedChoice.promptAudioKey,
+        MainAssistantAudioKeys.chooseTranslation,
+      );
 
       final vocabularyTurn = await flow.handle('Mình muốn học từ vựng');
       expect(

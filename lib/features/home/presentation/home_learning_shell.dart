@@ -1014,11 +1014,16 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         // A Chủ đề route opened from the vocabulary tab sits above a
         // vocabulary page that never stopped being active, so showing that
         // page again starts nothing and HOMI would stay silent.
-        final vocabularyWasActive = _vocabularyActivationController.isActive;
-        await _showVocabularyAndWait(
-          autoStartToday: intent.vocabularyTarget == null,
-        );
         final vocabularyTarget = intent.vocabularyTarget;
+        if ((vocabularyTarget == VoiceVocabularyTarget.parent ||
+                vocabularyTarget == VoiceVocabularyTarget.star) &&
+            _vocabularyNavigationController.hasReviewPractice) {
+          final closed = await _vocabularyNavigationController
+              .closePracticeForOtherContent(forVoiceTarget: true);
+          if (!closed || !mounted) return false;
+        }
+        final vocabularyWasActive = _vocabularyActivationController.isActive;
+        await _showVocabularyAndWait(autoStartToday: vocabularyTarget == null);
         if (_isIos &&
             (!mounted ||
                 _page != 1 ||

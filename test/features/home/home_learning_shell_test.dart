@@ -1737,6 +1737,125 @@ void main() {
     variant: TargetPlatformVariant.only(TargetPlatform.android),
   );
 
+  for (final choice in <String, String>{
+    'Ba mẹ đã thêm': VocabularyFlowV3.parentEmpty,
+    'Ngôi sao': VocabularyFlowV3.starEmpty,
+  }.entries) {
+    testWidgets(
+      'Review voice target closes its route before ${choice.key} audio',
+      (tester) async {
+        SharedPreferences.setMockInitialValues(<String, Object>{});
+        tester.view.physicalSize = const Size(390, 844);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        const entryId = 'review-voice-target';
+        await const VocabularyStore().write(<VocabularyEntry>[
+          VocabularyEntry(
+            id: entryId,
+            word: 'After school.',
+            meaning: 'Sau giờ học.',
+            addedAt: DateTime(2026, 10, 12),
+            collection: VocabularyCollection.review,
+            status: VocabularyLearningStatus.needsPractice,
+            source: VocabularySource.topicCore,
+          ),
+        ]);
+        final registry = ActiveLearningModuleRegistry();
+        final blockedAudio = _DelayedVocabularyAudioService();
+        final voice = VoiceNavigationController(
+          speechInput: _FakeStreamingSpeechInput(),
+          ownsSpeechInput: true,
+          voicePromptService: _SilentVoicePromptService(),
+        );
+        final controller = _controller();
+        bool? reviewVisibleWhenTargetAudioStarted;
+        final vocabularyPrompt = _RecordingVoicePromptService(
+          onSpeak: (text) {
+            if (text == choice.value) {
+              reviewVisibleWhenTargetAudioStarted = find
+                  .byType(VocabularyPracticeScreen, skipOffstage: false)
+                  .evaluate()
+                  .isNotEmpty;
+            }
+          },
+        );
+        addTearDown(registry.dispose);
+        addTearDown(blockedAudio.release);
+        addTearDown(voice.dispose);
+        addTearDown(controller.dispose);
+        await tester.pumpWidget(
+          ActiveLearningModuleScope(
+            registry: registry,
+            child: _app(
+              controller,
+              voiceNavigationController: voice,
+              vocabularyAudioService: blockedAudio,
+              vocabularyMediaService: _ImmediateVocabularyMediaService(),
+              vocabularyVoicePromptService: vocabularyPrompt,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('vocabulary-review-card')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('vocabulary-review-action')));
+        await _pumpFrames(tester);
+        expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+        final activeBefore = await const VocabularySessionStore().readActive();
+        expect(activeBefore, isNotNull);
+        blockedAudio.blockStops = true;
+        final pause = registry.pauseForMainAssistant();
+        await tester.pump();
+        expect(await voice.activateOtherLearningFromSpeaking(), isTrue);
+
+        bool? dispatched;
+        final navigation = voice.dispatchRecognizedText(choice.key).then((
+          value,
+        ) {
+          dispatched = value;
+        });
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(dispatched, isNull);
+        expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+        expect(vocabularyPrompt.spoken, isNot(contains(choice.value)));
+        blockedAudio.release();
+        expect(await pause, isTrue);
+        for (var attempt = 0; attempt < 60 && dispatched == null; attempt++) {
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+        await navigation;
+        await tester.pumpAndSettle();
+
+        expect(dispatched, isTrue);
+        expect(reviewVisibleWhenTargetAudioStarted, isFalse);
+        expect(
+          find.byType(VocabularyPracticeScreen, skipOffstage: false),
+          findsNothing,
+        );
+        expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
+        expect(
+          tester
+              .widget<Text>(find.byKey(const Key('vocabulary-journey-title')))
+              .data,
+          choice.key == 'Ngôi sao' ? 'Ngôi sao của bạn' : choice.key,
+        );
+        expect(vocabularyPrompt.spoken, contains(choice.value));
+        final activeAfter = await const VocabularySessionStore().readActive();
+        expect(activeAfter?.id, activeBefore?.id);
+        expect(activeAfter?.currentIndex, activeBefore?.currentIndex);
+        expect(activeAfter?.entryIds, contains(entryId));
+        await tester.pumpWidget(const SizedBox.shrink());
+      },
+      variant: TargetPlatformVariant({
+        TargetPlatform.android,
+        TargetPlatform.iOS,
+      }),
+    );
+  }
+
   testWidgets(
     'review practice closes before English translation starts and keeps its checkpoint',
     (tester) async {
@@ -3057,11 +3176,15 @@ ConversationController _controller({
 }
 
 class _RecordingVoicePromptService extends _SilentVoicePromptService {
+  _RecordingVoicePromptService({this.onSpeak});
+
   final List<String> spoken = <String>[];
+  final void Function(String)? onSpeak;
 
   @override
   Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
     spoken.add(text);
+    onSpeak?.call(text);
   }
 }
 
