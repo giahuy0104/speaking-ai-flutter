@@ -2068,6 +2068,111 @@ void main() {
   }
 
   testWidgets(
+    'keeps Review open when another route prevents its closure',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      await const VocabularyStore().write(<VocabularyEntry>[
+        VocabularyEntry(
+          id: 'review-covered-route',
+          word: 'After school.',
+          meaning: 'Sau giờ học.',
+          addedAt: DateTime(2026, 10, 12),
+          collection: VocabularyCollection.review,
+          status: VocabularyLearningStatus.needsPractice,
+          source: VocabularySource.topicCore,
+        ),
+      ]);
+      final registry = ActiveLearningModuleRegistry();
+      final voice = VoiceNavigationController(
+        speechInput: _FakeStreamingSpeechInput(),
+        ownsSpeechInput: true,
+        voicePromptService: _SilentVoicePromptService(),
+      );
+      final controller = _controller();
+      var translationStarted = false;
+      addTearDown(registry.dispose);
+      addTearDown(voice.dispose);
+      addTearDown(controller.dispose);
+
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _app(
+            controller,
+            voiceNavigationController: voice,
+            vocabularyMediaService: _ImmediateVocabularyMediaService(),
+            vocabularyVoicePromptService: _SilentVoicePromptService(),
+            onMainSpeakingModeStarted: () async {
+              translationStarted = true;
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.byKey(const Key('vocabulary-review-card')),
+      );
+      await tester.tap(find.byKey(const Key('vocabulary-review-card')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-review-action')));
+      for (
+        var frame = 0;
+        frame < 20 && find.byType(VocabularyPracticeScreen).evaluate().isEmpty;
+        frame++
+      ) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      final practiceContext = tester.element(
+        find.byType(VocabularyPracticeScreen),
+      );
+      unawaited(
+        Navigator.of(practiceContext).push<void>(
+          MaterialPageRoute<void>(
+            builder: (_) => const Scaffold(body: Text('Review overlay')),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      expect(
+        await voice.activateFromMainButton(
+          activeLearning: true,
+          activeLearningKind: registry.activeKind,
+          activeVoiceContext: registry.controller as ActiveLearningVoiceContext,
+        ),
+        isTrue,
+      );
+      final navigation = voice.dispatchRecognizedText('Dịch sang tiếng Anh');
+      await tester.pumpAndSettle();
+      expect(await navigation, isFalse);
+      expect(translationStarted, isFalse);
+      expect(find.text('Review overlay'), findsOneWidget);
+      expect(
+        find.byType(VocabularyPracticeScreen, skipOffstage: false),
+        findsOneWidget,
+      );
+      final pageController = tester
+          .widget<PageView>(
+            find.byKey(
+              const Key('home-learning-page-view'),
+              skipOffstage: false,
+            ),
+          )
+          .controller!;
+      expect(pageController.page, closeTo(1, 0.001));
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
+  testWidgets(
     'native platforms show conversation before translation MAIN starts from vocabulary',
     (tester) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});

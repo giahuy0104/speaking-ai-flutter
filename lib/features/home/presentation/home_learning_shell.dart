@@ -980,6 +980,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           animate: !iosVocabularyPracticeTransfer,
           deferNavigationExitToPracticeClose: iosReviewTranslationTransfer,
           pauseVoiceNavigation: !intent.enterMainSpeakingMode,
+          requirePracticeClosed: intent.enterMainSpeakingMode,
         )) {
           return false;
         }
@@ -1404,8 +1405,11 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     bool animate = true,
     bool deferNavigationExitToPracticeClose = false,
     bool pauseVoiceNavigation = true,
+    bool requirePracticeClosed = false,
   }) async {
     if (_page == 1) {
+      final hadReviewPractice =
+          _vocabularyNavigationController.hasReviewPractice;
       // A slow native stop can outlive the vocabulary cleanup's two-second
       // bound. Keep the old page and do not open translation's microphone in
       // that case; the user can retry after the audio route settles.
@@ -1430,6 +1434,12 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           : await _vocabularyNavigationController
                 .closePracticeForOtherContent();
       if (!mounted) return false;
+      if (requirePracticeClosed &&
+          hadReviewPractice &&
+          !deferNavigationExitToPracticeClose &&
+          !closedPractice) {
+        return false;
+      }
       _vocabularyActivationController.deactivate();
       if (!closedPractice &&
           !deferNavigationExitToPracticeClose &&
