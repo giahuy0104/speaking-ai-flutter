@@ -1647,6 +1647,97 @@ void main() {
   );
 
   testWidgets(
+    'Review other content returns to Home and opens the global choice',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await const VocabularyStore().write(<VocabularyEntry>[
+        VocabularyEntry(
+          id: 'review-other-content',
+          word: 'After school.',
+          meaning: 'Sau giờ học.',
+          addedAt: DateTime(2026, 10, 12),
+          collection: VocabularyCollection.review,
+          status: VocabularyLearningStatus.needsPractice,
+          source: VocabularySource.topicCore,
+        ),
+      ]);
+      final registry = ActiveLearningModuleRegistry();
+      final navigationPrompt = _RecordingVoicePromptService();
+      final vocabularyPrompt = _RecordingVoicePromptService();
+      final voiceNavigationController = VoiceNavigationController(
+        speechInput: _FakeStreamingSpeechInput(),
+        ownsSpeechInput: true,
+        voicePromptService: navigationPrompt,
+      );
+      final controller = _controller();
+      var globalChoices = 0;
+      var vocabularyChoices = 0;
+      addTearDown(registry.dispose);
+      addTearDown(voiceNavigationController.dispose);
+      addTearDown(controller.dispose);
+
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _app(
+            controller,
+            voiceNavigationController: voiceNavigationController,
+            vocabularyMediaService: _ImmediateVocabularyMediaService(),
+            vocabularyVoicePromptService: vocabularyPrompt,
+            onVocabularyVoiceChoiceRequested:
+                ({noSpeechRetryPrompt, noSpeechExitPrompt}) async {
+                  vocabularyChoices++;
+                },
+            onVocabularyOtherContentRequested: () async {
+              globalChoices++;
+              await voiceNavigationController
+                  .activateOtherLearningFromSpeaking();
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final pageController = tester
+          .widget<PageView>(find.byKey(const Key('home-learning-page-view')))
+          .controller!;
+      await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-review-card')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-review-action')));
+      await _pumpFrames(tester);
+      expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+      final priorVocabularyChoices = vocabularyChoices;
+      final priorVocabularyPrompts = vocabularyPrompt.spoken.length;
+
+      Navigator.of(
+        tester.element(find.byType(VocabularyPracticeScreen)),
+      ).pop(VocabularyPracticeResult.otherContent);
+      await _pumpFrames(tester);
+
+      expect(find.byType(VocabularyPracticeScreen), findsNothing);
+      expect(pageController.page, 0);
+      expect(registry.activeKind, isNull);
+      expect(globalChoices, 1);
+      expect(
+        navigationPrompt.spoken,
+        contains(MainVoiceAssistantFlow.otherLearningPrompt),
+      );
+      expect(vocabularyChoices, priorVocabularyChoices);
+      expect(
+        vocabularyPrompt.spoken.skip(priorVocabularyPrompts),
+        isNot(contains(VocabularyFlowV3.reviewOtherMenu)),
+      );
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  testWidgets(
     'review practice closes before English translation starts and keeps its checkpoint',
     (tester) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
@@ -2665,6 +2756,7 @@ Widget _app(
     String? noSpeechExitPrompt,
   })?
   onVocabularyVoiceChoiceRequested,
+  Future<void> Function()? onVocabularyOtherContentRequested,
   ValueChanged<bool>? onModalVisibilityChanged,
   ValueChanged<int>? onChildAgeChanged,
   Future<bool> Function(BuildContext)? parentAccessGate,
@@ -2691,6 +2783,7 @@ Widget _app(
     onActiveLearningExitCommitted: onActiveLearningExitCommitted,
     onMainSpeakingModeStarted: onMainSpeakingModeStarted,
     onVocabularyVoiceChoiceRequested: onVocabularyVoiceChoiceRequested,
+    onVocabularyOtherContentRequested: onVocabularyOtherContentRequested,
     onModalVisibilityChanged: onModalVisibilityChanged,
     onChildAgeChanged: onChildAgeChanged,
     parentAccessGate: useDefaultParentAccessGate

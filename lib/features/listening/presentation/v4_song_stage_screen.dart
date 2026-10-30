@@ -109,12 +109,14 @@ class _V4SongStageScreenState extends State<V4SongStageScreen>
       _activeModuleRegistry?.unregister(registration);
     }
     _request += 1;
-    unawaited(widget.mediaService.stopPlayback());
+    // _finish already awaited both stops before popping this route. A second
+    // stop here can cancel the lesson's completion prompt after the pop.
+    if (!_leaving) unawaited(widget.mediaService.stopPlayback());
     final prompt = _voicePromptService;
     if (prompt != null) {
       if (_ownsVoicePromptService) {
         unawaited(prompt.dispose());
-      } else {
+      } else if (!_leaving) {
         unawaited(prompt.stop());
       }
     }

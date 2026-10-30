@@ -299,8 +299,7 @@ class VoiceNavigationController extends ChangeNotifier {
     );
   }
 
-  /// Leaves automatic speaking practice and offers the remaining learning
-  /// destinations without translating the child's command as practice text.
+  /// Offers the other learning destinations after leaving an active mode.
   Future<bool> activateOtherLearningFromSpeaking() async {
     return _activateMainAssistantFlow(_mainAssistantFlow.beginOtherLearning);
   }

@@ -2876,6 +2876,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   Future<bool> _activateMainAssistant({
     String? inputLabelOverride,
     bool promptAlreadySpoken = false,
+    bool otherLearning = false,
     String? noSpeechRetryPrompt,
     String? noSpeechExitPrompt,
   }) async {
@@ -2907,19 +2908,22 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         return ready;
       },
       activateVoice: ({required activeLearning, required activeLearningKind}) =>
-          voiceController.activateFromMainButton(
-            activeLearning: activeLearning,
-            activeLearningKind: activeLearningKind,
-            activeVoiceContext:
-                _activeLearningModules.controller is ActiveLearningVoiceContext
-                ? _activeLearningModules.controller
-                      as ActiveLearningVoiceContext
-                : null,
-            inputLabelOverride: inputLabelOverride,
-            promptAlreadySpoken: promptAlreadySpoken,
-            noSpeechRetryPrompt: noSpeechRetryPrompt,
-            noSpeechExitPrompt: noSpeechExitPrompt,
-          ),
+          otherLearning
+          ? voiceController.activateOtherLearningFromSpeaking()
+          : voiceController.activateFromMainButton(
+              activeLearning: activeLearning,
+              activeLearningKind: activeLearningKind,
+              activeVoiceContext:
+                  _activeLearningModules.controller
+                      is ActiveLearningVoiceContext
+                  ? _activeLearningModules.controller
+                        as ActiveLearningVoiceContext
+                  : null,
+              inputLabelOverride: inputLabelOverride,
+              promptAlreadySpoken: promptAlreadySpoken,
+              noSpeechRetryPrompt: noSpeechRetryPrompt,
+              noSpeechExitPrompt: noSpeechExitPrompt,
+            ),
     );
     if (!activated) {
       unawaited(_releaseAndroidMainHfpRouteIfIdle());
@@ -3454,6 +3458,20 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   Future<void> _requestVocabularyVoiceChoice({
     String? noSpeechRetryPrompt,
     String? noSpeechExitPrompt,
+  }) => _activateVocabularyFollowUp(
+    promptAlreadySpoken: true,
+    noSpeechRetryPrompt: noSpeechRetryPrompt,
+    noSpeechExitPrompt: noSpeechExitPrompt,
+  );
+
+  Future<void> _requestOtherContentFromVocabulary() =>
+      _activateVocabularyFollowUp(otherLearning: true);
+
+  Future<void> _activateVocabularyFollowUp({
+    bool promptAlreadySpoken = false,
+    bool otherLearning = false,
+    String? noSpeechRetryPrompt,
+    String? noSpeechExitPrompt,
   }) async {
     // The MAIN turn that opened the vocabulary has already ended, which
     // cleared its handset fallback. Choose the route again for this follow-up
@@ -3470,7 +3488,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     final usesPhone = route == MainButtonAudioRoute.phoneMicrophone;
     _virtualMainPhoneFallback = usesPhone;
     final activated = await _activateMainAssistant(
-      promptAlreadySpoken: true,
+      promptAlreadySpoken: promptAlreadySpoken,
+      otherLearning: otherLearning,
       noSpeechRetryPrompt: noSpeechRetryPrompt,
       noSpeechExitPrompt: noSpeechExitPrompt,
     );
@@ -4011,6 +4030,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
                   onMainSpeakingModeStarted: _startMainSpeakingMode,
                   onVocabularyVoiceChoiceRequested: _voiceAccessEnabled
                       ? _requestVocabularyVoiceChoice
+                      : null,
+                  onVocabularyOtherContentRequested: _voiceAccessEnabled
+                      ? _requestOtherContentFromVocabulary
                       : null,
                   onModalVisibilityChanged: _setGlobalModalOpen,
                   privacyConsentGranted: _privacyConsentGranted,

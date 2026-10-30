@@ -188,6 +188,7 @@ void main() {
     final registry = ActiveLearningModuleRegistry();
     final songUri = Uri.parse('asset:///assets/audio/song.mp3');
     V4SongStageAction? result;
+    int? stopCallsWhenReturned;
 
     await tester.pumpWidget(
       _host(
@@ -196,7 +197,10 @@ void main() {
         voicePromptService: prompts,
         songAudioUri: songUri,
         registry: registry,
-        onResult: (value) => result = value,
+        onResult: (value) {
+          result = value;
+          stopCallsWhenReturned = media.stopPlaybackCalls;
+        },
       ),
     );
     await tester.tap(find.byKey(const Key('open-v4-song-stage')));
@@ -230,6 +234,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(skipped.wasHandled, isTrue);
     expect(result, V4SongStageAction.skipped);
+    expect(stopCallsWhenReturned, isNotNull);
+    expect(media.stopPlaybackCalls, stopCallsWhenReturned);
     expect(registry.controller, isNull);
     if (!playback.isCompleted) playback.complete();
   });
