@@ -238,8 +238,8 @@ class VoiceNavigationController extends ChangeNotifier {
     _intentHandler = handler;
   }
 
-  /// iOS MAIN waits for the destination to confirm that navigation started.
-  /// The legacy handler remains unchanged for Android and other callers.
+  /// iOS checks route installation, and Android checks the translation handoff.
+  /// Other Android destinations continue through the legacy handler.
   void setIntentResultHandler(VoiceNavigationIntentResultHandler? handler) {
     _intentResultHandler = handler;
   }
@@ -774,7 +774,9 @@ class VoiceNavigationController extends ChangeNotifier {
     if (navigationAfterPrompt != null) {
       final dispatched = await _dispatchIntent(navigationAfterPrompt);
       if (!dispatched &&
-          (iosNavigation || navigationAfterPrompt.vocabularyTarget != null)) {
+          (iosNavigation ||
+              navigationAfterPrompt.vocabularyTarget != null ||
+              navigationAfterPrompt.enterMainSpeakingMode)) {
         notifyListeners();
         return false;
       }
@@ -1095,7 +1097,8 @@ class VoiceNavigationController extends ChangeNotifier {
     final handler = _intentHandler;
     final resultHandler =
         ((!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) ||
-            intent.vocabularyTarget != null)
+            intent.vocabularyTarget != null ||
+            intent.enterMainSpeakingMode)
         ? _intentResultHandler
         : null;
     if ((handler == null && resultHandler == null) || _disposed) {

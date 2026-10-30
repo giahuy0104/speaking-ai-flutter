@@ -415,6 +415,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       leaveForOtherContent: () => _leavePlaybackForOtherContent(
         announceMenu: false,
         notifyNavigationExit: false,
+        preserveJourneyOnFailedExit: true,
       ),
       closePracticeForOtherContent: ({bool forVoiceTarget = false}) async {
         final practice = _practiceScreenKey.currentState;
@@ -2537,6 +2538,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   Future<bool> _leavePlaybackForOtherContent({
     bool announceMenu = true,
     bool notifyNavigationExit = true,
+    bool preserveJourneyOnFailedExit = false,
   }) async {
     if (_playbackNavigationCleanup != null && announceMenu) return true;
     final isIos = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
@@ -2548,7 +2550,10 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       ActiveLearningModuleScope.notifyNavigationExit(context);
     }
     final journey = _selectedJourney;
-    final deferJourneyClose = isIos && !announceMenu && !notifyNavigationExit;
+    final deferJourneyClose =
+        (isIos || preserveJourneyOnFailedExit) &&
+        !announceMenu &&
+        !notifyNavigationExit;
     // Touch and MAIN use the same cancellation boundary. Update the screen
     // immediately, while an old audio callback can no longer advance its queue.
     final cleanupGeneration = ++_playbackGeneration;

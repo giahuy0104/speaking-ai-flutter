@@ -1974,6 +1974,99 @@ void main() {
     variant: TargetPlatformVariant({TargetPlatform.android}),
   );
 
+  for (final source in <String, String>{
+    'Ba mẹ đã thêm': 'vocabulary-family-card',
+    'Ngôi sao của bạn': 'vocabulary-stars-card',
+  }.entries) {
+    testWidgets(
+      '${source.key} opens English translation from MAIN',
+      (tester) async {
+        SharedPreferences.setMockInitialValues(<String, Object>{});
+        tester.view.physicalSize = const Size(390, 844);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final registry = ActiveLearningModuleRegistry();
+        final speech = _FakeStreamingSpeechInput()
+          ..finalText = 'Dịch tiếng Anh';
+        final voice = VoiceNavigationController(
+          speechInput: speech,
+          ownsSpeechInput: true,
+          voicePromptService: _SilentVoicePromptService(),
+        );
+        final controller = _controller();
+        var translationStarted = false;
+        var navigationExits = 0;
+        addTearDown(registry.dispose);
+        addTearDown(voice.dispose);
+        addTearDown(controller.dispose);
+
+        await tester.pumpWidget(
+          ActiveLearningModuleScope(
+            registry: registry,
+            onNavigationExit: () {
+              navigationExits += 1;
+              unawaited(voice.pause());
+            },
+            child: _app(
+              controller,
+              voiceNavigationController: voice,
+              vocabularyMediaService: _ImmediateVocabularyMediaService(),
+              vocabularyVoicePromptService: _SilentVoicePromptService(),
+              onMainSpeakingModeStarted: () async {
+                translationStarted = true;
+              },
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(Key(source.value)));
+        await tester.pumpAndSettle();
+        expect(
+          tester
+              .widget<Text>(find.byKey(const Key('vocabulary-journey-title')))
+              .data,
+          source.key,
+        );
+        final exitsBeforeTransfer = navigationExits;
+        expect(
+          await voice.activateFromMainButton(
+            activeLearning: true,
+            activeLearningKind: registry.activeKind,
+            activeVoiceContext:
+                registry.controller as ActiveLearningVoiceContext,
+          ),
+          isTrue,
+        );
+        if (defaultTargetPlatform == TargetPlatform.android) {
+          speech.emitCompleted();
+          for (var frame = 0; frame < 15 && !translationStarted; frame++) {
+            await tester.pump(const Duration(milliseconds: 100));
+          }
+        } else {
+          final navigation = voice.dispatchRecognizedText('Dịch tiếng Anh');
+          for (var frame = 0; frame < 30 && !translationStarted; frame++) {
+            await tester.pump(const Duration(milliseconds: 100));
+          }
+          expect(await navigation, isTrue);
+        }
+        await tester.pumpAndSettle();
+        expect(translationStarted, isTrue);
+        expect(navigationExits, exitsBeforeTransfer);
+        expect(find.byType(ConversationScreen).hitTestable(), findsOneWidget);
+        expect(find.byType(VocabularyHomeScreen).hitTestable(), findsNothing);
+        await tester.pumpWidget(const SizedBox.shrink());
+      },
+      variant: TargetPlatformVariant({
+        TargetPlatform.android,
+        TargetPlatform.iOS,
+      }),
+    );
+  }
+
   testWidgets(
     'native platforms show conversation before translation MAIN starts from vocabulary',
     (tester) async {
@@ -2159,7 +2252,13 @@ void main() {
       expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
       blockedAudio.release();
       await tester.pump();
-      await navigation;
+      expect(await navigation, isFalse);
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('vocabulary-journey-title')))
+            .data,
+        'Ba mẹ đã thêm',
+      );
 
       controller.dispose();
       voiceNavigationController.dispose();

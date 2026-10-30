@@ -666,13 +666,16 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   void _attachVoiceNavigationHandler() {
     final iosResultHandler =
         !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+    final nativeResultHandler =
+        !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android || iosResultHandler);
     widget.voiceNavigationController?.setIntentHandler(
       widget.config.enableVoiceNavigation && !iosResultHandler
           ? _handleVoiceNavigationIntent
           : null,
     );
     widget.voiceNavigationController?.setIntentResultHandler(
-      widget.config.enableVoiceNavigation && iosResultHandler
+      widget.config.enableVoiceNavigation && nativeResultHandler
           ? _handleVoiceNavigationIntentResult
           : null,
     );
@@ -976,6 +979,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         if (!await _showConversationAndWait(
           animate: !iosVocabularyPracticeTransfer,
           deferNavigationExitToPracticeClose: iosReviewTranslationTransfer,
+          pauseVoiceNavigation: !intent.enterMainSpeakingMode,
         )) {
           return false;
         }
@@ -1399,6 +1403,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     bool requireStoppedAudio = true,
     bool animate = true,
     bool deferNavigationExitToPracticeClose = false,
+    bool pauseVoiceNavigation = true,
   }) async {
     if (_page == 1) {
       // A slow native stop can outlive the vocabulary cleanup's two-second
@@ -1426,14 +1431,18 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                 .closePracticeForOtherContent();
       if (!mounted) return false;
       _vocabularyActivationController.deactivate();
-      if (!closedPractice && !deferNavigationExitToPracticeClose) {
+      if (!closedPractice &&
+          !deferNavigationExitToPracticeClose &&
+          pauseVoiceNavigation) {
         ActiveLearningModuleScope.notifyNavigationExit(context);
       }
-      final pause = widget.voiceNavigationController?.pause();
-      if (requireStoppedAudio) {
-        await pause;
-      } else {
-        unawaited(pause);
+      if (pauseVoiceNavigation) {
+        final pause = widget.voiceNavigationController?.pause();
+        if (requireStoppedAudio) {
+          await pause;
+        } else {
+          unawaited(pause);
+        }
       }
     }
     // An opaque practice route mutes the shell's tickers. Waiting for a page
