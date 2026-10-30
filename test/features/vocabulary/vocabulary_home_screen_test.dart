@@ -2031,6 +2031,90 @@ void main() {
   });
 
   testWidgets(
+    'failed MAIN exit resumes the same collection after native stop settles',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      final navigation = VocabularyHomeNavigationController();
+      final audio = _TimeoutThenResumeVocabularyAudioService();
+      addTearDown(registry.dispose);
+      addTearDown(audio.release);
+      final store = _MemoryVocabularyStore(<VocabularyEntry>[
+        for (final word in <String>['Apple', 'Banana'])
+          VocabularyEntry(
+            id: word,
+            word: word,
+            meaning: 'Nghĩa $word',
+            addedAt: DateTime(2026, 9, 10),
+            status: VocabularyLearningStatus.learnedWell,
+            source: VocabularySource.parent,
+            parentState: ParentVocabularyState.unlocked,
+          ),
+      ]);
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: MaterialApp(
+            onGenerateRoute: createAppRouter().onGenerateRoute,
+            theme: buildAppTheme(),
+            home: DisplayLanguageScope(
+              language: DisplayLanguage.vietnamese,
+              child: VocabularyHomeScreen(
+                isReady: true,
+                isActive: true,
+                navigationController: navigation,
+                store: store,
+                mediaService: _ImmediateLessonMediaService(),
+                voicePromptService: const _FakeVoicePromptService(),
+                vocabularyAudioService: audio,
+                fixedPromptAudioService:
+                    const _UnavailableFixedPromptAudioService(),
+                onReturnToConversation: () {},
+                onHistory: () {},
+                onSettings: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-family-card')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-family-action')));
+      await tester.pump();
+      expect(audio.spoken, <String>['en-US:Apple']);
+
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      await tester.pump();
+      audio.blockStops = true;
+      final exit = navigation.leaveForOtherContent();
+      await tester.pump(const Duration(seconds: 3));
+      expect(await exit, isFalse);
+      expect(await navigation.leaveForOtherContent(), isFalse);
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('vocabulary-journey-title')))
+            .data,
+        'Ba mẹ đã thêm',
+      );
+
+      expect(
+        (await registry.execute(ActiveLearningCommand.resume)).wasHandled,
+        isTrue,
+      );
+      await tester.pump();
+      expect(audio.spoken, <String>['en-US:Apple']);
+      audio.release();
+      await tester.pumpAndSettle();
+      expect(audio.spoken.where((text) => text == 'en-US:Apple'), hasLength(2));
+      expect(await navigation.leaveForOtherContent(), isTrue);
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
+  testWidgets(
     'MAIN resume restarts a collection interrupted during its intro',
     (tester) async {
       final registry = ActiveLearningModuleRegistry();
@@ -2637,6 +2721,41 @@ class _BlockingVocabularyAudioService implements VocabularyContentAudioService {
     stopCalls++;
     await stopGate.future;
     if (!speechGate.isCompleted) speechGate.complete();
+  }
+
+  @override
+  void dispose() {}
+}
+
+class _TimeoutThenResumeVocabularyAudioService
+    implements VocabularyContentAudioService {
+  final spoken = <String>[];
+  final _firstSpeechGate = Completer<void>();
+  final _stopGate = Completer<void>();
+  bool blockStops = false;
+
+  void release() {
+    if (!_firstSpeechGate.isCompleted) _firstSpeechGate.complete();
+    if (!_stopGate.isCompleted) _stopGate.complete();
+  }
+
+  @override
+  Future<void> prefetch(String text, {required String locale}) async {}
+
+  @override
+  Future<VocabularyAudioSource> speakAndWait(
+    String text, {
+    required String locale,
+  }) async {
+    spoken.add('$locale:$text');
+    if (spoken.length == 1) await _firstSpeechGate.future;
+    return VocabularyAudioSource.nativeTts;
+  }
+
+  @override
+  Future<void> stop() async {
+    if (!_firstSpeechGate.isCompleted) _firstSpeechGate.complete();
+    if (blockStops) await _stopGate.future;
   }
 
   @override

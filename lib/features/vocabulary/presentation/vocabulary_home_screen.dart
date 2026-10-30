@@ -415,6 +415,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       leaveForOtherContent: () => _leavePlaybackForOtherContent(
         announceMenu: false,
         notifyNavigationExit: false,
+        preserveJourneyOnFailedExit: true,
       ),
       closePracticeForOtherContent: ({bool forVoiceTarget = false}) async {
         final practice = _practiceScreenKey.currentState;
@@ -2334,6 +2335,14 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       return;
     }
     final generation = _playbackGeneration;
+    await _playbackNavigationCleanup;
+    if (!mounted ||
+        !_isEffectivelyActive ||
+        _pausedForMainAssistant ||
+        generation != _playbackGeneration ||
+        !_playbackInterrupted) {
+      return;
+    }
     final queue = _playbackQueue;
     final branch = _playbackBranch ?? 'resume';
     if (announceResume) {
@@ -2537,8 +2546,14 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   Future<bool> _leavePlaybackForOtherContent({
     bool announceMenu = true,
     bool notifyNavigationExit = true,
+    bool preserveJourneyOnFailedExit = false,
   }) async {
     if (_playbackNavigationCleanup != null && announceMenu) return true;
+    if (_playbackNavigationCleanup != null &&
+        !announceMenu &&
+        !notifyNavigationExit) {
+      return false;
+    }
     final isIos = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
     final hasActiveAudio =
         _hasActiveVocabularyPlayback ||
@@ -2548,7 +2563,13 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       ActiveLearningModuleScope.notifyNavigationExit(context);
     }
     final journey = _selectedJourney;
-    final deferJourneyClose = isIos && !announceMenu && !notifyNavigationExit;
+    final deferJourneyClose =
+        (isIos || preserveJourneyOnFailedExit) &&
+        !announceMenu &&
+        !notifyNavigationExit;
+    final interruptedPlayback = _playbackInterrupted || _playingCollection;
+    final waitingForPlaybackContinuation = _waitingForPlaybackContinuation;
+    final awaitingPlaybackEndChoice = _awaitingPlaybackEndChoice;
     // Touch and MAIN use the same cancellation boundary. Update the screen
     // immediately, while an old audio callback can no longer advance its queue.
     final cleanupGeneration = ++_playbackGeneration;
@@ -2558,17 +2579,18 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     _playingCollection = false;
     _activeEntryId = null;
     if (!deferJourneyClose) _closeJourney();
-    final cleanupResult = !isIos || hasActiveAudio
-        ? _boundPlaybackNavigationCleanup(
-            Future.wait<void>(<Future<void>>[
-              _voicePromptService.stop().catchError((Object _) {}),
-              _mediaService.stopPlayback().catchError((Object _) {}),
-              if (_vocabularyAudioService != null)
-                _vocabularyAudioService!.stop().catchError((Object _) {}),
-            ]).then<void>((_) {}),
-          )
+    final shouldStopAudio = !isIos || hasActiveAudio;
+    final cleanup = shouldStopAudio
+        ? Future.wait<void>(<Future<void>>[
+            _voicePromptService.stop().catchError((Object _) {}),
+            _mediaService.stopPlayback().catchError((Object _) {}),
+            if (_vocabularyAudioService != null)
+              _vocabularyAudioService!.stop().catchError((Object _) {}),
+          ]).then<void>((_) {})
+        : Future<void>.value();
+    final cleanupResult = shouldStopAudio
+        ? _boundPlaybackNavigationCleanup(cleanup)
         : Future<bool>.value(true);
-    final cleanup = cleanupResult.then<void>((_) {});
     _playbackNavigationCleanup = cleanup;
     unawaited(
       cleanup.whenComplete(() {
@@ -2583,7 +2605,17 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     final settled = isIos || announceMenu || hasActiveAudio
         ? await cleanupResult
         : true;
-    if (!settled) return false;
+    if (!settled) {
+      if (deferJourneyClose &&
+          mounted &&
+          cleanupGeneration == _playbackGeneration &&
+          _selectedJourney == journey) {
+        _playbackInterrupted = interruptedPlayback;
+        _waitingForPlaybackContinuation = waitingForPlaybackContinuation;
+        _awaitingPlaybackEndChoice = awaitingPlaybackEndChoice;
+      }
+      return false;
+    }
     if (deferJourneyClose) {
       if (!mounted || cleanupGeneration != _playbackGeneration) return false;
       if (_selectedJourney == journey) _closeJourney();

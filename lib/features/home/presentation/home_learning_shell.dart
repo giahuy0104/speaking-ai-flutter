@@ -666,13 +666,16 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   void _attachVoiceNavigationHandler() {
     final iosResultHandler =
         !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+    final nativeResultHandler =
+        !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android || iosResultHandler);
     widget.voiceNavigationController?.setIntentHandler(
       widget.config.enableVoiceNavigation && !iosResultHandler
           ? _handleVoiceNavigationIntent
           : null,
     );
     widget.voiceNavigationController?.setIntentResultHandler(
-      widget.config.enableVoiceNavigation && iosResultHandler
+      widget.config.enableVoiceNavigation && nativeResultHandler
           ? _handleVoiceNavigationIntentResult
           : null,
     );
@@ -976,6 +979,8 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         if (!await _showConversationAndWait(
           animate: !iosVocabularyPracticeTransfer,
           deferNavigationExitToPracticeClose: iosReviewTranslationTransfer,
+          pauseVoiceNavigation: !intent.enterMainSpeakingMode,
+          requirePracticeClosed: intent.enterMainSpeakingMode,
         )) {
           return false;
         }
@@ -1399,8 +1404,12 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     bool requireStoppedAudio = true,
     bool animate = true,
     bool deferNavigationExitToPracticeClose = false,
+    bool pauseVoiceNavigation = true,
+    bool requirePracticeClosed = false,
   }) async {
     if (_page == 1) {
+      final hadReviewPractice =
+          _vocabularyNavigationController.hasReviewPractice;
       // A slow native stop can outlive the vocabulary cleanup's two-second
       // bound. Keep the old page and do not open translation's microphone in
       // that case; the user can retry after the audio route settles.
@@ -1425,15 +1434,25 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           : await _vocabularyNavigationController
                 .closePracticeForOtherContent();
       if (!mounted) return false;
+      if (requirePracticeClosed &&
+          hadReviewPractice &&
+          !deferNavigationExitToPracticeClose &&
+          !closedPractice) {
+        return false;
+      }
       _vocabularyActivationController.deactivate();
-      if (!closedPractice && !deferNavigationExitToPracticeClose) {
+      if (!closedPractice &&
+          !deferNavigationExitToPracticeClose &&
+          pauseVoiceNavigation) {
         ActiveLearningModuleScope.notifyNavigationExit(context);
       }
-      final pause = widget.voiceNavigationController?.pause();
-      if (requireStoppedAudio) {
-        await pause;
-      } else {
-        unawaited(pause);
+      if (pauseVoiceNavigation) {
+        final pause = widget.voiceNavigationController?.pause();
+        if (requireStoppedAudio) {
+          await pause;
+        } else {
+          unawaited(pause);
+        }
       }
     }
     // An opaque practice route mutes the shell's tickers. Waiting for a page
