@@ -615,6 +615,16 @@ void main() {
     final listeningRegistry = listening as VoicePromptAudioRegistryAdapter;
     final vocabularyRegistry = vocabulary as VoicePromptAudioRegistryAdapter;
 
+    final moduleSwitchAudio = await mainRegistry.resolver.resolve(
+      AudioPromptRequest(
+        key: AudioPromptKey('assistant.main.choose_translation.vi'),
+        fallbackText: 'Bạn muốn Dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?',
+        locale: 'vi-VN',
+        allowTtsFallback: false,
+      ),
+    );
+    expect(moduleSwitchAudio.source, AudioPromptSource.bundledAsset);
+
     const suppliedTopicPrompts = <String, String>{
       'assistant.topic.choose_10.vi':
           'Có 10 Chủ đề. Bạn muốn chọn Chủ đề số mấy?',

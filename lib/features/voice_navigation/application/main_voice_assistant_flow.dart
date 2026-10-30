@@ -1289,6 +1289,7 @@ class MainVoiceAssistantFlow {
       _fallbackAttempts.remove(_stage);
       return const MainVoiceAssistantTurn(
         promptText: MasterNavigationContract.translationSwitch,
+        promptAudioKey: MainAssistantAudioKeys.chooseTranslation,
         continueListening: true,
       );
     }
@@ -1309,6 +1310,7 @@ class MainVoiceAssistantFlow {
     if (_looksLikePromptEcho(normalized)) {
       return const MainVoiceAssistantTurn(
         promptText: MasterNavigationContract.translationSwitch,
+        promptAudioKey: MainAssistantAudioKeys.chooseTranslation,
         continueListening: true,
       );
     }
@@ -1332,6 +1334,7 @@ class MainVoiceAssistantFlow {
     }
     return const MainVoiceAssistantTurn(
       promptText: MasterNavigationContract.translationSwitch,
+      promptAudioKey: MainAssistantAudioKeys.chooseTranslation,
       continueListening: true,
     );
   }
