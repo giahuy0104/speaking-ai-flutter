@@ -48,6 +48,7 @@ class MainAssistantSession {
     required bool conversationBusy,
     required bool assistantFlowBusy,
     bool mainButtonSessionActive = false,
+    bool replaceActiveMainSession = false,
     bool ignoreActiveLearning = false,
     required bool Function() canContinue,
     required MainAssistantActivation activateVoice,
@@ -58,6 +59,7 @@ class MainAssistantSession {
         !MainButtonActivationPolicy.canStart(
           isActivationPending: _activationPending,
           isMainButtonSessionActive: mainButtonSessionActive,
+          replaceActiveSession: replaceActiveMainSession,
         ) ||
         assistantFlowBusy) {
       return false;

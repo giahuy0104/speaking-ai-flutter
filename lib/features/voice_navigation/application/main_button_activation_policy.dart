@@ -1,13 +1,33 @@
+import '../../../core/device/active_learning_module.dart';
 import '../../../core/device/main_button_coordinator.dart';
 
 enum MainButtonAudioRoute { selectedHfp, phoneMicrophone, unavailable }
 
 /// Keeps MAIN gesture sources on the same assistant lifecycle and audio route.
 abstract final class MainButtonActivationPolicy {
+  static bool canInterruptVocabularyPlayback({
+    required bool isAndroid,
+    required ActiveLearningModuleRegistry registry,
+  }) {
+    final owner = registry.controller;
+    if (!isAndroid ||
+        registry.isActiveModulePaused ||
+        owner?.moduleKind != ActiveLearningModuleKind.vocabulary ||
+        owner is! ActiveLearningVoiceContext) {
+      return false;
+    }
+    final voiceNode = (owner as ActiveLearningVoiceContext).mainVoiceNode;
+    return voiceNode == ActiveLearningVoiceNode.star ||
+        voiceNode == ActiveLearningVoiceNode.parent;
+  }
+
   static bool canStart({
     required bool isActivationPending,
     required bool isMainButtonSessionActive,
-  }) => !isActivationPending && !isMainButtonSessionActive;
+    bool replaceActiveSession = false,
+  }) =>
+      !isActivationPending &&
+      (!isMainButtonSessionActive || replaceActiveSession);
 
   static MainButtonAudioRoute audioRoute({
     required MainButtonSource source,

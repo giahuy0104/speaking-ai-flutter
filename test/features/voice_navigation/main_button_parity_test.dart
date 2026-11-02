@@ -260,6 +260,46 @@ void main() {
       expect(longCalls, 1);
     },
   );
+
+  testWidgets(
+    'screen MAIN interrupts Star playback on Android',
+    (tester) async {
+      final voice = _VoiceState()..mainActive = true;
+      final audio = _AudioState()..playbackPlaying = true;
+      final speaking = MainSpeakingSessionController();
+      final registry = ActiveLearningModuleRegistry();
+      final registration = registry.register(_CollectionModule());
+      addTearDown(voice.dispose);
+      addTearDown(audio.dispose);
+      addTearDown(speaking.dispose);
+      addTearDown(registry.dispose);
+      var shortCalls = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            floatingActionButton: MainVoiceAssistantButton(
+              voiceController: voice,
+              audioState: audio,
+              activeLearningRegistry: registry,
+              speakingSessionController: speaking,
+              isActivationPending: false,
+              onPressed: () async => shortCalls++,
+              onLongPressed: () async {},
+              onLongPressReleased: () async {},
+            ),
+          ),
+        ),
+      );
+      final button = find.byKey(const Key('main-voice-assistant-button'));
+      expect(tester.widget<FloatingActionButton>(button).onPressed, isNotNull);
+      await tester.tap(button);
+      expect(shortCalls, 1);
+      registry.unregister(registration);
+      await tester.pump();
+      expect(tester.widget<FloatingActionButton>(button).onPressed, isNull);
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
 }
 
 class _MainHarness {
@@ -405,6 +445,16 @@ class _Module implements ActiveLearningModuleController {
   }
 }
 
+class _CollectionModule extends _Module implements ActiveLearningVoiceContext {
+  @override
+  ActiveLearningModuleKind get moduleKind =>
+      ActiveLearningModuleKind.vocabulary;
+  @override
+  ActiveLearningVoiceNode get mainVoiceNode => ActiveLearningVoiceNode.star;
+  @override
+  String get mainVoicePrompt => '';
+}
+
 class _VoiceState extends ChangeNotifier implements VoiceNavigationController {
   bool mainActive = false;
   @override
@@ -428,10 +478,11 @@ class _VoiceState extends ChangeNotifier implements VoiceNavigationController {
 }
 
 class _AudioState extends ChangeNotifier implements MainAssistantAudioState {
+  bool playbackPlaying = false;
   @override
   bool get isBusy => false;
   @override
-  bool get isPlaybackPlaying => false;
+  bool get isPlaybackPlaying => playbackPlaying;
   @override
   bool get isPreparingMicrophone => false;
 }

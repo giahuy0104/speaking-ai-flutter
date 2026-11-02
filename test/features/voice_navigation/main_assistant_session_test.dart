@@ -72,6 +72,38 @@ void main() {
     },
   );
   test(
+    'MAIN can replace its previous turn during collection playback',
+    () async {
+      final module = _FakeActiveModule(
+        kind: ActiveLearningModuleKind.vocabulary,
+      );
+      final harness = _SessionHarness(module: module);
+      addTearDown(harness.dispose);
+      var voiceCalls = 0;
+
+      final activated = await harness.session.activate(
+        startupReady: true,
+        voiceAccessEnabled: true,
+        conversationBusy: true,
+        assistantFlowBusy: false,
+        mainButtonSessionActive: true,
+        replaceActiveMainSession: true,
+        canContinue: () => true,
+        activateVoice:
+            ({required activeLearning, required activeLearningKind}) async {
+              voiceCalls++;
+              expect(activeLearning, isTrue);
+              expect(activeLearningKind, ActiveLearningModuleKind.vocabulary);
+              return true;
+            },
+      );
+
+      expect(activated, isTrue);
+      expect(module.pauseCount, 1);
+      expect(voiceCalls, 1);
+    },
+  );
+  test(
     'external translation handoff stays cancelled after a newer MAIN starts',
     () {
       final harness = _SessionHarness(module: _FakeActiveModule());

@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/audio/main_assistant_audio_state.dart';
+import '../../../core/device/active_learning_module.dart';
 import '../application/main_button_activation_policy.dart';
 import '../application/main_speaking_session_controller.dart';
 import '../application/voice_navigation_controller.dart';
@@ -12,6 +14,7 @@ class MainVoiceAssistantButton extends StatelessWidget {
   const MainVoiceAssistantButton({
     required this.voiceController,
     required this.audioState,
+    this.activeLearningRegistry,
     required this.speakingSessionController,
     required this.isActivationPending,
     required this.onPressed,
@@ -22,6 +25,7 @@ class MainVoiceAssistantButton extends StatelessWidget {
 
   final VoiceNavigationController voiceController;
   final MainAssistantAudioState audioState;
+  final ActiveLearningModuleRegistry? activeLearningRegistry;
   final MainSpeakingSessionController speakingSessionController;
   final bool isActivationPending;
   final Future<void> Function() onPressed;
@@ -35,17 +39,27 @@ class MainVoiceAssistantButton extends StatelessWidget {
         voiceController,
         audioState,
         speakingSessionController,
+        ?activeLearningRegistry,
       ]),
       builder: (context, _) {
         final speakingState = speakingSessionController.state;
         final isSpeakingMode = speakingSessionController.isActive;
+        final canInterruptCollection =
+            activeLearningRegistry != null &&
+            MainButtonActivationPolicy.canInterruptVocabularyPlayback(
+              isAndroid:
+                  !kIsWeb && defaultTargetPlatform == TargetPlatform.android,
+              registry: activeLearningRegistry!,
+            );
         final canActivate =
             MainButtonActivationPolicy.canStart(
               isActivationPending: isActivationPending,
               isMainButtonSessionActive:
                   voiceController.isMainButtonSessionActive,
+              replaceActiveSession: canInterruptCollection,
             ) &&
             (isSpeakingMode ||
+                canInterruptCollection ||
                 (!audioState.isBusy && !audioState.isPlaybackPlaying));
         final microphoneError = voiceController.lastErrorMessage;
         final commandError = voiceController.hasUnhandledLearningCommandError;
@@ -113,6 +127,8 @@ class MainVoiceAssistantButton extends StatelessWidget {
           label: canActivate
               ? isSpeakingMode
                     ? 'Main, dừng phiên dịch và mở HOMI'
+                    : canInterruptCollection
+                    ? 'Main, dừng âm thanh bộ từ vựng và gọi HOMI'
                     : microphoneError == null
                     ? 'Main, gọi HOMI để chọn tính năng'
                     : microphoneStatus
