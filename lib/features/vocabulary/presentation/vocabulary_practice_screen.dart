@@ -115,6 +115,7 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   bool _completed = false;
   bool _todayEnViCompleted = false;
   bool _exiting = false;
+  bool _routePopRequested = false;
   bool _continuationPending = false;
   bool _reviewHasMore = true;
   bool _todayReplayAvailable = true;
@@ -157,6 +158,11 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   bool get isPausedForMain => _paused;
 
   bool get isReviewPractice => _session.mode == VocabularyPracticeMode.review;
+
+  bool get hasActiveReviewPractice =>
+      isReviewPractice && !_exiting && !_routePopRequested;
+
+  bool get isRoutePopRequested => _routePopRequested;
 
   @override
   Future<bool> preserveForNavigation() async {
@@ -1168,13 +1174,14 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   void _finish(VocabularyPracticeResult result) {
     final navigator = Navigator.of(context);
     if (!navigator.canPop()) return;
+    _routePopRequested = true;
     if (result == VocabularyPracticeResult.stars ||
         result == VocabularyPracticeResult.parentAdded) {
       // Collection audio can start before a locked screen advances this pop.
       // Give MAIN the vocabulary owner underneath the outgoing practice route.
       _unregisterActiveLearningModule();
     }
-    navigator.pop(result);
+    _popOrRemovePractice(result);
   }
 
   void _unregisterActiveLearningModule() {
@@ -1763,7 +1770,27 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   Future<void> _exitPractice() async {
     if (_exiting) return;
     _commitNavigationExit();
-    if (mounted) Navigator.of(context).pop();
+    if (mounted) {
+      _routePopRequested = true;
+      _popOrRemovePractice();
+    }
+  }
+
+  bool get _removeRouteWithoutTransition =>
+      !kIsWeb &&
+      defaultTargetPlatform == TargetPlatform.android &&
+      WidgetsBinding.instance.lifecycleState != null &&
+      WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed;
+
+  void _popOrRemovePractice([VocabularyPracticeResult? result]) {
+    final navigator = Navigator.of(context);
+    final route = ModalRoute.of(context);
+    if (_removeRouteWithoutTransition && route != null && route.isCurrent) {
+      // A reverse animation cannot advance while Android is not drawing.
+      navigator.removeRoute(route, result);
+    } else {
+      navigator.pop(result);
+    }
   }
 
   Future<bool> leaveForOtherContent() async {
@@ -1771,8 +1798,13 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     final route = ModalRoute.of(context);
     if (route == null || !route.isCurrent) return false;
     _commitNavigationExit();
-    Navigator.of(context).pop();
-    await route.completed;
+    _routePopRequested = true;
+    _popOrRemovePractice();
+    if (_removeRouteWithoutTransition) {
+      await route.popped;
+    } else {
+      await route.completed;
+    }
     return true;
   }
 
@@ -1785,8 +1817,13 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     if (!await preserveForNavigation()) return false;
     if (!mounted || _exiting || !route.isCurrent) return false;
     _commitNavigationExit(saveCheckpoint: false, releaseMedia: false);
-    Navigator.of(context).pop();
-    await route.completed;
+    _routePopRequested = true;
+    _popOrRemovePractice();
+    if (_removeRouteWithoutTransition) {
+      await route.popped;
+    } else {
+      await route.completed;
+    }
     return true;
   }
 
@@ -1796,6 +1833,7 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   }) {
     if (_exiting) return;
     _exiting = true;
+    _unregisterActiveLearningModule();
     final fixedPrompt = widget.fixedPromptAudioService;
     if (fixedPrompt is CancellableVocabularyFixedPromptAudioService) {
       (fixedPrompt as CancellableVocabularyFixedPromptAudioService)

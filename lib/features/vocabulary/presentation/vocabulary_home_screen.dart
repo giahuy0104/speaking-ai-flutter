@@ -420,15 +420,16 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       closePracticeForOtherContent: ({bool forVoiceTarget = false}) async {
         final practice = _practiceScreenKey.currentState;
         if (practice == null) return false;
+        if (practice.isRoutePopRequested) return true;
         return forVoiceTarget
             ? practice.leaveForVocabularyTarget()
             : practice.leaveForOtherContent();
       },
       hasReviewPractice: () =>
-          _practiceScreenKey.currentState?.isReviewPractice ?? false,
+          _practiceScreenKey.currentState?.hasActiveReviewPractice ?? false,
       closeReviewPracticeForTranslation: () async {
         final practice = _practiceScreenKey.currentState;
-        if (practice == null || !practice.isReviewPractice) return false;
+        if (practice == null || !practice.hasActiveReviewPractice) return false;
         return practice.leaveForOtherContent();
       },
       openVoiceTarget: _openVoiceTarget,

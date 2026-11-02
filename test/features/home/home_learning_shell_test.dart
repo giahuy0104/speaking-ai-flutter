@@ -1974,6 +1974,138 @@ void main() {
     variant: TargetPlatformVariant({TargetPlatform.android}),
   );
 
+  testWidgets(
+    'locked Android Review to Stars to translation starts before unlock',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(() {
+        if (tester.binding.lifecycleState == AppLifecycleState.paused) {
+          tester.binding.handleAppLifecycleStateChanged(
+            AppLifecycleState.hidden,
+          );
+        }
+        if (tester.binding.lifecycleState == AppLifecycleState.hidden) {
+          tester.binding.handleAppLifecycleStateChanged(
+            AppLifecycleState.inactive,
+          );
+        }
+        if (tester.binding.lifecycleState == AppLifecycleState.inactive) {
+          tester.binding.handleAppLifecycleStateChanged(
+            AppLifecycleState.resumed,
+          );
+        }
+      });
+      const reviewId = 'review-before-stars';
+      await const VocabularyStore().write(<VocabularyEntry>[
+        VocabularyEntry(
+          id: reviewId,
+          word: 'After school.',
+          meaning: 'Sau giờ học.',
+          addedAt: DateTime(2026, 10, 12),
+          collection: VocabularyCollection.review,
+          status: VocabularyLearningStatus.needsPractice,
+          source: VocabularySource.topicCore,
+        ),
+        VocabularyEntry(
+          id: 'star-after-review',
+          word: 'Good morning.',
+          meaning: 'Chào buổi sáng.',
+          addedAt: DateTime(2026, 10, 12),
+          collection: VocabularyCollection.star,
+          status: VocabularyLearningStatus.learnedWell,
+          source: VocabularySource.topicCore,
+        ),
+      ]);
+      final registry = ActiveLearningModuleRegistry();
+      final speechInput = _FakeStreamingSpeechInput();
+      final voice = VoiceNavigationController(
+        speechInput: speechInput,
+        ownsSpeechInput: true,
+        voicePromptService: _SilentVoicePromptService(),
+      );
+      final controller = _controller();
+      final backgroundSession = _FakeScreenAwareBackgroundLearningSession(
+        screenInteractive: false,
+      );
+      var translationStarted = false;
+      addTearDown(registry.dispose);
+      addTearDown(voice.dispose);
+      addTearDown(controller.dispose);
+      addTearDown(backgroundSession.dispose);
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _app(
+            controller,
+            voiceNavigationController: voice,
+            vocabularyMediaService: _ImmediateVocabularyMediaService(),
+            vocabularyVoicePromptService: _SilentVoicePromptService(),
+            backgroundLearningSession: backgroundSession,
+            onMainSpeakingModeStarted: () async => translationStarted = true,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.byKey(const Key('vocabulary-review-card')),
+      );
+      await tester.tap(find.byKey(const Key('vocabulary-review-card')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-review-action')));
+      await _pumpFrames(tester);
+      final practice = tester.state<VocabularyPracticeScreenState>(
+        find.byType(VocabularyPracticeScreen),
+      );
+      expect(practice.hasActiveReviewPractice, isTrue);
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      expect(
+        (await registry.execute(
+          ActiveLearningCommand.vocabularyStars,
+        )).wasHandled,
+        isTrue,
+      );
+      expect(practice.mounted, isTrue);
+      expect(practice.hasActiveReviewPractice, isFalse);
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 100)),
+      );
+      final starVoiceContext = registry.controller;
+      expect(starVoiceContext, isA<ActiveLearningVoiceContext>());
+      expect(
+        await voice.activateFromMainButton(
+          activeLearning: true,
+          activeLearningKind: registry.activeKind,
+          activeVoiceContext: starVoiceContext as ActiveLearningVoiceContext,
+        ),
+        isTrue,
+      );
+      final dispatched = await tester.runAsync(
+        () => voice
+            .dispatchRecognizedText('Dịch sang tiếng Anh')
+            .timeout(const Duration(seconds: 2)),
+      );
+      expect(dispatched, isTrue);
+      expect(translationStarted, isTrue);
+      expect(
+        (await const VocabularySessionStore().readActive())?.entryIds,
+        contains(reviewId),
+      );
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+      expect(find.byType(ConversationScreen).hitTestable(), findsOneWidget);
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
   for (final source in <String, String>{
     'Ba mẹ đã thêm': 'vocabulary-family-card',
     'Ngôi sao của bạn': 'vocabulary-stars-card',
