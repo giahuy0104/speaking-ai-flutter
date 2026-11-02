@@ -265,11 +265,19 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     });
     _followCurrentReviewEntry();
     if (widget.autoStart) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          unawaited(_startCurrent(includeIntro: widget.announceIntro));
-        }
-      });
+      // A locked Android screen may not deliver another frame after loading.
+      if (_isToday &&
+          !kIsWeb &&
+          defaultTargetPlatform == TargetPlatform.android &&
+          WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
+        unawaited(_startCurrent(includeIntro: widget.announceIntro));
+      } else {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            unawaited(_startCurrent(includeIntro: widget.announceIntro));
+          }
+        });
+      }
     }
   }
 
