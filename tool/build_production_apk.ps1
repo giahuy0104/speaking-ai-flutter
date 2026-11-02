@@ -7,7 +7,12 @@ $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $definesFile = Join-Path $repositoryRoot 'dart_defines.production.json'
 $apkFile = Join-Path $repositoryRoot 'build\app\outputs\flutter-apk\app-release.apk'
+$signingPropertiesFile = Join-Path $repositoryRoot 'android\key.properties'
 $expectedBackendUrl = 'https://speaking-ai-nextjs-backend-production.up.railway.app'
+
+if (-not (Test-Path -LiteralPath $signingPropertiesFile)) {
+  throw "Production signing requires $signingPropertiesFile."
+}
 
 $productionDefines = Get-Content -Raw -LiteralPath $definesFile | ConvertFrom-Json
 if ($productionDefines.BACKEND_BASE_URL -ne $expectedBackendUrl) {
@@ -43,11 +48,22 @@ try {
   }
 
   if ($DeviceId.Trim().Length -gt 0) {
-    & flutter install `
-      -d $DeviceId `
-      --use-application-binary $apkFile
+    $adbCommand = Get-Command adb -ErrorAction SilentlyContinue
+    $adbExecutable = if ($adbCommand) {
+      $adbCommand.Source
+    } elseif ($env:ANDROID_SDK_ROOT) {
+      Join-Path $env:ANDROID_SDK_ROOT 'platform-tools\adb.exe'
+    } elseif ($env:ANDROID_HOME) {
+      Join-Path $env:ANDROID_HOME 'platform-tools\adb.exe'
+    } else {
+      Join-Path $env:LOCALAPPDATA 'Android\sdk\platform-tools\adb.exe'
+    }
+    if (-not (Test-Path -LiteralPath $adbExecutable)) {
+      throw "Android adb was not found: $adbExecutable"
+    }
+    & $adbExecutable -s $DeviceId install -r $apkFile
     if ($LASTEXITCODE -ne 0) {
-      throw "Flutter APK install failed with exit code $LASTEXITCODE."
+      throw "Android APK update failed with exit code $LASTEXITCODE; the installed app was kept."
     }
   }
 } finally {

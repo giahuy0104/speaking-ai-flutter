@@ -212,9 +212,7 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     _praiseFireworksTimer?.cancel();
     _recordingEndpointDetector.cancel();
     _cancelIosRecordingListeners();
-    if (_activeRegistry != null && _activeRegistration != null) {
-      _activeRegistry!.unregister(_activeRegistration!);
-    }
+    _unregisterActiveLearningModule();
     if (!_exiting && (_recording || _capturePending)) {
       if (_usesIosNativeRecognition) {
         unawaited(_iosSpeechInput!.cancel());
@@ -266,8 +264,7 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     _followCurrentReviewEntry();
     if (widget.autoStart) {
       // A locked Android screen may not deliver another frame after loading.
-      if (_isToday &&
-          !kIsWeb &&
+      if (!kIsWeb &&
           defaultTargetPlatform == TargetPlatform.android &&
           WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
         unawaited(_startCurrent(includeIntro: widget.announceIntro));
@@ -1169,7 +1166,22 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   }
 
   void _finish(VocabularyPracticeResult result) {
-    Navigator.of(context).pop(result);
+    final navigator = Navigator.of(context);
+    if (!navigator.canPop()) return;
+    if (result == VocabularyPracticeResult.stars ||
+        result == VocabularyPracticeResult.parentAdded) {
+      // Collection audio can start before a locked screen advances this pop.
+      // Give MAIN the vocabulary owner underneath the outgoing practice route.
+      _unregisterActiveLearningModule();
+    }
+    navigator.pop(result);
+  }
+
+  void _unregisterActiveLearningModule() {
+    final registration = _activeRegistration;
+    if (registration == null) return;
+    _activeRegistry?.unregister(registration);
+    _activeRegistration = null;
   }
 
   Future<bool> _continueLearning() async {

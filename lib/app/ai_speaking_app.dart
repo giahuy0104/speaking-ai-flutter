@@ -2879,6 +2879,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     String? inputLabelOverride,
     bool promptAlreadySpoken = false,
     bool otherLearning = false,
+    bool replaceActiveMainSession = false,
     String? noSpeechRetryPrompt,
     String? noSpeechExitPrompt,
   }) async {
@@ -2899,6 +2900,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
           conversationController.isPlaybackPlaying,
       assistantFlowBusy: _mainSpeakingSessionController.isActive,
       mainButtonSessionActive: voiceController.isMainButtonSessionActive,
+      replaceActiveMainSession: replaceActiveMainSession,
       ignoreActiveLearning:
           voiceController.isWaitingForMainAfterTranslationStop,
       canContinue: () => mounted,
@@ -3049,6 +3051,11 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   ) async {
     if (_isStoppingSpeakingSession) return MainButtonActionResult.busy;
     final controller = _controller;
+    final replaceActiveMainSession =
+        MainButtonActivationPolicy.canInterruptVocabularyPlayback(
+          isAndroid: !kIsWeb && defaultTargetPlatform == TargetPlatform.android,
+          registry: _activeLearningModules,
+        );
     controller?.recordAiv0MainDiagnostic(
       'MAIN_APP_HANDLER_ENTER',
       values: <String, Object?>{
@@ -3072,6 +3079,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       isActivationPending: _isActivatingMainAssistant,
       isMainButtonSessionActive:
           _voiceNavigationController?.isMainButtonSessionActive ?? false,
+      replaceActiveSession: replaceActiveMainSession,
     )) {
       controller?.recordAiv0MainDiagnostic(
         'MAIN_APP_HANDLER_REJECTED',
@@ -3120,7 +3128,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     );
     final activated = _mainSpeakingSessionController.isActive
         ? await _interruptContinuousTranslationWithMain()
-        : await _activateMainAssistant();
+        : await _activateMainAssistant(
+            replaceActiveMainSession: replaceActiveMainSession,
+          );
     if (!activated) {
       _virtualMainPhoneFallback = false;
       _mainSpeechAudioSourceOverride = null;
@@ -3976,6 +3986,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
                         child: MainVoiceAssistantButton(
                           voiceController: voiceController,
                           audioState: controller,
+                          activeLearningRegistry: _activeLearningModules,
                           speakingSessionController:
                               _mainSpeakingSessionController,
                           isActivationPending: _isActivatingMainAssistant,
