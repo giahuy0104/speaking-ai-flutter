@@ -2736,6 +2736,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       },
       canResume: () =>
           !_isActivatingMainAssistant &&
+          !(_voiceNavigationController?.isWaitingForMainAfterTranslationStop ??
+              false) &&
           !(_voiceNavigationController?.isMainButtonSessionActive ?? false) &&
           !(_voiceNavigationController?.isActive ?? false),
       onModuleHandled: _appFlowCoordinator.forgetPausedModule,
@@ -2897,6 +2899,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
           conversationController.isPlaybackPlaying,
       assistantFlowBusy: _mainSpeakingSessionController.isActive,
       mainButtonSessionActive: voiceController.isMainButtonSessionActive,
+      ignoreActiveLearning:
+          voiceController.isWaitingForMainAfterTranslationStop,
       canContinue: () => mounted,
       prepareActivation: () async {
         final ready = await _prepareAndroidMainHfpRoute();

@@ -7,6 +7,38 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test(
+    'stopped translation opens global MAIN despite a stale lesson',
+    () async {
+      final module = _FakeActiveModule()..paused = true;
+      final harness = _SessionHarness(module: module);
+      addTearDown(harness.dispose);
+      bool? receivedActiveLearning;
+      ActiveLearningModuleKind? activeKind;
+
+      final activated = await harness.session.activate(
+        startupReady: true,
+        voiceAccessEnabled: true,
+        conversationBusy: false,
+        assistantFlowBusy: false,
+        ignoreActiveLearning: true,
+        canContinue: () => true,
+        activateVoice:
+            ({required activeLearning, required activeLearningKind}) async {
+              receivedActiveLearning = activeLearning;
+              activeKind = activeLearningKind;
+              return true;
+            },
+      );
+
+      expect(activated, isTrue);
+      expect(receivedActiveLearning, isFalse);
+      expect(activeKind, isNull);
+      expect(module.pauseCount, 0);
+      expect(module.commands, isEmpty);
+      expect(module.paused, isTrue);
+    },
+  );
+  test(
     'an active MAIN session rejects reentry after activation completes',
     () async {
       final module = _FakeActiveModule();

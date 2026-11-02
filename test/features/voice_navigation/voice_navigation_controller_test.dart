@@ -2315,6 +2315,7 @@ void main() {
       VoiceNavigationIntent? received;
       controller.setIntentHandler((intent) => received = intent);
       await controller.waitForMainAfterTranslationStop();
+      expect(controller.isWaitingForMainAfterTranslationStop, isTrue);
       controller.startContinuous();
       await Future<void>.delayed(const Duration(milliseconds: 20));
       for (final text in ['Hey HOMI', 'Tiếp tục dịch', 'Chủ đề']) {
@@ -2327,6 +2328,7 @@ void main() {
       expect(controller.continuousRequested, isFalse);
 
       expect(await controller.activateFromMainButton(), isTrue);
+      expect(controller.isWaitingForMainAfterTranslationStop, isFalse);
       expect(voicePrompt.spokenTexts, <String>[
         'Bạn muốn tiếp tục dịch, học Chủ đề hay Bộ từ vựng?',
       ]);
