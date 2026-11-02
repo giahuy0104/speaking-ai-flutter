@@ -1943,6 +1943,15 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                 ),
               ),
             );
+        // The locked Android surface may never deliver the frame that builds
+        // the Today route, even though navigation has already completed.
+        if (session.mode == VocabularyPracticeMode.today &&
+            !kIsWeb &&
+            defaultTargetPlatform == TargetPlatform.android &&
+            WidgetsBinding.instance.lifecycleState !=
+                AppLifecycleState.resumed) {
+          WidgetsBinding.instance.scheduleWarmUpFrame();
+        }
         onRoutePushed?.call();
         onRoutePushed = null;
         final result = await routeResult;

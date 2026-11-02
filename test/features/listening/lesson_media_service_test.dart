@@ -592,6 +592,38 @@ void main() {
     },
   );
 
+  test(
+    'Android accepts a stopped HM-D001 clip at end without a native end event',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final playback = _PositionOnlyPrearmedPlaybackService()
+        ..duration = const Duration(seconds: 2);
+      final media = LessonMediaService(
+        playbackService: playback,
+        audioInterruptionEvents: const Stream<AudioInterruptionEvent>.empty(),
+      );
+      addTearDown(media.dispose);
+
+      var finished = false;
+      final completion = media
+          .playToCompletion(
+            Uri.parse('file:///vocabulary-word.mp3'),
+            timeout: const Duration(seconds: 2),
+          )
+          .then((_) => finished = true);
+      await playback.didPlay.future.timeout(const Duration(seconds: 1));
+      playback.position = const Duration(milliseconds: 1500);
+      await Future<void>.delayed(const Duration(milliseconds: 450));
+      expect(finished, isFalse);
+
+      playback.position = const Duration(seconds: 2);
+      playback.pauseTemporarily();
+      await completion.timeout(const Duration(seconds: 1));
+      expect(finished, isTrue);
+    },
+  );
+
   test('iOS end-position fallback waits through an interruption', () async {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);

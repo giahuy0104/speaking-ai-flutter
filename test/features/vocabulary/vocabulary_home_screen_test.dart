@@ -112,6 +112,61 @@ void main() {
     },
   );
 
+  testWidgets('empty Today asks for another vocabulary choice while locked', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final activation = VocabularyActivationController();
+    final prompts = _RecordingVoicePromptService();
+    var choiceRequests = 0;
+    addTearDown(activation.dispose);
+    addTearDown(
+      () => tester.binding.handleAppLifecycleStateChanged(
+        AppLifecycleState.resumed,
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: VocabularyHomeScreen(
+          isReady: true,
+          isActive: false,
+          autoStartToday: true,
+          activationController: activation,
+          isDeviceConnectionReady: () => true,
+          store: _MemoryVocabularyStore([]),
+          voicePromptService: prompts,
+          mediaService: _ImmediateLessonMediaService(),
+          fixedPromptAudioService: const _UnavailableFixedPromptAudioService(),
+          onRequestVoiceChoice:
+              ({noSpeechRetryPrompt, noSpeechExitPrompt}) async {
+            choiceRequests++;
+          },
+          onReturnToConversation: () {},
+          onHistory: () {},
+          onSettings: () {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    activation.activate();
+
+    await tester.runAsync(() async {
+      for (
+        var attempt = 0;
+        attempt < 20 && choiceRequests == 0;
+        attempt++
+      ) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+    });
+    expect(prompts.spokenTexts, contains(VocabularyFlowV3.menu));
+    expect(choiceRequests, 1);
+    expect(find.byType(VocabularyPracticeScreen), findsNothing);
+  });
+
   testWidgets('vocabulary playback rechecks device after entering a journey', (
     tester,
   ) async {

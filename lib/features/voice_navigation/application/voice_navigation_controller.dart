@@ -199,6 +199,8 @@ class VoiceNavigationController extends ChangeNotifier {
   bool get isAcknowledgingWakeWord => _acknowledgingWakeWord;
   bool get isMainButtonSessionActive =>
       _buttonCommandSession || _mainButtonActivationInProgress;
+  bool get isWaitingForMainAfterTranslationStop =>
+      _translationStoppedAwaitingMain;
   MainVoiceAssistantStage get mainAssistantStage => _mainAssistantFlow.stage;
   Object? get lastError => _lastError;
   String get activeInputLabel =>

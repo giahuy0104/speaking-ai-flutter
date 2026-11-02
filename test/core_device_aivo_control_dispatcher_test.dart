@@ -335,6 +335,26 @@ void main() {
       expect(mainCalls, 1);
     },
   );
+  test('stopped translation MAIN bypasses a stale paused lesson', () async {
+    registry.register(module);
+    module.paused = true;
+    canResume = false;
+
+    expect(
+      await controls.dispatch(
+        input(
+          Aiv0Button.main,
+          Aiv0ButtonGesture.shortPress,
+          source: AivoControlSource.ble,
+          sequence: 5,
+        ),
+      ),
+      AivoControlStatus.accepted,
+    );
+    expect(mainCalls, 1);
+    expect(module.commands, isEmpty);
+    expect(module.paused, isTrue);
+  });
   test(
     'BLE and virtual equivalent inputs enter the same module command',
     () async {

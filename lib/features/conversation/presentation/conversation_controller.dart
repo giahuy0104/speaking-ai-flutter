@@ -4586,6 +4586,16 @@ class ConversationController extends ChangeNotifier
       } else if (useContinuousHfpSession) {
         _setPlaybackCommunicationRoute(true);
       }
+      if (!kIsWeb &&
+          defaultTargetPlatform == TargetPlatform.android &&
+          _usingHfpRoute) {
+        // Android SpeechRecognizer can restore MODE_NORMAL after capture while
+        // this turn still owns the HFP lease. Reconfirm SCO before the
+        // translated clip so the player does not start on a stale route.
+        await _startHfpRouteWithTimeout(
+          expectedTurnGeneration: playbackTurnGeneration,
+        );
+      }
       if (usesHfpInput &&
           canUseHfp &&
           !_usingHfpRoute &&
