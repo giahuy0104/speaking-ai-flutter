@@ -357,6 +357,7 @@ final class IOSAudioSessionCoordinator: NSObject {
   private(set) var isMainTurnActive = false
   private(set) var mainAudioInputTarget: IOSAudioInputTarget?
   private(set) var isBackgroundLearningEnabled = false
+  private(set) var isActiveLearningRequested = false
   private(set) var isBackgroundCaptureEngineRunning = false
   var isSpeechCaptureActive: Bool { ownership.contains(.speechCapture) }
   var isBackgroundCaptureArmed: Bool { ownership.contains(.backgroundCapture) }
@@ -399,10 +400,20 @@ final class IOSAudioSessionCoordinator: NSObject {
       caller: "BackgroundLearningBridge"
     )
     if !enabled {
+      setActiveLearningRequested(false)
       requestBackgroundCaptureDisarm(caller: "BackgroundLearningBridge.stop")
       endBackgroundTurnExecution(caller: "BackgroundLearningBridge.stop")
       releaseAudioSessionIfIdle(caller: "BackgroundLearningBridge.stop")
     }
+  }
+
+  func setActiveLearningRequested(_ requested: Bool) {
+    guard isActiveLearningRequested != requested else { return }
+    isActiveLearningRequested = requested
+    trace(
+      stage: requested ? "active_learning_requested" : "active_learning_ended",
+      caller: "BackgroundLearningBridge"
+    )
   }
 
   func applicationDidEnterBackground() {
@@ -631,7 +642,13 @@ final class IOSAudioSessionCoordinator: NSObject {
     // when the final owner releases it; otherwise iOS renegotiates HFP mid-flow.
     releaseAudioSessionIfIdle(caller: "IOSAudioSessionCoordinator.endMainTurn")
     endBackgroundTurnExecutionIfIdle(caller: caller)
-    if IOSNativeWork.applicationIsActive {
+    // A lesson may begin before MAIN cleanup completes. Keep its input warm
+    // so the next screen lock does not require a new background recording.
+    if !IOSBackgroundAudioHandoffPolicy.shouldKeepEngineRunning(
+      backgroundLearningEnabled: isBackgroundLearningEnabled,
+      activeLearningRequested: isActiveLearningRequested,
+      applicationIsActive: IOSNativeWork.applicationIsActive
+    ) {
       requestBackgroundCaptureDisarm(caller: "IOSAudioSessionCoordinator.endMainTurn")
     }
     onMainTurnEnded?()

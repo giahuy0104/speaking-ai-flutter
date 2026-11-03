@@ -518,22 +518,32 @@ class RunnerTests: XCTestCase {
     )
   }
 
-  func testBackgroundAudioHandoffOnlyStaysWarmOutsideForeground() {
+  func testBackgroundAudioHandoffStaysWarmDuringActiveLearningOrInBackground() {
     XCTAssertTrue(
       IOSBackgroundAudioHandoffPolicy.shouldKeepEngineRunning(
         backgroundLearningEnabled: true,
+        activeLearningRequested: false,
         applicationIsActive: false
       )
     )
     XCTAssertFalse(
       IOSBackgroundAudioHandoffPolicy.shouldKeepEngineRunning(
         backgroundLearningEnabled: false,
+        activeLearningRequested: true,
         applicationIsActive: false
       )
     )
     XCTAssertFalse(
       IOSBackgroundAudioHandoffPolicy.shouldKeepEngineRunning(
         backgroundLearningEnabled: true,
+        activeLearningRequested: false,
+        applicationIsActive: true
+      )
+    )
+    XCTAssertTrue(
+      IOSBackgroundAudioHandoffPolicy.shouldKeepEngineRunning(
+        backgroundLearningEnabled: true,
+        activeLearningRequested: true,
         applicationIsActive: true
       )
     )

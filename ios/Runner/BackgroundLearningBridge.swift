@@ -7,7 +7,6 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
   private let eventChannel: FlutterEventChannel
   private let audioSessionCoordinator: IOSAudioSessionCoordinator
   private var eventSink: FlutterEventSink?
-  private var activeLearningRequested = false
   private var willResignActiveToken: NSObjectProtocol?
   private var didEnterBackgroundToken: NSObjectProtocol?
   private var willEnterForegroundToken: NSObjectProtocol?
@@ -62,6 +61,7 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
       guard let self else { return }
       if !IOSBackgroundAudioHandoffPolicy.shouldKeepEngineRunning(
         backgroundLearningEnabled: self.audioSessionCoordinator.isBackgroundLearningEnabled,
+        activeLearningRequested: self.audioSessionCoordinator.isActiveLearningRequested,
         applicationIsActive: IOSNativeWork.applicationIsActive
       ) {
         self.audioSessionCoordinator.requestBackgroundCaptureDisarm(
@@ -78,21 +78,28 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
       switch call.method {
       case "start":
         self.audioSessionCoordinator.setBackgroundLearningEnabled(true)
+        if self.audioSessionCoordinator.isActiveLearningRequested {
+          self.audioSessionCoordinator.requestBackgroundCaptureArm(
+            caller: "BackgroundLearningBridge.startActiveLearning"
+          )
+        }
         result(true)
       case "stop":
-        self.activeLearningRequested = false
+        self.audioSessionCoordinator.setActiveLearningRequested(false)
         self.audioSessionCoordinator.setBackgroundTransitionLeaseActive(false)
         self.audioSessionCoordinator.setBackgroundLearningEnabled(false)
         result(nil)
       case "setActiveLearning":
         let arguments = call.arguments as? [String: Any]
-        self.activeLearningRequested = arguments?["active"] as? Bool ?? false
-        if self.activeLearningRequested {
+        let requested = arguments?["active"] as? Bool ?? false
+        self.audioSessionCoordinator.setActiveLearningRequested(requested)
+        if requested {
           self.audioSessionCoordinator.requestBackgroundCaptureArm(
             caller: "BackgroundLearningBridge.setActiveLearning"
           )
         } else if !IOSBackgroundAudioHandoffPolicy.shouldKeepEngineRunning(
           backgroundLearningEnabled: self.audioSessionCoordinator.isBackgroundLearningEnabled,
+          activeLearningRequested: requested,
           applicationIsActive: IOSNativeWork.applicationIsActive
         ) {
           self.audioSessionCoordinator.requestBackgroundCaptureDisarm(
@@ -145,7 +152,7 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
   }
 
   func dispose() {
-    activeLearningRequested = false
+    audioSessionCoordinator.setActiveLearningRequested(false)
     audioSessionCoordinator.setBackgroundTransitionLeaseActive(false)
     audioSessionCoordinator.setBackgroundLearningEnabled(false)
     audioSessionCoordinator.onBackgroundLearningEvent = nil
@@ -185,7 +192,7 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
   }
 
   private func reconcileBackgroundTransitionLease() {
-    let shouldRetain = activeLearningRequested
+    let shouldRetain = audioSessionCoordinator.isActiveLearningRequested
       && !IOSNativeWork.applicationIsActive
     audioSessionCoordinator.setBackgroundTransitionLeaseActive(shouldRetain)
   }

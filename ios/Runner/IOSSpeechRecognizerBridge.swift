@@ -297,9 +297,10 @@ struct IOSBackgroundAudioHandoffPolicy {
 
   static func shouldKeepEngineRunning(
     backgroundLearningEnabled: Bool,
+    activeLearningRequested: Bool,
     applicationIsActive: Bool
   ) -> Bool {
-    backgroundLearningEnabled && !applicationIsActive
+    backgroundLearningEnabled && (activeLearningRequested || !applicationIsActive)
   }
 }
 
