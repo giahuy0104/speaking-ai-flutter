@@ -1737,6 +1737,99 @@ void main() {
     variant: TargetPlatformVariant.only(TargetPlatform.android),
   );
 
+  testWidgets(
+    'Android Today other content can reopen the Vocabulary menu',
+    (tester) async {
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await const VocabularyStore().addParentEntries(
+        const <VocabularyTranslation>[
+          VocabularyTranslation(englishText: 'Apple', vietnameseText: 'Táo'),
+        ],
+      );
+      final registry = ActiveLearningModuleRegistry();
+      final voice = VoiceNavigationController(
+        speechInput: _FakeStreamingSpeechInput(),
+        ownsSpeechInput: true,
+        voicePromptService: _SilentVoicePromptService(),
+      );
+      final prompts = _RecordingVoicePromptService();
+      final controller = _controller();
+      var globalChoices = 0;
+      var followUpReady = false;
+      var vocabularyChoices = 0;
+      addTearDown(registry.dispose);
+      addTearDown(voice.dispose);
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _app(
+            controller,
+            voiceNavigationController: voice,
+            vocabularyMediaService: _ImmediateVocabularyMediaService(),
+            vocabularyVoicePromptService: prompts,
+            onVocabularyVoiceChoiceRequested:
+                ({noSpeechRetryPrompt, noSpeechExitPrompt}) async {
+                  vocabularyChoices++;
+                },
+            onVocabularyOtherContentRequested: () async {
+              globalChoices++;
+              followUpReady = await voice.activateOtherLearningFromSpeaking();
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+      await tester.pumpAndSettle();
+      expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+      for (
+        var index = 0;
+        index < 60 &&
+            find
+                .byKey(const Key('vocabulary-other-content'))
+                .evaluate()
+                .isEmpty;
+        index++
+      ) {
+        await tester.pump(const Duration(milliseconds: 200));
+      }
+      expect(find.byKey(const Key('vocabulary-other-content')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('vocabulary-other-content')));
+      for (var index = 0; index < 30 && !followUpReady; index++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(globalChoices, 1);
+      expect(followUpReady, isTrue);
+      expect(find.byType(VocabularyPracticeScreen), findsNothing);
+      for (var index = 0; index < 30 && !voice.isAwaitingCommand; index++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(voice.isAwaitingCommand, isTrue);
+      bool? navigated;
+      unawaited(
+        voice.dispatchRecognizedText('Bộ từ vựng').then((value) {
+          navigated = value;
+        }),
+      );
+      for (var index = 0; index < 100 && navigated == null; index++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(navigated, isTrue);
+      expect(find.byType(VocabularyHomeScreen).hitTestable(), findsOneWidget);
+      expect(prompts.spoken, contains(VocabularyFlowV3.menu));
+      expect(vocabularyChoices, greaterThan(0));
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 3));
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
   for (final choice in <String, String>{
     'Ba mẹ đã thêm': VocabularyFlowV3.parentEmpty,
     'Ngôi sao': VocabularyFlowV3.starEmpty,
@@ -1972,6 +2065,88 @@ void main() {
       await tester.pumpWidget(const SizedBox.shrink());
     },
     variant: TargetPlatformVariant({TargetPlatform.android}),
+  );
+
+  testWidgets(
+    'Android Today closes before English translation starts',
+    (tester) async {
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      const store = VocabularyStore();
+      await store.addParentEntries(const <VocabularyTranslation>[
+        VocabularyTranslation(englishText: 'Apple', vietnameseText: 'Táo'),
+      ]);
+      final registry = ActiveLearningModuleRegistry();
+      final voice = VoiceNavigationController(
+        speechInput: _FakeStreamingSpeechInput(),
+        ownsSpeechInput: true,
+        voicePromptService: _SilentVoicePromptService(),
+      );
+      final controller = _controller();
+      addTearDown(registry.dispose);
+      addTearDown(voice.dispose);
+      addTearDown(controller.dispose);
+      var translationStarted = false;
+      var practiceVisibleWhenStarted = true;
+      double? pageWhenStarted;
+      late PageController pageController;
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _app(
+            controller,
+            voiceNavigationController: voice,
+            vocabularyMediaService: _ImmediateVocabularyMediaService(),
+            vocabularyVoicePromptService: _SilentVoicePromptService(),
+            onMainSpeakingModeStarted: () async {
+              practiceVisibleWhenStarted = find
+                  .byType(VocabularyPracticeScreen)
+                  .evaluate()
+                  .isNotEmpty;
+              pageWhenStarted = pageController.page;
+              translationStarted = true;
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      pageController = tester
+          .widget<PageView>(find.byKey(const Key('home-learning-page-view')))
+          .controller!;
+      await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+      await tester.pumpAndSettle();
+      expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+      expect(
+        (await const VocabularySessionStore().readActive())?.mode,
+        VocabularyPracticeMode.today,
+      );
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      expect(
+        await voice.activateFromMainButton(
+          activeLearning: true,
+          activeLearningKind: ActiveLearningModuleKind.vocabulary,
+          activeVoiceContext: registry.controller as ActiveLearningVoiceContext,
+        ),
+        isTrue,
+      );
+      final dispatch = voice.dispatchRecognizedText('Dịch sang tiếng Anh');
+      for (var index = 0; index < 20 && !translationStarted; index++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(await dispatch, isTrue);
+      expect(translationStarted, isTrue);
+      expect(practiceVisibleWhenStarted, isFalse);
+      expect(pageWhenStarted, closeTo(0, 0.001));
+      expect(find.byType(ConversationScreen).hitTestable(), findsOneWidget);
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 3));
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
   );
 
   testWidgets(

@@ -677,6 +677,69 @@ void main() {
   );
 
   testWidgets(
+    'Android voice Review suspends an unfinished Today session',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      const store = VocabularyStore();
+      const sessions = VocabularySessionStore();
+      await store.addParentEntries(const <VocabularyTranslation>[
+        VocabularyTranslation(englishText: 'Apple', vietnameseText: 'Táo'),
+      ]);
+      await store.write(<VocabularyEntry>[
+        ...await store.read(),
+        VocabularyEntry(
+          id: 'review-after-topic',
+          word: 'After school.',
+          meaning: 'Sau giờ học.',
+          addedAt: DateTime(2026, 10, 12),
+          collection: VocabularyCollection.review,
+          status: VocabularyLearningStatus.needsPractice,
+          source: VocabularySource.topicCore,
+        ),
+      ]);
+      final today = await sessions.prepareToday(store);
+      expect(today?.mode, VocabularyPracticeMode.today);
+      final navigation = VocabularyHomeNavigationController();
+      await tester.pumpWidget(
+        MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
+          theme: buildAppTheme(),
+          home: DisplayLanguageScope(
+            language: DisplayLanguage.vietnamese,
+            child: VocabularyHomeScreen(
+              isReady: true,
+              isActive: true,
+              autoStartToday: false,
+              navigationController: navigation,
+              store: store,
+              sessionStore: sessions,
+              mediaService: _ImmediateLessonMediaService(),
+              voicePromptService: const _FakeVoicePromptService(),
+              fixedPromptAudioService:
+                  const _UnavailableFixedPromptAudioService(),
+              onReturnToConversation: () {},
+              onHistory: () {},
+              onSettings: () {},
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      unawaited(navigation.openVoiceTarget(VoiceVocabularyTarget.review));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+      expect(
+        (await sessions.readActive())?.mode,
+        VocabularyPracticeMode.review,
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 3));
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  testWidgets(
     'touch back changes UI immediately and cancels old audio queue',
     (tester) async {
       final registry = ActiveLearningModuleRegistry();

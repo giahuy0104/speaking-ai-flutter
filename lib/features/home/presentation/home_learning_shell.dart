@@ -1029,12 +1029,11 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         }
         final vocabularyWasActive = _vocabularyActivationController.isActive;
         await _showVocabularyAndWait(autoStartToday: vocabularyTarget == null);
-        if (_isIos &&
-            (!mounted ||
-                _page != 1 ||
-                _requestedPage != 1 ||
-                (vocabularyTarget != null &&
-                    !_vocabularyNavigationController.isAttached))) {
+        if (!mounted ||
+            _page != 1 ||
+            _requestedPage != 1 ||
+            (vocabularyTarget != null &&
+                !_vocabularyNavigationController.isAttached)) {
           return false;
         }
         if (vocabularyTarget != null) {
@@ -1408,8 +1407,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     bool requirePracticeClosed = false,
   }) async {
     if (_page == 1) {
-      final hadReviewPractice =
-          _vocabularyNavigationController.hasReviewPractice;
+      final hadPractice = _vocabularyNavigationController.hasPractice;
       // A slow native stop can outlive the vocabulary cleanup's two-second
       // bound. Keep the old page and do not open translation's microphone in
       // that case; the user can retry after the audio route settles.
@@ -1435,7 +1433,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                 .closePracticeForOtherContent();
       if (!mounted) return false;
       if (requirePracticeClosed &&
-          hadReviewPractice &&
+          hadPractice &&
           !deferNavigationExitToPracticeClose &&
           !closedPractice) {
         return false;
@@ -1494,7 +1492,13 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         _page != page) {
       return false;
     }
-    if (!_isIos) return true;
+    if (!_isIos &&
+        (kIsWeb ||
+            defaultTargetPlatform != TargetPlatform.android ||
+            WidgetsBinding.instance.lifecycleState !=
+                AppLifecycleState.resumed)) {
+      return true;
+    }
     final visiblePage = _pageController.hasClients
         ? _pageController.page
         : null;
