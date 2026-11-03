@@ -3872,6 +3872,11 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     }
     if (error is! StreamingSpeechInputException) return false;
     final code = error.code?.toUpperCase();
+    final message = error.message.toLowerCase();
+    if (code == 'IOS_SPEECH_SF_SPEECH_RECOGNIZER_FAILED' &&
+        message.contains('no speech detected')) {
+      return true;
+    }
     // Live Android events carry numeric SpeechRecognizer codes, unlike the
     // semantic codes returned by file recognition and some other bridges.
     if (const <String>{
@@ -3886,7 +3891,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     // Android stop() can finish without a native error or any transcript.
     // Only classify the known empty-result errors; do not retry network,
     // permission, cancellation or other technical errors as child answers.
-    final message = error.message.toLowerCase();
     return code == null &&
         (message.contains('không nghe rõ') ||
             message.contains('chưa nghe thấy giọng nói'));

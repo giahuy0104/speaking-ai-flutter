@@ -1946,10 +1946,11 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                 ),
               ),
             );
-        // The locked Android surface may never deliver the frame that builds
+        // A locked mobile surface may never deliver the frame that builds
         // the practice route, even though navigation has already completed.
         if (!kIsWeb &&
-            defaultTargetPlatform == TargetPlatform.android &&
+            (defaultTargetPlatform == TargetPlatform.android ||
+                defaultTargetPlatform == TargetPlatform.iOS) &&
             WidgetsBinding.instance.lifecycleState !=
                 AppLifecycleState.resumed) {
           WidgetsBinding.instance.scheduleWarmUpFrame();

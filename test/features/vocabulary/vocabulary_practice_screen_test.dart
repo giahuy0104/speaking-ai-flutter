@@ -26,7 +26,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   testWidgets(
-    'Android Review starts after loading behind a locked screen',
+    'Review starts after loading behind a locked mobile screen',
     (tester) async {
       final store = _GatedVocabularyStore();
       final media = _FakeLessonMediaService();
@@ -75,7 +75,7 @@ void main() {
       });
       expect(media.events, contains('prepare'));
     },
-    variant: TargetPlatformVariant.only(TargetPlatform.android),
+    variant: TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}),
   );
 
   testWidgets(
@@ -1208,7 +1208,7 @@ void main() {
   );
 
   testWidgets(
-    'locked Android Review starts the next group and speaks its resume line',
+    'locked mobile Review starts the next group and speaks its resume line',
     (tester) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
       const store = VocabularyStore();
@@ -1284,7 +1284,7 @@ void main() {
       expect(media.events.length, greaterThan(previousMediaEvents));
       expect(voice.spoken, contains('vi-VN:${VocabularyFlowV3.reviewResume}'));
     },
-    variant: TargetPlatformVariant.only(TargetPlatform.android),
+    variant: TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}),
   );
 
   testWidgets('Review localizes tap recording labels in Chinese', (

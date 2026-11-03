@@ -269,9 +269,10 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     });
     _followCurrentReviewEntry();
     if (widget.autoStart) {
-      // A locked Android screen may not deliver another frame after loading.
+      // A locked mobile screen may not deliver another frame after loading.
       if (!kIsWeb &&
-          defaultTargetPlatform == TargetPlatform.android &&
+          (defaultTargetPlatform == TargetPlatform.android ||
+              defaultTargetPlatform == TargetPlatform.iOS) &&
           WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
         unawaited(_startCurrent(includeIntro: widget.announceIntro));
       } else {
@@ -1275,7 +1276,8 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       _followCurrentReviewEntry();
       if (widget.autoStart) {
         if (!kIsWeb &&
-            defaultTargetPlatform == TargetPlatform.android &&
+            (defaultTargetPlatform == TargetPlatform.android ||
+                defaultTargetPlatform == TargetPlatform.iOS) &&
             WidgetsBinding.instance.lifecycleState !=
                 AppLifecycleState.resumed) {
           unawaited(_startCurrent());
