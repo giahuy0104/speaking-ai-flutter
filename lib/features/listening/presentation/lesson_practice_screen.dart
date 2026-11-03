@@ -1264,10 +1264,8 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     final sentenceIndex = _sentenceIndex;
     final sentenceId = _sentence.id;
     final pauseTicket = _lessonSession.mainPauseTicket;
-    Future<void> replay() => widget.mediaService.playRecordingToCompletion(
-      recording,
-      immediateReplay: true,
-    );
+    Future<void> replay() =>
+        widget.mediaService.playRecordingToCompletion(recording);
     try {
       await replay();
       return true;

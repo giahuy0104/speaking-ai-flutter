@@ -67,12 +67,6 @@ flutter_*.log
 # Deployed from its own Sites source repository.
 /homi-legal-site/
 
-# Upstream RNNoise demos, tests, and sample output are not used by the app.
-/third_party/flutter_nnnoiseless/example/
-/third_party/flutter_nnnoiseless/release/
-/third_party/flutter_nnnoiseless/test/
-/third_party/flutter_nnnoiseless/scripts/
-
 # Local reports, extracted test videos, and temporary deployment bundles.
 # Keep these on the workstation; they may contain user recordings or logs.
 /artifacts/reports/

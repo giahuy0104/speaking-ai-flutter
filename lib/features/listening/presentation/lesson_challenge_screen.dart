@@ -890,10 +890,7 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
   Future<void> _playAttemptRecordingToCompletion(
     LessonRecording recording,
   ) async {
-    await widget.mediaService.playRecordingToCompletion(
-      recording,
-      immediateReplay: true,
-    );
+    await widget.mediaService.playRecordingToCompletion(recording);
   }
 
   Future<(LessonAttemptOutcome, LessonRecording?)> _stopAndScoreIosOnDevice(
