@@ -297,9 +297,10 @@ struct IOSBackgroundAudioHandoffPolicy {
 
   static func shouldKeepEngineRunning(
     backgroundLearningEnabled: Bool,
+    activeLearningRequested: Bool,
     applicationIsActive: Bool
   ) -> Bool {
-    backgroundLearningEnabled && !applicationIsActive
+    backgroundLearningEnabled && (activeLearningRequested || !applicationIsActive)
   }
 }
 
@@ -981,6 +982,9 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       audioSessionCoordinator.isBackgroundCaptureEngineRunning,
       backgroundHandoffPhase == .armed || backgroundHandoffPhase == .capturing
     {
+      // A new background transition supersedes a foreground disarm deferred
+      // until the current speech turn ends.
+      backgroundHandoffDisarmWhenIdle = false
       audioSessionCoordinator.trace(
         stage: "background_capture_engine_already_armed",
         caller: caller,

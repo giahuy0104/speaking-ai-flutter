@@ -504,6 +504,64 @@ void main() {
     variant: TargetPlatformVariant.only(TargetPlatform.iOS),
   );
   testWidgets(
+    'iOS lesson choice asks again after Apple Speech reports no speech',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      await _usePhoneSurface(tester);
+      final lesson = _v4Lesson();
+      final store = _MemoryProgressStore()
+        ..completedSentences = 1
+        ..challengeProcessed = true
+        ..pendingCompletionChoice = ListeningPendingChoiceStage.lessonEnd
+        ..resumeStage = ListeningResumeStage.waitingForChoice;
+      final speech = _IosCompletionCommandSpeechInput('');
+      speech.commands.stopError = const StreamingSpeechInputException(
+        'No speech detected',
+        code: 'IOS_SPEECH_SF_SPEECH_RECOGNIZER_FAILED',
+      );
+      addTearDown(speech.dispose);
+      final voice = _RecordingVoicePromptService();
+      await tester.pumpWidget(
+        _subject(
+          lesson,
+          store,
+          const Key('ios-silent-lesson-choice'),
+          mediaService: _SilentMediaService(),
+          voicePromptService: voice,
+          controller: _LearningAudioDependencies(speech),
+          topicContent: ListeningTopicContent(
+            id: 'topic-1',
+            number: 1,
+            titleVi: 'Chủ đề 1',
+            titleEn: 'Topic 1',
+            lessons: [lesson, _v4Lesson(number: 2)],
+          ),
+          initialResumeStage: ListeningResumeStage.waitingForChoice,
+        ),
+      );
+      await tester.pumpAndSettle();
+      final question = voice.spoken.last;
+      expect(speech.commands.commandStarts, 1);
+      await tester.pump(const Duration(seconds: 6));
+      await tester.pumpAndSettle();
+      expect(voice.spoken.where((text) => text == question).length, 2);
+      expect(speech.commands.commandStarts, 2);
+      await tester.pump(const Duration(seconds: 6));
+      await tester.pumpAndSettle();
+      expect(
+        voice.spoken.where((text) => text == 'Mình tạm dừng nhé.').length,
+        1,
+      );
+      expect(speech.commands.commandStarts, 2);
+      expect(
+        store.pendingCompletionChoice,
+        ListeningPendingChoiceStage.lessonEnd,
+      );
+      await tester.pumpWidget(const SizedBox());
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+  testWidgets(
     'iOS old completion result cannot navigate after MAIN resumes a new choice',
     (tester) async {
       SharedPreferences.setMockInitialValues({});
