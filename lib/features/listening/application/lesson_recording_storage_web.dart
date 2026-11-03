@@ -3,8 +3,6 @@ import 'package:web/web.dart' as web;
 
 final Set<String> _availableRecordingPaths = <String>{};
 
-bool isLocalLessonRecordingFile(String path) => false;
-
 String lessonRecordingFileExtension({TargetPlatform? platform}) => 'webm';
 
 Future<String> createLessonRecordingPath(
@@ -24,8 +22,6 @@ Future<String?> findLessonRecording(String path) async {
 }
 
 Future<String?> retainStarRecording(String path) => findLessonRecording(path);
-
-Future<String> prepareLessonRecordingForReplay(String path) async => path;
 
 Future<void> deleteLessonRecording(String path) async {
   _availableRecordingPaths.remove(path);
