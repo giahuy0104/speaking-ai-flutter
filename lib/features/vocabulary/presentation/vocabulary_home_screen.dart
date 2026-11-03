@@ -1822,7 +1822,9 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     _pausedForMainAssistant = false;
     _playbackQueue = const <VocabularyEntry>[];
     if (!settled) return;
-    if (_startingToday) {
+    if (!(widget.activationController?.autoStartToday ?? true)) {
+      await _speakAndRequestChoice(VocabularyFlowV3.menu);
+    } else if (_startingToday) {
       // The activation's pending Today load was invalidated by the cleanup
       // above. Retry the voice root after that load releases its start guard.
       _restartTodayAfterCurrent = true;

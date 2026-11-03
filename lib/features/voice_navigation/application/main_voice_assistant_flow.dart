@@ -1345,7 +1345,12 @@ class MainVoiceAssistantFlow {
   }) {
     if (_activeLearningKind == ActiveLearningModuleKind.vocabulary &&
         destination == VoiceNavigationDestination.vocabulary) {
-      return _activeLearningTurn(ActiveLearningCommand.vocabularyRoot);
+      return const MainVoiceAssistantTurn(
+        promptText: MasterNavigationContract.switchedToVocabulary,
+        promptAudioKey: MainAssistantAudioKeys.switchedToVocabulary,
+        continueListening: false,
+        activeLearningCommand: ActiveLearningCommand.vocabularyRoot,
+      );
     }
     final sameModule = switch ((_activeLearningKind, destination)) {
       (

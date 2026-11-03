@@ -796,10 +796,26 @@ void main() {
 
       final turn = await flow.handle('Học Bộ từ vựng');
       expect(turn.activeLearningCommand, ActiveLearningCommand.vocabularyRoot);
-      expect(turn.promptText, isEmpty);
+      expect(turn.promptText, MasterNavigationContract.switchedToVocabulary);
+      expect(turn.promptAudioKey, MainAssistantAudioKeys.switchedToVocabulary);
       expect(turn.navigationAfterPrompt, isNull);
     },
   );
+
+  test('Vocabulary choice after other content confirms the return', () async {
+    final flow = MainVoiceAssistantFlow()
+      ..beginActiveLearning(kind: ActiveLearningModuleKind.vocabulary);
+
+    final choice = await flow.handle('Học nội dung khác');
+    expect(choice.promptText, MasterNavigationContract.translationSwitch);
+    expect(flow.stage, MainVoiceAssistantStage.chooseModuleSwitch);
+
+    final turn = await flow.handle('Bộ từ vựng');
+    expect(turn.activeLearningCommand, ActiveLearningCommand.vocabularyRoot);
+    expect(turn.promptText, MasterNavigationContract.switchedToVocabulary);
+    expect(turn.promptAudioKey, MainAssistantAudioKeys.switchedToVocabulary);
+    expect(turn.continueListening, isFalse);
+  });
 
   test('active lesson prompt offers pause and leaving the lesson', () {
     final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);

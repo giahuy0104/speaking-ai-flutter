@@ -1264,19 +1264,26 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
         _reviewHasMore = true;
         _todayReplayAvailable = true;
         _invalidResponseCount = 0;
-        _resumeAnnouncementPending = false;
+        _resumeAnnouncementPending = _isReview;
         _praiseFireworksVisible = false;
         _userDraggingReview = false;
         _continuationPending = false;
         _message = _isToday
             ? VocabularyFlowV3.todayIntro
-            : 'Bạn nghe kỹ rồi nói lại nhé.';
+            : VocabularyFlowV3.reviewResume;
       });
       _followCurrentReviewEntry();
       if (widget.autoStart) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && !_completed) unawaited(_startCurrent());
-        });
+        if (!kIsWeb &&
+            defaultTargetPlatform == TargetPlatform.android &&
+            WidgetsBinding.instance.lifecycleState !=
+                AppLifecycleState.resumed) {
+          unawaited(_startCurrent());
+        } else {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && !_completed) unawaited(_startCurrent());
+          });
+        }
       }
       return true;
     } catch (error) {

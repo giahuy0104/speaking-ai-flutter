@@ -503,6 +503,71 @@ void main() {
     }),
   );
 
+  testWidgets('direct Parent Added returns to an audible Vocabulary menu', (
+    tester,
+  ) async {
+    final registry = ActiveLearningModuleRegistry();
+    final activation = VocabularyActivationController()
+      ..activate(autoStartToday: false);
+    final prompts = _RecordingVoicePromptService();
+    var choiceRequests = 0;
+    addTearDown(registry.dispose);
+    addTearDown(activation.dispose);
+    await tester.pumpWidget(
+      ActiveLearningModuleScope(
+        registry: registry,
+        child: MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
+          theme: buildAppTheme(),
+          home: DisplayLanguageScope(
+            language: DisplayLanguage.vietnamese,
+            child: VocabularyHomeScreen(
+              isReady: true,
+              isActive: true,
+              activationController: activation,
+              store: _MemoryVocabularyStore(),
+              mediaService: _ImmediateLessonMediaService(),
+              voicePromptService: prompts,
+              fixedPromptAudioService:
+                  const _UnavailableFixedPromptAudioService(),
+              onRequestVoiceChoice:
+                  ({noSpeechRetryPrompt, noSpeechExitPrompt}) async {
+                    choiceRequests++;
+                  },
+              onReturnToConversation: () {},
+              onHistory: () {},
+              onSettings: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      (await registry.execute(
+        ActiveLearningCommand.vocabularyParentAdded,
+      )).wasHandled,
+      isTrue,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Ba mẹ đã thêm'), findsWidgets);
+    final previousChoiceRequests = choiceRequests;
+
+    expect(await registry.pauseForMainAssistant(), isTrue);
+    expect(
+      (await registry.execute(ActiveLearningCommand.vocabularyRoot)).wasHandled,
+      isTrue,
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey<String>('vocabulary-journey-landing')),
+      findsOneWidget,
+    );
+    expect(prompts.spokenTexts.last, VocabularyFlowV3.menu);
+    expect(choiceRequests, previousChoiceRequests + 1);
+  });
+
   testWidgets('voice transfer to Vocabulary clears a retained Review page', (
     tester,
   ) async {
