@@ -1207,6 +1207,86 @@ void main() {
     }),
   );
 
+  testWidgets(
+    'locked Android Review starts the next group and speaks its resume line',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      const store = VocabularyStore();
+      const sessions = VocabularySessionStore();
+      for (var index = 0; index < 7; index += 1) {
+        await store.upsertLessonSentence(
+          lessonCode: 'L01',
+          sentenceId: 'S$index',
+          english: 'Word $index',
+          vietnamese: 'Từ $index',
+          collection: VocabularyCollection.review,
+          source: VocabularySource.topicCore,
+        );
+      }
+      final prepared = (await sessions.prepareReview(store))!;
+      final session = prepared.copyWith(currentIndex: 4);
+      await sessions.saveActive(session);
+      final media = _FakeLessonMediaService();
+      final voice = _FakeVoicePromptService();
+      addTearDown(media.close);
+      addTearDown(
+        () => tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        ),
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: VocabularyPracticeScreen(
+            language: DisplayLanguage.vietnamese,
+            childAge: 6,
+            session: session,
+            store: store,
+            sessionStore: sessions,
+            mediaService: media,
+            attemptEvaluator: _QueuedAttemptEvaluator(<LessonAttemptOutcome>[
+              LessonAttemptOutcome.good,
+            ]),
+            voicePromptService: voice,
+            samplePause: Duration.zero,
+            onPrepareContinue: () =>
+                sessions.prepareReview(store, forceNextGroup: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const Key('vocabulary-practice-main-action')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text(VocabularyFlowV3.reviewGroupCompletion), findsOneWidget);
+
+      final practice = tester.state<VocabularyPracticeScreenState>(
+        find.byType(VocabularyPracticeScreen),
+      );
+      final previousMediaEvents = media.events.length;
+      voice.spoken.clear();
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      final result = await practice.handleMainCommand(
+        ActiveLearningCommand.nextItem,
+      );
+      await tester.runAsync(() async {
+        for (
+          var attempt = 0;
+          attempt < 20 &&
+              !voice.spoken.contains('vi-VN:${VocabularyFlowV3.reviewResume}');
+          attempt++
+        ) {
+          await Future<void>.delayed(const Duration(milliseconds: 10));
+        }
+      });
+
+      expect(result.wasHandled, isTrue);
+      expect(media.events.length, greaterThan(previousMediaEvents));
+      expect(voice.spoken, contains('vi-VN:${VocabularyFlowV3.reviewResume}'));
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
   testWidgets('Review localizes tap recording labels in Chinese', (
     tester,
   ) async {
