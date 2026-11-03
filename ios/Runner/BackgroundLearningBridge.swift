@@ -33,16 +33,7 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
       object: nil,
       queue: nil
     ) { [weak self] _ in
-      // The record-capable engine must be armed before the app leaves the
-      // foreground, so the main thread waits for the queue here.
-      IOSNativeWork.markApplicationInactive()
-      IOSNativeWork.sync {
-        guard let self else { return }
-        self.audioSessionCoordinator.requestBackgroundCaptureArm(
-          caller: "BackgroundLearningBridge.willResignActive"
-        )
-        self.reconcileBackgroundTransitionLease()
-      }
+      self?.prepareForInactivity(caller: "BackgroundLearningBridge.willResignActive")
     }
     didEnterBackgroundToken = NotificationCenter.default.addObserver(
       forName: UIApplication.didEnterBackgroundNotification,
@@ -181,6 +172,16 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
       NotificationCenter.default.removeObserver(didBecomeActiveToken)
     }
     didBecomeActiveToken = nil
+  }
+
+  /// Start input while the scene is still foregrounded. UIApplication's
+  /// notification can arrive after the scene has already become inactive.
+  func prepareForInactivity(caller: String) {
+    IOSNativeWork.markApplicationInactive()
+    IOSNativeWork.sync {
+      audioSessionCoordinator.requestBackgroundCaptureArm(caller: caller)
+      reconcileBackgroundTransitionLease()
+    }
   }
 
   private func reconcileBackgroundTransitionLease() {
