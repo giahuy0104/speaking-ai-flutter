@@ -6,6 +6,7 @@ import '../../../core/audio/voice_prompt_service.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 import '../../../app/app_theme.dart';
@@ -1386,7 +1387,13 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       });
     }
     _vocabularyActivationController.activate(autoStartToday: autoStartToday);
-    await _requestHomePage(1);
+    final navigation = _requestHomePage(1);
+    if (_isIos &&
+        WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed &&
+        WidgetsBinding.instance.schedulerPhase == SchedulerPhase.idle) {
+      WidgetsBinding.instance.scheduleWarmUpFrame();
+    }
+    await navigation;
   }
 
   void _showConversation() {
@@ -1554,7 +1561,9 @@ class _HomeLearningShellState extends State<HomeLearningShell>
 
   void _handlePageChanged(int page) {
     if (page == 1) {
-      _vocabularyActivationController.activate();
+      _vocabularyActivationController.activate(
+        autoStartToday: _vocabularyActivationController.autoStartToday,
+      );
     } else {
       _vocabularyActivationController.deactivate();
       _scheduleVoiceNavigationListening();

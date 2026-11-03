@@ -1078,15 +1078,17 @@ class MainVoiceAssistantFlow {
       recognizedText: recognizedText.trim(),
       matchedPhrase: matchedPhrase,
     );
-    // VocabularyHomeScreen is the single V3 state machine. Navigating only
-    // after the silent handoff prevents MAIN from narrating an older parallel
-    // flow while the shared Android/iOS module creates today's batch, speaks
-    // its exact intro/menu, and opens the next microphone window itself.
+    // VocabularyHomeScreen owns the intro/menu. On iOS its audio must start
+    // after MAIN releases the native turn; otherwise MAIN cleanup can stop it.
+    // Android keeps the earlier dispatch so the destination's choice mic does
+    // not wait for the recognizer finish operation that dispatched this turn.
+    final iosHandoff = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
     reset();
     return MainVoiceAssistantTurn(
       promptText: '',
       continueListening: false,
-      navigationBeforePrompt: navigation,
+      navigationBeforePrompt: iosHandoff ? null : navigation,
+      navigationAfterPrompt: iosHandoff ? navigation : null,
     );
   }
 

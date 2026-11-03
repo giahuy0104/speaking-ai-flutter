@@ -167,6 +167,122 @@ void main() {
     expect(find.byType(VocabularyPracticeScreen), findsNothing);
   });
 
+  testWidgets(
+    'initial vocabulary load asks its menu behind a locked screen',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final store = _GatedVocabularyStore();
+      final prompts = _RecordingVoicePromptService();
+      var choiceRequests = 0;
+      addTearDown(
+        () => tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        ),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: VocabularyHomeScreen(
+            isReady: true,
+            autoStartToday: true,
+            isDeviceConnectionReady: () => true,
+            store: store,
+            voicePromptService: prompts,
+            mediaService: _ImmediateLessonMediaService(),
+            fixedPromptAudioService:
+                const _UnavailableFixedPromptAudioService(),
+            onRequestVoiceChoice:
+                ({noSpeechRetryPrompt, noSpeechExitPrompt}) async {
+                  choiceRequests++;
+                },
+            onReturnToConversation: () {},
+            onHistory: () {},
+            onSettings: () {},
+          ),
+        ),
+      );
+      expect(prompts.spokenTexts, isEmpty);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      store.release();
+
+      await tester.runAsync(() async {
+        for (var attempt = 0; attempt < 30 && choiceRequests == 0; attempt++) {
+          await Future<void>.delayed(const Duration(milliseconds: 10));
+        }
+      });
+      expect(prompts.spokenTexts, contains(VocabularyFlowV3.menu));
+      expect(choiceRequests, 1);
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  testWidgets(
+    'iOS voice Review speaks when opened behind a locked screen',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final navigation = VocabularyHomeNavigationController();
+      final prompts = _RecordingVoicePromptService();
+      final store = _MemoryVocabularyStore(<VocabularyEntry>[
+        VocabularyEntry(
+          id: 'locked-review-word',
+          word: 'Apple',
+          meaning: 'Táo',
+          addedAt: DateTime(2026, 11, 3),
+          collection: VocabularyCollection.review,
+          status: VocabularyLearningStatus.needsPractice,
+          source: VocabularySource.topicCore,
+        ),
+      ]);
+      addTearDown(
+        () => tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        ),
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
+          theme: buildAppTheme(),
+          home: DisplayLanguageScope(
+            language: DisplayLanguage.vietnamese,
+            child: VocabularyHomeScreen(
+              isReady: true,
+              isActive: true,
+              navigationController: navigation,
+              store: store,
+              mediaService: _ImmediateLessonMediaService(),
+              voicePromptService: prompts,
+              fixedPromptAudioService:
+                  const _UnavailableFixedPromptAudioService(),
+              onReturnToConversation: () {},
+              onHistory: () {},
+              onSettings: () {},
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      unawaited(navigation.openVoiceTarget(VoiceVocabularyTarget.review));
+
+      await tester.runAsync(() async {
+        for (
+          var attempt = 0;
+          attempt < 50 &&
+              !prompts.spokenTexts.contains(VocabularyFlowV3.reviewIntro);
+          attempt++
+        ) {
+          await Future<void>.delayed(const Duration(milliseconds: 10));
+        }
+      });
+      expect(prompts.spokenTexts, contains(VocabularyFlowV3.reviewIntro));
+      expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 3));
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
   testWidgets('vocabulary playback rechecks device after entering a journey', (
     tester,
   ) async {
@@ -2720,6 +2836,20 @@ class _MemoryVocabularyStore extends VocabularyStore {
   @override
   Future<void> write(List<VocabularyEntry> value) async {
     entries = List<VocabularyEntry>.of(value);
+  }
+}
+
+class _GatedVocabularyStore extends _MemoryVocabularyStore {
+  final Completer<void> _gate = Completer<void>();
+
+  void release() {
+    if (!_gate.isCompleted) _gate.complete();
+  }
+
+  @override
+  Future<List<VocabularyEntry>> read() async {
+    await _gate.future;
+    return super.read();
   }
 }
 

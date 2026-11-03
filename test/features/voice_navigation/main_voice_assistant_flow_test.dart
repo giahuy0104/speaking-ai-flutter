@@ -679,6 +679,21 @@ void main() {
     expect(translation.navigationAfterPrompt?.enterMainSpeakingMode, isTrue);
   });
 
+  test('iOS hands vocabulary audio off after the MAIN turn', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final flow = MainVoiceAssistantFlow(contentLoader: _loadContent)..begin();
+
+    final turn = await flow.handle('Học từ mới');
+
+    expect(turn.promptText, isEmpty);
+    expect(turn.navigationBeforePrompt, isNull);
+    expect(
+      turn.navigationAfterPrompt?.destination,
+      VoiceNavigationDestination.vocabulary,
+    );
+  });
+
   test('learned parent words hand off to the shared vocabulary flow', () async {
     final flow = MainVoiceAssistantFlow(
       contentLoader: _loadContent,

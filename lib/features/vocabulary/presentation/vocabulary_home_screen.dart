@@ -1621,9 +1621,16 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       _loading = false;
     });
     if (_isEffectivelyActive && widget.autoStartToday && !_todayOffered) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) unawaited(_maybeStartToday());
-      });
+      // A locked iPhone may finish loading without producing another frame.
+      if (!kIsWeb &&
+          defaultTargetPlatform == TargetPlatform.iOS &&
+          WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
+        unawaited(_maybeStartToday());
+      } else {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) unawaited(_maybeStartToday());
+        });
+      }
     }
   }
 

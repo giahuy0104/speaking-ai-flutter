@@ -18,6 +18,36 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('iOS ends MAIN before opening vocabulary audio', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final speech = _FakeNavigationSpeechInput();
+    final prompt = _FakeMainTurnVoicePromptService();
+    final controller = VoiceNavigationController(
+      speechInput: speech,
+      voicePromptService: prompt,
+      mainAssistantFlow: MainVoiceAssistantFlow(
+        contentLoader: _loadMainAssistantContent,
+      ),
+    );
+    var mainEndedAtNavigation = false;
+    controller.setIntentResultHandler((intent) {
+      if (intent.destination == VoiceNavigationDestination.vocabulary) {
+        mainEndedAtNavigation = prompt.endedReasons.contains(
+          'main_assistant_completed',
+        );
+      }
+      return true;
+    });
+
+    expect(await controller.activateFromMainButton(), isTrue);
+    expect(await controller.dispatchRecognizedText('Học từ mới'), isTrue);
+    expect(mainEndedAtNavigation, isTrue);
+
+    controller.dispose();
+    await speech.dispose();
+  });
+
   test('iOS waits for a quiet unfinished MAIN answer', () async {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
