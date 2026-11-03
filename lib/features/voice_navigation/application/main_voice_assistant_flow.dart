@@ -89,6 +89,8 @@ class MainVoiceAssistantFlow {
   static const String noSpeechExitPrompt = MasterNavigationContract.pause;
   static const String otherLearningPrompt =
       MasterNavigationContract.translationSwitch;
+  static const String vocabularyOtherLearningPrompt =
+      'Bạn muốn Dịch tiếng Anh hay học Chủ đề?';
   static const String afterTranslationStopPrompt =
       MasterNavigationContract.afterTranslationStop;
   static const String activeLearningPrompt =
@@ -135,6 +137,7 @@ class MainVoiceAssistantFlow {
   String? _activeVoicePrompt;
   ActiveLearningVoiceSelectionContext? _activeVoiceSelection;
   bool _pausedChoice = false;
+  bool _otherLearningFromVocabulary = false;
   int _flowGeneration = 0;
   final Map<MainVoiceAssistantStage, int> _fallbackAttempts =
       <MainVoiceAssistantStage, int>{};
@@ -143,6 +146,9 @@ class MainVoiceAssistantFlow {
 
   String? get currentPromptAudioKey => switch (_stage) {
     MainVoiceAssistantStage.chooseFeature => MainAssistantAudioKeys.openMenu,
+    MainVoiceAssistantStage.chooseOtherLearning
+        when _otherLearningFromVocabulary =>
+      null,
     MainVoiceAssistantStage.chooseOtherLearning ||
     MainVoiceAssistantStage.chooseModuleSwitch ||
     MainVoiceAssistantStage.chooseAlternativeAfterLearning =>
@@ -283,10 +289,11 @@ class MainVoiceAssistantFlow {
     return openingPrompt;
   }
 
-  String beginOtherLearning() {
+  String beginOtherLearning({bool fromVocabulary = false}) {
     reset();
+    _otherLearningFromVocabulary = fromVocabulary;
     _stage = MainVoiceAssistantStage.chooseOtherLearning;
-    return otherLearningPrompt;
+    return currentPrompt;
   }
 
   String beginAfterTranslationStop() {
@@ -367,6 +374,7 @@ class MainVoiceAssistantFlow {
   void reset() {
     _flowGeneration += 1;
     _pausedChoice = false;
+    _otherLearningFromVocabulary = false;
     _stage = MainVoiceAssistantStage.idle;
     _selectedAge = null;
     _selectedCatalog = null;
@@ -406,6 +414,7 @@ class MainVoiceAssistantFlow {
     final activeVoicePrompt = _activeVoicePrompt;
     final activeVoiceSelection = _activeVoiceSelection;
     final pausedChoice = _pausedChoice;
+    final otherLearningFromVocabulary = _otherLearningFromVocabulary;
     final fallbackAttempts = Map<MainVoiceAssistantStage, int>.of(
       _fallbackAttempts,
     );
@@ -426,6 +435,7 @@ class MainVoiceAssistantFlow {
       _activeVoicePrompt = activeVoicePrompt;
       _activeVoiceSelection = activeVoiceSelection;
       _pausedChoice = pausedChoice;
+      _otherLearningFromVocabulary = otherLearningFromVocabulary;
       _fallbackAttempts
         ..clear()
         ..addAll(fallbackAttempts);
@@ -586,7 +596,7 @@ class MainVoiceAssistantFlow {
           _wrappedFeatureChoice(normalized) != null,
     MainVoiceAssistantStage.chooseOtherLearning =>
       _isTopicChoice(normalized) ||
-          _isVocabularyChoice(normalized) ||
+          (!_otherLearningFromVocabulary && _isVocabularyChoice(normalized)) ||
           _isContinueTranslationChoice(normalized),
     MainVoiceAssistantStage.chooseModuleSwitch =>
       _isTopicChoice(normalized) ||
@@ -891,13 +901,15 @@ class MainVoiceAssistantFlow {
     String normalized,
   ) async {
     if (_looksLikePromptEcho(normalized)) {
-      return const MainVoiceAssistantTurn(
-        promptText: otherLearningPrompt,
-        promptAudioKey: MainAssistantAudioKeys.afterTranslationStop,
+      return MainVoiceAssistantTurn(
+        promptText: currentPrompt,
+        promptAudioKey: _otherLearningFromVocabulary
+            ? null
+            : MainAssistantAudioKeys.afterTranslationStop,
         continueListening: true,
       );
     }
-    if (_isVocabularyChoice(normalized)) {
+    if (!_otherLearningFromVocabulary && _isVocabularyChoice(normalized)) {
       return _moduleNavigationTurn(
         recognizedText: recognizedText,
         destination: VoiceNavigationDestination.vocabulary,
@@ -912,14 +924,23 @@ class MainVoiceAssistantFlow {
       );
     }
     if (_isContinueTranslationChoice(normalized)) {
+      if (_otherLearningFromVocabulary) {
+        return _moduleNavigationTurn(
+          recognizedText: recognizedText,
+          destination: VoiceNavigationDestination.conversation,
+          promptText: MasterNavigationContract.switchedToTranslation,
+        );
+      }
       return _beginContinuousTranslation(recognizedText, resuming: true);
     }
     if (_isSpeakingChoice(normalized)) {
       return _beginContinuousTranslation(recognizedText);
     }
-    return const MainVoiceAssistantTurn(
-      promptText: otherLearningPrompt,
-      promptAudioKey: MainAssistantAudioKeys.afterTranslationStop,
+    return MainVoiceAssistantTurn(
+      promptText: currentPrompt,
+      promptAudioKey: _otherLearningFromVocabulary
+          ? null
+          : MainAssistantAudioKeys.afterTranslationStop,
       continueListening: true,
     );
   }
@@ -2197,7 +2218,10 @@ class MainVoiceAssistantFlow {
   MainVoiceAssistantTurn _helpTurn() {
     final promptText = switch (_stage) {
       MainVoiceAssistantStage.chooseFeature => openingPrompt,
-      MainVoiceAssistantStage.chooseOtherLearning => otherLearningPrompt,
+      MainVoiceAssistantStage.chooseOtherLearning =>
+        _otherLearningFromVocabulary
+            ? vocabularyOtherLearningPrompt
+            : otherLearningPrompt,
       MainVoiceAssistantStage.chooseModuleSwitch =>
         MasterNavigationContract.translationSwitch,
       MainVoiceAssistantStage.chooseAfterTranslationStop =>
@@ -2237,6 +2261,14 @@ class MainVoiceAssistantFlow {
     }
     _fallbackAttempts.remove(_stage);
     if (_stage == MainVoiceAssistantStage.chooseOtherLearning) {
+      if (_otherLearningFromVocabulary) {
+        return const MainVoiceAssistantTurn(
+          promptText: MasterNavigationContract.pause,
+          promptAudioKey: MainAssistantAudioKeys.cancelled,
+          continueListening: false,
+          exhaustedUnrecognizedInput: true,
+        );
+      }
       return _moduleNavigationTurn(
         recognizedText: '',
         destination: VoiceNavigationDestination.conversation,

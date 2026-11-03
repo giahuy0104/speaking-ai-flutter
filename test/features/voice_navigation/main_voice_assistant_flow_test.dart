@@ -1163,6 +1163,62 @@ void main() {
   });
 
   test(
+    'vocabulary other content offers translation or Topics and keeps direct destinations',
+    () async {
+      final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
+      expect(
+        flow.beginOtherLearning(fromVocabulary: true),
+        MainVoiceAssistantFlow.vocabularyOtherLearningPrompt,
+      );
+      expect(flow.currentPromptAudioKey, isNull);
+      expect(flow.canHandle('Bộ từ vựng'), isFalse);
+      final rejected = await flow.handle('Bộ từ vựng');
+      expect(
+        rejected.promptText,
+        MainVoiceAssistantFlow.vocabularyOtherLearningPrompt,
+      );
+      expect(rejected.navigationAfterPrompt, isNull);
+      expect(rejected.continueListening, isTrue);
+      final secondRejected = await flow.handle('Bộ từ vựng');
+      expect(secondRejected.navigationAfterPrompt, isNull);
+      expect(secondRejected.continueListening, isFalse);
+
+      for (final choice in <String, VoiceVocabularyTarget>{
+        'Ngôi sao': VoiceVocabularyTarget.star,
+        'Luyện lại': VoiceVocabularyTarget.review,
+      }.entries) {
+        flow.beginOtherLearning(fromVocabulary: true);
+        expect(flow.canHandle(choice.key), isTrue);
+        final turn = await flow.handle(choice.key);
+        expect(
+          turn.navigationAfterPrompt?.destination,
+          VoiceNavigationDestination.vocabulary,
+        );
+        expect(turn.navigationAfterPrompt?.vocabularyTarget, choice.value);
+        expect(turn.promptText, isEmpty);
+      }
+
+      flow.beginOtherLearning(fromVocabulary: true);
+      final translation = await flow.handle('Dịch tiếng Anh');
+      expect(
+        translation.promptText,
+        MasterNavigationContract.switchedToTranslation,
+      );
+      expect(translation.promptSequence.length, 2);
+      expect(
+        translation.navigationAfterPrompt?.destination,
+        VoiceNavigationDestination.conversation,
+      );
+      flow.beginOtherLearning(fromVocabulary: true);
+      final topics = await flow.handle('Chủ đề');
+      expect(
+        topics.navigationAfterPrompt?.destination,
+        VoiceNavigationDestination.topics,
+      );
+    },
+  );
+
+  test(
     'understands Vietnamese number words and rejects out-of-range choices',
     () async {
       final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
