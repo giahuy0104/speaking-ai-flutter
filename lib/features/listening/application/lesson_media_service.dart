@@ -931,7 +931,12 @@ class LessonMediaService {
   }
 
   /// Shared replay policy for prepared topic and challenge recordings.
-  Future<void> playRecordingToCompletion(LessonRecording recording) async {
+  /// Automatic Android feedback starts from the already-normalized recording;
+  /// optional later replays still use the cleaned copy.
+  Future<void> playRecordingToCompletion(
+    LessonRecording recording, {
+    bool immediateReplay = false,
+  }) async {
     var playbackPath = recording.filePath;
     final originalUri = Uri.tryParse(playbackPath);
     final originalIsWindowsPath = RegExp(
@@ -940,7 +945,10 @@ class LessonMediaService {
     if (!kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.android ||
             defaultTargetPlatform == TargetPlatform.iOS) &&
-        (originalIsWindowsPath || originalUri == null || !originalUri.hasScheme) &&
+        !(immediateReplay && defaultTargetPlatform == TargetPlatform.android) &&
+        (originalIsWindowsPath ||
+            originalUri == null ||
+            !originalUri.hasScheme) &&
         isLocalLessonRecordingFile(playbackPath)) {
       try {
         playbackPath = await _replayDenoiser(playbackPath);

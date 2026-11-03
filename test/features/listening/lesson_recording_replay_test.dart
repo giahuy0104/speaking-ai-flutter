@@ -155,10 +155,41 @@ void main() {
       final player = _ReplayPolicyProbe(denoiser: (_) async => cleaned.path);
       await player.playRecordingToCompletion(recording(normalized.path));
       expect(player.uri, Uri.file(cleaned.path));
+      await player.playRecordingToCompletion(
+        recording(normalized.path),
+        immediateReplay: true,
+      );
+      expect(player.uri, Uri.file(cleaned.path));
       expect(await normalized.readAsBytes(), [2]);
       await player.dispose();
     },
   );
+
+  test('automatic Android replay starts before denoising', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    final cleaned = await File(
+      '${directory.path}/take.normalized.replay-cleaned.wav',
+    ).writeAsBytes([3]);
+    var denoiseCalls = 0;
+    final player = _ReplayPolicyProbe(
+      denoiser: (_) async {
+        denoiseCalls++;
+        return cleaned.path;
+      },
+    );
+
+    await player.playRecordingToCompletion(
+      recording(normalized.path),
+      immediateReplay: true,
+    );
+    expect(player.uri, Uri.file(normalized.path));
+    expect(denoiseCalls, 0);
+
+    await player.playRecordingToCompletion(recording(normalized.path));
+    expect(player.uri, Uri.file(cleaned.path));
+    expect(denoiseCalls, 1);
+    await player.dispose();
+  });
 
   test('replay uses the original if denoising fails', () async {
     final player = _ReplayPolicyProbe(

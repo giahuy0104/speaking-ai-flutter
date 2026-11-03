@@ -1091,6 +1091,42 @@ void main() {
     expect(find.byKey(const ValueKey<String>('v4-choice-stop')), findsNothing);
   });
 
+  testWidgets('Android completion uses an exact partial after no-match', (
+    tester,
+  ) async {
+    await _usePhoneSurface(tester);
+    final store = _MemoryProgressStore()
+      ..pendingCompletionChoice = ListeningPendingChoiceStage.topicEnd
+      ..resumeStage = ListeningResumeStage.waitingForChoice;
+    final speech = _CompletionCommandSpeechInput('')
+      ..stopError = const StreamingSpeechInputException(
+        'No match',
+        code: 'ANDROID_SPEECH_7',
+      );
+    addTearDown(speech.dispose);
+    await tester.pumpWidget(
+      _subject(
+        _v4Lesson(),
+        store,
+        const Key('partial-topic-choice'),
+        mediaService: _SilentMediaService(),
+        voicePromptService: _SilentVoicePromptService(),
+        controller: _LearningAudioDependencies(speech),
+        initialResumeStage: ListeningResumeStage.waitingForChoice,
+      ),
+    );
+    await tester.pumpAndSettle();
+    speech.partial.add('Học Chủ đề khác');
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 701));
+    await tester.pumpAndSettle();
+
+    expect(speech.stops, 1);
+    expect(speech.commandStarts, 1);
+    expect(store.pendingCompletionChoice, isNull);
+    expect(find.byKey(const ValueKey('v4-choice-nextTopic')), findsNothing);
+  }, variant: TargetPlatformVariant.only(TargetPlatform.android));
+
   testWidgets(
     'next and previous both restart the selected sentence from its sample',
     (tester) async {
