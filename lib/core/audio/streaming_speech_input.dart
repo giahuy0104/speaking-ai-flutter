@@ -469,6 +469,7 @@ class AndroidStreamingSpeechInput
       debugPrint(
         'HOMI Apple Speech [$stage] source=${diagnostic.audioSource ?? '-'} '
         'route=${diagnostic.audioRoute ?? '-'} code=${code ?? '-'} '
+        'caller=${diagnostic.caller ?? '-'} '
         '${message ?? ''}',
       );
     }

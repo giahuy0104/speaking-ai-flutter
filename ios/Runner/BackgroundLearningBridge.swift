@@ -35,7 +35,7 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
     ) { [weak self] _ in
       // The record-capable engine must be armed before the app leaves the
       // foreground, so the main thread waits for the queue here.
-      IOSNativeWork.refreshApplicationState()
+      IOSNativeWork.markApplicationInactive()
       IOSNativeWork.sync {
         guard let self else { return }
         self.audioSessionCoordinator.requestBackgroundCaptureArm(
@@ -49,7 +49,7 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
       object: nil,
       queue: nil
     ) { [weak self] _ in
-      IOSNativeWork.refreshApplicationState()
+      IOSNativeWork.markApplicationInactive()
       IOSNativeWork.sync {
         self?.audioSessionCoordinator.applicationDidEnterBackground()
         self?.reconcileBackgroundTransitionLease()
@@ -71,7 +71,7 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
       guard let self else { return }
       if !IOSBackgroundAudioHandoffPolicy.shouldKeepEngineRunning(
         backgroundLearningEnabled: self.audioSessionCoordinator.isBackgroundLearningEnabled,
-        applicationIsActive: true
+        applicationIsActive: IOSNativeWork.applicationIsActive
       ) {
         self.audioSessionCoordinator.requestBackgroundCaptureDisarm(
           caller: "BackgroundLearningBridge.didBecomeActive"

@@ -118,7 +118,7 @@ enum IOSNativeWork {
     }
   }
 
-  /// `UIApplication.applicationState` as last seen on the main thread.
+  /// Whether the latest UIKit lifecycle event left the app active.
   static var applicationIsActive: Bool {
     stateLock.lock()
     defer { stateLock.unlock() }
@@ -130,6 +130,22 @@ enum IOSNativeWork {
     let active = UIApplication.shared.applicationState == .active
     stateLock.lock()
     applicationActive = active
+    stateLock.unlock()
+  }
+
+  /// UIKit can still report `.active` inside willResignActive. Mark the
+  /// transition immediately so queued audio work cannot stop a prearmed input.
+  /// Call on the main thread.
+  static func markApplicationInactive() {
+    stateLock.lock()
+    applicationActive = false
+    stateLock.unlock()
+  }
+
+  /// Call on the main thread when UIKit reports that the app became active.
+  static func markApplicationActive() {
+    stateLock.lock()
+    applicationActive = true
     stateLock.unlock()
   }
 
@@ -145,9 +161,11 @@ enum IOSNativeWork {
     ]
     applicationStateTokens = names.map { name in
       NotificationCenter.default.addObserver(forName: name, object: nil, queue: nil) { _ in
-        refreshApplicationState()
-        // The state leaves `.active` only after willResignActive has returned.
-        DispatchQueue.main.async { refreshApplicationState() }
+        if name == UIApplication.didBecomeActiveNotification {
+          markApplicationActive()
+        } else {
+          markApplicationInactive()
+        }
       }
     }
   }
