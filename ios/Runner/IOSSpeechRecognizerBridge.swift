@@ -298,9 +298,11 @@ struct IOSBackgroundAudioHandoffPolicy {
   static func shouldKeepEngineRunning(
     backgroundLearningEnabled: Bool,
     activeLearningRequested: Bool,
-    applicationIsActive: Bool
+    applicationIsActive: Bool,
+    hasAvailableHfpInput: Bool
   ) -> Bool {
-    backgroundLearningEnabled && (activeLearningRequested || !applicationIsActive)
+    backgroundLearningEnabled
+      && (activeLearningRequested || !applicationIsActive || hasAvailableHfpInput)
   }
 }
 
@@ -1043,6 +1045,19 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       armGeneration: backgroundHandoffArmGeneration,
       caller: caller
     )
+  }
+
+  func isBackgroundAudioHandoffReady(for target: IOSAudioInputTarget?) -> Bool {
+    guard backgroundHandoffPhase == .armed || backgroundHandoffPhase == .capturing,
+      audioEngine.isRunning,
+      inputTapInstalled,
+      let audioSource = backgroundHandoffAudioSource
+    else { return false }
+    if let target {
+      let expectedSource: IOSNativeSpeechAudioSource = target == .hfp ? .hfp : .builtInMic
+      guard audioSource == expectedSource else { return false }
+    }
+    return audioRouteMatches(audioSource)
   }
 
   private func attemptBackgroundAudioHandoffArm(

@@ -322,6 +322,8 @@ protocol IOSBackgroundCaptureHandoffDelegate: AnyObject {
   )
 
   func disarmBackgroundAudioHandoff(caller: String)
+
+  func isBackgroundAudioHandoffReady(for target: IOSAudioInputTarget?) -> Bool
 }
 
 /// The single writer for AVAudioSession during an iOS MAIN turn.
@@ -349,6 +351,7 @@ final class IOSAudioSessionCoordinator: NSObject {
   private var ownership = IOSAudioSessionOwnershipState()
   private var preferredHfpInputUID: String?
   private var preferredHfpInputName: String?
+  private var hasVerifiedHfpSelection = false
   /// `currentRoute` can keep reporting bluetoothHFP briefly after
   /// `setActive(false)` has completed. Keep the activation state written by
   /// this coordinator separate from that lagging route snapshot so a new HFP
@@ -647,7 +650,8 @@ final class IOSAudioSessionCoordinator: NSObject {
     if !IOSBackgroundAudioHandoffPolicy.shouldKeepEngineRunning(
       backgroundLearningEnabled: isBackgroundLearningEnabled,
       activeLearningRequested: isActiveLearningRequested,
-      applicationIsActive: IOSNativeWork.applicationIsActive
+      applicationIsActive: IOSNativeWork.applicationIsActive,
+      hasAvailableHfpInput: hasAvailableSelectedHfpInput
     ) {
       requestBackgroundCaptureDisarm(caller: "IOSAudioSessionCoordinator.endMainTurn")
     }
@@ -853,9 +857,9 @@ final class IOSAudioSessionCoordinator: NSObject {
 
   /// Releases a record-capable route when no MAIN turn owns it.
   ///
-  /// The selected HFP UID is kept by `HfpAudioBridge`; only the live SCO/audio
-  /// session is released. A later MAIN turn can therefore reactivate and
-  /// verify the same HM-D001 input without keeping BLE-hostile SCO open at idle.
+  /// The selected HFP UID is kept by `HfpAudioBridge`; the live SCO/audio
+  /// session is released only when no other owner, including a foreground-armed
+  /// background capture, still needs it.
   func releaseAudioSessionIfIdle(caller: String) {
     guard ownership.canDeactivate else {
       trace(
@@ -951,6 +955,18 @@ final class IOSAudioSessionCoordinator: NSObject {
   func rememberPreferredHfpInput(uid: String?, name: String?) {
     preferredHfpInputUID = normalizedPreferredHfpValue(uid)
     preferredHfpInputName = normalizedPreferredHfpValue(name)
+    if preferredHfpInputUID == nil && preferredHfpInputName == nil {
+      hasVerifiedHfpSelection = false
+    }
+  }
+
+  func setVerifiedHfpSelection(_ verified: Bool) {
+    hasVerifiedHfpSelection = verified
+  }
+
+  var hasAvailableSelectedHfpInput: Bool {
+    hasVerifiedHfpSelection
+      && selectedOrAvailableHfpInput() != nil
   }
 
   /// Returns the selected HFP input when it remains available. If no HM-D001 has
@@ -1119,6 +1135,11 @@ final class IOSAudioSessionCoordinator: NSObject {
         : "background_capture_engine_stopped",
       caller: caller
     )
+  }
+
+  func hasBackgroundCaptureReady(for target: IOSAudioInputTarget?) -> Bool {
+    isBackgroundCaptureEngineRunning
+      && backgroundCaptureHandoffDelegate?.isBackgroundAudioHandoffReady(for: target) == true
   }
 
   func routeDescription() -> String {

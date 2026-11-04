@@ -327,11 +327,27 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
     switch call.method {
     case "beginMainTurn":
       let arguments = call.arguments as? [String: Any]
+      let audioInputTarget = IOSMainTurnAudioRoutePolicy.inputTarget(
+        fromChannelValue: arguments?["audioSource"]
+      )
+      if !IOSNativeWork.applicationIsActive,
+        !audioSessionCoordinator.hasBackgroundCaptureReady(for: audioInputTarget)
+      {
+        audioSessionCoordinator.trace(
+          stage: "background_main_microphone_unavailable",
+          caller: "VoicePromptBridge.beginMainTurn",
+          code: "BACKGROUND_MIC_NOT_READY"
+        )
+        result(FlutterError(
+          code: "BACKGROUND_MIC_NOT_READY",
+          message: "Mở khóa iPhone rồi nhấn MAIN lại để dùng micro.",
+          details: nil
+        ))
+        return
+      }
       let turnId = audioSessionCoordinator.beginMainTurn(
         source: "VoicePromptBridge.beginMainTurn",
-        audioInputTarget: IOSMainTurnAudioRoutePolicy.inputTarget(
-          fromChannelValue: arguments?["audioSource"]
-        ),
+        audioInputTarget: audioInputTarget,
         // A cancelled begin can return after the next virtual MAIN activation.
         // Its exact-ID cleanup must never close that newer activation.
         forceNewTurn: true
