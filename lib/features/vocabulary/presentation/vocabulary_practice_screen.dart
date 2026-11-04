@@ -1835,7 +1835,7 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   }
 
   Future<bool> leaveForVocabularyTarget() async {
-    if (!mounted || _exiting || !_isReview) return false;
+    if (!mounted || _exiting) return false;
     final route = ModalRoute.of(context);
     if (route == null || !route.isCurrent) return false;
     await pauseForMainAssistant();

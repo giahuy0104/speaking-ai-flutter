@@ -75,7 +75,10 @@ void main() {
       });
       expect(media.events, contains('prepare'));
     },
-    variant: TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}),
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
   );
 
   testWidgets(
@@ -159,6 +162,80 @@ void main() {
       TargetPlatform.android,
       TargetPlatform.iOS,
     }),
+  );
+
+  testWidgets(
+    'Today waits for its checkpoint before a direct Review can replace it',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      const store = VocabularyStore();
+      final sessions = _GatedCheckpointSessionStore();
+      await store.upsertLessonSentence(
+        lessonCode: 'L01',
+        sentenceId: 'Apple',
+        english: 'Apple',
+        vietnamese: 'Táo',
+        collection: VocabularyCollection.review,
+        source: VocabularySource.topicCore,
+      );
+      final entry = (await store.read()).single;
+      final today = VocabularyPracticeSession(
+        id: 'today-before-review',
+        mode: VocabularyPracticeMode.today,
+        entryIds: <String>[entry.id],
+        currentIndex: 0,
+        results: const <String, bool>{},
+        correctAudioPaths: const <String, String>{},
+        createdAt: DateTime(2026),
+      );
+      await sessions.saveActive(today);
+      final media = _FakeLessonMediaService();
+      addTearDown(media.close);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) => FilledButton(
+              onPressed: () => Navigator.of(context).push<void>(
+                MaterialPageRoute<void>(
+                  builder: (_) => VocabularyPracticeScreen(
+                    language: DisplayLanguage.vietnamese,
+                    childAge: 6,
+                    session: today,
+                    store: store,
+                    sessionStore: sessions,
+                    mediaService: media,
+                    voicePromptService: _FakeVoicePromptService(),
+                    autoStart: false,
+                  ),
+                ),
+              ),
+              child: const Text('Open'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+      final practice = tester.state<VocabularyPracticeScreenState>(
+        find.byType(VocabularyPracticeScreen),
+      );
+      sessions.gateCheckpoint = true;
+      final closing = practice.leaveForVocabularyTarget();
+      await tester.pump();
+      await sessions.checkpointStarted.future;
+      expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+      expect((await sessions.readActive())?.mode, VocabularyPracticeMode.today);
+
+      sessions.allowCheckpoint.complete();
+      await tester.pumpAndSettle();
+      expect(await closing, isTrue);
+      expect(find.byType(VocabularyPracticeScreen), findsNothing);
+      sessions.gateCheckpoint = false;
+      final review = await sessions.prepareReview(store);
+      expect(review?.mode, VocabularyPracticeMode.review);
+      expect((await sessions.readActive())?.id, review?.id);
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
   );
 
   testWidgets(
@@ -1284,7 +1361,10 @@ void main() {
       expect(media.events.length, greaterThan(previousMediaEvents));
       expect(voice.spoken, contains('vi-VN:${VocabularyFlowV3.reviewResume}'));
     },
-    variant: TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}),
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
   );
 
   testWidgets('Review localizes tap recording labels in Chinese', (
@@ -1928,6 +2008,21 @@ class _GatedVocabularyStore extends VocabularyStore {
   Future<List<VocabularyEntry>> read() => _read.future;
 
   void complete(List<VocabularyEntry> entries) => _read.complete(entries);
+}
+
+class _GatedCheckpointSessionStore extends VocabularySessionStore {
+  final checkpointStarted = Completer<void>();
+  final allowCheckpoint = Completer<void>();
+  bool gateCheckpoint = false;
+
+  @override
+  Future<void> saveActive(VocabularyPracticeSession session) async {
+    if (gateCheckpoint) {
+      checkpointStarted.complete();
+      await allowCheckpoint.future;
+    }
+    await super.saveActive(session);
+  }
 }
 
 class _FakeLessonMediaService extends LessonMediaService {
