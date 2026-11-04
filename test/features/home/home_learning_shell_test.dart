@@ -1696,7 +1696,7 @@ void main() {
             onVocabularyOtherContentRequested: () async {
               globalChoices++;
               await voiceNavigationController
-                  .activateOtherLearningFromSpeaking();
+                  .activateOtherLearningFromSpeaking(fromVocabulary: true);
             },
           ),
         ),
@@ -1726,13 +1726,132 @@ void main() {
       expect(globalChoices, 1);
       expect(
         navigationPrompt.spoken,
-        contains(MainVoiceAssistantFlow.otherLearningPrompt),
+        contains(MainVoiceAssistantFlow.vocabularyOtherLearningPrompt),
       );
       expect(vocabularyChoices, priorVocabularyChoices);
       expect(
         vocabularyPrompt.spoken.skip(priorVocabularyPrompts),
         isNot(contains(VocabularyFlowV3.reviewOtherMenu)),
       );
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  testWidgets(
+    'Android Today other content accepts direct Review without reopening Today',
+    (tester) async {
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await const VocabularyStore().addParentEntries(
+        const <VocabularyTranslation>[
+          VocabularyTranslation(englishText: 'Apple', vietnameseText: 'Táo'),
+        ],
+      );
+      const store = VocabularyStore();
+      await store.write(<VocabularyEntry>[
+        ...await store.read(),
+        VocabularyEntry(
+          id: 'review-after-today-other',
+          word: 'After school.',
+          meaning: 'Sau giờ học.',
+          addedAt: DateTime(2026, 10, 12),
+          collection: VocabularyCollection.review,
+          status: VocabularyLearningStatus.needsPractice,
+          source: VocabularySource.topicCore,
+        ),
+      ]);
+      final registry = ActiveLearningModuleRegistry();
+      final navigationPrompt = _RecordingVoicePromptService();
+      final voice = VoiceNavigationController(
+        speechInput: _FakeStreamingSpeechInput(),
+        ownsSpeechInput: true,
+        voicePromptService: navigationPrompt,
+      );
+      final prompts = _RecordingVoicePromptService();
+      final controller = _controller();
+      var globalChoices = 0;
+      var followUpReady = false;
+      addTearDown(registry.dispose);
+      addTearDown(voice.dispose);
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _app(
+            controller,
+            voiceNavigationController: voice,
+            vocabularyMediaService: _ImmediateVocabularyMediaService(),
+            vocabularyVoicePromptService: prompts,
+            onVocabularyOtherContentRequested: () async {
+              globalChoices++;
+              followUpReady = await voice.activateOtherLearningFromSpeaking(
+                fromVocabulary: true,
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+      await tester.pumpAndSettle();
+      expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+      for (
+        var index = 0;
+        index < 60 &&
+            find
+                .byKey(const Key('vocabulary-other-content'))
+                .evaluate()
+                .isEmpty;
+        index++
+      ) {
+        await tester.pump(const Duration(milliseconds: 200));
+      }
+      expect(find.byKey(const Key('vocabulary-other-content')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('vocabulary-other-content')));
+      for (var index = 0; index < 30 && !followUpReady; index++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(globalChoices, 1);
+      expect(followUpReady, isTrue);
+      expect(find.byType(VocabularyPracticeScreen), findsNothing);
+      expect(
+        navigationPrompt.spoken,
+        contains(MainVoiceAssistantFlow.vocabularyOtherLearningPrompt),
+      );
+      for (var index = 0; index < 30 && !voice.isAwaitingCommand; index++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(voice.isAwaitingCommand, isTrue);
+      var reviewNavigationFinished = false;
+      final reviewNavigation = voice.dispatchRecognizedText('Luyện lại').then((
+        handled,
+      ) {
+        reviewNavigationFinished = true;
+        return handled;
+      });
+      for (
+        var index = 0;
+        index < 100 &&
+            find.byType(VocabularyPracticeScreen).evaluate().isEmpty;
+        index++
+      ) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(
+        (await const VocabularySessionStore().readActive())?.mode,
+        VocabularyPracticeMode.review,
+      );
+      expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+      expect(reviewNavigationFinished, isTrue);
+      expect(await reviewNavigation, isTrue);
+      expect(prompts.spoken, contains(VocabularyFlowV3.reviewIntro));
+      expect(prompts.spoken, isNot(contains(VocabularyFlowV3.menu)));
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 3));
     },
     variant: TargetPlatformVariant.only(TargetPlatform.android),
   );
@@ -1972,6 +2091,192 @@ void main() {
       await tester.pumpWidget(const SizedBox.shrink());
     },
     variant: TargetPlatformVariant({TargetPlatform.android}),
+  );
+
+  testWidgets(
+    'Android Today closes before English translation starts',
+    (tester) async {
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      const store = VocabularyStore();
+      await store.addParentEntries(const <VocabularyTranslation>[
+        VocabularyTranslation(englishText: 'Apple', vietnameseText: 'Táo'),
+      ]);
+      final registry = ActiveLearningModuleRegistry();
+      final voice = VoiceNavigationController(
+        speechInput: _FakeStreamingSpeechInput(),
+        ownsSpeechInput: true,
+        voicePromptService: _SilentVoicePromptService(),
+      );
+      final controller = _controller();
+      addTearDown(registry.dispose);
+      addTearDown(voice.dispose);
+      addTearDown(controller.dispose);
+      var translationStarted = false;
+      var practiceVisibleWhenStarted = true;
+      double? pageWhenStarted;
+      late PageController pageController;
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _app(
+            controller,
+            voiceNavigationController: voice,
+            vocabularyMediaService: _ImmediateVocabularyMediaService(),
+            vocabularyVoicePromptService: _SilentVoicePromptService(),
+            onMainSpeakingModeStarted: () async {
+              practiceVisibleWhenStarted = find
+                  .byType(VocabularyPracticeScreen)
+                  .evaluate()
+                  .isNotEmpty;
+              pageWhenStarted = pageController.page;
+              translationStarted = true;
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      pageController = tester
+          .widget<PageView>(find.byKey(const Key('home-learning-page-view')))
+          .controller!;
+      await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+      await tester.pumpAndSettle();
+      expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+      expect(
+        (await const VocabularySessionStore().readActive())?.mode,
+        VocabularyPracticeMode.today,
+      );
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      expect(
+        await voice.activateFromMainButton(
+          activeLearning: true,
+          activeLearningKind: ActiveLearningModuleKind.vocabulary,
+          activeVoiceContext: registry.controller as ActiveLearningVoiceContext,
+        ),
+        isTrue,
+      );
+      final dispatch = voice.dispatchRecognizedText('Dịch sang tiếng Anh');
+      for (var index = 0; index < 20 && !translationStarted; index++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(await dispatch, isTrue);
+      expect(translationStarted, isTrue);
+      expect(practiceVisibleWhenStarted, isFalse);
+      expect(pageWhenStarted, closeTo(0, 0.001));
+      expect(find.byType(ConversationScreen).hitTestable(), findsOneWidget);
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 3));
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  testWidgets(
+    'Android Today MAIN other content closes Today before voice Review',
+    (tester) async {
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      const store = VocabularyStore();
+      await store.addParentEntries(const <VocabularyTranslation>[
+        VocabularyTranslation(englishText: 'Apple', vietnameseText: 'Táo'),
+      ]);
+      await store.write(<VocabularyEntry>[
+        ...await store.read(),
+        VocabularyEntry(
+          id: 'review-from-today-main',
+          word: 'After school.',
+          meaning: 'Sau giờ học.',
+          addedAt: DateTime(2026, 10, 12),
+          collection: VocabularyCollection.review,
+          status: VocabularyLearningStatus.needsPractice,
+          source: VocabularySource.topicCore,
+        ),
+      ]);
+      final registry = ActiveLearningModuleRegistry();
+      final voice = VoiceNavigationController(
+        speechInput: _FakeStreamingSpeechInput(),
+        ownsSpeechInput: true,
+        voicePromptService: _SilentVoicePromptService(),
+      );
+      final prompts = _RecordingVoicePromptService();
+      final controller = _controller();
+      addTearDown(registry.dispose);
+      addTearDown(voice.dispose);
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _app(
+            controller,
+            voiceNavigationController: voice,
+            vocabularyMediaService: _ImmediateVocabularyMediaService(),
+            vocabularyVoicePromptService: prompts,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+      await tester.pumpAndSettle();
+      expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+      expect(await registry.pauseForMainAssistant(), isTrue);
+      expect(
+        await voice.activateFromMainButton(
+          activeLearning: true,
+          activeLearningKind: ActiveLearningModuleKind.vocabulary,
+          activeVoiceContext: registry.controller as ActiveLearningVoiceContext,
+        ),
+        isTrue,
+      );
+      expect(await voice.dispatchRecognizedText('Học nội dung khác'), isTrue);
+      var reviewNavigationFinished = false;
+      final reviewNavigation = voice.dispatchRecognizedText('Luyện lại').then((
+        handled,
+      ) {
+        reviewNavigationFinished = true;
+        return handled;
+      });
+      for (var index = 0; index < 50; index++) {
+        await tester.pump(const Duration(milliseconds: 100));
+        if ((await const VocabularySessionStore().readActive())?.mode ==
+            VocabularyPracticeMode.review) {
+          break;
+        }
+      }
+      expect(
+        (await const VocabularySessionStore().readActive())?.mode,
+        VocabularyPracticeMode.review,
+      );
+      for (
+        var index = 0;
+        index < 50 &&
+            find
+                .byType(VocabularyPracticeScreen, skipOffstage: false)
+                .evaluate()
+                .isEmpty;
+        index++
+      ) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(
+        find.byType(VocabularyPracticeScreen, skipOffstage: false),
+        findsOneWidget,
+      );
+      expect(reviewNavigationFinished, isTrue);
+      expect(await reviewNavigation, isTrue);
+      await tester.pump(const Duration(seconds: 3));
+      expect(prompts.spoken, contains(VocabularyFlowV3.reviewIntro));
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 5));
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
   );
 
   testWidgets(

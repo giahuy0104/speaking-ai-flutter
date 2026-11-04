@@ -69,6 +69,7 @@ class VocabularyHomeNavigationController {
   Future<bool> Function()? _handleBack;
   Future<bool> Function()? _leaveForOtherContent;
   Future<bool> Function({bool forVoiceTarget})? _closePracticeForOtherContent;
+  bool Function()? _hasPractice;
   bool Function()? _hasReviewPractice;
   Future<bool> Function()? _closeReviewPracticeForTranslation;
   Future<void> Function(VoiceVocabularyTarget target)? _openVoiceTarget;
@@ -90,6 +91,7 @@ class VocabularyHomeNavigationController {
       false;
 
   bool get hasReviewPractice => _hasReviewPractice?.call() ?? false;
+  bool get hasPractice => _hasPractice?.call() ?? false;
 
   Future<bool> closeReviewPracticeForTranslation() async =>
       await _closeReviewPracticeForTranslation?.call() ?? false;
@@ -112,6 +114,7 @@ class VocabularyHomeNavigationController {
     required Future<bool> Function() leaveForOtherContent,
     required Future<bool> Function({bool forVoiceTarget})
     closePracticeForOtherContent,
+    required bool Function() hasPractice,
     required bool Function() hasReviewPractice,
     required Future<bool> Function() closeReviewPracticeForTranslation,
     required Future<void> Function(VoiceVocabularyTarget target)
@@ -122,6 +125,7 @@ class VocabularyHomeNavigationController {
     _handleBack = handleBack;
     _leaveForOtherContent = leaveForOtherContent;
     _closePracticeForOtherContent = closePracticeForOtherContent;
+    _hasPractice = hasPractice;
     _hasReviewPractice = hasReviewPractice;
     _closeReviewPracticeForTranslation = closeReviewPracticeForTranslation;
     _openVoiceTarget = openVoiceTarget;
@@ -134,6 +138,7 @@ class VocabularyHomeNavigationController {
     _handleBack = null;
     _leaveForOtherContent = null;
     _closePracticeForOtherContent = null;
+    _hasPractice = null;
     _hasReviewPractice = null;
     _closeReviewPracticeForTranslation = null;
     _openVoiceTarget = null;
@@ -225,6 +230,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   bool _translating = false;
   bool _pausedForMainAssistant = false;
   bool _openingPractice = false;
+  Route<VocabularyPracticeResult>? _practiceRoute;
   final GlobalKey<VocabularyPracticeScreenState> _practiceScreenKey =
       GlobalKey<VocabularyPracticeScreenState>();
   bool _startingToday = false;
@@ -255,7 +261,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   late bool _wasEffectivelyActive;
 
   bool get _isEffectivelyActive =>
-      widget.isActive || (widget.activationController?.isActive ?? false);
+      widget.activationController?.isActive ?? widget.isActive;
 
   VoicePromptService _createVoicePromptService() {
     // A prompt here starts inside the 750 ms Android keeps the HM-D001 route
@@ -361,7 +367,11 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     }
     _syncActiveLearningRegistration();
     if (active && widget.autoStartToday) {
-      unawaited(_maybeStartToday());
+      if (_startingToday) {
+        _restartTodayAfterCurrent = true;
+      } else {
+        unawaited(_maybeStartToday());
+      }
     }
   }
 
@@ -418,13 +428,34 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         preserveJourneyOnFailedExit: true,
       ),
       closePracticeForOtherContent: ({bool forVoiceTarget = false}) async {
+        final route = _practiceRoute;
+        if (route == null || !route.isActive) return true;
         final practice = _practiceScreenKey.currentState;
-        if (practice == null) return false;
-        if (practice.isRoutePopRequested) return true;
+        if (practice == null) {
+          if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+            ActiveLearningModuleScope.notifyNavigationExit(context);
+            Navigator.of(context).removeRoute(route);
+            if (route is TransitionRoute<VocabularyPracticeResult>) {
+              if (WidgetsBinding.instance.lifecycleState == null ||
+                  WidgetsBinding.instance.lifecycleState ==
+                      AppLifecycleState.resumed) {
+                await route.completed;
+              } else {
+                await route.popped;
+              }
+            }
+            return !route.isActive;
+          }
+          return false;
+        }
+        if (practice.isRoutePopRequested) {
+          return practice.waitForRouteClosed();
+        }
         return forVoiceTarget
             ? practice.leaveForVocabularyTarget()
             : practice.leaveForOtherContent();
       },
+      hasPractice: () => _practiceRoute?.isActive ?? false,
       hasReviewPractice: () =>
           _practiceScreenKey.currentState?.hasActiveReviewPractice ?? false,
       closeReviewPracticeForTranslation: () async {
@@ -452,7 +483,38 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
           await _runAudioCommand(_openReviewFromVoice);
         } else {
-          await _startReview();
+          final navigationReady = Completer<void>();
+          unawaited(
+            _startReview(
+              allowPendingToday: true,
+              onNavigationDecided: (started) {
+                if (navigationReady.isCompleted) return;
+                if (started) {
+                  navigationReady.complete();
+                } else {
+                  navigationReady.completeError(
+                    StateError('Review destination is unavailable.'),
+                  );
+                }
+              },
+            ).then(
+              (_) {
+                if (!navigationReady.isCompleted) {
+                  navigationReady.completeError(
+                    StateError('Review destination did not open.'),
+                  );
+                }
+              },
+              onError: (Object error, StackTrace stackTrace) {
+                if (!navigationReady.isCompleted) {
+                  navigationReady.completeError(error, stackTrace);
+                } else {
+                  debugPrint('Review destination failed: $error');
+                }
+              },
+            ),
+          );
+          await navigationReady.future;
         }
         return;
     }
@@ -1945,6 +2007,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                   },
                 ),
               ),
+              onRouteCreated: (route) => _practiceRoute = route,
             );
         // A locked mobile surface may never deliver the frame that builds
         // the practice route, even though navigation has already completed.

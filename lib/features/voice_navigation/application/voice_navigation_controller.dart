@@ -302,8 +302,13 @@ class VoiceNavigationController extends ChangeNotifier {
   }
 
   /// Offers the other learning destinations after leaving an active mode.
-  Future<bool> activateOtherLearningFromSpeaking() async {
-    return _activateMainAssistantFlow(_mainAssistantFlow.beginOtherLearning);
+  Future<bool> activateOtherLearningFromSpeaking({
+    bool fromVocabulary = false,
+  }) async {
+    return _activateMainAssistantFlow(
+      () =>
+          _mainAssistantFlow.beginOtherLearning(fromVocabulary: fromVocabulary),
+    );
   }
 
   /// STOP closes both microphones. Do not ask a follow-up or listen for wake.
