@@ -1786,20 +1786,36 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   }
 
   bool get _removeRouteWithoutTransition =>
-      !kIsWeb &&
-      defaultTargetPlatform == TargetPlatform.android &&
-      WidgetsBinding.instance.lifecycleState != null &&
-      WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed;
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
   void _popOrRemovePractice([VocabularyPracticeResult? result]) {
     final navigator = Navigator.of(context);
     final route = ModalRoute.of(context);
-    if (_removeRouteWithoutTransition && route != null && route.isCurrent) {
-      // A reverse animation cannot advance while Android is not drawing.
+    if (_removeRouteWithoutTransition &&
+        route != null &&
+        route.isCurrent &&
+        !route.isFirst) {
+      // Remove the route before the next Android learning surface starts.
+      ActiveLearningModuleScope.notifyNavigationExit(context);
       navigator.removeRoute(route, result);
     } else {
       navigator.pop(result);
     }
+  }
+
+  Future<bool> waitForRouteClosed() async {
+    final route = ModalRoute.of(context);
+    if (route == null || !route.isActive) return true;
+    if (_removeRouteWithoutTransition && !route.isFirst) {
+      Navigator.of(context).removeRoute(route);
+    }
+    if (WidgetsBinding.instance.lifecycleState == null ||
+        WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
+      await route.completed;
+    } else {
+      await route.popped;
+    }
+    return !route.isActive;
   }
 
   Future<bool> leaveForOtherContent() async {
@@ -1809,16 +1825,17 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     _commitNavigationExit();
     _routePopRequested = true;
     _popOrRemovePractice();
-    if (_removeRouteWithoutTransition) {
-      await route.popped;
-    } else {
+    if (WidgetsBinding.instance.lifecycleState == null ||
+        WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
       await route.completed;
+    } else {
+      await route.popped;
     }
     return true;
   }
 
   Future<bool> leaveForVocabularyTarget() async {
-    if (!mounted || _exiting || !_isReview) return false;
+    if (!mounted || _exiting) return false;
     final route = ModalRoute.of(context);
     if (route == null || !route.isCurrent) return false;
     await pauseForMainAssistant();
@@ -1828,10 +1845,11 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     _commitNavigationExit(saveCheckpoint: false, releaseMedia: false);
     _routePopRequested = true;
     _popOrRemovePractice();
-    if (_removeRouteWithoutTransition) {
-      await route.popped;
-    } else {
+    if (WidgetsBinding.instance.lifecycleState == null ||
+        WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
       await route.completed;
+    } else {
+      await route.popped;
     }
     return true;
   }

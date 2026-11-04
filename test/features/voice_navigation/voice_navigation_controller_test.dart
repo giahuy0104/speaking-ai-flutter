@@ -2277,6 +2277,43 @@ void main() {
     await speechInput.dispose();
   });
 
+  test('Today MAIN other-content command speaks the two-choice menu', () async {
+    final speech = _FakeNavigationSpeechInput();
+    final prompt = _KeyedFakeVoicePromptService();
+    final controller = VoiceNavigationController(
+      speechInput: speech,
+      voicePromptService: prompt,
+    );
+    expect(
+      await controller.activateFromMainButton(
+        activeLearning: true,
+        activeLearningKind: ActiveLearningModuleKind.vocabulary,
+        promptAlreadySpoken: true,
+      ),
+      isTrue,
+    );
+
+    expect(
+      await controller.dispatchRecognizedText('Học nội dung khác'),
+      isTrue,
+    );
+    expect(
+      prompt.spokenTexts.last,
+      MainVoiceAssistantFlow.vocabularyOtherLearningPrompt,
+    );
+    expect(
+      prompt.keyedPlays.where(
+        (play) =>
+            play.$2 == MainVoiceAssistantFlow.vocabularyOtherLearningPrompt,
+      ),
+      isEmpty,
+    );
+    expect(controller.isAwaitingCommand, isTrue);
+
+    controller.dispose();
+    await speech.dispose();
+  });
+
   test(
     'two silent translation-switch windows pause without redirecting',
     () async {

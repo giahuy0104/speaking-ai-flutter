@@ -2879,6 +2879,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     String? inputLabelOverride,
     bool promptAlreadySpoken = false,
     bool otherLearning = false,
+    bool otherLearningFromVocabulary = false,
     bool replaceActiveMainSession = false,
     String? noSpeechRetryPrompt,
     String? noSpeechExitPrompt,
@@ -2915,7 +2916,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       },
       activateVoice: ({required activeLearning, required activeLearningKind}) =>
           otherLearning
-          ? voiceController.activateOtherLearningFromSpeaking()
+          ? voiceController.activateOtherLearningFromSpeaking(
+              fromVocabulary: otherLearningFromVocabulary,
+            )
           : voiceController.activateFromMainButton(
               activeLearning: activeLearning,
               activeLearningKind: activeLearningKind,
@@ -3504,6 +3507,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     final activated = await _activateMainAssistant(
       promptAlreadySpoken: promptAlreadySpoken,
       otherLearning: otherLearning,
+      otherLearningFromVocabulary: otherLearning,
       noSpeechRetryPrompt: noSpeechRetryPrompt,
       noSpeechExitPrompt: noSpeechExitPrompt,
     );
