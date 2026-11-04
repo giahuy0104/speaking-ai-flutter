@@ -1826,7 +1826,13 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
       }
       expect(voice.isAwaitingCommand, isTrue);
-      unawaited(voice.dispatchRecognizedText('Luyện lại'));
+      var reviewNavigationFinished = false;
+      final reviewNavigation = voice.dispatchRecognizedText('Luyện lại').then((
+        handled,
+      ) {
+        reviewNavigationFinished = true;
+        return handled;
+      });
       for (
         var index = 0;
         index < 100 &&
@@ -1840,6 +1846,9 @@ void main() {
         VocabularyPracticeMode.review,
       );
       expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+      expect(reviewNavigationFinished, isTrue);
+      expect(await reviewNavigation, isTrue);
+      expect(prompts.spoken, contains(VocabularyFlowV3.reviewIntro));
       expect(prompts.spoken, isNot(contains(VocabularyFlowV3.menu)));
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump(const Duration(seconds: 3));
@@ -2197,6 +2206,7 @@ void main() {
         ownsSpeechInput: true,
         voicePromptService: _SilentVoicePromptService(),
       );
+      final prompts = _RecordingVoicePromptService();
       final controller = _controller();
       addTearDown(registry.dispose);
       addTearDown(voice.dispose);
@@ -2208,7 +2218,7 @@ void main() {
             controller,
             voiceNavigationController: voice,
             vocabularyMediaService: _ImmediateVocabularyMediaService(),
-            vocabularyVoicePromptService: _SilentVoicePromptService(),
+            vocabularyVoicePromptService: prompts,
           ),
         ),
       );
@@ -2226,7 +2236,13 @@ void main() {
         isTrue,
       );
       expect(await voice.dispatchRecognizedText('Học nội dung khác'), isTrue);
-      unawaited(voice.dispatchRecognizedText('Luyện lại'));
+      var reviewNavigationFinished = false;
+      final reviewNavigation = voice.dispatchRecognizedText('Luyện lại').then((
+        handled,
+      ) {
+        reviewNavigationFinished = true;
+        return handled;
+      });
       for (var index = 0; index < 50; index++) {
         await tester.pump(const Duration(milliseconds: 100));
         if ((await const VocabularySessionStore().readActive())?.mode ==
@@ -2253,7 +2269,10 @@ void main() {
         find.byType(VocabularyPracticeScreen, skipOffstage: false),
         findsOneWidget,
       );
+      expect(reviewNavigationFinished, isTrue);
+      expect(await reviewNavigation, isTrue);
       await tester.pump(const Duration(seconds: 3));
+      expect(prompts.spoken, contains(VocabularyFlowV3.reviewIntro));
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump(const Duration(seconds: 5));
     },

@@ -483,7 +483,38 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
           await _runAudioCommand(_openReviewFromVoice);
         } else {
-          await _startReview(allowPendingToday: true);
+          final navigationReady = Completer<void>();
+          unawaited(
+            _startReview(
+              allowPendingToday: true,
+              onNavigationDecided: (started) {
+                if (navigationReady.isCompleted) return;
+                if (started) {
+                  navigationReady.complete();
+                } else {
+                  navigationReady.completeError(
+                    StateError('Review destination is unavailable.'),
+                  );
+                }
+              },
+            ).then(
+              (_) {
+                if (!navigationReady.isCompleted) {
+                  navigationReady.completeError(
+                    StateError('Review destination did not open.'),
+                  );
+                }
+              },
+              onError: (Object error, StackTrace stackTrace) {
+                if (!navigationReady.isCompleted) {
+                  navigationReady.completeError(error, stackTrace);
+                } else {
+                  debugPrint('Review destination failed: $error');
+                }
+              },
+            ),
+          );
+          await navigationReady.future;
         }
         return;
     }
