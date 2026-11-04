@@ -1020,9 +1020,13 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         // vocabulary page that never stopped being active, so showing that
         // page again starts nothing and HOMI would stay silent.
         final vocabularyTarget = intent.vocabularyTarget;
-        if ((vocabularyTarget == VoiceVocabularyTarget.parent ||
-                vocabularyTarget == VoiceVocabularyTarget.star) &&
-            _vocabularyNavigationController.hasReviewPractice) {
+        if ((vocabularyTarget != null &&
+                !kIsWeb &&
+                defaultTargetPlatform == TargetPlatform.android &&
+                _vocabularyNavigationController.hasPractice) ||
+            ((vocabularyTarget == VoiceVocabularyTarget.parent ||
+                    vocabularyTarget == VoiceVocabularyTarget.star) &&
+                _vocabularyNavigationController.hasReviewPractice)) {
           final closed = await _vocabularyNavigationController
               .closePracticeForOtherContent(forVoiceTarget: true);
           if (!closed || !mounted) return false;

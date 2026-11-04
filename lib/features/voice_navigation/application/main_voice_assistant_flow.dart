@@ -144,10 +144,26 @@ class MainVoiceAssistantFlow {
 
   MainVoiceAssistantStage get stage => _stage;
 
+  bool get _switchingFromVocabulary =>
+      _stage == MainVoiceAssistantStage.chooseModuleSwitch &&
+      _activeLearningKind == ActiveLearningModuleKind.vocabulary;
+
+  String get _moduleSwitchPrompt =>
+      _activeLearningKind == ActiveLearningModuleKind.vocabulary
+      ? vocabularyOtherLearningPrompt
+      : MasterNavigationContract.translationSwitch;
+
+  String? get _moduleSwitchAudioKey =>
+      _activeLearningKind == ActiveLearningModuleKind.vocabulary
+      ? null
+      : MainAssistantAudioKeys.chooseTranslation;
+
   String? get currentPromptAudioKey => switch (_stage) {
     MainVoiceAssistantStage.chooseFeature => MainAssistantAudioKeys.openMenu,
     MainVoiceAssistantStage.chooseOtherLearning
         when _otherLearningFromVocabulary =>
+      null,
+    MainVoiceAssistantStage.chooseModuleSwitch when _switchingFromVocabulary =>
       null,
     MainVoiceAssistantStage.chooseOtherLearning ||
     MainVoiceAssistantStage.chooseModuleSwitch ||
@@ -600,7 +616,7 @@ class MainVoiceAssistantFlow {
           _isContinueTranslationChoice(normalized),
     MainVoiceAssistantStage.chooseModuleSwitch =>
       _isTopicChoice(normalized) ||
-          _isVocabularyChoice(normalized) ||
+          (!_switchingFromVocabulary && _isVocabularyChoice(normalized)) ||
           _isTranslationChoice(normalized),
     MainVoiceAssistantStage.chooseAfterTranslationStop =>
       _isTopicChoice(normalized) ||
@@ -1308,9 +1324,9 @@ class MainVoiceAssistantFlow {
             _isLeaveActiveLearningChoice(normalized))) {
       _stage = MainVoiceAssistantStage.chooseModuleSwitch;
       _fallbackAttempts.remove(_stage);
-      return const MainVoiceAssistantTurn(
-        promptText: MasterNavigationContract.translationSwitch,
-        promptAudioKey: MainAssistantAudioKeys.chooseTranslation,
+      return MainVoiceAssistantTurn(
+        promptText: _moduleSwitchPrompt,
+        promptAudioKey: _moduleSwitchAudioKey,
         continueListening: true,
       );
     }
@@ -1329,9 +1345,9 @@ class MainVoiceAssistantFlow {
     String normalized,
   ) {
     if (_looksLikePromptEcho(normalized)) {
-      return const MainVoiceAssistantTurn(
-        promptText: MasterNavigationContract.translationSwitch,
-        promptAudioKey: MainAssistantAudioKeys.chooseTranslation,
+      return MainVoiceAssistantTurn(
+        promptText: _moduleSwitchPrompt,
+        promptAudioKey: _moduleSwitchAudioKey,
         continueListening: true,
       );
     }
@@ -1341,7 +1357,7 @@ class MainVoiceAssistantFlow {
         destination: VoiceNavigationDestination.topics,
       );
     }
-    if (_isVocabularyChoice(normalized)) {
+    if (!_switchingFromVocabulary && _isVocabularyChoice(normalized)) {
       return _switchFromActiveLearning(
         recognizedText: recognizedText,
         destination: VoiceNavigationDestination.vocabulary,
@@ -1353,9 +1369,9 @@ class MainVoiceAssistantFlow {
         destination: VoiceNavigationDestination.conversation,
       );
     }
-    return const MainVoiceAssistantTurn(
-      promptText: MasterNavigationContract.translationSwitch,
-      promptAudioKey: MainAssistantAudioKeys.chooseTranslation,
+    return MainVoiceAssistantTurn(
+      promptText: _moduleSwitchPrompt,
+      promptAudioKey: _moduleSwitchAudioKey,
       continueListening: true,
     );
   }
@@ -2222,8 +2238,7 @@ class MainVoiceAssistantFlow {
         _otherLearningFromVocabulary
             ? vocabularyOtherLearningPrompt
             : otherLearningPrompt,
-      MainVoiceAssistantStage.chooseModuleSwitch =>
-        MasterNavigationContract.translationSwitch,
+      MainVoiceAssistantStage.chooseModuleSwitch => _moduleSwitchPrompt,
       MainVoiceAssistantStage.chooseAfterTranslationStop =>
         afterTranslationStopPrompt,
       MainVoiceAssistantStage.chooseAlternativeAfterLearning =>
@@ -2277,6 +2292,14 @@ class MainVoiceAssistantFlow {
     }
     if (_stage == MainVoiceAssistantStage.chooseModuleSwitch ||
         _stage == MainVoiceAssistantStage.activeLearning) {
+      if (_switchingFromVocabulary) {
+        return const MainVoiceAssistantTurn(
+          promptText: MasterNavigationContract.pause,
+          promptAudioKey: MainAssistantAudioKeys.cancelled,
+          continueListening: false,
+          exhaustedUnrecognizedInput: true,
+        );
+      }
       return const MainVoiceAssistantTurn(
         promptText: MasterNavigationContract.keepCurrentContent,
         promptAudioKey: MainAssistantAudioKeys.keepCurrentContent,

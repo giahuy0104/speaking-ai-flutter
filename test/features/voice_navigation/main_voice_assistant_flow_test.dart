@@ -802,20 +802,54 @@ void main() {
     },
   );
 
-  test('Vocabulary choice after other content confirms the return', () async {
-    final flow = MainVoiceAssistantFlow()
-      ..beginActiveLearning(kind: ActiveLearningModuleKind.vocabulary);
+  test(
+    'Today other content excludes generic Vocabulary and keeps direct targets',
+    () async {
+      final flow = MainVoiceAssistantFlow()
+        ..beginActiveLearning(kind: ActiveLearningModuleKind.vocabulary);
 
-    final choice = await flow.handle('Học nội dung khác');
-    expect(choice.promptText, MasterNavigationContract.translationSwitch);
-    expect(flow.stage, MainVoiceAssistantStage.chooseModuleSwitch);
+      final choice = await flow.handle('Học nội dung khác');
+      expect(
+        choice.promptText,
+        MainVoiceAssistantFlow.vocabularyOtherLearningPrompt,
+      );
+      expect(choice.promptAudioKey, isNull);
+      expect(flow.stage, MainVoiceAssistantStage.chooseModuleSwitch);
+      expect(flow.canHandle('Bộ từ vựng'), isFalse);
 
-    final turn = await flow.handle('Bộ từ vựng');
-    expect(turn.activeLearningCommand, ActiveLearningCommand.vocabularyRoot);
-    expect(turn.promptText, MasterNavigationContract.switchedToVocabulary);
-    expect(turn.promptAudioKey, MainAssistantAudioKeys.switchedToVocabulary);
-    expect(turn.continueListening, isFalse);
-  });
+      final rejected = await flow.handle('Bộ từ vựng');
+      expect(
+        rejected.promptText,
+        MainVoiceAssistantFlow.vocabularyOtherLearningPrompt,
+      );
+      expect(rejected.navigationAfterPrompt, isNull);
+      expect(rejected.activeLearningCommand, isNull);
+      expect(rejected.continueListening, isTrue);
+
+      for (final target in <String, VoiceVocabularyTarget>{
+        'Ngôi sao': VoiceVocabularyTarget.star,
+        'Luyện lại': VoiceVocabularyTarget.review,
+      }.entries) {
+        flow.beginActiveLearning(kind: ActiveLearningModuleKind.vocabulary);
+        await flow.handle('Học nội dung khác');
+        final turn = await flow.handle(target.key);
+        expect(turn.navigationAfterPrompt?.vocabularyTarget, target.value);
+      }
+
+      flow.beginActiveLearning(kind: ActiveLearningModuleKind.vocabulary);
+      await flow.handle('Học nội dung khác');
+      final translation = await flow.handle('Dịch tiếng Anh');
+      expect(
+        translation.promptText,
+        MasterNavigationContract.switchedToTranslation,
+      );
+      expect(translation.promptSequence.length, 2);
+      expect(
+        translation.navigationAfterPrompt?.destination,
+        VoiceNavigationDestination.conversation,
+      );
+    },
+  );
 
   test('active lesson prompt offers pause and leaving the lesson', () {
     final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);

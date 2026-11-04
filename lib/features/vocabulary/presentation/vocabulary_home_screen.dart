@@ -451,7 +451,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         if (practice.isRoutePopRequested) {
           return practice.waitForRouteClosed();
         }
-        return forVoiceTarget
+        return forVoiceTarget && practice.hasActiveReviewPractice
             ? practice.leaveForVocabularyTarget()
             : practice.leaveForOtherContent();
       },
