@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 import '../../../core/audio/adaptive_voice_activity_detector.dart';
 import '../../../core/audio/streaming_speech_input.dart';
@@ -376,7 +377,7 @@ class VoiceNavigationController extends ChangeNotifier {
       if (_disposed || activationGeneration != _generation) {
         return false;
       }
-      await _beginNativeMainTurn(_generation);
+      if (!await _beginNativeMainTurn(_generation)) return false;
       if (_disposed || activationGeneration != _generation) return false;
       _activeInputLabelOverride = inputLabelOverride;
       _lastError = null;
@@ -1335,10 +1336,10 @@ class VoiceNavigationController extends ChangeNotifier {
     }
   }
 
-  Future<void> _beginNativeMainTurn(int generation) async {
+  Future<bool> _beginNativeMainTurn(int generation) async {
     final service = _voicePromptService;
     if (service is! MainTurnVoicePromptService) {
-      return;
+      return true;
     }
     final mainTurnService = service as MainTurnVoicePromptService;
     final audioSource = _mainSpeechAudioSource?.call();
@@ -1355,10 +1356,11 @@ class VoiceNavigationController extends ChangeNotifier {
           generation: generation,
           turnId: turnId,
         );
-        return;
+        return true;
       }
       _nativeMainTurnId = turnId;
       _nativeMainTurnGeneration = generation;
+      return true;
     } on TimeoutException {
       // iOS arms a background-capable Apple Speech engine before replying to
       // beginMainTurn. That native preparation can occasionally finish late
@@ -1375,8 +1377,23 @@ class VoiceNavigationController extends ChangeNotifier {
           onError: (_) {},
         ),
       );
+      return true;
+    } on PlatformException catch (error) {
+      if (error.code != 'BACKGROUND_MIC_NOT_READY') return true;
+      const message = 'Mở khóa iPhone rồi nhấn MAIN lại để dùng micro.';
+      _lastError = const StreamingSpeechInputException(
+        message,
+        code: 'BACKGROUND_MIC_NOT_READY',
+      );
+      try {
+        await service?.speakAndWait(message);
+      } catch (_) {
+        // The visible error remains available if background playback fails.
+      }
+      return false;
     } catch (_) {
       // The visible prompt remains usable on platforms without this bridge.
+      return true;
     }
   }
 

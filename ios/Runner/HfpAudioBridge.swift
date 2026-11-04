@@ -725,10 +725,8 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
           : "Đã xác nhận mic và loa HOMI trên route bluetoothHFP."
         self.emitStatus()
         if !recording {
-          // `connect` only verifies and remembers the paired HFP input. Do not
-          // leave SCO active while idle: HM-D001 exposes BLE and Classic Bluetooth
-          // on the same firmware and an always-open voice profile makes its
-          // GATT control link disconnect/reconnect continuously on iOS.
+          // Release SCO after verifying the paired input. Background learning
+          // may reopen a recording graph once this idle route has settled.
           self.audioSessionCoordinator.releaseAudioSessionIfIdle(
             caller: "HfpAudioBridge.connectVerified"
           )
@@ -780,9 +778,8 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
 
   private func stopAudioRoute() {
     routeActivationGeneration += 1
-    // Preserve only the selected HM-D001 identity. The live HFP/SCO session is an
-    // utterance-scoped resource and must be released so BLE GATT can remain
-    // connected and keep receiving physical MAIN notifications while idle.
+    // Preserve the selected HM-D001 identity and release this utterance's HFP
+    // lease. A background-learning capture may still own the live audio session.
     if let activeInput = selectedOrUnclaimedActiveTwoWayHfpInput() {
       selectedInputId = activeInput.uid
       selectedInputName = activeInput.portName
@@ -835,13 +832,28 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
         hasVerifiedSelection: selectedInputVerified,
         hasSelectedInput: selectedInputId != nil
       )
-      message = "Đã chọn mic HFP; SCO đã nhả và BLE có thể kết nối an toàn."
+      audioSessionCoordinator.setVerifiedHfpSelection(selectedInputVerified)
+      let willArmForegroundHfp = selectedInputVerified
+        && IOSNativeWork.applicationIsActive
+        && audioSessionCoordinator.isBackgroundLearningEnabled
+        && audioSessionCoordinator.hasAvailableSelectedHfpInput
+      message = willArmForegroundHfp
+        ? "Đã chọn mic HFP; đang chuẩn bị thu âm cho MAIN khi khóa màn hình."
+        : "Đã chọn mic HFP; SCO đã nhả và BLE có thể kết nối an toàn."
       audioSessionCoordinator.trace(
         stage: "hfp_idle_route_confirmed",
         caller: "HfpAudioBridge.connectVerified"
       )
       emitStatus()
       result(snapshot())
+      if willArmForegroundHfp {
+        // The background-learning session may have started before HFP discovery.
+        // Open its input while the app is still foregrounded, after selection
+        // has been verified and the idle route has settled.
+        audioSessionCoordinator.requestBackgroundCaptureArm(
+          caller: "HfpAudioBridge.connectVerified"
+        )
+      }
     case .wait:
       IOSNativeWork.queue.asyncAfter(deadline: .now() + .milliseconds(100)) { [weak self] in
         guard let self else {
@@ -1028,6 +1040,9 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       uid: selectedInputId,
       name: selectedInputName
     )
+    if !selectedInputVerified {
+      audioSessionCoordinator.setVerifiedHfpSelection(false)
+    }
     var value: [String: Any] = [
       "type": "status",
       "phase": phase,

@@ -518,33 +518,45 @@ class RunnerTests: XCTestCase {
     )
   }
 
-  func testBackgroundAudioHandoffStaysWarmDuringActiveLearningOrInBackground() {
+  func testBackgroundAudioHandoffStaysWarmForSelectedHfpBeforeScreenLock() {
     XCTAssertTrue(
       IOSBackgroundAudioHandoffPolicy.shouldKeepEngineRunning(
         backgroundLearningEnabled: true,
         activeLearningRequested: false,
-        applicationIsActive: false
+        applicationIsActive: false,
+        hasAvailableHfpInput: true
       )
     )
     XCTAssertFalse(
       IOSBackgroundAudioHandoffPolicy.shouldKeepEngineRunning(
         backgroundLearningEnabled: false,
         activeLearningRequested: true,
-        applicationIsActive: false
+        applicationIsActive: false,
+        hasAvailableHfpInput: true
       )
     )
     XCTAssertFalse(
       IOSBackgroundAudioHandoffPolicy.shouldKeepEngineRunning(
         backgroundLearningEnabled: true,
         activeLearningRequested: false,
-        applicationIsActive: true
+        applicationIsActive: true,
+        hasAvailableHfpInput: false
+      )
+    )
+    XCTAssertTrue(
+      IOSBackgroundAudioHandoffPolicy.shouldKeepEngineRunning(
+        backgroundLearningEnabled: true,
+        activeLearningRequested: false,
+        applicationIsActive: true,
+        hasAvailableHfpInput: true
       )
     )
     XCTAssertTrue(
       IOSBackgroundAudioHandoffPolicy.shouldKeepEngineRunning(
         backgroundLearningEnabled: true,
         activeLearningRequested: true,
-        applicationIsActive: true
+        applicationIsActive: true,
+        hasAvailableHfpInput: false
       )
     )
   }
@@ -1985,4 +1997,8 @@ private final class MainTurnAudioTargetHandoff: IOSBackgroundCaptureHandoffDeleg
   }
 
   func disarmBackgroundAudioHandoff(caller: String) {}
+
+  func isBackgroundAudioHandoffReady(for target: IOSAudioInputTarget?) -> Bool {
+    false
+  }
 }

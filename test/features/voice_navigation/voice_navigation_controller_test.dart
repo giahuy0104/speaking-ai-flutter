@@ -15,6 +15,7 @@ import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_en
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_flow_v3.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -2506,6 +2507,28 @@ void main() {
   );
 
   test(
+    'locked iOS MAIN asks for unlock before prompting when native input is gone',
+    () async {
+      final speechInput = _FakeNavigationSpeechInput();
+      final voicePrompt = _BackgroundMicUnavailableVoicePromptService();
+      final controller = VoiceNavigationController(
+        speechInput: speechInput,
+        voicePromptService: voicePrompt,
+      );
+
+      expect(await controller.activateFromMainButton(), isFalse);
+      expect(controller.isMainButtonSessionActive, isFalse);
+      expect(speechInput.events, isNot(contains('start')));
+      expect(voicePrompt.spokenTexts, <String>[
+        'Mở khóa iPhone rồi nhấn MAIN lại để dùng micro.',
+      ]);
+
+      controller.dispose();
+      await speechInput.dispose();
+    },
+  );
+
+  test(
     'iOS lesson MAIN does not stay blocked by a late native turn arm',
     () async {
       final speechInput = _FakeNavigationSpeechInput();
@@ -3398,6 +3421,14 @@ class _FakeMainTurnVoicePromptService extends _FakeVoicePromptService
   Future<void> endMainTurn(String reason, {String? turnId}) async {
     endedReasons.add(reason);
     endedTurnIds.add(turnId);
+  }
+}
+
+class _BackgroundMicUnavailableVoicePromptService
+    extends _FakeMainTurnVoicePromptService {
+  @override
+  Future<String?> beginMainTurn() async {
+    throw PlatformException(code: 'BACKGROUND_MIC_NOT_READY');
   }
 }
 
