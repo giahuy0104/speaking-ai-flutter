@@ -20,6 +20,7 @@ import '../../../core/device/active_learning_module.dart';
 import '../../../core/platform/background_learning_session.dart';
 import '../../../core/platform/platform_access_policy.dart';
 import '../../conversation/presentation/conversation_controller.dart';
+import '../../conversation/domain/conversation_models.dart';
 import '../../conversation/presentation/conversation_screen.dart';
 import '../../listening/application/listening_voice_navigation_target.dart';
 import '../../listening/data/active_listening_session_store.dart';
@@ -166,6 +167,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   bool? _hasNetworkTransport;
   bool? _offlineLanguageReady;
   int _networkStatusGeneration = 0;
+  late TranslationOutputLanguage _observedOutputLanguage;
 
   bool get _isIos => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
 
@@ -189,6 +191,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   @override
   void initState() {
     super.initState();
+    _observedOutputLanguage = widget.controller.outputLanguage;
     WidgetsBinding.instance.addObserver(this);
     _pageController = PageController();
     _authoredVocabularySuggestionProvider =
@@ -761,6 +764,13 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       widget.controller.isInputAvailable;
 
   void _onConversationControllerChanged() {
+    if (_observedOutputLanguage != widget.controller.outputLanguage) {
+      _observedOutputLanguage = widget.controller.outputLanguage;
+      if (_hasNetworkTransport == false) {
+        setState(() => _offlineLanguageReady = null);
+        unawaited(_refreshNetworkStatus());
+      }
+    }
     // The controller notifies on every phase and microphone-level change.
     // Rebuild the shell (and the vocabulary page it hosts) only when a value
     // the shell itself renders has changed, so a tab transition is not

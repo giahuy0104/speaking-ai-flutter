@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app/app_theme.dart';
@@ -1202,7 +1203,7 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
         service: _service,
         consentStore: _consentStore,
       );
-  late final OfflineVietnameseEnglishTranslator _translator =
+  late final MlKitOfflineVietnameseEnglishTranslator _translator =
       MlKitOfflineVietnameseEnglishTranslator();
   AndroidOfflineSpeechModelConsent _consent =
       AndroidOfflineSpeechModelConsent.undecided;
@@ -1222,7 +1223,10 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
     final request = ++_request;
     try {
       final consent = await _consentStore.read();
-      final translationReady = await _translator.modelsReady();
+      final translationStates = await Future.wait<bool>(
+        TranslationOutputLanguage.values.map(_translator.modelsReadyFor),
+      );
+      final translationReady = translationStates.every((ready) => ready);
       final statuses = await Future.wait<AndroidOfflineSpeechModelStatus>([
         _service.status(locale: 'en-US'),
         _service.status(locale: 'vi-VN'),
@@ -1282,7 +1286,7 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
               ) ~/
               totalBytes;
     final progress = allSpeechInstalled && !translationReady
-        ? 95
+        ? 0
         : weightedProgress;
     return AndroidOfflineSpeechModelStatus(
       state: state,
@@ -1327,6 +1331,9 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
         return;
       } else {
         await _service.cancelDownload();
+        await const MethodChannel(
+          'homi_offline_speech',
+        ).invokeMethod<void>('translation.cancelDownload');
       }
       final status = await _service.status();
       if (!mounted || request != _request) {
@@ -1370,7 +1377,9 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
       if (mounted &&
           await _consentStore.read() ==
               AndroidOfflineSpeechModelConsent.allowed) {
-        await _translator.downloadModels(wifiOnly: true);
+        await const MethodChannel(
+          'homi_offline_speech',
+        ).invokeMethod<void>('translation.scheduleDownload');
       }
     } finally {
       if (mounted) {
@@ -1433,8 +1442,8 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
     switch (_status?.state) {
       case AndroidOfflineSpeechModelState.installed:
         return context.tr(
-          'Các gói giọng nói và dịch Việt–Anh đã sẵn sàng. Khi mất mạng, bài học, thử thách và dịch liên tục có thể xử lý trên thiết bị.',
-          '语音与越英翻译模型已准备好；离线时课程、挑战和连续翻译可在设备上处理。',
+          'Các gói giọng nói và dịch sang Anh, Trung, Nhật, Hàn, Pháp đã sẵn sàng trên thiết bị.',
+          '语音与英语、中文、日语、韩语、法语翻译模型已在设备上准备好。',
         );
       case AndroidOfflineSpeechModelState.pending:
         final progress = _status?.progress ?? 0;
@@ -1445,11 +1454,11 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
             : '';
         return context.tr(
           progress > 0
-              ? 'HOMI đang tải các gói offline$sizeText trong nền: $progress%. Thường mất 2–10 phút tùy Wi-Fi; bạn có thể tiếp tục dùng ứng dụng.'
-              : 'Đã xếp lịch tải các gói offline$sizeText. HOMI sẽ tự bắt đầu khi có Wi-Fi; thường mất 2–10 phút.',
+              ? 'HOMI đang tải các gói offline$sizeText trong nền: $progress%. Bạn có thể tiếp tục dùng ứng dụng.'
+              : 'HOMI đang chuẩn bị các gói offline$sizeText trong nền khi có Wi-Fi.',
           progress > 0
-              ? 'HOMI 正在后台下载离线模型：$progress%。通常需要 2–10 分钟；您可以继续使用应用。'
-              : '离线模型已排入队列；连接 Wi-Fi 后会自动开始，通常需要 2–10 分钟。',
+              ? 'HOMI 正在后台下载离线模型：$progress%。您可以继续使用应用。'
+              : 'HOMI 将在连接 Wi-Fi 时于后台准备离线模型。',
         );
       case AndroidOfflineSpeechModelState.unavailable:
         return context.tr(
@@ -1463,20 +1472,20 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
         if (_preparation ==
             AndroidOfflineSpeechModelPreparationResult.waitingForWifi) {
           return context.tr(
-            'Đã cho phép. HOMI sẽ tự tải en-US khi có Wi-Fi, không dùng dữ liệu di động.',
-            '已允许。连接 Wi-Fi 后 HOMI 将自动下载 en-US，不使用移动数据。',
+            'Đã cho phép. HOMI sẽ tự tải các gói offline khi có Wi-Fi, không dùng dữ liệu di động.',
+            '已允许。连接 Wi-Fi 后 HOMI 将自动下载离线模型，不使用移动数据。',
           );
         }
         if (_consent == AndroidOfflineSpeechModelConsent.undecided) {
           return context.tr(
-            'Tiếng Anh cho Chủ đề được tự tải qua Wi-Fi khi vào Home. Bật mục này để tải thêm tiếng Việt và bộ dịch.',
-            '进入首页后会通过 Wi-Fi 自动下载主题学习所需的英语模型。开启此项可额外下载越南语和翻译模型。',
+            'Tiếng Anh cho Chủ đề được tự tải qua Wi-Fi khi vào Home. Bật mục này để tải thêm tiếng Việt và các bộ dịch sang 5 ngôn ngữ.',
+            '进入首页后会通过 Wi-Fi 自动下载主题学习所需的英语模型。开启此项可额外下载越南语及五种目标语言的翻译模型。',
           );
         }
         return _consent == AndroidOfflineSpeechModelConsent.allowed
             ? context.tr(
-                'Đã cho phép tự tải các gói tiếng Anh, tiếng Việt và dịch Việt–Anh qua Wi-Fi. Không mở màn hình tải riêng.',
-                '已允许通过 Wi-Fi 自动下载约 40 MB 的 en-US 模型，不会打开 Google 下载页面。',
+                'Đã cho phép tự tải gói nói tiếng Việt và các gói dịch sang Anh, Trung, Nhật, Hàn, Pháp qua Wi-Fi.',
+                '已允许通过 Wi-Fi 自动下载越南语语音与五种目标语言的翻译模型。',
               )
             : context.tr(
                 'Phụ huynh bật mục này một lần; HOMI tự tải các gói cần thiết khi có Wi-Fi và không dùng dữ liệu di động.',

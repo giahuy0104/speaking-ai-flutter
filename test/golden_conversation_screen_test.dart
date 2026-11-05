@@ -47,15 +47,15 @@ void main() {
     expect(find.textContaining('đang kiểm tra dữ liệu'), findsOneWidget);
 
     await showNotice(true);
-    expect(find.textContaining('vẫn có thể nghe và dịch'), findsOneWidget);
+    expect(find.textContaining('dịch sang Tiếng Anh'), findsOneWidget);
 
     controller.outputLanguage = TranslationOutputLanguage.japanese;
     await showNotice(true);
-    expect(find.textContaining('Ngôn ngữ này cần Internet'), findsOneWidget);
+    expect(find.textContaining('dịch sang Tiếng Nhật'), findsOneWidget);
 
     controller.outputLanguage = TranslationOutputLanguage.english;
     await showNotice(false);
-    expect(find.textContaining('chưa sẵn sàng trên thiết bị'), findsOneWidget);
+    expect(find.textContaining('chưa sẵn sàng'), findsOneWidget);
 
     await showNotice(false, offline: false);
     expect(find.byKey(const Key('conversation-offline-status')), findsNothing);
