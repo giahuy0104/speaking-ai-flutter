@@ -31,8 +31,8 @@ enum LessonPlaybackRoute { selectedLessonDevice, phoneSpeaker }
 /// pauses on becoming-noisy (and on iOS route-loss) without ever resuming, and
 /// a completion-aware clip that is paused never reports its end.
 const Duration _pausedPlaybackResumeDelay = Duration(seconds: 1);
-const Duration _iosPlaybackEndGracePeriod = Duration(milliseconds: 300);
-const Duration _iosPlaybackEndPositionMargin = Duration(milliseconds: 20);
+const Duration _playbackEndGracePeriod = Duration(milliseconds: 300);
+const Duration _playbackEndPositionMargin = Duration(milliseconds: 20);
 
 /// A pause this close to the end is left to report completion by itself.
 const Duration _pausedPlaybackEndMargin = Duration(milliseconds: 500);
@@ -304,6 +304,37 @@ class LessonMediaService {
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = androidSpeechBoostDb,
     bool fixedPlaybackGain = false,
+  }) => _playToCompletion(
+    uri,
+    timeout: timeout,
+    route: route,
+    playbackGainDb: playbackGainDb,
+    fixedPlaybackGain: fixedPlaybackGain,
+    inferCompletionAtSourceEnd: false,
+  );
+
+  Future<void> playRecordedTakeToCompletion(
+    Uri uri, {
+    Duration timeout = const Duration(seconds: 45),
+    LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = androidSpeechBoostDb,
+    bool fixedPlaybackGain = false,
+  }) => _playToCompletion(
+    uri,
+    timeout: timeout,
+    route: route,
+    playbackGainDb: playbackGainDb,
+    fixedPlaybackGain: fixedPlaybackGain,
+    inferCompletionAtSourceEnd: true,
+  );
+
+  Future<void> _playToCompletion(
+    Uri uri, {
+    required Duration timeout,
+    required LessonPlaybackRoute route,
+    required double playbackGainDb,
+    required bool fixedPlaybackGain,
+    required bool inferCompletionAtSourceEnd,
   }) async {
     final generation = ++_playbackRequestGeneration;
     final playback = _activePlayback;
@@ -420,11 +451,13 @@ class LessonMediaService {
       started = true;
       playStarted = true;
       if (!kIsWeb &&
-          defaultTargetPlatform == TargetPlatform.iOS &&
+          (defaultTargetPlatform == TargetPlatform.iOS ||
+              (defaultTargetPlatform == TargetPlatform.android &&
+                  inferCompletionAtSourceEnd)) &&
           prearmedPlayback != null &&
           playback is ProgressAwareAudioPlaybackService) {
         final progress = playback as ProgressAwareAudioPlaybackService;
-        // On iOS, AVPlayer can reach the file's end without just_audio
+        // A recorded take can reach the file's end without just_audio
         // publishing ProcessingState.completed. Confirm a stable end position
         // for this request so a finished take does not time out after playing.
         endPositionTimer = Timer.periodic(const Duration(milliseconds: 100), (
@@ -445,25 +478,25 @@ class LessonMediaService {
               duration != null &&
               duration > Duration.zero &&
               position > Duration.zero &&
-              position < duration - _iosPlaybackEndPositionMargin) {
+              position < duration - _playbackEndPositionMargin) {
             observedProgressWhilePlaying = true;
           }
           final atCurrentSourceEnd =
               observedProgressWhilePlaying &&
               duration != null &&
               duration > Duration.zero &&
-              position >= duration - _iosPlaybackEndPositionMargin;
+              position >= duration - _playbackEndPositionMargin;
           if (!atCurrentSourceEnd) {
             endPositionObservedAt = null;
             return;
           }
           endPositionObservedAt ??= DateTime.now();
           if (DateTime.now().difference(endPositionObservedAt!) <
-              _iosPlaybackEndGracePeriod) {
+              _playbackEndGracePeriod) {
             return;
           }
           debugPrint(
-            'HOMI iOS lesson playback completion inferred at source end: '
+            'HOMI lesson playback completion inferred at source end: '
             'position=$position duration=$duration',
           );
           completed.complete();

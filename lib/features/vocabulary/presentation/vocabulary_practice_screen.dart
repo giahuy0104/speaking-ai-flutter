@@ -30,6 +30,7 @@ const _practiceHomiSceneryAsset =
     'assets/images/vocabulary/practice-homi-background.png';
 
 enum VocabularyPracticeResult {
+  completedTodayVocabularyRoot,
   continueLearning,
   otherContent,
   parentAdded,
@@ -265,11 +266,7 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     });
     _followCurrentReviewEntry();
     if (widget.autoStart) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          unawaited(_startCurrent(includeIntro: widget.announceIntro));
-        }
-      });
+      unawaited(_startCurrent(includeIntro: widget.announceIntro));
     }
   }
 
@@ -1022,6 +1019,15 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       return const ActiveLearningCommandResult.busy();
     }
     if (command == ActiveLearningCommand.vocabularyRoot) {
+      if (_isToday && _completed) {
+        final registration = _activeRegistration;
+        if (registration != null) {
+          _activeRegistry?.unregister(registration);
+          _activeRegistration = null;
+        }
+        _finish(VocabularyPracticeResult.completedTodayVocabularyRoot);
+        return const ActiveLearningCommandResult.handled();
+      }
       await pauseForMainAssistant();
       await widget.sessionStore.saveActive(
         _session.copyWith(currentIndex: _index),
@@ -1271,7 +1277,8 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
         onPopInvokedWithResult: (didPop, result) {
           if (didPop) {
             final returnsToRoot =
-                result == VocabularyPracticeResult.vocabularyRoot;
+                result == VocabularyPracticeResult.vocabularyRoot ||
+                result == VocabularyPracticeResult.completedTodayVocabularyRoot;
             _commitNavigationExit(
               saveCheckpoint: !returnsToRoot,
               releaseMedia: !returnsToRoot,

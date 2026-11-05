@@ -1018,6 +1018,25 @@ void main() {
     },
   );
 
+  test('announces returning to Vocabulary after leaving Stars', () async {
+    final flow = MainVoiceAssistantFlow()
+      ..beginActiveLearning(
+        kind: ActiveLearningModuleKind.vocabulary,
+        voiceContext: const _TranslationSourceVoiceContext(
+          ActiveLearningVoiceNode.listEnd,
+        ),
+      );
+
+    final choice = await flow.handle('Học nội dung khác');
+    expect(choice.promptAudioKey, MainAssistantAudioKeys.chooseTranslation);
+
+    final turn = await flow.handle('Bộ từ vựng');
+    expect(turn.promptText, MasterNavigationContract.switchedToVocabulary);
+    expect(turn.promptAudioKey, MainAssistantAudioKeys.switchedToVocabulary);
+    expect(turn.activeLearningCommand, ActiveLearningCommand.vocabularyRoot);
+    expect(turn.continueListening, isFalse);
+  });
+
   test('can choose translation after leaving an active lesson', () async {
     final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
     flow.beginActiveLearning();

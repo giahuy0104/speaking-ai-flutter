@@ -660,9 +660,15 @@ class VoiceNavigationController extends ChangeNotifier {
         !turn.continueListening &&
         turn.activeLearningCommand == ActiveLearningCommand.nextItem &&
         turn.promptAudioKey == MainAssistantAudioKeys.songSkipped;
+    final canCompleteVocabularyReturn =
+        !promptCompleted &&
+        !turn.continueListening &&
+        turn.activeLearningCommand == ActiveLearningCommand.vocabularyRoot &&
+        turn.promptAudioKey == MainAssistantAudioKeys.switchedToVocabulary;
     if (!promptCompleted &&
         !canCompleteRecognizedNavigation &&
-        !canCompleteRecognizedSongSkip) {
+        !canCompleteRecognizedSongSkip &&
+        !canCompleteVocabularyReturn) {
       if (turn.exhaustedUnrecognizedInput) {
         _reportIosTopicRecognitionFailure(stage: choiceStage);
       }
@@ -738,7 +744,8 @@ class VoiceNavigationController extends ChangeNotifier {
       final handler = _activeLearningCommandHandler;
       if (handler != null) {
         final result = await handler(activeLearningCommand);
-        if (canCompleteRecognizedSongSkip && result.wasHandled) {
+        if ((canCompleteRecognizedSongSkip || canCompleteVocabularyReturn) &&
+            result.wasHandled) {
           _lastError = null;
         }
         if (!kIsWeb &&

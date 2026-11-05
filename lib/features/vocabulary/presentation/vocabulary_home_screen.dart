@@ -300,7 +300,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     if (_vocabularyAudioService == null && widget.dictionaryProvider != null) {
       _vocabularyAudioService = VocabularyAudioService(
         dictionaryProvider: widget.dictionaryProvider!,
-        playToCompletion: _mediaService.playToCompletion,
+        playToCompletion: _mediaService.playRecordedTakeToCompletion,
         nativeSpeakAndWait: (text, locale) => _speakOnSelectedOutput(
           text,
           locale: locale,
@@ -654,7 +654,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
           return const ActiveLearningCommandResult.unavailable();
         }
         _pausedForMainAssistant = false;
-        unawaited(_runAudioCommand(_leavePlaybackForOtherContent));
+        unawaited(_runAudioCommand(_leaveForOtherLearning));
         return const ActiveLearningCommandResult.handled();
       case ActiveLearningCommand.nextItem:
         _pausedForMainAssistant = false;
@@ -1778,8 +1778,6 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       final firstEntryToday = await widget.sessionStore
           .markAndCheckFirstEntryToday(DateTime.now());
       if (!isCurrent()) return;
-      final activeBeforeEntry = await widget.sessionStore.readActive();
-      if (!isCurrent()) return;
       final session = await widget.sessionStore.prepareToday(widget.store);
       // A direct destination owns its audio, including when a queued load or
       // an earlier automatic entry completes after that destination is chosen.
@@ -1796,11 +1794,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         return;
       }
       if (!mounted || !_isEffectivelyActive) return;
-      await _runPracticeSession(
-        session,
-        announceInitialIntro: activeBeforeEntry?.id != session.id,
-        announceInitialResume: activeBeforeEntry?.id == session.id,
-      );
+      await _runPracticeSession(session);
     } finally {
       _startingToday = false;
       if (_restartTodayAfterCurrent) {
@@ -1810,7 +1804,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     }
   }
 
-  Future<void> _openVocabularyRoot() async {
+  Future<void> _openVocabularyRoot({bool menuOnly = false}) async {
     if (!mounted || !_isEffectivelyActive) return;
     final settled = await _leavePlaybackForOtherContent(
       announceMenu: false,
@@ -1820,6 +1814,10 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     _pausedForMainAssistant = false;
     _playbackQueue = const <VocabularyEntry>[];
     if (!settled) return;
+    if (menuOnly) {
+      await _speakAndRequestChoice(VocabularyFlowV3.menu);
+      return;
+    }
     if (_startingToday) {
       // The activation's pending Today load was invalidated by the cleanup
       // above. Retry the voice root after that load releases its start guard.
@@ -1961,9 +1959,13 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         if (result == null) {
           return; // Back preserves the active checkpoint silently.
         }
-        if (result == VocabularyPracticeResult.vocabularyRoot) {
+        final completedToday =
+            result == VocabularyPracticeResult.completedTodayVocabularyRoot;
+        if (result == VocabularyPracticeResult.vocabularyRoot || completedToday) {
           scheduleMicrotask(
-            () => unawaited(_runAudioCommand(_openVocabularyRoot)),
+            () => unawaited(
+              _runAudioCommand(() => _openVocabularyRoot(menuOnly: completedToday)),
+            ),
           );
           return;
         }
@@ -2311,7 +2313,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         ? Uri.parse(path)
         : Uri.file(path);
     try {
-      await _mediaService.playToCompletion(
+      await _mediaService.playRecordedTakeToCompletion(
         uri,
         playbackGainDb: lessonRecordingPlaybackGainDb,
         fixedPlaybackGain: true,
@@ -2602,6 +2604,15 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
           : VocabularyFlowV3.menu,
     );
     return true;
+  }
+
+  Future<void> _leaveForOtherLearning() async {
+    final onOtherContent = widget.onOtherContentRequested;
+    if (onOtherContent != null) {
+      await onOtherContent();
+    } else {
+      await _leavePlaybackForOtherContent();
+    }
   }
 
   bool get _hasActiveVocabularyPlayback =>

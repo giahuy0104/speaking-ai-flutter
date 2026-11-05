@@ -1626,6 +1626,7 @@ void main() {
       everyElement(lessonRecordingPlaybackGainDb),
     );
     expect(childReplays.map((clip) => clip.fixed), everyElement(isTrue));
+    expect(media.recordedTakeCalls, childReplays.length);
     expect(
       voice.spokenTexts.where((text) => text == VocabularyFlowV3.starMyVoice),
       hasLength(1),
@@ -2793,6 +2794,7 @@ class _FailingJourneyVoicePromptService extends _RecordingVoicePromptService {
 
 class _ImmediateLessonMediaService extends LessonMediaService {
   final played = <({Uri uri, double gainDb, bool fixed})>[];
+  int recordedTakeCalls = 0;
 
   @override
   Future<String?> availableRecordingPath(String path) async => path;
@@ -2812,6 +2814,24 @@ class _ImmediateLessonMediaService extends LessonMediaService {
     bool fixedPlaybackGain = false,
   }) async {
     played.add((uri: uri, gainDb: playbackGainDb, fixed: fixedPlaybackGain));
+  }
+
+  @override
+  Future<void> playRecordedTakeToCompletion(
+    Uri uri, {
+    Duration timeout = const Duration(seconds: 45),
+    LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
+  }) {
+    recordedTakeCalls++;
+    return playToCompletion(
+      uri,
+      timeout: timeout,
+      route: route,
+      playbackGainDb: playbackGainDb,
+      fixedPlaybackGain: fixedPlaybackGain,
+    );
   }
 
   @override
