@@ -181,6 +181,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
   bool _completionChoiceRecording = false;
   bool _completionChoiceStopping = false;
   bool _completionChoiceUsesIosNativeSpeech = false;
+  V4CompletionAction? _completionChoicePartialAction;
   StreamingSpeechInput? _completionChoiceAndroidSpeechInput;
   StreamSubscription<void>? _completionChoiceCompletedSubscription;
   StreamSubscription<String>? _completionChoicePartialSubscription;
@@ -3532,6 +3533,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     }
     final pauseGeneration = _lessonSession.mainPauseTicket;
     final choiceGeneration = _lessonSession.beginCompletionChoice();
+    _completionChoicePartialAction = null;
     setState(() {
       _mediaBusy = true;
       _recordingStartPending = true;
@@ -3607,6 +3609,12 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         // SpeechAnalyzer may publish the complete answer before start replies.
         // Keep that evidence until the endpoint detector owns this capture.
         nativeSpeechObserved = true;
+        if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+          final stage = _activeV4CompletionStage;
+          _completionChoicePartialAction = stage == null
+              ? null
+              : _resolveV4CompletionTranscript(text, stage);
+        }
         if (_completionChoiceRecording && !_recordingStartPending) {
           _recordingEndpointDetector.confirmSpeech();
         }
@@ -3719,6 +3727,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     _clearCompletionChoiceListeners();
     _recordingEndpointDetector.cancel();
     final choiceGeneration = _lessonSession.completionChoiceTicket;
+    final partialAction = _completionChoicePartialAction;
     _recordingAutoStopTimer?.cancel();
     _recordingAutoStopTimer = null;
     if (mounted) {
@@ -3767,10 +3776,17 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
       if (!_lessonSession.isCurrentCompletionChoice(choiceGeneration)) return;
       final v4Stage = _activeV4CompletionStage;
       if (_v4CompletionChoiceVisible && v4Stage != null) {
-        final action = <String>[transcript, ...?nativeCapture?.alternatives]
+        final finalTexts = <String>[
+          transcript,
+          ...?nativeCapture?.alternatives,
+        ];
+        final action = finalTexts
             .map((text) => _resolveV4CompletionTranscript(text, v4Stage))
             .whereType<V4CompletionAction>()
-            .firstOrNull;
+            .firstOrNull ??
+            (finalTexts.every((text) => text.trim().isEmpty)
+                ? partialAction
+                : null);
         if (!mounted) return;
         if (action == null) {
           retryChoice = true;
@@ -3813,6 +3829,10 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
             'code=${error is StreamingSpeechInputException ? error.code : null}',
           );
           if (_isUnrecognizedCompletionChoice(error)) {
+            if (partialAction != null) {
+              Navigator.of(context).pop(partialAction);
+              return;
+            }
             retryChoice = true;
             return;
           }
@@ -3852,6 +3872,11 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     }
     if (error is! StreamingSpeechInputException) return false;
     final code = error.code?.toUpperCase();
+    final message = error.message.toLowerCase();
+    if (code == 'IOS_SPEECH_SF_SPEECH_RECOGNIZER_FAILED' &&
+        message.contains('no speech detected')) {
+      return true;
+    }
     // Live Android events carry numeric SpeechRecognizer codes, unlike the
     // semantic codes returned by file recognition and some other bridges.
     if (const <String>{
@@ -3866,7 +3891,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     // Android stop() can finish without a native error or any transcript.
     // Only classify the known empty-result errors; do not retry network,
     // permission, cancellation or other technical errors as child answers.
-    final message = error.message.toLowerCase();
     return code == null &&
         (message.contains('không nghe rõ') ||
             message.contains('chưa nghe thấy giọng nói'));
@@ -3902,6 +3926,7 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
 
   Future<void> _cancelCompletionChoiceCapture() async {
     _clearCompletionChoiceListeners();
+    _completionChoicePartialAction = null;
     _recordingEndpointDetector.cancel();
     _lessonSession.invalidateCompletionChoice();
     _recordingAutoStopTimer?.cancel();

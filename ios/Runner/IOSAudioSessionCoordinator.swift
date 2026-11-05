@@ -118,7 +118,7 @@ enum IOSNativeWork {
     }
   }
 
-  /// `UIApplication.applicationState` as last seen on the main thread.
+  /// Whether the latest UIKit lifecycle event left the app active.
   static var applicationIsActive: Bool {
     stateLock.lock()
     defer { stateLock.unlock() }
@@ -130,6 +130,22 @@ enum IOSNativeWork {
     let active = UIApplication.shared.applicationState == .active
     stateLock.lock()
     applicationActive = active
+    stateLock.unlock()
+  }
+
+  /// UIKit can still report `.active` inside willResignActive. Mark the
+  /// transition immediately so queued audio work cannot stop a prearmed input.
+  /// Call on the main thread.
+  static func markApplicationInactive() {
+    stateLock.lock()
+    applicationActive = false
+    stateLock.unlock()
+  }
+
+  /// Call on the main thread when UIKit reports that the app became active.
+  static func markApplicationActive() {
+    stateLock.lock()
+    applicationActive = true
     stateLock.unlock()
   }
 
@@ -145,9 +161,11 @@ enum IOSNativeWork {
     ]
     applicationStateTokens = names.map { name in
       NotificationCenter.default.addObserver(forName: name, object: nil, queue: nil) { _ in
-        refreshApplicationState()
-        // The state leaves `.active` only after willResignActive has returned.
-        DispatchQueue.main.async { refreshApplicationState() }
+        if name == UIApplication.didBecomeActiveNotification {
+          markApplicationActive()
+        } else {
+          markApplicationInactive()
+        }
       }
     }
   }
@@ -304,6 +322,8 @@ protocol IOSBackgroundCaptureHandoffDelegate: AnyObject {
   )
 
   func disarmBackgroundAudioHandoff(caller: String)
+
+  func isBackgroundAudioHandoffReady(for target: IOSAudioInputTarget?) -> Bool
 }
 
 /// The single writer for AVAudioSession during an iOS MAIN turn.
@@ -331,6 +351,7 @@ final class IOSAudioSessionCoordinator: NSObject {
   private var ownership = IOSAudioSessionOwnershipState()
   private var preferredHfpInputUID: String?
   private var preferredHfpInputName: String?
+  private var hasVerifiedHfpSelection = false
   /// `currentRoute` can keep reporting bluetoothHFP briefly after
   /// `setActive(false)` has completed. Keep the activation state written by
   /// this coordinator separate from that lagging route snapshot so a new HFP
@@ -339,6 +360,7 @@ final class IOSAudioSessionCoordinator: NSObject {
   private(set) var isMainTurnActive = false
   private(set) var mainAudioInputTarget: IOSAudioInputTarget?
   private(set) var isBackgroundLearningEnabled = false
+  private(set) var isActiveLearningRequested = false
   private(set) var isBackgroundCaptureEngineRunning = false
   var isSpeechCaptureActive: Bool { ownership.contains(.speechCapture) }
   var isBackgroundCaptureArmed: Bool { ownership.contains(.backgroundCapture) }
@@ -381,10 +403,20 @@ final class IOSAudioSessionCoordinator: NSObject {
       caller: "BackgroundLearningBridge"
     )
     if !enabled {
+      setActiveLearningRequested(false)
       requestBackgroundCaptureDisarm(caller: "BackgroundLearningBridge.stop")
       endBackgroundTurnExecution(caller: "BackgroundLearningBridge.stop")
       releaseAudioSessionIfIdle(caller: "BackgroundLearningBridge.stop")
     }
+  }
+
+  func setActiveLearningRequested(_ requested: Bool) {
+    guard isActiveLearningRequested != requested else { return }
+    isActiveLearningRequested = requested
+    trace(
+      stage: requested ? "active_learning_requested" : "active_learning_ended",
+      caller: "BackgroundLearningBridge"
+    )
   }
 
   func applicationDidEnterBackground() {
@@ -613,7 +645,14 @@ final class IOSAudioSessionCoordinator: NSObject {
     // when the final owner releases it; otherwise iOS renegotiates HFP mid-flow.
     releaseAudioSessionIfIdle(caller: "IOSAudioSessionCoordinator.endMainTurn")
     endBackgroundTurnExecutionIfIdle(caller: caller)
-    if IOSNativeWork.applicationIsActive {
+    // A lesson may begin before MAIN cleanup completes. Keep its input warm
+    // so the next screen lock does not require a new background recording.
+    if !IOSBackgroundAudioHandoffPolicy.shouldKeepEngineRunning(
+      backgroundLearningEnabled: isBackgroundLearningEnabled,
+      activeLearningRequested: isActiveLearningRequested,
+      applicationIsActive: IOSNativeWork.applicationIsActive,
+      hasAvailableHfpInput: hasAvailableSelectedHfpInput
+    ) {
       requestBackgroundCaptureDisarm(caller: "IOSAudioSessionCoordinator.endMainTurn")
     }
     onMainTurnEnded?()
@@ -818,9 +857,9 @@ final class IOSAudioSessionCoordinator: NSObject {
 
   /// Releases a record-capable route when no MAIN turn owns it.
   ///
-  /// The selected HFP UID is kept by `HfpAudioBridge`; only the live SCO/audio
-  /// session is released. A later MAIN turn can therefore reactivate and
-  /// verify the same HM-D001 input without keeping BLE-hostile SCO open at idle.
+  /// The selected HFP UID is kept by `HfpAudioBridge`; the live SCO/audio
+  /// session is released only when no other owner, including a foreground-armed
+  /// background capture, still needs it.
   func releaseAudioSessionIfIdle(caller: String) {
     guard ownership.canDeactivate else {
       trace(
@@ -916,6 +955,18 @@ final class IOSAudioSessionCoordinator: NSObject {
   func rememberPreferredHfpInput(uid: String?, name: String?) {
     preferredHfpInputUID = normalizedPreferredHfpValue(uid)
     preferredHfpInputName = normalizedPreferredHfpValue(name)
+    if preferredHfpInputUID == nil && preferredHfpInputName == nil {
+      hasVerifiedHfpSelection = false
+    }
+  }
+
+  func setVerifiedHfpSelection(_ verified: Bool) {
+    hasVerifiedHfpSelection = verified
+  }
+
+  var hasAvailableSelectedHfpInput: Bool {
+    hasVerifiedHfpSelection
+      && selectedOrAvailableHfpInput() != nil
   }
 
   /// Returns the selected HFP input when it remains available. If no HM-D001 has
@@ -1084,6 +1135,11 @@ final class IOSAudioSessionCoordinator: NSObject {
         : "background_capture_engine_stopped",
       caller: caller
     )
+  }
+
+  func hasBackgroundCaptureReady(for target: IOSAudioInputTarget?) -> Bool {
+    isBackgroundCaptureEngineRunning
+      && backgroundCaptureHandoffDelegate?.isBackgroundAudioHandoffReady(for: target) == true
   }
 
   func routeDescription() -> String {

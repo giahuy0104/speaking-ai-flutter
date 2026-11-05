@@ -116,6 +116,7 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   bool _completed = false;
   bool _todayEnViCompleted = false;
   bool _exiting = false;
+  bool _routePopRequested = false;
   bool _continuationPending = false;
   bool _reviewHasMore = true;
   bool _todayReplayAvailable = true;
@@ -158,6 +159,11 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   bool get isPausedForMain => _paused;
 
   bool get isReviewPractice => _session.mode == VocabularyPracticeMode.review;
+
+  bool get hasActiveReviewPractice =>
+      isReviewPractice && !_exiting && !_routePopRequested;
+
+  bool get isRoutePopRequested => _routePopRequested;
 
   @override
   Future<bool> preserveForNavigation() async {
@@ -213,9 +219,7 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     _praiseFireworksTimer?.cancel();
     _recordingEndpointDetector.cancel();
     _cancelIosRecordingListeners();
-    if (_activeRegistry != null && _activeRegistration != null) {
-      _activeRegistry!.unregister(_activeRegistration!);
-    }
+    _unregisterActiveLearningModule();
     if (!_exiting && (_recording || _capturePending)) {
       if (_usesIosNativeRecognition) {
         unawaited(_iosSpeechInput!.cancel());
@@ -266,7 +270,19 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     });
     _followCurrentReviewEntry();
     if (widget.autoStart) {
-      unawaited(_startCurrent(includeIntro: widget.announceIntro));
+      // A locked mobile screen may not deliver another frame after loading.
+      if (!kIsWeb &&
+          (defaultTargetPlatform == TargetPlatform.android ||
+              defaultTargetPlatform == TargetPlatform.iOS) &&
+          WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
+        unawaited(_startCurrent(includeIntro: widget.announceIntro));
+      } else {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            unawaited(_startCurrent(includeIntro: widget.announceIntro));
+          }
+        });
+      }
     }
   }
 
@@ -1167,7 +1183,23 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   }
 
   void _finish(VocabularyPracticeResult result) {
-    Navigator.of(context).pop(result);
+    final navigator = Navigator.of(context);
+    if (!navigator.canPop()) return;
+    _routePopRequested = true;
+    if (result == VocabularyPracticeResult.stars ||
+        result == VocabularyPracticeResult.parentAdded) {
+      // Collection audio can start before a locked screen advances this pop.
+      // Give MAIN the vocabulary owner underneath the outgoing practice route.
+      _unregisterActiveLearningModule();
+    }
+    _popOrRemovePractice(result);
+  }
+
+  void _unregisterActiveLearningModule() {
+    final registration = _activeRegistration;
+    if (registration == null) return;
+    _activeRegistry?.unregister(registration);
+    _activeRegistration = null;
   }
 
   Future<bool> _continueLearning() async {
@@ -1243,19 +1275,27 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
         _reviewHasMore = true;
         _todayReplayAvailable = true;
         _invalidResponseCount = 0;
-        _resumeAnnouncementPending = false;
+        _resumeAnnouncementPending = _isReview;
         _praiseFireworksVisible = false;
         _userDraggingReview = false;
         _continuationPending = false;
         _message = _isToday
             ? VocabularyFlowV3.todayIntro
-            : 'Bạn nghe kỹ rồi nói lại nhé.';
+            : VocabularyFlowV3.reviewResume;
       });
       _followCurrentReviewEntry();
       if (widget.autoStart) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && !_completed) unawaited(_startCurrent());
-        });
+        if (!kIsWeb &&
+            (defaultTargetPlatform == TargetPlatform.android ||
+                defaultTargetPlatform == TargetPlatform.iOS) &&
+            WidgetsBinding.instance.lifecycleState !=
+                AppLifecycleState.resumed) {
+          unawaited(_startCurrent());
+        } else {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && !_completed) unawaited(_startCurrent());
+          });
+        }
       }
       return true;
     } catch (error) {
@@ -1750,7 +1790,43 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   Future<void> _exitPractice() async {
     if (_exiting) return;
     _commitNavigationExit();
-    if (mounted) Navigator.of(context).pop();
+    if (mounted) {
+      _routePopRequested = true;
+      _popOrRemovePractice();
+    }
+  }
+
+  bool get _removeRouteWithoutTransition =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+
+  void _popOrRemovePractice([VocabularyPracticeResult? result]) {
+    final navigator = Navigator.of(context);
+    final route = ModalRoute.of(context);
+    if (_removeRouteWithoutTransition &&
+        route != null &&
+        route.isCurrent &&
+        !route.isFirst) {
+      // Remove the route before the next Android learning surface starts.
+      ActiveLearningModuleScope.notifyNavigationExit(context);
+      navigator.removeRoute(route, result);
+    } else {
+      navigator.pop(result);
+    }
+  }
+
+  Future<bool> waitForRouteClosed() async {
+    final route = ModalRoute.of(context);
+    if (route == null || !route.isActive) return true;
+    if (_removeRouteWithoutTransition && !route.isFirst) {
+      Navigator.of(context).removeRoute(route);
+    }
+    if (WidgetsBinding.instance.lifecycleState == null ||
+        WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
+      await route.completed;
+    } else {
+      await route.popped;
+    }
+    return !route.isActive;
   }
 
   Future<bool> leaveForOtherContent() async {
@@ -1758,13 +1834,19 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     final route = ModalRoute.of(context);
     if (route == null || !route.isCurrent) return false;
     _commitNavigationExit();
-    Navigator.of(context).pop();
-    await route.completed;
+    _routePopRequested = true;
+    _popOrRemovePractice();
+    if (WidgetsBinding.instance.lifecycleState == null ||
+        WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
+      await route.completed;
+    } else {
+      await route.popped;
+    }
     return true;
   }
 
   Future<bool> leaveForVocabularyTarget() async {
-    if (!mounted || _exiting || !_isReview) return false;
+    if (!mounted || _exiting) return false;
     final route = ModalRoute.of(context);
     if (route == null || !route.isCurrent) return false;
     await pauseForMainAssistant();
@@ -1772,8 +1854,14 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     if (!await preserveForNavigation()) return false;
     if (!mounted || _exiting || !route.isCurrent) return false;
     _commitNavigationExit(saveCheckpoint: false, releaseMedia: false);
-    Navigator.of(context).pop();
-    await route.completed;
+    _routePopRequested = true;
+    _popOrRemovePractice();
+    if (WidgetsBinding.instance.lifecycleState == null ||
+        WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
+      await route.completed;
+    } else {
+      await route.popped;
+    }
     return true;
   }
 
@@ -1783,6 +1871,7 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
   }) {
     if (_exiting) return;
     _exiting = true;
+    _unregisterActiveLearningModule();
     final fixedPrompt = widget.fixedPromptAudioService;
     if (fixedPrompt is CancellableVocabularyFixedPromptAudioService) {
       (fixedPrompt as CancellableVocabularyFixedPromptAudioService)

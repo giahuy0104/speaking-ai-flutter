@@ -110,6 +110,12 @@ import UserNotifications
     })
     platformChannel = channel
   }
+
+  func prepareBackgroundAudioForSceneTransition() {
+    backgroundLearningBridge?.prepareForInactivity(
+      caller: "SceneDelegate.sceneWillResignActive"
+    )
+  }
 }
 
 private final class IOSInstallationCredentialStore {

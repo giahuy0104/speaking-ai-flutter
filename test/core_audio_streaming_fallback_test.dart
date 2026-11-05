@@ -2015,19 +2015,30 @@ void main() {
     controller.dispose();
   });
 
-  test('HFP source uses standard Android ASR and reports Bluetooth', () async {
+  test('Android HFP revalidates after ASR before translated playback', () async {
     final input = _FakeChunkedInput(
       available: true,
       bluetooth: false,
       label: 'Phone',
     );
     final hfp = _FakeHfpAudioControl();
-    final repository = _FallbackRepository();
+    final playback = _RecordingPlaybackService()
+      ..onPlay = () => expect(hfp.startRouteCount, 2);
+    final repository = _FallbackRepository(
+      streamingOutcomes: [
+        _result(
+          'stream-result',
+          audioUri: Uri.parse('https://api.example.com/english.mp3'),
+        ),
+      ],
+    );
     final controller = ConversationController(
       audioInput: input,
-      streamingSpeechInput: _FakeStreamingSpeechInput(),
+      streamingSpeechInput: _FakeStreamingSpeechInput(
+        sourceText: 'Hôm nay con muốn xem những ngôi sao thật sáng',
+      ),
       hfpAudioControl: hfp,
-      playbackService: const _FakePlaybackService(),
+      playbackService: playback,
       repository: repository,
       childAge: 6,
       initialAsrMode: AsrMode.hfpStreaming,
@@ -2040,6 +2051,8 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 500));
     await controller.stopRecording(manual: true);
 
+    expect(hfp.startRouteCount, 2);
+    expect(playback.playCount, 1);
     expect(hfp.stopRouteCount, 1);
     expect(controller.asrMode, AsrMode.androidStreaming);
     expect(repository.streamingCapture?.asrMode, 'android_streaming');
@@ -3858,6 +3871,7 @@ class _NeverStartingPlaybackService implements AudioPlaybackService {
 
 class _RecordingPlaybackService implements AudioPlaybackService {
   int playCount = 0;
+  void Function()? onPlay;
 
   @override
   Stream<bool> get playingStream => const Stream<bool>.empty();
@@ -3870,6 +3884,7 @@ class _RecordingPlaybackService implements AudioPlaybackService {
 
   @override
   Future<PlaybackStartMetrics> play(Uri uri) async {
+    onPlay?.call();
     playCount += 1;
     return const PlaybackStartMetrics(
       audioLoadDuration: Duration.zero,

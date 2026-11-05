@@ -15,6 +15,7 @@ import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_en
 import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_flow_v3.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -2277,6 +2278,43 @@ void main() {
     await speechInput.dispose();
   });
 
+  test('Today MAIN other-content command speaks the two-choice menu', () async {
+    final speech = _FakeNavigationSpeechInput();
+    final prompt = _KeyedFakeVoicePromptService();
+    final controller = VoiceNavigationController(
+      speechInput: speech,
+      voicePromptService: prompt,
+    );
+    expect(
+      await controller.activateFromMainButton(
+        activeLearning: true,
+        activeLearningKind: ActiveLearningModuleKind.vocabulary,
+        promptAlreadySpoken: true,
+      ),
+      isTrue,
+    );
+
+    expect(
+      await controller.dispatchRecognizedText('Học nội dung khác'),
+      isTrue,
+    );
+    expect(
+      prompt.spokenTexts.last,
+      MainVoiceAssistantFlow.vocabularyOtherLearningPrompt,
+    );
+    expect(
+      prompt.keyedPlays.where(
+        (play) =>
+            play.$2 == MainVoiceAssistantFlow.vocabularyOtherLearningPrompt,
+      ),
+      isEmpty,
+    );
+    expect(controller.isAwaitingCommand, isTrue);
+
+    controller.dispose();
+    await speech.dispose();
+  });
+
   test(
     'two silent translation-switch windows pause without redirecting',
     () async {
@@ -2315,6 +2353,7 @@ void main() {
       VoiceNavigationIntent? received;
       controller.setIntentHandler((intent) => received = intent);
       await controller.waitForMainAfterTranslationStop();
+      expect(controller.isWaitingForMainAfterTranslationStop, isTrue);
       controller.startContinuous();
       await Future<void>.delayed(const Duration(milliseconds: 20));
       for (final text in ['Hey HOMI', 'Tiếp tục dịch', 'Chủ đề']) {
@@ -2327,6 +2366,7 @@ void main() {
       expect(controller.continuousRequested, isFalse);
 
       expect(await controller.activateFromMainButton(), isTrue);
+      expect(controller.isWaitingForMainAfterTranslationStop, isFalse);
       expect(voicePrompt.spokenTexts, <String>[
         'Bạn muốn tiếp tục dịch, học Chủ đề hay Bộ từ vựng?',
       ]);
@@ -2459,6 +2499,28 @@ void main() {
       expect(await controller.dispatchRecognizedText('Tiếp tục'), isTrue);
       expect(promptsAtHandoff, <String>[
         MasterNavigationContract.continueSubject,
+      ]);
+
+      controller.dispose();
+      await speechInput.dispose();
+    },
+  );
+
+  test(
+    'locked iOS MAIN asks for unlock before prompting when native input is gone',
+    () async {
+      final speechInput = _FakeNavigationSpeechInput();
+      final voicePrompt = _BackgroundMicUnavailableVoicePromptService();
+      final controller = VoiceNavigationController(
+        speechInput: speechInput,
+        voicePromptService: voicePrompt,
+      );
+
+      expect(await controller.activateFromMainButton(), isFalse);
+      expect(controller.isMainButtonSessionActive, isFalse);
+      expect(speechInput.events, isNot(contains('start')));
+      expect(voicePrompt.spokenTexts, <String>[
+        'Mở khóa iPhone rồi nhấn MAIN lại để dùng micro.',
       ]);
 
       controller.dispose();
@@ -3359,6 +3421,14 @@ class _FakeMainTurnVoicePromptService extends _FakeVoicePromptService
   Future<void> endMainTurn(String reason, {String? turnId}) async {
     endedReasons.add(reason);
     endedTurnIds.add(turnId);
+  }
+}
+
+class _BackgroundMicUnavailableVoicePromptService
+    extends _FakeMainTurnVoicePromptService {
+  @override
+  Future<String?> beginMainTurn() async {
+    throw PlatformException(code: 'BACKGROUND_MIC_NOT_READY');
   }
 }
 

@@ -586,6 +586,18 @@ class JustAudioPlaybackService
         _applyAndroidPlaybackAttributes(request.communicationRoute),
       );
       _requireCurrentPlayback(request);
+      if (!kIsWeb &&
+          defaultTargetPlatform == TargetPlatform.android &&
+          _audioTurnOwner == AudioTurnOwner.continuousTranslation) {
+        // just_audio publishes playing=true before it requests audio focus.
+        // The first translated clip can therefore look started while Android
+        // has not let its AudioTrack run. Obtain focus before that state change.
+        final active = await request.wait((await _audioSession).setActive(true));
+        if (!active) {
+          throw const PlaybackException('Không thể kích hoạt âm thanh Android.');
+        }
+        _requireCurrentPlayback(request);
+      }
       request.playbackInvoked = true;
       final playback = _player.play();
       unawaited(

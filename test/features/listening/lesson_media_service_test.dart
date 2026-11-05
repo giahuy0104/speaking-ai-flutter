@@ -127,11 +127,14 @@ void main() {
       expect(hfp.stopCalls, 1);
     });
 
-    test('selected HM-D001 cannot silently fall back to the phone mic', () async {
-      recorder.devices = const [_FakeLessonRecorder.phone];
-      await expectLater(start(), throwsA(isA<LessonMediaException>()));
-      expect(recorder.startCalls, 0);
-    });
+    test(
+      'selected HM-D001 cannot silently fall back to the phone mic',
+      () async {
+        recorder.devices = const [_FakeLessonRecorder.phone];
+        await expectLater(start(), throwsA(isA<LessonMediaException>()));
+        expect(recorder.startCalls, 0);
+      },
+    );
 
     test('playback stop cannot release the live recording route', () async {
       await start();
@@ -259,52 +262,55 @@ void main() {
     );
   });
 
-  test('iOS HM-D001 capture keeps the selected output through feedback', () async {
-    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-    addTearDown(() => debugDefaultTargetPlatformOverride = null);
-    const channel = MethodChannel('ailingo_voice_prompt');
-    final messenger =
-        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
-    messenger.setMockMethodCallHandler(
-      channel,
-      (call) async => (call.arguments as Map)['path'],
-    );
-    addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
-    final temporary = await Directory.systemTemp.createTemp(
-      'ios-lesson-route-',
-    );
-    addTearDown(() => temporary.delete(recursive: true));
-    final recorder = _FakeLessonRecorder();
-    final hfp = _FakeHfpAudioControl(
-      <String>[],
-      status: const BluetoothAudioStatus(
-        phase: BluetoothAudioConnectionPhase.recording,
-        deviceId: '42',
-        deviceName: 'HM-D001',
-        routeActive: true,
-      ),
-    );
-    final media = _RecordingTestMediaService(
-      '${temporary.path}/attempt.m4a',
-      recorder: recorder,
-      playbackService: _ControlledPlaybackService(),
-      hfpAudioControl: hfp,
-    );
-    addTearDown(media.dispose);
+  test(
+    'iOS HM-D001 capture keeps the selected output through feedback',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      const channel = MethodChannel('ailingo_voice_prompt');
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      messenger.setMockMethodCallHandler(
+        channel,
+        (call) async => (call.arguments as Map)['path'],
+      );
+      addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+      final temporary = await Directory.systemTemp.createTemp(
+        'ios-lesson-route-',
+      );
+      addTearDown(() => temporary.delete(recursive: true));
+      final recorder = _FakeLessonRecorder();
+      final hfp = _FakeHfpAudioControl(
+        <String>[],
+        status: const BluetoothAudioStatus(
+          phase: BluetoothAudioConnectionPhase.recording,
+          deviceId: '42',
+          deviceName: 'HM-D001',
+          routeActive: true,
+        ),
+      );
+      final media = _RecordingTestMediaService(
+        '${temporary.path}/attempt.m4a',
+        recorder: recorder,
+        playbackService: _ControlledPlaybackService(),
+        hfpAudioControl: hfp,
+      );
+      addTearDown(media.dispose);
 
-    await media.startRecording(
-      lessonId: 'numbers',
-      sentenceNumber: 1,
-      saveToHistory: false,
-    );
-    expect(recorder.lastConfig?.device, _FakeLessonRecorder.homi);
-    await media.stopRecording();
-    expect(hfp.stopCalls, 0);
-    await media.play(Uri.parse('https://example.test/feedback.mp3'));
-    expect(hfp.stopCalls, 0);
-    await media.stopPlayback();
-    expect(hfp.stopCalls, 1);
-  });
+      await media.startRecording(
+        lessonId: 'numbers',
+        sentenceNumber: 1,
+        saveToHistory: false,
+      );
+      expect(recorder.lastConfig?.device, _FakeLessonRecorder.homi);
+      await media.stopRecording();
+      expect(hfp.stopCalls, 0);
+      await media.play(Uri.parse('https://example.test/feedback.mp3'));
+      expect(hfp.stopCalls, 0);
+      await media.stopPlayback();
+      expect(hfp.stopCalls, 1);
+    },
+  );
 
   test(
     'stop during playback preparation prevents a late clip on default output',
@@ -659,6 +665,37 @@ void main() {
     await completion.timeout(const Duration(seconds: 1));
     expect(finished, isTrue);
   });
+  test(
+    'Android accepts a stopped HM-D001 clip at end without a native end event',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final playback = _PositionOnlyPrearmedPlaybackService()
+        ..duration = const Duration(seconds: 2);
+      final media = LessonMediaService(
+        playbackService: playback,
+        audioInterruptionEvents: const Stream<AudioInterruptionEvent>.empty(),
+      );
+      addTearDown(media.dispose);
+
+      var finished = false;
+      final completion = media
+          .playToCompletion(
+            Uri.parse('file:///vocabulary-word.mp3'),
+            timeout: const Duration(seconds: 2),
+          )
+          .then((_) => finished = true);
+      await playback.didPlay.future.timeout(const Duration(seconds: 1));
+      playback.position = const Duration(milliseconds: 1500);
+      await Future<void>.delayed(const Duration(milliseconds: 450));
+      expect(finished, isFalse);
+
+      playback.position = const Duration(seconds: 2);
+      playback.pauseTemporarily();
+      await completion.timeout(const Duration(seconds: 1));
+      expect(finished, isTrue);
+    },
+  );
 
   test('iOS end-position fallback waits through an interruption', () async {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
@@ -1223,34 +1260,40 @@ void main() {
     expect(session.androidWillPauseWhenDucked, isTrue);
   });
 
-  test('iOS recording input selects exact HM-D001 UID and built-in phone mic', () {
-    const builtIn = InputDevice(
-      id: 'iphone-mic',
-      label: 'iPhone Microphone',
-      type: InputDeviceType.builtIn,
-    );
-    const otherHeadset = InputDevice(
-      id: 'other-hfp',
-      label: 'Other Headset',
-      type: InputDeviceType.bluetoothSco,
-    );
-    const homi = InputDevice(
-      id: 'hm-d001-uid',
-      label: 'HM-D001',
-      type: InputDeviceType.bluetoothSco,
-    );
-    const devices = <InputDevice>[builtIn, otherHeadset, homi];
+  test(
+    'iOS recording input selects exact HM-D001 UID and built-in phone mic',
+    () {
+      const builtIn = InputDevice(
+        id: 'iphone-mic',
+        label: 'iPhone Microphone',
+        type: InputDeviceType.builtIn,
+      );
+      const otherHeadset = InputDevice(
+        id: 'other-hfp',
+        label: 'Other Headset',
+        type: InputDeviceType.bluetoothSco,
+      );
+      const homi = InputDevice(
+        id: 'hm-d001-uid',
+        label: 'HM-D001',
+        type: InputDeviceType.bluetoothSco,
+      );
+      const devices = <InputDevice>[builtIn, otherHeadset, homi];
 
-    expect(
-      selectLessonRecordingInput(
-        devices,
-        useSelectedHfp: true,
-        selectedHfpDeviceId: 'hm-d001-uid',
-      ),
-      homi,
-    );
-    expect(selectLessonRecordingInput(devices, useSelectedHfp: false), builtIn);
-  });
+      expect(
+        selectLessonRecordingInput(
+          devices,
+          useSelectedHfp: true,
+          selectedHfpDeviceId: 'hm-d001-uid',
+        ),
+        homi,
+      );
+      expect(
+        selectLessonRecordingInput(devices, useSelectedHfp: false),
+        builtIn,
+      );
+    },
+  );
 }
 
 class _ControlledPlaybackService implements AudioPlaybackService {

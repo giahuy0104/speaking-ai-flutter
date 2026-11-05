@@ -666,13 +666,16 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   void _attachVoiceNavigationHandler() {
     final iosResultHandler =
         !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+    final nativeResultHandler =
+        !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android || iosResultHandler);
     widget.voiceNavigationController?.setIntentHandler(
       widget.config.enableVoiceNavigation && !iosResultHandler
           ? _handleVoiceNavigationIntent
           : null,
     );
     widget.voiceNavigationController?.setIntentResultHandler(
-      widget.config.enableVoiceNavigation && iosResultHandler
+      widget.config.enableVoiceNavigation && nativeResultHandler
           ? _handleVoiceNavigationIntentResult
           : null,
     );
@@ -976,6 +979,8 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         if (!await _showConversationAndWait(
           animate: !iosVocabularyPracticeTransfer,
           deferNavigationExitToPracticeClose: iosReviewTranslationTransfer,
+          pauseVoiceNavigation: !intent.enterMainSpeakingMode,
+          requirePracticeClosed: intent.enterMainSpeakingMode,
         )) {
           return false;
         }
@@ -1015,21 +1020,24 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         // vocabulary page that never stopped being active, so showing that
         // page again starts nothing and HOMI would stay silent.
         final vocabularyTarget = intent.vocabularyTarget;
-        if ((vocabularyTarget == VoiceVocabularyTarget.parent ||
-                vocabularyTarget == VoiceVocabularyTarget.star) &&
-            _vocabularyNavigationController.hasReviewPractice) {
+        if ((vocabularyTarget != null &&
+                !kIsWeb &&
+                defaultTargetPlatform == TargetPlatform.android &&
+                _vocabularyNavigationController.hasPractice) ||
+            ((vocabularyTarget == VoiceVocabularyTarget.parent ||
+                    vocabularyTarget == VoiceVocabularyTarget.star) &&
+                _vocabularyNavigationController.hasReviewPractice)) {
           final closed = await _vocabularyNavigationController
               .closePracticeForOtherContent(forVoiceTarget: true);
           if (!closed || !mounted) return false;
         }
         final vocabularyWasActive = _vocabularyActivationController.isActive;
         await _showVocabularyAndWait(autoStartToday: vocabularyTarget == null);
-        if (_isIos &&
-            (!mounted ||
-                _page != 1 ||
-                _requestedPage != 1 ||
-                (vocabularyTarget != null &&
-                    !_vocabularyNavigationController.isAttached))) {
+        if (!mounted ||
+            _page != 1 ||
+            _requestedPage != 1 ||
+            (vocabularyTarget != null &&
+                !_vocabularyNavigationController.isAttached)) {
           return false;
         }
         if (vocabularyTarget != null) {
@@ -1399,8 +1407,11 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     bool requireStoppedAudio = true,
     bool animate = true,
     bool deferNavigationExitToPracticeClose = false,
+    bool pauseVoiceNavigation = true,
+    bool requirePracticeClosed = false,
   }) async {
     if (_page == 1) {
+      final hadPractice = _vocabularyNavigationController.hasPractice;
       // A slow native stop can outlive the vocabulary cleanup's two-second
       // bound. Keep the old page and do not open translation's microphone in
       // that case; the user can retry after the audio route settles.
@@ -1425,15 +1436,25 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           : await _vocabularyNavigationController
                 .closePracticeForOtherContent();
       if (!mounted) return false;
+      if (requirePracticeClosed &&
+          hadPractice &&
+          !deferNavigationExitToPracticeClose &&
+          !closedPractice) {
+        return false;
+      }
       _vocabularyActivationController.deactivate();
-      if (!closedPractice && !deferNavigationExitToPracticeClose) {
+      if (!closedPractice &&
+          !deferNavigationExitToPracticeClose &&
+          pauseVoiceNavigation) {
         ActiveLearningModuleScope.notifyNavigationExit(context);
       }
-      final pause = widget.voiceNavigationController?.pause();
-      if (requireStoppedAudio) {
-        await pause;
-      } else {
-        unawaited(pause);
+      if (pauseVoiceNavigation) {
+        final pause = widget.voiceNavigationController?.pause();
+        if (requireStoppedAudio) {
+          await pause;
+        } else {
+          unawaited(pause);
+        }
       }
     }
     // An opaque practice route mutes the shell's tickers. Waiting for a page
@@ -1475,7 +1496,13 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         _page != page) {
       return false;
     }
-    if (!_isIos) return true;
+    if (!_isIos &&
+        (kIsWeb ||
+            defaultTargetPlatform != TargetPlatform.android ||
+            WidgetsBinding.instance.lifecycleState !=
+                AppLifecycleState.resumed)) {
+      return true;
+    }
     final visiblePage = _pageController.hasClients
         ? _pageController.page
         : null;

@@ -2736,6 +2736,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       },
       canResume: () =>
           !_isActivatingMainAssistant &&
+          !(_voiceNavigationController?.isWaitingForMainAfterTranslationStop ??
+              false) &&
           !(_voiceNavigationController?.isMainButtonSessionActive ?? false) &&
           !(_voiceNavigationController?.isActive ?? false),
       onModuleHandled: _appFlowCoordinator.forgetPausedModule,
@@ -2877,6 +2879,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     String? inputLabelOverride,
     bool promptAlreadySpoken = false,
     bool otherLearning = false,
+    bool otherLearningFromVocabulary = false,
+    bool replaceActiveMainSession = false,
     String? noSpeechRetryPrompt,
     String? noSpeechExitPrompt,
   }) async {
@@ -2897,6 +2901,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
           conversationController.isPlaybackPlaying,
       assistantFlowBusy: _mainSpeakingSessionController.isActive,
       mainButtonSessionActive: voiceController.isMainButtonSessionActive,
+      replaceActiveMainSession: replaceActiveMainSession,
+      ignoreActiveLearning:
+          voiceController.isWaitingForMainAfterTranslationStop,
       canContinue: () => mounted,
       prepareActivation: () async {
         final ready = await _prepareAndroidMainHfpRoute();
@@ -2909,7 +2916,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       },
       activateVoice: ({required activeLearning, required activeLearningKind}) =>
           otherLearning
-          ? voiceController.activateOtherLearningFromSpeaking()
+          ? voiceController.activateOtherLearningFromSpeaking(
+              fromVocabulary: otherLearningFromVocabulary,
+            )
           : voiceController.activateFromMainButton(
               activeLearning: activeLearning,
               activeLearningKind: activeLearningKind,
@@ -3045,6 +3054,11 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   ) async {
     if (_isStoppingSpeakingSession) return MainButtonActionResult.busy;
     final controller = _controller;
+    final replaceActiveMainSession =
+        MainButtonActivationPolicy.canInterruptVocabularyPlayback(
+          isAndroid: !kIsWeb && defaultTargetPlatform == TargetPlatform.android,
+          registry: _activeLearningModules,
+        );
     controller?.recordAiv0MainDiagnostic(
       'MAIN_APP_HANDLER_ENTER',
       values: <String, Object?>{
@@ -3068,6 +3082,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       isActivationPending: _isActivatingMainAssistant,
       isMainButtonSessionActive:
           _voiceNavigationController?.isMainButtonSessionActive ?? false,
+      replaceActiveSession: replaceActiveMainSession,
     )) {
       controller?.recordAiv0MainDiagnostic(
         'MAIN_APP_HANDLER_REJECTED',
@@ -3116,7 +3131,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     );
     final activated = _mainSpeakingSessionController.isActive
         ? await _interruptContinuousTranslationWithMain()
-        : await _activateMainAssistant();
+        : await _activateMainAssistant(
+            replaceActiveMainSession: replaceActiveMainSession,
+          );
     if (!activated) {
       _virtualMainPhoneFallback = false;
       _mainSpeechAudioSourceOverride = null;
@@ -3490,6 +3507,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     final activated = await _activateMainAssistant(
       promptAlreadySpoken: promptAlreadySpoken,
       otherLearning: otherLearning,
+      otherLearningFromVocabulary: otherLearning,
       noSpeechRetryPrompt: noSpeechRetryPrompt,
       noSpeechExitPrompt: noSpeechExitPrompt,
     );
@@ -3972,6 +3990,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
                         child: MainVoiceAssistantButton(
                           voiceController: voiceController,
                           audioState: controller,
+                          activeLearningRegistry: _activeLearningModules,
                           speakingSessionController:
                               _mainSpeakingSessionController,
                           isActivationPending: _isActivatingMainAssistant,

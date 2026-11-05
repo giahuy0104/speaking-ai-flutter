@@ -122,7 +122,63 @@ void main() {
   });
 
   testWidgets(
-    'MAIN Vocabulary root closes Review and keeps its checkpoint',
+    'Review starts after loading behind a locked mobile screen',
+    (tester) async {
+      final store = _GatedVocabularyStore();
+      final media = _FakeLessonMediaService();
+      addTearDown(media.close);
+      addTearDown(
+        () => tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        ),
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: VocabularyPracticeScreen(
+            language: DisplayLanguage.vietnamese,
+            childAge: 6,
+            session: VocabularyPracticeSession(
+              id: 'locked-review',
+              mode: VocabularyPracticeMode.review,
+              entryIds: const <String>['apple'],
+              currentIndex: 0,
+              results: const <String, bool>{},
+              correctAudioPaths: const <String, String>{},
+              createdAt: DateTime(2026),
+            ),
+            store: store,
+            sessionStore: const VocabularySessionStore(),
+            mediaService: media,
+            voicePromptService: _FakeVoicePromptService(),
+            samplePause: Duration.zero,
+          ),
+        ),
+      );
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      store.complete(<VocabularyEntry>[
+        VocabularyEntry(
+          id: 'apple',
+          word: 'Apple',
+          meaning: 'Táo',
+          addedAt: DateTime(2026),
+          collection: VocabularyCollection.review,
+        ),
+      ]);
+      await tester.runAsync(() async {
+        for (var attempt = 0; attempt < 20 && media.events.isEmpty; attempt++) {
+          await Future<void>.delayed(const Duration(milliseconds: 10));
+        }
+      });
+      expect(media.events, contains('prepare'));
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
+  testWidgets(
+    'MAIN Stars releases Review ownership before the pop animation',
     (tester) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
       const store = VocabularyStore();
@@ -178,16 +234,23 @@ void main() {
       );
       await tester.tap(find.text('Open'));
       await tester.pumpAndSettle();
+      final practice = tester.state<VocabularyPracticeScreenState>(
+        find.byType(VocabularyPracticeScreen),
+      );
+      expect(practice.hasActiveReviewPractice, isTrue);
       expect(await registry.pauseForMainAssistant(), isTrue);
       expect(
         (await registry.execute(
-          ActiveLearningCommand.vocabularyRoot,
+          ActiveLearningCommand.vocabularyStars,
         )).wasHandled,
         isTrue,
       );
+      expect(registry.hasActiveModule, isFalse);
+      expect(practice.hasActiveReviewPractice, isFalse);
+      expect(practice.mounted, isTrue);
       await tester.pumpAndSettle();
 
-      expect(result, VocabularyPracticeResult.vocabularyRoot);
+      expect(result, VocabularyPracticeResult.stars);
       expect((await sessions.readActive())?.currentIndex, 1);
       expect((await sessions.readActive())?.id, review.id);
     },
@@ -195,6 +258,154 @@ void main() {
       TargetPlatform.android,
       TargetPlatform.iOS,
     }),
+  );
+
+  testWidgets(
+    'Today waits for its checkpoint before a direct Review can replace it',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      const store = VocabularyStore();
+      final sessions = _GatedCheckpointSessionStore();
+      await store.upsertLessonSentence(
+        lessonCode: 'L01',
+        sentenceId: 'Apple',
+        english: 'Apple',
+        vietnamese: 'Táo',
+        collection: VocabularyCollection.review,
+        source: VocabularySource.topicCore,
+      );
+      final entry = (await store.read()).single;
+      final today = VocabularyPracticeSession(
+        id: 'today-before-review',
+        mode: VocabularyPracticeMode.today,
+        entryIds: <String>[entry.id],
+        currentIndex: 0,
+        results: const <String, bool>{},
+        correctAudioPaths: const <String, String>{},
+        createdAt: DateTime(2026),
+      );
+      await sessions.saveActive(today);
+      final media = _FakeLessonMediaService();
+      addTearDown(media.close);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) => FilledButton(
+              onPressed: () => Navigator.of(context).push<void>(
+                MaterialPageRoute<void>(
+                  builder: (_) => VocabularyPracticeScreen(
+                    language: DisplayLanguage.vietnamese,
+                    childAge: 6,
+                    session: today,
+                    store: store,
+                    sessionStore: sessions,
+                    mediaService: media,
+                    voicePromptService: _FakeVoicePromptService(),
+                    autoStart: false,
+                  ),
+                ),
+              ),
+              child: const Text('Open'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+      final practice = tester.state<VocabularyPracticeScreenState>(
+        find.byType(VocabularyPracticeScreen),
+      );
+      sessions.gateCheckpoint = true;
+      final closing = practice.leaveForVocabularyTarget();
+      await tester.pump();
+      await sessions.checkpointStarted.future;
+      expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
+      expect((await sessions.readActive())?.mode, VocabularyPracticeMode.today);
+
+      sessions.allowCheckpoint.complete();
+      await tester.pumpAndSettle();
+      expect(await closing, isTrue);
+      expect(find.byType(VocabularyPracticeScreen), findsNothing);
+      sessions.gateCheckpoint = false;
+      final review = await sessions.prepareReview(store);
+      expect(review?.mode, VocabularyPracticeMode.review);
+      expect((await sessions.readActive())?.id, review?.id);
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  testWidgets(
+    'locked Android Review releases its route before unlock',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      const store = VocabularyStore();
+      const sessions = VocabularySessionStore();
+      await store.upsertLessonSentence(
+        lessonCode: 'L01',
+        sentenceId: 'Apple',
+        english: 'Apple',
+        vietnamese: 'Quả táo',
+        collection: VocabularyCollection.review,
+        source: VocabularySource.topicCore,
+      );
+      final review = (await sessions.prepareReview(store))!;
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final media = _FakeLessonMediaService();
+      addTearDown(media.close);
+      addTearDown(
+        () => tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        ),
+      );
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: MaterialApp(
+            home: Builder(
+              builder: (context) => FilledButton(
+                onPressed: () => Navigator.of(context).push<void>(
+                  MaterialPageRoute<void>(
+                    builder: (_) => VocabularyPracticeScreen(
+                      language: DisplayLanguage.vietnamese,
+                      childAge: 6,
+                      session: review,
+                      store: store,
+                      sessionStore: sessions,
+                      mediaService: media,
+                      voicePromptService: _FakeVoicePromptService(),
+                      autoStart: false,
+                    ),
+                  ),
+                ),
+                child: const Text('Open'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+      final practice = tester.state<VocabularyPracticeScreenState>(
+        find.byType(VocabularyPracticeScreen),
+      );
+      expect(registry.hasActiveModule, isTrue);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      final closed = await tester.runAsync(
+        () =>
+            practice.leaveForOtherContent().timeout(const Duration(seconds: 1)),
+      );
+      expect(closed, isTrue);
+      expect(practice.hasActiveReviewPractice, isFalse);
+      expect(practice.mounted, isTrue);
+      expect(ModalRoute.of(practice.context)?.isActive, isFalse);
+      expect(registry.hasActiveModule, isFalse);
+      expect((await sessions.readActive())?.id, review.id);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+      expect(find.byType(VocabularyPracticeScreen), findsNothing);
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
   );
 
   _reviewAutoFollowTests();
@@ -1189,6 +1400,89 @@ void main() {
     }),
   );
 
+  testWidgets(
+    'locked mobile Review starts the next group and speaks its resume line',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      const store = VocabularyStore();
+      const sessions = VocabularySessionStore();
+      for (var index = 0; index < 7; index += 1) {
+        await store.upsertLessonSentence(
+          lessonCode: 'L01',
+          sentenceId: 'S$index',
+          english: 'Word $index',
+          vietnamese: 'Từ $index',
+          collection: VocabularyCollection.review,
+          source: VocabularySource.topicCore,
+        );
+      }
+      final prepared = (await sessions.prepareReview(store))!;
+      final session = prepared.copyWith(currentIndex: 4);
+      await sessions.saveActive(session);
+      final media = _FakeLessonMediaService();
+      final voice = _FakeVoicePromptService();
+      addTearDown(media.close);
+      addTearDown(
+        () => tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        ),
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: VocabularyPracticeScreen(
+            language: DisplayLanguage.vietnamese,
+            childAge: 6,
+            session: session,
+            store: store,
+            sessionStore: sessions,
+            mediaService: media,
+            attemptEvaluator: _QueuedAttemptEvaluator(<LessonAttemptOutcome>[
+              LessonAttemptOutcome.good,
+            ]),
+            voicePromptService: voice,
+            samplePause: Duration.zero,
+            onPrepareContinue: () =>
+                sessions.prepareReview(store, forceNextGroup: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const Key('vocabulary-practice-main-action')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text(VocabularyFlowV3.reviewGroupCompletion), findsOneWidget);
+
+      final practice = tester.state<VocabularyPracticeScreenState>(
+        find.byType(VocabularyPracticeScreen),
+      );
+      final previousMediaEvents = media.events.length;
+      voice.spoken.clear();
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      final result = await practice.handleMainCommand(
+        ActiveLearningCommand.nextItem,
+      );
+      await tester.runAsync(() async {
+        for (
+          var attempt = 0;
+          attempt < 20 &&
+              !voice.spoken.contains('vi-VN:${VocabularyFlowV3.reviewResume}');
+          attempt++
+        ) {
+          await Future<void>.delayed(const Duration(milliseconds: 10));
+        }
+      });
+
+      expect(result.wasHandled, isTrue);
+      expect(media.events.length, greaterThan(previousMediaEvents));
+      expect(voice.spoken, contains('vi-VN:${VocabularyFlowV3.reviewResume}'));
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
   testWidgets('Review localizes tap recording labels in Chinese', (
     tester,
   ) async {
@@ -1820,6 +2114,31 @@ Future<void> _pumpUntil(WidgetTester tester, bool Function() condition) async {
     await tester.pump(const Duration(milliseconds: 10));
   }
   fail('Condition did not become true in time.');
+}
+
+class _GatedVocabularyStore extends VocabularyStore {
+  final Completer<List<VocabularyEntry>> _read =
+      Completer<List<VocabularyEntry>>();
+
+  @override
+  Future<List<VocabularyEntry>> read() => _read.future;
+
+  void complete(List<VocabularyEntry> entries) => _read.complete(entries);
+}
+
+class _GatedCheckpointSessionStore extends VocabularySessionStore {
+  final checkpointStarted = Completer<void>();
+  final allowCheckpoint = Completer<void>();
+  bool gateCheckpoint = false;
+
+  @override
+  Future<void> saveActive(VocabularyPracticeSession session) async {
+    if (gateCheckpoint) {
+      checkpointStarted.complete();
+      await allowCheckpoint.future;
+    }
+    await super.saveActive(session);
+  }
 }
 
 class _FakeLessonMediaService extends LessonMediaService {

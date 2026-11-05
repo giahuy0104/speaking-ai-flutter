@@ -46,14 +46,12 @@ class LessonMediaService {
     AudioTurnOwner audioTurnOwner = AudioTurnOwner.listeningLesson,
     LessonRecordingHistoryStore? historyStore,
     Stream<AudioInterruptionEvent>? audioInterruptionEvents,
-    Future<String> Function(String)? replayDenoiser,
   }) : _recorder = recorder,
        _playbackService = playbackService,
        _hfpAudioControl = hfpAudioControl,
        _audioTurnCoordinator = audioTurnCoordinator,
        _audioTurnOwner = audioTurnOwner,
        _audioInterruptionEvents = audioInterruptionEvents,
-       _replayDenoiser = replayDenoiser ?? prepareLessonRecordingForReplay,
        historyStore = historyStore ?? const LessonRecordingHistoryStore() {
     if (!kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.android ||
@@ -99,7 +97,6 @@ class LessonMediaService {
   final AudioTurnCoordinator? _audioTurnCoordinator;
   final AudioTurnOwner _audioTurnOwner;
   final Stream<AudioInterruptionEvent>? _audioInterruptionEvents;
-  final Future<String> Function(String) _replayDenoiser;
   DateTime? _recordingStartedAt;
   String? _activePath;
   _ActiveLessonRecording? _activeContext;
@@ -298,43 +295,26 @@ class LessonMediaService {
     }
   }
 
-  Future<void> playToCompletion(
-    Uri uri, {
-    Duration timeout = const Duration(seconds: 45),
-    LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
-    double playbackGainDb = androidSpeechBoostDb,
-    bool fixedPlaybackGain = false,
-  }) => _playToCompletion(
-    uri,
-    timeout: timeout,
-    route: route,
-    playbackGainDb: playbackGainDb,
-    fixedPlaybackGain: fixedPlaybackGain,
-    inferCompletionAtSourceEnd: false,
-  );
-
   Future<void> playRecordedTakeToCompletion(
     Uri uri, {
     Duration timeout = const Duration(seconds: 45),
     LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
     double playbackGainDb = androidSpeechBoostDb,
     bool fixedPlaybackGain = false,
-  }) => _playToCompletion(
+  }) => playToCompletion(
     uri,
     timeout: timeout,
     route: route,
     playbackGainDb: playbackGainDb,
     fixedPlaybackGain: fixedPlaybackGain,
-    inferCompletionAtSourceEnd: true,
   );
 
-  Future<void> _playToCompletion(
+  Future<void> playToCompletion(
     Uri uri, {
-    required Duration timeout,
-    required LessonPlaybackRoute route,
-    required double playbackGainDb,
-    required bool fixedPlaybackGain,
-    required bool inferCompletionAtSourceEnd,
+    Duration timeout = const Duration(seconds: 45),
+    LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = androidSpeechBoostDb,
+    bool fixedPlaybackGain = false,
   }) async {
     final generation = ++_playbackRequestGeneration;
     final playback = _activePlayback;
@@ -452,14 +432,13 @@ class LessonMediaService {
       playStarted = true;
       if (!kIsWeb &&
           (defaultTargetPlatform == TargetPlatform.iOS ||
-              (defaultTargetPlatform == TargetPlatform.android &&
-                  inferCompletionAtSourceEnd)) &&
+              defaultTargetPlatform == TargetPlatform.android) &&
           prearmedPlayback != null &&
           playback is ProgressAwareAudioPlaybackService) {
         final progress = playback as ProgressAwareAudioPlaybackService;
-        // A recorded take can reach the file's end without just_audio
+        // A selected device can reach the file's end without just_audio
         // publishing ProcessingState.completed. Confirm a stable end position
-        // for this request so a finished take does not time out after playing.
+        // for this request so a finished clip does not time out after playing.
         endPositionTimer = Timer.periodic(const Duration(milliseconds: 100), (
           _,
         ) {
@@ -855,70 +834,71 @@ class LessonMediaService {
     ),
   );
 
-  Future<LessonRecording> stopRecording() =>
-      _serializeRecordingOperation(() async {
-        try {
-          final routeFailure = _recordingRouteFailure;
-          if (routeFailure != null) throw routeFailure;
-          final recorder = _recorder;
-          final startedAt = _recordingStartedAt;
-          final expectedPath = _activePath;
-          final context = _activeContext;
-          if (recorder == null ||
-              startedAt == null ||
-              expectedPath == null ||
-              context == null) {
-            throw const LessonMediaException('Chưa có bản ghi đang thực hiện.');
-          }
-          // Capture the audible end before the plugin finalizes and flushes the
-          // file. On slower Android devices that finalization can take about a
-          // second; including it made a six-second recording appear as seven.
-          final stoppedAt = DateTime.now();
-          final recordedPath = await recorder.stop();
-          _recordingStartedAt = null;
-          _activePath = null;
-          _activeContext = null;
-          final recording = await prepareExternalRecordingForPlayback(
-            LessonRecording(
-              filePath: recordedPath ?? expectedPath,
-              duration: stoppedAt.difference(startedAt),
+  Future<LessonRecording> stopRecording() => _serializeRecordingOperation(
+    () async {
+      try {
+        final routeFailure = _recordingRouteFailure;
+        if (routeFailure != null) throw routeFailure;
+        final recorder = _recorder;
+        final startedAt = _recordingStartedAt;
+        final expectedPath = _activePath;
+        final context = _activeContext;
+        if (recorder == null ||
+            startedAt == null ||
+            expectedPath == null ||
+            context == null) {
+          throw const LessonMediaException('Chưa có bản ghi đang thực hiện.');
+        }
+        // Capture the audible end before the plugin finalizes and flushes the
+        // file. On slower Android devices that finalization can take about a
+        // second; including it made a six-second recording appear as seven.
+        final stoppedAt = DateTime.now();
+        final recordedPath = await recorder.stop();
+        _recordingStartedAt = null;
+        _activePath = null;
+        _activeContext = null;
+        final recording = await prepareExternalRecordingForPlayback(
+          LessonRecording(
+            filePath: recordedPath ?? expectedPath,
+            duration: stoppedAt.difference(startedAt),
+          ),
+        );
+        final resolvedPath = recording.filePath;
+        if (context.saveToHistory) {
+          final createdAt = DateTime.now();
+          final evictedPaths = await historyStore.addSuccessful(
+            LessonRecordingHistoryEntry(
+              id: '${context.sentenceId}-${createdAt.microsecondsSinceEpoch}',
+              lessonId: context.lessonId,
+              lessonTitle: context.lessonTitle,
+              sentenceId: context.sentenceId,
+              sentenceNumber: context.sentenceNumber,
+              english: context.english,
+              vietnamese: context.vietnamese,
+              filePath: resolvedPath,
+              duration: recording.duration,
+              createdAt: createdAt,
             ),
           );
-          final resolvedPath = recording.filePath;
-          if (context.saveToHistory) {
-            final createdAt = DateTime.now();
-            final evictedPaths = await historyStore.addSuccessful(
-              LessonRecordingHistoryEntry(
-                id: '${context.sentenceId}-${createdAt.microsecondsSinceEpoch}',
-                lessonId: context.lessonId,
-                lessonTitle: context.lessonTitle,
-                sentenceId: context.sentenceId,
-                sentenceNumber: context.sentenceNumber,
-                english: context.english,
-                vietnamese: context.vietnamese,
-                filePath: resolvedPath,
-                duration: recording.duration,
-                createdAt: createdAt,
-              ),
-            );
-            for (final path in evictedPaths) {
-              await deleteLessonRecording(path);
-            }
+          for (final path in evictedPaths) {
+            await deleteLessonRecording(path);
           }
-          // Keep the selected HM-D001 output through scoring and feedback on both
-          // phones. Dropping the route here can finish its teardown after the
-          // next prompt starts, moving that prompt to the phone speaker.
-          if (kIsWeb ||
-              (defaultTargetPlatform != TargetPlatform.android &&
-                  defaultTargetPlatform != TargetPlatform.iOS)) {
-            await _releaseHfpRoute();
-          }
-          return recording;
-        } catch (_) {
-          await _releaseHfpRoute();
-          rethrow;
         }
-      });
+        // Keep the selected HM-D001 output through scoring and feedback on both
+        // phones. Dropping the route here can finish its teardown after the
+        // next prompt starts, moving that prompt to the phone speaker.
+        if (kIsWeb ||
+            (defaultTargetPlatform != TargetPlatform.android &&
+                defaultTargetPlatform != TargetPlatform.iOS)) {
+          await _releaseHfpRoute();
+        }
+        return recording;
+      } catch (_) {
+        await _releaseHfpRoute();
+        rethrow;
+      }
+    },
+  );
 
   /// Normalizes native recordings for replay without adding lesson history.
   Future<LessonRecording> prepareExternalRecordingForPlayback(
@@ -963,32 +943,18 @@ class LessonMediaService {
   }
 
   /// Shared replay policy for prepared topic and challenge recordings.
-  Future<void> playRecordingToCompletion(LessonRecording recording) async {
-    var playbackPath = recording.filePath;
-    final originalUri = Uri.tryParse(playbackPath);
-    final originalIsWindowsPath = RegExp(
+  Future<void> playRecordingToCompletion(LessonRecording recording) {
+    final parsed = Uri.tryParse(recording.filePath);
+    final isWindowsPath = RegExp(
       r'^[a-zA-Z]:[/\\]',
-    ).hasMatch(playbackPath);
-    if (!kIsWeb &&
-        (defaultTargetPlatform == TargetPlatform.android ||
-            defaultTargetPlatform == TargetPlatform.iOS) &&
-        (originalIsWindowsPath || originalUri == null || !originalUri.hasScheme) &&
-        isLocalLessonRecordingFile(playbackPath)) {
-      try {
-        playbackPath = await _replayDenoiser(playbackPath);
-      } catch (error) {
-        debugPrint('Lesson replay denoise failed; using original: $error');
-      }
-    }
-    final parsed = Uri.tryParse(playbackPath);
-    final isWindowsPath = RegExp(r'^[a-zA-Z]:[/\\]').hasMatch(playbackPath);
+    ).hasMatch(recording.filePath);
     final uri = isWindowsPath
-        ? Uri.file(playbackPath, windows: true)
+        ? Uri.file(recording.filePath, windows: true)
         : parsed != null && parsed.hasScheme
         ? parsed
-        : Uri.file(playbackPath);
+        : Uri.file(recording.filePath);
     final requestedTimeout = recording.duration + const Duration(seconds: 5);
-    await playToCompletion(
+    return playToCompletion(
       uri,
       timeout: requestedTimeout < const Duration(seconds: 10)
           ? const Duration(seconds: 10)

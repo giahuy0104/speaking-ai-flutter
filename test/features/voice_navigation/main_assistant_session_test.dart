@@ -7,6 +7,38 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test(
+    'stopped translation opens global MAIN despite a stale lesson',
+    () async {
+      final module = _FakeActiveModule()..paused = true;
+      final harness = _SessionHarness(module: module);
+      addTearDown(harness.dispose);
+      bool? receivedActiveLearning;
+      ActiveLearningModuleKind? activeKind;
+
+      final activated = await harness.session.activate(
+        startupReady: true,
+        voiceAccessEnabled: true,
+        conversationBusy: false,
+        assistantFlowBusy: false,
+        ignoreActiveLearning: true,
+        canContinue: () => true,
+        activateVoice:
+            ({required activeLearning, required activeLearningKind}) async {
+              receivedActiveLearning = activeLearning;
+              activeKind = activeLearningKind;
+              return true;
+            },
+      );
+
+      expect(activated, isTrue);
+      expect(receivedActiveLearning, isFalse);
+      expect(activeKind, isNull);
+      expect(module.pauseCount, 0);
+      expect(module.commands, isEmpty);
+      expect(module.paused, isTrue);
+    },
+  );
+  test(
     'an active MAIN session rejects reentry after activation completes',
     () async {
       final module = _FakeActiveModule();
@@ -37,6 +69,38 @@ void main() {
       expect(activated, 0);
       expect(module.pauseCount, 0);
       expect(harness.activationStates, isEmpty);
+    },
+  );
+  test(
+    'MAIN can replace its previous turn during collection playback',
+    () async {
+      final module = _FakeActiveModule(
+        kind: ActiveLearningModuleKind.vocabulary,
+      );
+      final harness = _SessionHarness(module: module);
+      addTearDown(harness.dispose);
+      var voiceCalls = 0;
+
+      final activated = await harness.session.activate(
+        startupReady: true,
+        voiceAccessEnabled: true,
+        conversationBusy: true,
+        assistantFlowBusy: false,
+        mainButtonSessionActive: true,
+        replaceActiveMainSession: true,
+        canContinue: () => true,
+        activateVoice:
+            ({required activeLearning, required activeLearningKind}) async {
+              voiceCalls++;
+              expect(activeLearning, isTrue);
+              expect(activeLearningKind, ActiveLearningModuleKind.vocabulary);
+              return true;
+            },
+      );
+
+      expect(activated, isTrue);
+      expect(module.pauseCount, 1);
+      expect(voiceCalls, 1);
     },
   );
   test(

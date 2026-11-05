@@ -297,9 +297,12 @@ struct IOSBackgroundAudioHandoffPolicy {
 
   static func shouldKeepEngineRunning(
     backgroundLearningEnabled: Bool,
-    applicationIsActive: Bool
+    activeLearningRequested: Bool,
+    applicationIsActive: Bool,
+    hasAvailableHfpInput: Bool
   ) -> Bool {
-    backgroundLearningEnabled && !applicationIsActive
+    backgroundLearningEnabled
+      && (activeLearningRequested || !applicationIsActive || hasAvailableHfpInput)
   }
 }
 
@@ -981,6 +984,9 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       audioSessionCoordinator.isBackgroundCaptureEngineRunning,
       backgroundHandoffPhase == .armed || backgroundHandoffPhase == .capturing
     {
+      // A new background transition supersedes a foreground disarm deferred
+      // until the current speech turn ends.
+      backgroundHandoffDisarmWhenIdle = false
       audioSessionCoordinator.trace(
         stage: "background_capture_engine_already_armed",
         caller: caller,
@@ -1039,6 +1045,19 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       armGeneration: backgroundHandoffArmGeneration,
       caller: caller
     )
+  }
+
+  func isBackgroundAudioHandoffReady(for target: IOSAudioInputTarget?) -> Bool {
+    guard backgroundHandoffPhase == .armed || backgroundHandoffPhase == .capturing,
+      audioEngine.isRunning,
+      inputTapInstalled,
+      let audioSource = backgroundHandoffAudioSource
+    else { return false }
+    if let target {
+      let expectedSource: IOSNativeSpeechAudioSource = target == .hfp ? .hfp : .builtInMic
+      guard audioSource == expectedSource else { return false }
+    }
+    return audioRouteMatches(audioSource)
   }
 
   private func attemptBackgroundAudioHandoffArm(

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 import '../../../core/audio/adaptive_voice_activity_detector.dart';
 import '../../../core/audio/streaming_speech_input.dart';
@@ -199,6 +200,8 @@ class VoiceNavigationController extends ChangeNotifier {
   bool get isAcknowledgingWakeWord => _acknowledgingWakeWord;
   bool get isMainButtonSessionActive =>
       _buttonCommandSession || _mainButtonActivationInProgress;
+  bool get isWaitingForMainAfterTranslationStop =>
+      _translationStoppedAwaitingMain;
   MainVoiceAssistantStage get mainAssistantStage => _mainAssistantFlow.stage;
   Object? get lastError => _lastError;
   String get activeInputLabel =>
@@ -238,8 +241,8 @@ class VoiceNavigationController extends ChangeNotifier {
     _intentHandler = handler;
   }
 
-  /// iOS MAIN waits for the destination to confirm that navigation started.
-  /// The legacy handler remains unchanged for Android and other callers.
+  /// iOS checks route installation, and Android checks the translation handoff.
+  /// Other Android destinations continue through the legacy handler.
   void setIntentResultHandler(VoiceNavigationIntentResultHandler? handler) {
     _intentResultHandler = handler;
   }
@@ -300,8 +303,13 @@ class VoiceNavigationController extends ChangeNotifier {
   }
 
   /// Offers the other learning destinations after leaving an active mode.
-  Future<bool> activateOtherLearningFromSpeaking() async {
-    return _activateMainAssistantFlow(_mainAssistantFlow.beginOtherLearning);
+  Future<bool> activateOtherLearningFromSpeaking({
+    bool fromVocabulary = false,
+  }) async {
+    return _activateMainAssistantFlow(
+      () =>
+          _mainAssistantFlow.beginOtherLearning(fromVocabulary: fromVocabulary),
+    );
   }
 
   /// STOP closes both microphones. Do not ask a follow-up or listen for wake.
@@ -369,7 +377,7 @@ class VoiceNavigationController extends ChangeNotifier {
       if (_disposed || activationGeneration != _generation) {
         return false;
       }
-      await _beginNativeMainTurn(_generation);
+      if (!await _beginNativeMainTurn(_generation)) return false;
       if (_disposed || activationGeneration != _generation) return false;
       _activeInputLabelOverride = inputLabelOverride;
       _lastError = null;
@@ -781,7 +789,9 @@ class VoiceNavigationController extends ChangeNotifier {
     if (navigationAfterPrompt != null) {
       final dispatched = await _dispatchIntent(navigationAfterPrompt);
       if (!dispatched &&
-          (iosNavigation || navigationAfterPrompt.vocabularyTarget != null)) {
+          (iosNavigation ||
+              navigationAfterPrompt.vocabularyTarget != null ||
+              navigationAfterPrompt.enterMainSpeakingMode)) {
         notifyListeners();
         return false;
       }
@@ -1102,7 +1112,8 @@ class VoiceNavigationController extends ChangeNotifier {
     final handler = _intentHandler;
     final resultHandler =
         ((!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) ||
-            intent.vocabularyTarget != null)
+            intent.vocabularyTarget != null ||
+            intent.enterMainSpeakingMode)
         ? _intentResultHandler
         : null;
     if ((handler == null && resultHandler == null) || _disposed) {
@@ -1332,10 +1343,10 @@ class VoiceNavigationController extends ChangeNotifier {
     }
   }
 
-  Future<void> _beginNativeMainTurn(int generation) async {
+  Future<bool> _beginNativeMainTurn(int generation) async {
     final service = _voicePromptService;
     if (service is! MainTurnVoicePromptService) {
-      return;
+      return true;
     }
     final mainTurnService = service as MainTurnVoicePromptService;
     final audioSource = _mainSpeechAudioSource?.call();
@@ -1352,10 +1363,11 @@ class VoiceNavigationController extends ChangeNotifier {
           generation: generation,
           turnId: turnId,
         );
-        return;
+        return true;
       }
       _nativeMainTurnId = turnId;
       _nativeMainTurnGeneration = generation;
+      return true;
     } on TimeoutException {
       // iOS arms a background-capable Apple Speech engine before replying to
       // beginMainTurn. That native preparation can occasionally finish late
@@ -1372,8 +1384,23 @@ class VoiceNavigationController extends ChangeNotifier {
           onError: (_) {},
         ),
       );
+      return true;
+    } on PlatformException catch (error) {
+      if (error.code != 'BACKGROUND_MIC_NOT_READY') return true;
+      const message = 'Mở khóa iPhone rồi nhấn MAIN lại để dùng micro.';
+      _lastError = const StreamingSpeechInputException(
+        message,
+        code: 'BACKGROUND_MIC_NOT_READY',
+      );
+      try {
+        await service?.speakAndWait(message);
+      } catch (_) {
+        // The visible error remains available if background playback fails.
+      }
+      return false;
     } catch (_) {
       // The visible prompt remains usable on platforms without this bridge.
+      return true;
     }
   }
 

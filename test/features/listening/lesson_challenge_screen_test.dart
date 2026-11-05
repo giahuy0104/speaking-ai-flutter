@@ -655,6 +655,85 @@ void main() {
       ]),
     );
   });
+
+  testWidgets(
+    'completed locked Android Challenge releases MAIN before route disposal',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      final evaluator = _ControlledAttemptEvaluator();
+      final completion = Completer<bool?>();
+      addTearDown(registry.dispose);
+      addTearDown(
+        () => tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        ),
+      );
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: MaterialApp(
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => TextButton(
+                  onPressed: () {
+                    Navigator.of(context)
+                        .push<bool>(
+                          MaterialPageRoute<bool>(
+                            builder: (_) => LessonChallengeScreen(
+                              language: DisplayLanguage.vietnamese,
+                              startAge: 7,
+                              lesson: _lesson(),
+                              challenges: const <ListeningChallengeContent>[
+                                ListeningChallengeContent(
+                                  id: 'challenge-1',
+                                  format: 'VI_TO_EN',
+                                  prompt: 'Where is the library?',
+                                  choices: <String>[
+                                    'Go straight.',
+                                    'It is five dollars.',
+                                  ],
+                                  correctAnswer: 'Go straight.',
+                                  correctVietnamese: 'Đi thẳng.',
+                                  targetId: 'target-1',
+                                ),
+                              ],
+                              mediaService: _FakeLessonMediaService(),
+                              attemptEvaluator: evaluator,
+                              voicePromptService:
+                                  const _FakeVoicePromptService(),
+                            ),
+                          ),
+                        )
+                        .then(completion.complete);
+                  },
+                  child: const Text('Open Challenge'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Open Challenge'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 350));
+      await _pumpChallengeTransition(tester);
+      expect(registry.hasActiveModule, isTrue);
+      await tester.tap(find.byKey(const Key('lesson-challenge-record-button')));
+      await _pumpChallengeTransition(tester);
+      expect(evaluator.evaluationCalls, 1);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      evaluator.complete(LessonAttemptOutcome.good);
+      final completed = await tester.runAsync(
+        () => completion.future.timeout(const Duration(seconds: 2)),
+      );
+
+      expect(completed, isTrue);
+      expect(registry.hasActiveModule, isFalse);
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
   testWidgets('Challenge resume uses only RESUME_CHALLENGE before replay', (
     tester,
   ) async {

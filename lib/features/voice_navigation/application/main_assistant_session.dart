@@ -48,6 +48,8 @@ class MainAssistantSession {
     required bool conversationBusy,
     required bool assistantFlowBusy,
     bool mainButtonSessionActive = false,
+    bool replaceActiveMainSession = false,
+    bool ignoreActiveLearning = false,
     required bool Function() canContinue,
     required MainAssistantActivation activateVoice,
     Future<bool> Function()? prepareActivation,
@@ -57,12 +59,14 @@ class MainAssistantSession {
         !MainButtonActivationPolicy.canStart(
           isActivationPending: _activationPending,
           isMainButtonSessionActive: mainButtonSessionActive,
+          replaceActiveSession: replaceActiveMainSession,
         ) ||
         assistantFlowBusy) {
       return false;
     }
 
-    final hadActiveModule = _appFlowCoordinator.hasActiveModule;
+    final hadActiveModule =
+        !ignoreActiveLearning && _appFlowCoordinator.hasActiveModule;
     if (!hadActiveModule && conversationBusy) return false;
 
     final generation = ++_generation;
@@ -75,7 +79,13 @@ class MainAssistantSession {
           return false;
         }
       }
-      final pause = await _appFlowCoordinator.pauseForMainAssistant();
+      final pause = ignoreActiveLearning
+          ? const MainLearningPause(
+              paused: false,
+              hasActiveModule: false,
+              activeKind: null,
+            )
+          : await _appFlowCoordinator.pauseForMainAssistant();
       if (generation != _generation || !canContinue()) return false;
       // A visible learning module still owns this MAIN turn if its audio
       // could not be paused. Do not route the same command to the global menu.

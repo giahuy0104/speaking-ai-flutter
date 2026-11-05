@@ -1089,7 +1089,25 @@ class _LessonChallengeScreenState extends State<LessonChallengeScreen>
     if (!mounted || _pausedForMainAssistant || request != _request) {
       return false;
     }
-    if (mounted) Navigator.of(context).pop(true);
+    if (mounted) {
+      final navigator = Navigator.of(context);
+      if (!navigator.canPop()) return false;
+      final route = ModalRoute.of(context);
+      if (route == null || !route.isCurrent) return false;
+      final registration = _activeModuleRegistration;
+      if (registration != null) {
+        _activeModuleRegistry?.unregister(registration);
+        _activeModuleRegistration = null;
+      }
+      if (!kIsWeb &&
+          defaultTargetPlatform == TargetPlatform.android &&
+          WidgetsBinding.instance.lifecycleState != null &&
+          WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
+        navigator.removeRoute(route, true);
+      } else {
+        navigator.pop(true);
+      }
+    }
     return false;
   }
 
