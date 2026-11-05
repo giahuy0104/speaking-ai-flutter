@@ -2278,7 +2278,7 @@ void main() {
     await speechInput.dispose();
   });
 
-  test('Today MAIN other-content command speaks the two-choice menu', () async {
+  test('Today MAIN other-content command speaks the three-choice menu', () async {
     final speech = _FakeNavigationSpeechInput();
     final prompt = _KeyedFakeVoicePromptService();
     final controller = VoiceNavigationController(
@@ -2307,7 +2307,7 @@ void main() {
         (play) =>
             play.$2 == MainVoiceAssistantFlow.vocabularyOtherLearningPrompt,
       ),
-      isEmpty,
+      hasLength(1),
     );
     expect(controller.isAwaitingCommand, isTrue);
 

@@ -1842,12 +1842,12 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       final firstEntryToday = await widget.sessionStore
           .markAndCheckFirstEntryToday(DateTime.now());
       if (!isCurrent()) return;
-      final session = await widget.sessionStore.prepareToday(widget.store);
+      final entry = await widget.sessionStore.prepareTodayEntry(widget.store);
       // A direct destination owns its audio, including when a queued load or
       // an earlier automatic entry completes after that destination is chosen.
       if (!isCurrent()) return;
       _todayOffered = true;
-      if (session == null) {
+      if (entry == null) {
         if (mounted && _isEffectivelyActive) {
           await _speakAndRequestChoice(
             firstEntryToday
@@ -1858,7 +1858,11 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         return;
       }
       if (!mounted || !_isEffectivelyActive) return;
-      await _runPracticeSession(session);
+      await _runPracticeSession(
+        entry.session,
+        announceInitialIntro: !entry.resumed,
+        announceInitialResume: entry.resumed,
+      );
     } finally {
       _startingToday = false;
       if (_restartTodayAfterCurrent) {

@@ -84,24 +84,29 @@ void main() {
         ),
     ]);
 
-    final first = await sessions.prepareToday(
+    final entry = (await sessions.prepareTodayEntry(
       store,
       now: DateTime(2026, 9, 14, 8),
-    );
-    final resumed = await sessions.prepareToday(
+    ))!;
+    expect(entry.resumed, isFalse);
+    final first = entry.session;
+    await sessions.saveActive(first.copyWith(currentIndex: 1));
+    final resumed = (await sessions.prepareTodayEntry(
       store,
       now: DateTime(2026, 9, 14, 18),
-      forceNextGroup: true,
-    );
+    ))!;
 
-    expect(first?.entryIds, <String>[
+    expect(first.entryIds, <String>[
       'parent-0',
       'parent-1',
       'parent-2',
       'parent-3',
       'parent-4',
     ]);
-    expect(resumed?.entryIds, first?.entryIds);
+    expect(resumed.resumed, isTrue);
+    expect(resumed.session.id, first.id);
+    expect(resumed.session.entryIds, first.entryIds);
+    expect(resumed.session.currentIndex, 1);
     expect(
       (await store.read())
           .singleWhere((e) => e.id == 'parent-5')
@@ -109,10 +114,14 @@ void main() {
       isTrue,
     );
 
-    for (final id in first!.entryIds) {
+    for (final id in first.entryIds) {
       await store.markTodayHeard(id, now: DateTime(2026, 9, 14, 19));
     }
     await sessions.clearActive();
+    expect(
+      await sessions.prepareTodayEntry(store, now: DateTime(2026, 9, 14, 20)),
+      isNull,
+    );
     final replay = await sessions.prepareTodayReplay(
       store,
       now: DateTime(2026, 9, 14, 20),

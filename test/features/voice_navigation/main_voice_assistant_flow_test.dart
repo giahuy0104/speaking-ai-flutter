@@ -803,7 +803,7 @@ void main() {
   );
 
   test(
-    'Today other content excludes generic Vocabulary and keeps direct targets',
+    'Today other content accepts Vocabulary and keeps direct targets',
     () async {
       final flow = MainVoiceAssistantFlow()
         ..beginActiveLearning(kind: ActiveLearningModuleKind.vocabulary);
@@ -813,18 +813,14 @@ void main() {
         choice.promptText,
         MainVoiceAssistantFlow.vocabularyOtherLearningPrompt,
       );
-      expect(choice.promptAudioKey, isNull);
+      expect(choice.promptAudioKey, MainAssistantAudioKeys.chooseTranslation);
       expect(flow.stage, MainVoiceAssistantStage.chooseModuleSwitch);
-      expect(flow.canHandle('Bộ từ vựng'), isFalse);
+      expect(flow.canHandle('Bộ từ vựng'), isTrue);
 
-      final rejected = await flow.handle('Bộ từ vựng');
-      expect(
-        rejected.promptText,
-        MainVoiceAssistantFlow.vocabularyOtherLearningPrompt,
-      );
-      expect(rejected.navigationAfterPrompt, isNull);
-      expect(rejected.activeLearningCommand, isNull);
-      expect(rejected.continueListening, isTrue);
+      final turn = await flow.handle('Bộ từ vựng');
+      expect(turn.promptAudioKey, MainAssistantAudioKeys.switchedToVocabulary);
+      expect(turn.activeLearningCommand, ActiveLearningCommand.vocabularyRoot);
+      expect(turn.continueListening, isFalse);
 
       for (final target in <String, VoiceVocabularyTarget>{
         'Ngôi sao': VoiceVocabularyTarget.star,
@@ -1068,7 +1064,7 @@ void main() {
     },
   );
 
-  test('Stars other content keeps its two choices', () async {
+  test('Stars other content can return to Vocabulary', () async {
     final flow = MainVoiceAssistantFlow()
       ..beginActiveLearning(
         kind: ActiveLearningModuleKind.vocabulary,
@@ -1082,16 +1078,12 @@ void main() {
       choice.promptText,
       MainVoiceAssistantFlow.vocabularyOtherLearningPrompt,
     );
-    expect(choice.promptAudioKey, isNull);
+    expect(choice.promptAudioKey, MainAssistantAudioKeys.chooseTranslation);
 
     final turn = await flow.handle('Bộ từ vựng');
-    expect(
-      turn.promptText,
-      MainVoiceAssistantFlow.vocabularyOtherLearningPrompt,
-    );
-    expect(turn.promptAudioKey, isNull);
-    expect(turn.activeLearningCommand, isNull);
-    expect(turn.continueListening, isTrue);
+    expect(turn.promptAudioKey, MainAssistantAudioKeys.switchedToVocabulary);
+    expect(turn.activeLearningCommand, ActiveLearningCommand.vocabularyRoot);
+    expect(turn.continueListening, isFalse);
   });
 
   test('can choose translation after leaving an active lesson', () async {
@@ -1223,25 +1215,22 @@ void main() {
   });
 
   test(
-    'vocabulary other content offers translation or Topics and keeps direct destinations',
+    'vocabulary other content accepts all three choices and direct destinations',
     () async {
       final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
       expect(
         flow.beginOtherLearning(fromVocabulary: true),
         MainVoiceAssistantFlow.vocabularyOtherLearningPrompt,
       );
-      expect(flow.currentPromptAudioKey, isNull);
-      expect(flow.canHandle('Bộ từ vựng'), isFalse);
-      final rejected = await flow.handle('Bộ từ vựng');
+      expect(flow.currentPromptAudioKey, MainAssistantAudioKeys.chooseTranslation);
+      expect(flow.canHandle('Bộ từ vựng'), isTrue);
+      final vocabulary = await flow.handle('Bộ từ vựng');
+      expect(vocabulary.promptAudioKey, MainAssistantAudioKeys.switchedToVocabulary);
       expect(
-        rejected.promptText,
-        MainVoiceAssistantFlow.vocabularyOtherLearningPrompt,
+        vocabulary.navigationAfterPrompt?.destination,
+        VoiceNavigationDestination.vocabulary,
       );
-      expect(rejected.navigationAfterPrompt, isNull);
-      expect(rejected.continueListening, isTrue);
-      final secondRejected = await flow.handle('Bộ từ vựng');
-      expect(secondRejected.navigationAfterPrompt, isNull);
-      expect(secondRejected.continueListening, isFalse);
+      expect(vocabulary.continueListening, isFalse);
 
       for (final choice in <String, VoiceVocabularyTarget>{
         'Ngôi sao': VoiceVocabularyTarget.star,
