@@ -78,7 +78,7 @@ void main() {
         native.translationDownloads.map(
           (call) => (call.arguments as Map)['model'],
         ),
-        ['vi', 'en'],
+        ['vi', 'zh', 'ja', 'ko', 'fr'],
       );
       expect(
         native.translationDownloads.every(
@@ -91,6 +91,26 @@ void main() {
     },
     variant: ios,
   );
+
+  testWidgets('Android completed setup schedules translation packs only when allowed', (
+    tester,
+  ) async {
+    final allowed = await _launch(
+      tester,
+      fullConsent: true,
+      consent: AndroidOfflineSpeechModelConsent.allowed,
+    );
+    expect(allowed.translationScheduleCalls, isNotEmpty);
+    await allowed.close();
+
+    final declined = await _launch(
+      tester,
+      fullConsent: true,
+      consent: AndroidOfflineSpeechModelConsent.declined,
+    );
+    expect(declined.translationScheduleCalls, isEmpty);
+    await declined.close();
+  }, variant: TargetPlatformVariant.only(TargetPlatform.android));
 
   testWidgets(
     'iOS Home stays interactive during installation and Topic has no download UI',
@@ -264,6 +284,7 @@ class _NativeAssets {
   final topicCalls = <MethodCall>[];
   final backgroundSpeechCalls = <MethodCall>[];
   final translationDownloads = <MethodCall>[];
+  final translationScheduleCalls = <MethodCall>[];
   final installedTranslationModels = <String>{};
   final directory = Directory.systemTemp.createTempSync('homi-topic-app-');
   static const channels = [
@@ -282,6 +303,7 @@ class _NativeAssets {
     'com.ryanheise.audio_session',
     'plugins.flutter.io/path_provider',
     'google_mlkit_on_device_translator',
+    'homi_offline_speech',
   ];
   void install() {
     AndroidFlutterLocalNotificationsPlugin.registerWith();
@@ -304,6 +326,11 @@ class _NativeAssets {
               return installedTranslationModels.contains(args!['model']);
             }
             return null;
+          }
+          if (name == 'homi_offline_speech' &&
+              call.method == 'translation.scheduleDownload') {
+            translationScheduleCalls.add(call);
+            return true;
           }
           if (call.method == 'speech.prepareTopicAssets') {
             topicCalls.add(call);

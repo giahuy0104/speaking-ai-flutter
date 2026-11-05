@@ -364,30 +364,6 @@ class _ConversationScreenState extends State<ConversationScreen> {
 
   String _offlineStatusText(BuildContext context) {
     final ready = widget.offlineLanguageReady;
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
-      if (widget.controller.outputLanguage !=
-          TranslationOutputLanguage.english) {
-        return context.tr(
-          'Bạn đang ngoại tuyến. Ngôn ngữ này cần Internet; hãy kết nối mạng rồi thử lại nhé.',
-          '当前处于离线状态。此语言需要网络连接，请联网后重试。',
-        );
-      }
-      if (ready == null) {
-        return context.tr(
-          'Bạn đang ngoại tuyến. HOMI đang kiểm tra dữ liệu trên thiết bị.',
-          '当前处于离线状态。HOMI 正在检查设备上的数据。',
-        );
-      }
-      return ready
-          ? context.tr(
-              'Bạn đang ngoại tuyến. HOMI vẫn có thể nghe và dịch tiếng Anh trên thiết bị.',
-              '当前处于离线状态。HOMI 仍可在设备上识别语音并翻译成英语。',
-            )
-          : context.tr(
-              'Bạn đang ngoại tuyến. Nói và dịch tiếng Anh chưa sẵn sàng trên thiết bị; hãy kết nối mạng rồi thử lại nhé.',
-              '当前处于离线状态。设备上的英语语音和翻译尚未就绪，请联网后重试。',
-            );
-    }
     if (ready == null) {
       return context.tr(
         'Đang ngoại tuyến. HOMI đang kiểm tra dữ liệu offline trên thiết bị.',
@@ -396,12 +372,12 @@ class _ConversationScreenState extends State<ConversationScreen> {
     }
     return ready
         ? context.tr(
-            'Đang ngoại tuyến. Bạn vẫn có thể nói và dịch sang tiếng Anh.',
-            '当前离线，仍可在设备上说话并翻译成英语。',
+            'Đang ngoại tuyến. Bạn vẫn có thể nói và dịch sang ${widget.controller.outputLanguage.label}.',
+            '当前离线，仍可在设备上说话并翻译成所选语言。',
           )
         : context.tr(
-            'Đang ngoại tuyến. Gói nói và dịch tiếng Anh chưa sẵn sàng; HOMI sẽ tải khi có Wi-Fi.',
-            '当前离线，英语语音和翻译包尚未就绪；连接 Wi-Fi 后会自动下载。',
+            'Đang ngoại tuyến. Gói nói hoặc dịch ${widget.controller.outputLanguage.label} chưa sẵn sàng; hãy kết nối Wi-Fi để chuẩn bị.',
+            '当前离线，语音或所选语言的翻译模型尚未就绪；请连接 Wi-Fi 进行准备。',
           );
   }
 

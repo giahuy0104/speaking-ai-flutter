@@ -1689,6 +1689,82 @@ void main() {
     },
   );
 
+  test('offline Korean output uses its own field and device voice', () async {
+    final repository = _TargetFallbackRepository();
+    final translator = _FakeMultilingualOfflineTranslator(
+      translatedText: 'The weather is beautiful today.',
+      targetText: '오늘 날씨가 좋아요.',
+    );
+    final voicePrompt = _RecordingVoicePromptService();
+    final controller = ConversationController(
+      audioInput: _FakeChunkedInput(
+        available: true,
+        bluetooth: false,
+        label: 'Phone',
+      ),
+      streamingSpeechInput: _FakeStreamingSpeechInput(
+        sourceText: 'Hôm nay trời đẹp quá',
+      ),
+      playbackService: const _FakePlaybackService(),
+      repository: repository,
+      voicePromptService: voicePrompt,
+      offlineVietnameseEnglishTranslator: translator,
+      networkTransportAvailable: () async => false,
+      childAge: 6,
+      initialAsrMode: AsrMode.androidStreaming,
+    );
+    controller.setOutputLanguage(TranslationOutputLanguage.korean);
+
+    await controller.startRecording();
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    await controller.stopRecording(manual: true);
+
+    expect(controller.phase, ConversationPhase.ready);
+    expect(controller.result?.outputLanguage, TranslationOutputLanguage.korean);
+    expect(controller.result?.displayedTranslation, '오늘 날씨가 좋아요.');
+    expect(controller.result?.englishText, isEmpty);
+    expect(voicePrompt.spoken, <String>['ko-KR|오늘 날씨가 좋아요.']);
+    expect(translator.targets, <TranslationOutputLanguage>[
+      TranslationOutputLanguage.korean,
+    ]);
+    expect(repository.streamingTextRequests, 0);
+    controller.dispose();
+  });
+
+  test('iOS missing offline target does not call the backend', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final repository = _TargetFallbackRepository();
+    final controller = ConversationController(
+      audioInput: _FakeChunkedInput(
+        available: true,
+        bluetooth: false,
+        label: 'Mic iPhone',
+      ),
+      streamingSpeechInput: _FakeIOSStreamingSpeechInput(
+        sourceText: 'Hôm nay trời đẹp quá',
+      ),
+      playbackService: const _FakePlaybackService(),
+      repository: repository,
+      offlineVietnameseEnglishTranslator: _FakeOfflineTranslator(
+        translatedText: 'Unused',
+      ),
+      networkTransportAvailable: () async => false,
+      childAge: 6,
+      initialAsrMode: AsrMode.androidStreaming,
+    );
+    controller.setOutputLanguage(TranslationOutputLanguage.french);
+
+    await controller.startRecording();
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    await controller.stopRecording(manual: true);
+
+    expect(controller.phase, ConversationPhase.error);
+    expect(controller.errorMessage, contains('Gói dịch'));
+    expect(repository.streamingTextRequests, 0);
+    controller.dispose();
+  });
+
   test(
     'iOS Apple Speech transcript uses on-device translation when offline',
     () async {
@@ -3494,6 +3570,39 @@ class _FakeOfflineTranslator implements OfflineVietnameseEnglishTranslator {
 
   @override
   Future<void> close() async {}
+}
+
+class _FakeMultilingualOfflineTranslator extends _FakeOfflineTranslator
+    implements OfflineVietnameseTargetTranslator {
+  _FakeMultilingualOfflineTranslator({
+    required super.translatedText,
+    required this.targetText,
+  });
+
+  final String targetText;
+  final List<TranslationOutputLanguage> targets = [];
+
+  @override
+  Future<bool> modelsReadyFor(TranslationOutputLanguage language) async => true;
+
+  @override
+  Future<bool> downloadAllModels({bool wifiOnly = true}) async => true;
+
+  @override
+  Future<String> translateTo(
+    String vietnameseText,
+    TranslationOutputLanguage language,
+  ) async {
+    inputs.add(vietnameseText);
+    targets.add(language);
+    return targetText;
+  }
+}
+
+class _TargetFallbackRepository extends _FallbackRepository
+    implements TranslationTargetRepository {
+  @override
+  void setTranslationTarget(TranslationOutputLanguage language) {}
 }
 
 class _FakeEnglishVietnameseTranslator
