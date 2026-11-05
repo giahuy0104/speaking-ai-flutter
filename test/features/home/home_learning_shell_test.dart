@@ -1695,8 +1695,9 @@ void main() {
                 },
             onVocabularyOtherContentRequested: () async {
               globalChoices++;
-              await voiceNavigationController
-                  .activateOtherLearningFromSpeaking(fromVocabulary: true);
+              await voiceNavigationController.activateOtherLearningFromSpeaking(
+                fromVocabulary: true,
+              );
             },
           ),
         ),
@@ -1737,6 +1738,116 @@ void main() {
     variant: TargetPlatformVariant.only(TargetPlatform.android),
   );
 
+  for (final journey in <({String name, ActiveLearningCommand command})>[
+    (
+      name: 'Parent Added',
+      command: ActiveLearningCommand.vocabularyParentAdded,
+    ),
+    (name: 'Stars', command: ActiveLearningCommand.vocabularyStars),
+  ]) {
+    testWidgets(
+      '${journey.name} other content opens the global choice once',
+      (tester) async {
+        SharedPreferences.setMockInitialValues(<String, Object>{});
+        await const VocabularyStore().write(<VocabularyEntry>[
+          VocabularyEntry(
+            id: 'parent-other-content',
+            word: 'Apple',
+            meaning: 'Quả táo',
+            addedAt: DateTime(2026, 10, 12),
+            status: VocabularyLearningStatus.learnedWell,
+            source: VocabularySource.parent,
+            parentState: ParentVocabularyState.unlocked,
+          ),
+          VocabularyEntry(
+            id: 'star-other-content',
+            word: 'Banana',
+            meaning: 'Quả chuối',
+            addedAt: DateTime(2026, 10, 12),
+            collection: VocabularyCollection.star,
+            status: VocabularyLearningStatus.learnedWell,
+            source: VocabularySource.topicCore,
+            correctAudioPath: '/audio/star.wav',
+          ),
+        ]);
+        final registry = ActiveLearningModuleRegistry();
+        final navigationPrompt = _RecordingVoicePromptService();
+        final vocabularyPrompt = _RecordingVoicePromptService();
+        final voiceNavigationController = VoiceNavigationController(
+          speechInput: _FakeStreamingSpeechInput(),
+          ownsSpeechInput: true,
+          voicePromptService: navigationPrompt,
+        );
+        final controller = _controller();
+        var globalChoices = 0;
+        addTearDown(registry.dispose);
+        addTearDown(voiceNavigationController.dispose);
+        addTearDown(controller.dispose);
+
+        await tester.pumpWidget(
+          ActiveLearningModuleScope(
+            registry: registry,
+            child: _app(
+              controller,
+              voiceNavigationController: voiceNavigationController,
+              vocabularyAudioService: _DelayedVocabularyAudioService(),
+              vocabularyMediaService: journey.name == 'Stars'
+                  ? _AvailableStarVocabularyMediaService()
+                  : _ImmediateVocabularyMediaService(),
+              vocabularyVoicePromptService: vocabularyPrompt,
+              onVocabularyOtherContentRequested: () async {
+                globalChoices++;
+                await voiceNavigationController
+                    .activateOtherLearningFromSpeaking();
+              },
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
+        await tester.pumpAndSettle();
+        expect((await registry.execute(journey.command)).wasHandled, isTrue);
+        await _pumpFrames(tester);
+
+        final priorVocabularyPrompts = vocabularyPrompt.spoken.length;
+        expect(
+          (await registry.execute(ActiveLearningCommand.exitToHome)).wasHandled,
+          isTrue,
+          reason:
+              'prompts=${vocabularyPrompt.spoken}, active=${registry.activeKind}',
+        );
+        await _pumpFrames(tester);
+
+        final pageController = tester
+            .widget<PageView>(find.byKey(const Key('home-learning-page-view')))
+            .controller!;
+        expect(pageController.page, 0);
+        expect(globalChoices, 1);
+        expect(registry.activeKind, isNull);
+        expect(
+          navigationPrompt.spoken,
+          contains(MainVoiceAssistantFlow.otherLearningPrompt),
+        );
+        expect(
+          navigationPrompt.spoken
+              .where(
+                (text) => text == MainVoiceAssistantFlow.otherLearningPrompt,
+              )
+              .length,
+          1,
+        );
+        expect(
+          vocabularyPrompt.spoken.skip(priorVocabularyPrompts),
+          isNot(contains(VocabularyFlowV3.parentOtherMenu)),
+        );
+        expect(
+          vocabularyPrompt.spoken.skip(priorVocabularyPrompts),
+          isNot(contains(VocabularyFlowV3.starOtherMenu)),
+        );
+      },
+      variant: TargetPlatformVariant.only(TargetPlatform.android),
+    );
+  }
   testWidgets(
     'Android Today other content accepts direct Review without reopening Today',
     (tester) async {
@@ -1835,8 +1946,7 @@ void main() {
       });
       for (
         var index = 0;
-        index < 100 &&
-            find.byType(VocabularyPracticeScreen).evaluate().isEmpty;
+        index < 100 && find.byType(VocabularyPracticeScreen).evaluate().isEmpty;
         index++
       ) {
         await tester.pump(const Duration(milliseconds: 100));
@@ -3860,6 +3970,21 @@ class _ImmediateVocabularyMediaService extends LessonMediaService {
   }) async {}
 
   @override
+  Future<void> playRecordedTakeToCompletion(
+    Uri uri, {
+    Duration timeout = const Duration(seconds: 45),
+    LessonPlaybackRoute route = LessonPlaybackRoute.selectedLessonDevice,
+    double playbackGainDb = 8.0,
+    bool fixedPlaybackGain = false,
+  }) => playToCompletion(
+    uri,
+    timeout: timeout,
+    route: route,
+    playbackGainDb: playbackGainDb,
+    fixedPlaybackGain: fixedPlaybackGain,
+  );
+
+  @override
   Future<void> stopPlayback() async {}
 
   @override
@@ -3875,6 +4000,15 @@ class _ImmediateVocabularyMediaService extends LessonMediaService {
 
   @override
   Future<void> cancelRecording() async {}
+}
+
+class _AvailableStarVocabularyMediaService
+    extends _ImmediateVocabularyMediaService {
+  @override
+  Future<String?> availableRecordingPath(String path) async => path;
+
+  @override
+  Future<String?> preserveStarRecording(String path) async => null;
 }
 
 class _ChallengeVoiceModule

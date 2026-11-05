@@ -25,6 +25,102 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  testWidgets('Today starts its intro without another frame after loading', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final store = _PendingReviewStore();
+    final voice = _FakeVoicePromptService();
+    final media = _FakeLessonMediaService();
+    addTearDown(media.close);
+    final now = DateTime(2026, 11, 5);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: VocabularyPracticeScreen(
+          language: DisplayLanguage.vietnamese,
+          childAge: 6,
+          session: VocabularyPracticeSession(
+            id: 'today',
+            mode: VocabularyPracticeMode.today,
+            entryIds: const ['apple'],
+            currentIndex: 0,
+            results: const {},
+            correctAudioPaths: const {},
+            createdAt: now,
+          ),
+          store: store,
+          sessionStore: const VocabularySessionStore(),
+          mediaService: media,
+          voicePromptService: voice,
+          samplePause: Duration.zero,
+        ),
+      ),
+    );
+    store.entries.complete([
+      VocabularyEntry(
+        id: 'apple',
+        word: 'Apple',
+        meaning: 'Quả táo',
+        addedAt: now,
+        source: VocabularySource.parent,
+      ),
+    ]);
+    await tester.idle();
+    expect(voice.spoken.take(2), [
+      'vi-VN:${VocabularyFlowV3.todayIntro}',
+      'en-US:Apple',
+    ]);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('Review resumes audio without another frame after loading', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    const store = VocabularyStore();
+    const sessions = VocabularySessionStore();
+    await store.upsertLessonSentence(
+      lessonCode: 'L01',
+      sentenceId: 'apple',
+      english: 'Apple',
+      vietnamese: 'Quả táo',
+      collection: VocabularyCollection.review,
+      source: VocabularySource.topicCore,
+    );
+    final session = (await sessions.prepareReview(store))!;
+    final entries = await store.read();
+    final pendingStore = _PendingReviewStore();
+    final voice = _FakeVoicePromptService();
+    final media = _FakeLessonMediaService();
+    addTearDown(media.close);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: VocabularyPracticeScreen(
+          language: DisplayLanguage.vietnamese,
+          childAge: 6,
+          session: session,
+          store: pendingStore,
+          sessionStore: sessions,
+          mediaService: media,
+          voicePromptService: voice,
+          samplePause: Duration.zero,
+          announceIntro: false,
+          announceResume: true,
+        ),
+      ),
+    );
+    pendingStore.entries.complete(entries);
+    await tester.idle();
+    expect(voice.spoken.take(2), [
+      'vi-VN:${VocabularyFlowV3.reviewResume}',
+      'en-US:Apple',
+    ]);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
   testWidgets(
     'Review starts after loading behind a locked mobile screen',
     (tester) async {
@@ -596,33 +692,40 @@ void main() {
       addTearDown(registry.dispose);
       String? capturedNoSpeechRetryPrompt;
       String? capturedNoSpeechExitPrompt;
+      final navigator = GlobalKey<NavigatorState>();
 
       await tester.pumpWidget(
         ActiveLearningModuleScope(
           registry: registry,
           child: MaterialApp(
+            navigatorKey: navigator,
             onGenerateRoute: createAppRouter().onGenerateRoute,
             theme: buildAppTheme(),
-            home: VocabularyPracticeScreen(
-              language: DisplayLanguage.vietnamese,
-              childAge: 6,
-              session: session!,
-              store: store,
-              sessionStore: sessionStore,
-              mediaService: media,
-              attemptEvaluator: const RecordedAttemptEvaluator(),
-              voicePromptService: voice,
-              samplePause: Duration.zero,
-              autoStart: false,
-              onRequestVoiceChoice:
-                  ({
-                    String? noSpeechRetryPrompt,
-                    String? noSpeechExitPrompt,
-                  }) async {
-                    capturedNoSpeechRetryPrompt = noSpeechRetryPrompt;
-                    capturedNoSpeechExitPrompt = noSpeechExitPrompt;
-                  },
-            ),
+            home: const SizedBox.shrink(),
+          ),
+        ),
+      );
+      final closed = navigator.currentState!.push(
+        MaterialPageRoute<VocabularyPracticeResult>(
+          builder: (_) => VocabularyPracticeScreen(
+            language: DisplayLanguage.vietnamese,
+            childAge: 6,
+            session: session!,
+            store: store,
+            sessionStore: sessionStore,
+            mediaService: media,
+            attemptEvaluator: const RecordedAttemptEvaluator(),
+            voicePromptService: voice,
+            samplePause: Duration.zero,
+            autoStart: false,
+            onRequestVoiceChoice:
+                ({
+                  String? noSpeechRetryPrompt,
+                  String? noSpeechExitPrompt,
+                }) async {
+                  capturedNoSpeechRetryPrompt = noSpeechRetryPrompt;
+                  capturedNoSpeechExitPrompt = noSpeechExitPrompt;
+                },
           ),
         ),
       );
@@ -673,6 +776,19 @@ void main() {
         hasLength(5),
       );
       expect(await sessionStore.readActive(), isNull);
+      expect(
+        (await registry.execute(
+          ActiveLearningCommand.vocabularyRoot,
+        )).wasHandled,
+        isTrue,
+      );
+      expect(
+        await closed,
+        VocabularyPracticeResult.completedTodayVocabularyRoot,
+      );
+      expect(registry.hasActiveModule, isFalse);
+      expect(await sessionStore.readActive(), isNull);
+      await tester.pumpAndSettle();
     },
   );
 
@@ -2156,6 +2272,13 @@ class _IosLearningDependencies implements LearningAudioDependencies {
 
   @override
   HfpAudioControl? createLearningAudioRouteControl() => null;
+}
+
+class _PendingReviewStore extends VocabularyStore {
+  final entries = Completer<List<VocabularyEntry>>();
+
+  @override
+  Future<List<VocabularyEntry>> read() => entries.future;
 }
 
 class _BlockedBackVoice extends _FakeVoicePromptService {

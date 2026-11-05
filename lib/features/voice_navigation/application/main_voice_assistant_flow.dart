@@ -90,7 +90,7 @@ class MainVoiceAssistantFlow {
   static const String otherLearningPrompt =
       MasterNavigationContract.translationSwitch;
   static const String vocabularyOtherLearningPrompt =
-      'Bạn muốn Dịch tiếng Anh hay học Chủ đề?';
+      MasterNavigationContract.translationSwitch;
   static const String afterTranslationStopPrompt =
       MasterNavigationContract.afterTranslationStop;
   static const String activeLearningPrompt =
@@ -153,18 +153,10 @@ class MainVoiceAssistantFlow {
       ? vocabularyOtherLearningPrompt
       : MasterNavigationContract.translationSwitch;
 
-  String? get _moduleSwitchAudioKey =>
-      _activeLearningKind == ActiveLearningModuleKind.vocabulary
-      ? null
-      : MainAssistantAudioKeys.chooseTranslation;
+  String get _moduleSwitchAudioKey => MainAssistantAudioKeys.chooseTranslation;
 
   String? get currentPromptAudioKey => switch (_stage) {
     MainVoiceAssistantStage.chooseFeature => MainAssistantAudioKeys.openMenu,
-    MainVoiceAssistantStage.chooseOtherLearning
-        when _otherLearningFromVocabulary =>
-      null,
-    MainVoiceAssistantStage.chooseModuleSwitch when _switchingFromVocabulary =>
-      null,
     MainVoiceAssistantStage.chooseOtherLearning ||
     MainVoiceAssistantStage.chooseModuleSwitch ||
     MainVoiceAssistantStage.chooseAlternativeAfterLearning =>
@@ -612,11 +604,11 @@ class MainVoiceAssistantFlow {
           _wrappedFeatureChoice(normalized) != null,
     MainVoiceAssistantStage.chooseOtherLearning =>
       _isTopicChoice(normalized) ||
-          (!_otherLearningFromVocabulary && _isVocabularyChoice(normalized)) ||
+          _isVocabularyChoice(normalized) ||
           _isContinueTranslationChoice(normalized),
     MainVoiceAssistantStage.chooseModuleSwitch =>
       _isTopicChoice(normalized) ||
-          (!_switchingFromVocabulary && _isVocabularyChoice(normalized)) ||
+          _isVocabularyChoice(normalized) ||
           _isTranslationChoice(normalized),
     MainVoiceAssistantStage.chooseAfterTranslationStop =>
       _isTopicChoice(normalized) ||
@@ -920,12 +912,12 @@ class MainVoiceAssistantFlow {
       return MainVoiceAssistantTurn(
         promptText: currentPrompt,
         promptAudioKey: _otherLearningFromVocabulary
-            ? null
+            ? MainAssistantAudioKeys.chooseTranslation
             : MainAssistantAudioKeys.afterTranslationStop,
         continueListening: true,
       );
     }
-    if (!_otherLearningFromVocabulary && _isVocabularyChoice(normalized)) {
+    if (_isVocabularyChoice(normalized)) {
       return _moduleNavigationTurn(
         recognizedText: recognizedText,
         destination: VoiceNavigationDestination.vocabulary,
@@ -955,7 +947,7 @@ class MainVoiceAssistantFlow {
     return MainVoiceAssistantTurn(
       promptText: currentPrompt,
       promptAudioKey: _otherLearningFromVocabulary
-          ? null
+          ? MainAssistantAudioKeys.chooseTranslation
           : MainAssistantAudioKeys.afterTranslationStop,
       continueListening: true,
     );
@@ -1357,7 +1349,7 @@ class MainVoiceAssistantFlow {
         destination: VoiceNavigationDestination.topics,
       );
     }
-    if (!_switchingFromVocabulary && _isVocabularyChoice(normalized)) {
+    if (_isVocabularyChoice(normalized)) {
       return _switchFromActiveLearning(
         recognizedText: recognizedText,
         destination: VoiceNavigationDestination.vocabulary,
@@ -1382,6 +1374,9 @@ class MainVoiceAssistantFlow {
   }) {
     if (_activeLearningKind == ActiveLearningModuleKind.vocabulary &&
         destination == VoiceNavigationDestination.vocabulary) {
+      if (_stage != MainVoiceAssistantStage.chooseModuleSwitch) {
+        return _activeLearningTurn(ActiveLearningCommand.vocabularyRoot);
+      }
       return const MainVoiceAssistantTurn(
         promptText: MasterNavigationContract.switchedToVocabulary,
         promptAudioKey: MainAssistantAudioKeys.switchedToVocabulary,

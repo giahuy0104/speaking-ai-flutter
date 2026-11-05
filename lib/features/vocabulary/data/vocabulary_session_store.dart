@@ -241,11 +241,22 @@ class VocabularySessionStore {
     VocabularyStore vocabularyStore, {
     DateTime? now,
     bool forceNextGroup = false,
+  }) async => (await prepareTodayEntry(
+    vocabularyStore,
+    now: now,
+    forceNextGroup: forceNextGroup,
+  ))?.session;
+
+  Future<({VocabularyPracticeSession session, bool resumed})?> prepareTodayEntry(
+    VocabularyStore vocabularyStore, {
+    DateTime? now,
+    bool forceNextGroup = false,
   }) async {
     final currentTime = now ?? DateTime.now();
     final active = await readActive();
     if (active?.mode == VocabularyPracticeMode.today) {
-      return _reconcile(active!, vocabularyStore);
+      final restored = await _reconcile(active!, vocabularyStore);
+      return restored == null ? null : (session: restored, resumed: true);
     }
     if (!forceNextGroup) {
       final suspended = await _readSuspended(
@@ -260,7 +271,7 @@ class VocabularySessionStore {
         await (await SharedPreferences.getInstance()).remove(
           _suspendedTodayKey,
         );
-        if (restored != null) return restored;
+        if (restored != null) return (session: restored, resumed: true);
         if (active?.mode == VocabularyPracticeMode.review) {
           await saveActive(active!);
         }
@@ -297,7 +308,7 @@ class VocabularySessionStore {
       dayKey: view.dayKey,
     );
     await saveActive(session);
-    return session;
+    return (session: session, resumed: false);
   }
 
   Future<VocabularyPracticeSession?> prepareTodayReplay(
