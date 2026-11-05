@@ -1,0 +1,19 @@
+ACTIVITY MANAGER SERVICES (dumpsys activity services)
+  User 0 active services:
+  * ServiceRecord{1258008 u0 com.innotrik.aispeaking/.BackgroundLearningService}
+    intent={act=com.innotrik.aispeaking.background.START cmp=com.innotrik.aispeaking/.BackgroundLearningService}
+    packageName=com.innotrik.aispeaking
+    processName=com.innotrik.aispeaking
+    baseDir=/data/app/~~kQN7YNlzJgqpYd_BQAVCzg==/com.innotrik.aispeaking-g30N8oZARoLxi3FX0_d2FA==/base.apk
+    dataDir=/data/user/0/com.innotrik.aispeaking
+    app=ProcessRecord{9a264d3 12104:com.innotrik.aispeaking/u0a426}
+    allowWhileInUsePermissionInFgs=true
+    recentCallingPackage=com.innotrik.aispeaking
+    recentCallingUid=10426
+    allowStartForeground=12
+    startForegroundCount=1
+    infoAllowStartForeground=[callingPackage: com.innotrik.aispeaking; callingUid: 10426; uidState: TOP ; intent: Intent { act=com.innotrik.aispeaking.background.START cmp=com.innotrik.aispeaking/.BackgroundLearningService (has extras) }; code:PROC_STATE_TOP; tempAllowListReason:<null>; targetSdkVersion:36; callerTargetSdkVersion:36; startForegroundCount:0; bindFromPackage:null]
+    isForeground=true foregroundId=2084 foregroundNoti=Notification(channel=homi_background_learning shortcut=null contentView=null vibrate=null sound=null defaults=0x0 flags=0x62 color=0x00000000 category=service actions=1 vis=PRIVATE internalType=0 internalPriority=0 internalGroupPriority=0 internalFlag=0)
+    createTime=-4h10m15s34ms startingBgTimeout=--
+    lastActivity=-4h10m15s34ms restartTime=-4h10m15s34ms createdFromFg=true
+    startRequested=true delayedStop=false stopIfKilled=false callStart=true lastStartId=1

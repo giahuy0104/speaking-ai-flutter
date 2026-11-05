@@ -1,0 +1,560 @@
+diff --git a/android/app/src/main/kotlin/com/innotrik/aispeaking/HfpAudioBridge.kt b/android/app/src/main/kotlin/com/innotrik/aispeaking/HfpAudioBridge.kt
+index 5dc5b7f0..15ed5c7b 100644
+--- a/android/app/src/main/kotlin/com/innotrik/aispeaking/HfpAudioBridge.kt
++++ b/android/app/src/main/kotlin/com/innotrik/aispeaking/HfpAudioBridge.kt
+@@ -76,6 +76,15 @@ class HfpAudioBridge(
+     // on one serial worker; Flutter/platform callbacks must remain responsive.
+     private val routeThread = HandlerThread("homi-hfp-route").apply { start() }
+     private val routeHandler = Handler(routeThread.looper)
++    private val lessonAudioHandoff = LessonAudioHandoff(
++        schedule = { delay, action ->
++            val timeout = Runnable { action() }
++            check(routeHandler.postDelayed(timeout, delay))
++            val cancel: () -> Unit = { routeHandler.removeCallbacks(timeout) }
++            cancel
++        },
++        diagnostic = AudioDiagnostics::event,
++    )
+     private val routeExecutor = Executor { command -> routeHandler.post(command) }
+     private val routeDispatch = HfpRouteDispatch(routeExecutor, host.mainExecutor) {
+         Looper.myLooper() == routeThread.looper
+@@ -241,6 +250,9 @@ class HfpAudioBridge(
+      * lesson or surface HFP_ROUTE_LOST to Flutter.
+      */
+     private fun recoverUnexpectedAudioRoute(reason: String) {
++        if (!isSelectedCommunicationRouteConfirmed()) {
++            lessonAudioHandoff.stop("route_lost")
++        }
+         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+             interruptLostAudioRoute(reason)
+             return
+@@ -344,6 +356,7 @@ class HfpAudioBridge(
+     }
+ 
+     private fun interruptLostAudioRoute(reason: String) {
++        lessonAudioHandoff.stop("route_lost")
+         Log.w(TAG, reason)
+         if (pendingAudioRouteResult != null) {
+             // A real profile/service loss must still fail its pending request.
+@@ -544,6 +557,27 @@ class HfpAudioBridge(
+                 result.success(snapshot())
+             }
+             "startAudioRoute" -> startAudioRoute(result)
++            "beginLessonAudioHandoff" -> {
++                // Best effort: this operation never changes the selected route.
++                val token = runCatching {
++                    val output = if (routeActive && audioModeOwned) {
++                        confirmedSelectedCommunicationDevice()
++                    } else null
++                    if (output == null) {
++                        lessonAudioHandoff.stop("route_unavailable")
++                        null
++                    } else {
++                        lessonAudioHandoff.begin { createLessonHandoffOutput(output) }
++                    }
++                }.getOrNull()
++                result.success(token)
++            }
++            "endLessonAudioHandoff" -> {
++                call.argument<Number>("token")?.toLong()?.let {
++                    lessonAudioHandoff.endAfterReplayStarted(it)
++                }
++                result.success(null)
++            }
+             "stopAudioRoute" -> {
+                 stopAudioRouteInternal()
+                 result.success(null)
+@@ -963,6 +997,7 @@ class HfpAudioBridge(
+     }
+ 
+     private fun stopAudioRouteInternal(invalidateRequest: Boolean = true) {
++        lessonAudioHandoff.stop("route_stopped")
+         AudioDiagnostics.event("hfp.stop.begin", mapOf("generation" to audioRouteRequestGeneration))
+         Log.i(TAG, "Stopping HFP route generation=$audioRouteRequestGeneration pending=${pendingAudioRouteResult != null}")
+         routeReadiness = null
+diff --git a/lib/features/listening/application/lesson_media_service.dart b/lib/features/listening/application/lesson_media_service.dart
+index 7c0015fb..6f920a91 100644
+--- a/lib/features/listening/application/lesson_media_service.dart
++++ b/lib/features/listening/application/lesson_media_service.dart
+@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
+ import 'package:record/record.dart';
+ 
+ import '../../../core/audio/audio_input.dart';
++import '../../../core/audio/audio_diagnostics.dart';
+ import '../../../core/audio/audio_gain.dart';
+ import '../../../core/audio/audio_playback_service.dart';
+ import '../../../core/audio/audio_turn_coordinator.dart';
+@@ -12,6 +13,7 @@ import '../../../core/audio/hfp_audio_control.dart';
+ import '../../../core/audio/hfp_audio_route_coordinator.dart';
+ import '../data/lesson_recording_history_store.dart';
+ import 'lesson_recording_storage.dart';
++import 'lesson_recording_handoff.dart';
+ 
+ class LessonRecording {
+   const LessonRecording({required this.filePath, required this.duration});
+@@ -36,6 +38,7 @@ const Duration _playbackEndPositionMargin = Duration(milliseconds: 20);
+ 
+ /// A pause this close to the end is left to report completion by itself.
+ const Duration _pausedPlaybackEndMargin = Duration(milliseconds: 500);
++const Duration _recordingHandoffChannelTimeout = Duration(milliseconds: 250);
+ 
+ class LessonMediaService {
+   LessonMediaService({
+@@ -46,12 +49,14 @@ class LessonMediaService {
+     AudioTurnOwner audioTurnOwner = AudioTurnOwner.listeningLesson,
+     LessonRecordingHistoryStore? historyStore,
+     Stream<AudioInterruptionEvent>? audioInterruptionEvents,
++    LessonRecordingHandoff? recordingHandoff,
+   }) : _recorder = recorder,
+        _playbackService = playbackService,
+        _hfpAudioControl = hfpAudioControl,
+        _audioTurnCoordinator = audioTurnCoordinator,
+        _audioTurnOwner = audioTurnOwner,
+        _audioInterruptionEvents = audioInterruptionEvents,
++       _recordingHandoff = recordingHandoff,
+        historyStore = historyStore ?? const LessonRecordingHistoryStore() {
+     if (!kIsWeb &&
+         (defaultTargetPlatform == TargetPlatform.android ||
+@@ -97,6 +102,10 @@ class LessonMediaService {
+   final AudioTurnCoordinator? _audioTurnCoordinator;
+   final AudioTurnOwner _audioTurnOwner;
+   final Stream<AudioInterruptionEvent>? _audioInterruptionEvents;
++  final LessonRecordingHandoff? _recordingHandoff;
++  int _recordingHandoffGeneration = 0;
++  int? _recordingHandoffToken;
++  bool _disposed = false;
+   DateTime? _recordingStartedAt;
+   String? _activePath;
+   _ActiveLessonRecording? _activeContext;
+@@ -185,6 +194,7 @@ class LessonMediaService {
+     double playbackGainDb = androidSpeechBoostDb,
+     bool fixedPlaybackGain = false,
+   }) async {
++    final handoffGeneration = _recordingHandoffGeneration;
+     final generation = ++_playbackRequestGeneration;
+     await _preparePlaybackRoute(route);
+     _requireCurrentPlayback(generation);
+@@ -193,6 +203,7 @@ class LessonMediaService {
+     await _setPlaybackGain(playbackGainDb, fixed: fixedPlaybackGain);
+     _requireCurrentPlayback(generation);
+     await _activePlayback.play(uri);
++    await _endRecordingHandoff(expectedGeneration: handoffGeneration);
+   }
+ 
+   Stream<AudioInterruptionEvent> get _interruptions =>
+@@ -316,6 +327,7 @@ class LessonMediaService {
+     double playbackGainDb = androidSpeechBoostDb,
+     bool fixedPlaybackGain = false,
+   }) async {
++    final handoffGeneration = _recordingHandoffGeneration;
+     final generation = ++_playbackRequestGeneration;
+     final playback = _activePlayback;
+     await _preparePlaybackRouteWithRetry(route, generation);
+@@ -428,6 +440,7 @@ class LessonMediaService {
+         );
+       }
+       await playback.play(uri);
++      await _endRecordingHandoff(expectedGeneration: handoffGeneration);
+       started = true;
+       playStarted = true;
+       if (!kIsWeb &&
+@@ -572,6 +585,7 @@ class LessonMediaService {
+   }
+ 
+   Future<void> _stopPlayback({required bool releaseAudioRoute}) async {
++    await _endRecordingHandoff();
+     final completion = _activePlaybackCompletion;
+     if (completion != null && !completion.isCompleted) {
+       completion.complete();
+@@ -708,6 +722,7 @@ class LessonMediaService {
+   }
+ 
+   Future<void> _preparePlaybackRoute(LessonPlaybackRoute route) async {
++    AudioDiagnostics.event('lesson.playback.route.prepare');
+     final playback = _activePlayback;
+     final selectedHfp =
+         route == LessonPlaybackRoute.selectedLessonDevice &&
+@@ -743,6 +758,7 @@ class LessonMediaService {
+     await _activateSelectedHfpRoute(
+       force: !kIsWeb && defaultTargetPlatform == TargetPlatform.android,
+     );
++    AudioDiagnostics.event('lesson.playback.route.ready');
+   }
+ 
+   Future<void> _activateSelectedHfpRoute({bool force = false}) async {
+@@ -768,6 +784,7 @@ class LessonMediaService {
+   }
+ 
+   Future<void> _releaseHfpRoute({bool immediately = false}) async {
++    await _endRecordingHandoff();
+     // A start may still be awaiting native confirmation and have no token yet.
+     // Scoped controls serialize stop behind it and invalidate that late start.
+     if (_activeHfpRouteToken == null &&
+@@ -853,7 +870,15 @@ class LessonMediaService {
+         // file. On slower Android devices that finalization can take about a
+         // second; including it made a six-second recording appear as seven.
+         final stoppedAt = DateTime.now();
++        final operation = AudioDiagnostics.nextId();
++        AudioDiagnostics.event('lesson.recording.stop.request', {
++          'operation': operation,
++        });
++        await _beginRecordingHandoff();
+         final recordedPath = await recorder.stop();
++        AudioDiagnostics.event('lesson.recording.stop.completed', {
++          'operation': operation,
++        });
+         _recordingStartedAt = null;
+         _activePath = null;
+         _activeContext = null;
+@@ -863,6 +888,9 @@ class LessonMediaService {
+             duration: stoppedAt.difference(startedAt),
+           ),
+         );
++        AudioDiagnostics.event('lesson.recording.normalization.completed', {
++          'operation': operation,
++        });
+         final resolvedPath = recording.filePath;
+         if (context.saveToHistory) {
+           final createdAt = DateTime.now();
+@@ -884,6 +912,9 @@ class LessonMediaService {
+             await deleteLessonRecording(path);
+           }
+         }
++        AudioDiagnostics.event('lesson.recording.history.completed', {
++          'operation': operation,
++        });
+         // Keep the selected HM-D001 output through scoring and feedback on both
+         // phones. Dropping the route here can finish its teardown after the
+         // next prompt starts, moving that prompt to the phone speaker.
+@@ -943,7 +974,9 @@ class LessonMediaService {
+   }
+ 
+   /// Shared replay policy for prepared topic and challenge recordings.
+-  Future<void> playRecordingToCompletion(LessonRecording recording) {
++  Future<void> playRecordingToCompletion(LessonRecording recording) async {
++    final handoffGeneration = _recordingHandoffGeneration;
++    AudioDiagnostics.event('lesson.recording.replay.request');
+     final parsed = Uri.tryParse(recording.filePath);
+     final isWindowsPath = RegExp(
+       r'^[a-zA-Z]:[/\\]',
+@@ -954,15 +987,19 @@ class LessonMediaService {
+         ? parsed
+         : Uri.file(recording.filePath);
+     final requestedTimeout = recording.duration + const Duration(seconds: 5);
+-    return playToCompletion(
+-      uri,
+-      timeout: requestedTimeout < const Duration(seconds: 10)
+-          ? const Duration(seconds: 10)
+-          : requestedTimeout,
+-      route: LessonPlaybackRoute.selectedLessonDevice,
+-      playbackGainDb: lessonRecordingPlaybackGainDb,
+-      fixedPlaybackGain: true,
+-    );
++    try {
++      await playToCompletion(
++        uri,
++        timeout: requestedTimeout < const Duration(seconds: 10)
++            ? const Duration(seconds: 10)
++            : requestedTimeout,
++        route: LessonPlaybackRoute.selectedLessonDevice,
++        playbackGainDb: lessonRecordingPlaybackGainDb,
++        fixedPlaybackGain: true,
++      );
++    } finally {
++      await _endRecordingHandoff(expectedGeneration: handoffGeneration);
++    }
+   }
+ 
+   /// Adds audio captured by a native speech recognizer to the same local
+@@ -1053,6 +1090,8 @@ class LessonMediaService {
+   }
+ 
+   Future<void> dispose() async {
++    _disposed = true;
++    await _endRecordingHandoff();
+     _preparedRecordingPaths.clear();
+     _playbackRequestGeneration += 1;
+     await _hfpStatusSubscription?.cancel();
+@@ -1062,6 +1101,70 @@ class LessonMediaService {
+     await _playbackService?.dispose();
+     await _recordingErrors.close();
+   }
++
++  Future<void> _beginRecordingHandoff() async {
++    await _endRecordingHandoff();
++    if (_disposed ||
++        _recordingHandoff == null ||
++        kIsWeb ||
++        defaultTargetPlatform != TargetPlatform.android ||
++        !_shouldUseSelectedHfp) {
++      return;
++    }
++    final generation = _recordingHandoffGeneration;
++    try {
++      final pending = _recordingHandoff.begin();
++      final int? token;
++      try {
++        token = await pending.timeout(_recordingHandoffChannelTimeout);
++      } on TimeoutException {
++        // A delayed native reply must neither prolong capture nor attach a
++        // silent output to a later turn after this optimization was abandoned.
++        unawaited(
++          pending.then<void>((lateToken) async {
++            if (lateToken != null) {
++              await _releaseRecordingHandoffToken(lateToken);
++            }
++          }, onError: (Object _, StackTrace _) {}),
++        );
++        return;
++      }
++      if (generation != _recordingHandoffGeneration || _disposed) {
++        if (token != null) await _releaseRecordingHandoffToken(token);
++        return;
++      }
++      _recordingHandoffToken = token;
++    } catch (error) {
++      AudioDiagnostics.event('lesson.handoff.unavailable', {
++        'type': error.runtimeType.toString(),
++      });
++    }
++  }
++
++  Future<void> _endRecordingHandoff({int? expectedGeneration}) async {
++    if (expectedGeneration != null &&
++        expectedGeneration != _recordingHandoffGeneration) {
++      return;
++    }
++    ++_recordingHandoffGeneration;
++    final token = _recordingHandoffToken;
++    _recordingHandoffToken = null;
++    if (token == null) return;
++    await _releaseRecordingHandoffToken(token);
++  }
++
++  Future<void> _releaseRecordingHandoffToken(int token) async {
++    try {
++      await _recordingHandoff
++          ?.end(token)
++          .timeout(_recordingHandoffChannelTimeout);
++    } catch (error) {
++      // Native ownership also expires independently if Dart cannot release it.
++      AudioDiagnostics.event('lesson.handoff.release_failed', {
++        'type': error.runtimeType.toString(),
++      });
++    }
++  }
+ }
+ 
+ @visibleForTesting
+diff --git a/lib/features/listening/presentation/topic_lesson_list_screen.dart b/lib/features/listening/presentation/topic_lesson_list_screen.dart
+index a8834160..e024aae4 100644
+--- a/lib/features/listening/presentation/topic_lesson_list_screen.dart
++++ b/lib/features/listening/presentation/topic_lesson_list_screen.dart
+@@ -12,6 +12,7 @@ import '../../../core/navigation/app_navigator.dart';
+ import '../../../presentation/navigation/view_bindings.dart';
+ import '../../../presentation/navigation/view_arguments/lesson_intro_arguments.dart';
+ import '../application/lesson_media_service.dart';
++import '../application/lesson_recording_handoff.dart';
+ import '../data/listening_progress_store.dart';
+ import '../data/active_listening_session_store.dart';
+ import '../domain/listening_catalog.dart';
+@@ -109,6 +110,7 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
+         LessonMediaService(
+           hfpAudioControl: widget.controller?.createLearningAudioRouteControl(),
+           audioTurnCoordinator: widget.controller?.audioTurnCoordinator,
++          recordingHandoff: const AndroidLessonRecordingHandoff(),
+         );
+     _ownsVoicePromptService = widget.voicePromptService == null;
+     _voicePromptService =
+diff --git a/test/features/listening/lesson_media_service_test.dart b/test/features/listening/lesson_media_service_test.dart
+index 75389111..f9bcfc41 100644
+--- a/test/features/listening/lesson_media_service_test.dart
++++ b/test/features/listening/lesson_media_service_test.dart
+@@ -7,6 +7,7 @@ import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
+ import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_control.dart';
+ import 'package:ai_speaking_flutter_app/core/audio/wav_audio.dart';
+ import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
++import 'package:ai_speaking_flutter_app/features/listening/application/lesson_recording_handoff.dart';
+ import 'package:audio_session/audio_session.dart';
+ import 'package:flutter/foundation.dart';
+ import 'package:flutter/services.dart';
+@@ -114,6 +115,116 @@ void main() {
+       saveToHistory: false,
+     );
+ 
++    Future<_ControlledPlaybackService> useHandoff(
++      _FakeRecordingHandoff handoff,
++    ) async {
++      await media.dispose();
++      final playback = _ControlledPlaybackService();
++      media = _RecordingTestMediaService(
++        '${temporary.path}/handoff.wav',
++        recorder: recorder,
++        playbackService: playback,
++        hfpAudioControl: hfp,
++        recordingHandoff: handoff,
++      );
++      return playback;
++    }
++
++    test(
++      'handoff starts before recorder stops and ends after replay starts',
++      () async {
++        final handoff = _FakeRecordingHandoff()..beginGate = Completer<int?>();
++        final playback = await useHandoff(handoff);
++        await start();
++        final stopping = media.stopRecording();
++        await Future<void>.delayed(Duration.zero);
++        expect(handoff.beginCalls, 1);
++        expect(recorder.stopCalls, 0);
++        handoff.beginGate!.complete(7);
++        final recording = await stopping;
++        expect(handoff.ended, isEmpty);
++        final replay = media.playRecordingToCompletion(recording);
++        while (playback.playCalls == 0 || handoff.ended.isEmpty) {
++          await Future<void>.delayed(Duration.zero);
++        }
++        expect(handoff.ended, [7]);
++        playback.finish();
++        await replay;
++        expect(handoff.ended, [7]);
++      },
++    );
++
++    test(
++      'late handoff begin is released after navigation stops playback',
++      () async {
++        final handoff = _FakeRecordingHandoff()..beginGate = Completer<int?>();
++        await useHandoff(handoff);
++        await start();
++        final stopping = media.stopRecording();
++        await Future<void>.delayed(Duration.zero);
++        await media.stopPlayback();
++        handoff.beginGate!.complete(8);
++        await stopping;
++        expect(handoff.ended, [8]);
++      },
++    );
++
++    test(
++      'slow optional begin does not delay stopping capture indefinitely',
++      () async {
++        final handoff = _FakeRecordingHandoff()..beginGate = Completer<int?>();
++        await useHandoff(handoff);
++        await start();
++        final recording = await media.stopRecording().timeout(
++          const Duration(seconds: 2),
++        );
++        expect(await File(recording.filePath).exists(), isTrue);
++        handoff.beginGate!.complete(9);
++        await Future<void>.delayed(Duration.zero);
++        expect(handoff.ended, [9]);
++      },
++    );
++
++    test('phone microphone never opens a Bluetooth handoff', () async {
++      final handoff = _FakeRecordingHandoff();
++      await useHandoff(handoff);
++      hfp.status = const BluetoothAudioStatus(
++        phase: BluetoothAudioConnectionPhase.idle,
++      );
++      await start();
++      await media.stopRecording();
++      expect(recorder.lastConfig?.device, _FakeLessonRecorder.phone);
++      expect(handoff.beginCalls, 0);
++    });
++
++    test('optional handoff failure cannot fail a valid recording', () async {
++      final handoff = _FakeRecordingHandoff()..failBegin = true;
++      await useHandoff(handoff);
++      await start();
++      final recording = await media.stopRecording();
++      expect(await File(recording.filePath).exists(), isTrue);
++      expect(
++        recorder.lastConfig?.androidConfig.audioSource,
++        AndroidAudioSource.voiceCommunication,
++      );
++    });
++
++    test(
++      'failed replay releases handoff without waiting for native timeout',
++      () async {
++        final handoff = _FakeRecordingHandoff();
++        final playback = await useHandoff(handoff);
++        await start();
++        final recording = await media.stopRecording();
++        playback.playError = StateError('cannot play');
++        await expectLater(
++          media.playRecordingToCompletion(recording),
++          throwsStateError,
++        );
++        expect(handoff.ended, [7]);
++      },
++    );
++
+     test('pins HM-D001 input and keeps its output through feedback', () async {
+       await start();
+       expect(recorder.lastConfig?.device, _FakeLessonRecorder.homi);
+@@ -1300,12 +1411,14 @@ class _ControlledPlaybackService implements AudioPlaybackService {
+   final StreamController<bool> _playing = StreamController<bool>.broadcast();
+   int playCalls = 0;
+   int stopCalls = 0;
++  Object? playError;
+ 
+   @override
+   Stream<bool> get playingStream => _playing.stream;
+ 
+   @override
+   Future<PlaybackStartMetrics> play(Uri uri) async {
++    if (playError != null) throw playError!;
+     playCalls += 1;
+     _playing.add(true);
+     return const PlaybackStartMetrics(
+@@ -1339,6 +1452,7 @@ class _RecordingTestMediaService extends LessonMediaService {
+     super.recorder,
+     super.playbackService,
+     super.hfpAudioControl,
++    super.recordingHandoff,
+   });
+ 
+   final String path;
+@@ -1368,6 +1482,7 @@ class _FakeLessonRecorder implements AudioRecorder {
+   String? path;
+   int startCalls = 0;
+   int cancelCalls = 0;
++  int stopCalls = 0;
+   Completer<void>? stopGate;
+   Completer<void>? startGate;
+ 
+@@ -1387,6 +1502,7 @@ class _FakeLessonRecorder implements AudioRecorder {
+ 
+   @override
+   Future<String?> stop() async {
++    stopCalls += 1;
+     await stopGate?.future;
+     await File(
+       path!,
+@@ -1409,6 +1525,23 @@ class _FakeLessonRecorder implements AudioRecorder {
+   }
+ }
+ 
++class _FakeRecordingHandoff implements LessonRecordingHandoff {
++  int beginCalls = 0;
++  final List<int> ended = [];
++  Completer<int?>? beginGate;
++  bool failBegin = false;
++
++  @override
++  Future<int?> begin() async {
++    beginCalls += 1;
++    if (failBegin) throw StateError('handoff unavailable');
++    return beginGate == null ? 7 : beginGate!.future;
++  }
++
++  @override
++  Future<void> end(int token) async => ended.add(token);
++}
++
+ class _BlockedPreparationPlaybackService extends _ControlledPlaybackService {
+   final ready = Completer<void>();
+   @override

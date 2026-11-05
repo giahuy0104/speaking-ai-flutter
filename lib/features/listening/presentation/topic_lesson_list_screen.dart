@@ -109,6 +109,7 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
         LessonMediaService(
           hfpAudioControl: widget.controller?.createLearningAudioRouteControl(),
           audioTurnCoordinator: widget.controller?.audioTurnCoordinator,
+          useAndroidVoiceRecognitionSource: true,
         );
     _ownsVoicePromptService = widget.voicePromptService == null;
     _voicePromptService =

@@ -1,0 +1,127 @@
+
+00:00 +0: loading D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart                                                                   
+00:01 +0: loading D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart                                                                   
+00:02 +0: loading D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart                                                                   
+00:02 +0: iOS prepares normalized audio without history; registration saves it                                                                                                                         
+00:02 +1: iOS prepares normalized audio without history; registration saves it                                                                                                                         
+00:02 +1: Android lesson capture route handoff starts before recorder stops and ends after replay starts                                                                                               
+00:02 +2: Android lesson capture route handoff starts before recorder stops and ends after replay starts                                                                                               
+00:02 +2: Android lesson capture route late handoff begin is released after navigation stops playback                                                                                                  
+00:02 +3: Android lesson capture route late handoff begin is released after navigation stops playback                                                                                                  
+00:02 +3: Android lesson capture route slow optional begin does not delay stopping capture indefinitely                                                                                                
+00:03 +3: Android lesson capture route slow optional begin does not delay stopping capture indefinitely                                                                                                
+00:03 +4: Android lesson capture route slow optional begin does not delay stopping capture indefinitely                                                                                                
+00:03 +4: Android lesson capture route phone microphone never opens a Bluetooth handoff                                                                                                                
+00:03 +5: Android lesson capture route phone microphone never opens a Bluetooth handoff                                                                                                                
+00:03 +5: Android lesson capture route optional handoff failure cannot fail a valid recording                                                                                                          
+00:03 +6: Android lesson capture route optional handoff failure cannot fail a valid recording                                                                                                          
+00:03 +6: Android lesson capture route failed replay releases handoff without waiting for native timeout                                                                                               
+00:03 +7: Android lesson capture route failed replay releases handoff without waiting for native timeout                                                                                               
+00:03 +7: Android lesson capture route pins HM-D001 input and keeps its output through feedback                                                                                                        
+00:03 +8: Android lesson capture route pins HM-D001 input and keeps its output through feedback                                                                                                        
+00:03 +8: Android lesson capture route selected HM-D001 cannot silently fall back to the phone mic                                                                                                     
+00:03 +9: Android lesson capture route selected HM-D001 cannot silently fall back to the phone mic                                                                                                     
+00:03 +9: Android lesson capture route playback stop cannot release the live recording route                                                                                                           
+00:03 +10: Android lesson capture route playback stop cannot release the live recording route                                                                                                          
+00:03 +10: Android lesson capture route route lost while recorder starts never reports live capture                                                                                                    
+00:03 +11: Android lesson capture route route lost while recorder starts never reports live capture                                                                                                    
+00:03 +11: Android lesson capture route phone capture still explicitly uses the built-in input                                                                                                         
+00:03 +12: Android lesson capture route phone capture still explicitly uses the built-in input                                                                                                         
+00:03 +12: Android lesson capture route route loss reports capture failure instead of no recording                                                                                                     
+00:03 +13: Android lesson capture route route loss reports capture failure instead of no recording                                                                                                     
+00:03 +13: Android lesson capture route simulated HOMI session: lost mic blocks phone fallback and reconnect allows a new recording                                                                    
+00:03 +14: Android lesson capture route simulated HOMI session: lost mic blocks phone fallback and reconnect allows a new recording                                                                    
+00:03 +14: Android lesson capture route delayed loss from an old capture cannot cancel a newer one                                                                                                     
+00:03 +15: Android lesson capture route delayed loss from an old capture cannot cancel a newer one                                                                                                     
+00:03 +15: iOS HM-D001 capture keeps the selected output through feedback                                                                                                                              
+00:03 +16: iOS HM-D001 capture keeps the selected output through feedback                                                                                                                              
+00:03 +16: stop during playback preparation prevents a late clip on default output                                                                                                                     
+00:03 +17: stop during playback preparation prevents a late clip on default output                                                                                                                     
+00:03 +17: TargetPlatform.android route loss stops the clip and fails its completion gate                                                                                                              
+00:03 +18: TargetPlatform.android route loss stops the clip and fails its completion gate                                                                                                              
+00:03 +18: TargetPlatform.iOS route loss stops the clip and fails its completion gate                                                                                                                  
+00:03 +19: TargetPlatform.iOS route loss stops the clip and fails its completion gate                                                                                                                  
+00:03 +19: playToCompletion does not finish until playback reports ended                                                                                                                               
+00:03 +20: playToCompletion does not finish until playback reports ended                                                                                                                               
+00:03 +20: completion-aware playback ignores a temporary playing false state                                                                                                                           
+00:03 +21: completion-aware playback ignores a temporary playing false state                                                                                                                           
+00:03 +21: completion-aware playback resumes once when a pause is never lifted                                                                                                                         
+00:04 +21: completion-aware playback resumes once when a pause is never lifted                                                                                                                         
+00:05 +21: completion-aware playback resumes once when a pause is never lifted                                                                                                                         
+00:05 +22: completion-aware playback resumes once when a pause is never lifted                                                                                                                         
+00:05 +22: completion-aware playback does not resume after the clip is stopped                                                                                                                         
+00:06 +22: completion-aware playback does not resume after the clip is stopped                                                                                                                         
+00:06 +23: completion-aware playback does not resume after the clip is stopped                                                                                                                         
+00:06 +23: completion-aware playback leaves a pause near the clip end alone                                                                                                                            
+00:07 +23: completion-aware playback leaves a pause near the clip end alone                                                                                                                            
+00:08 +23: completion-aware playback leaves a pause near the clip end alone                                                                                                                            
+00:08 +24: completion-aware playback leaves a pause near the clip end alone                                                                                                                            
+00:08 +24: completion-aware playback does not resume during an audio interruption                                                                                                                      
+00:09 +24: completion-aware playback does not resume during an audio interruption                                                                                                                      
+00:09 +25: completion-aware playback does not resume during an audio interruption                                                                                                                      
+00:09 +25: completion-aware playback ignores a completed state from the old source                                                                                                                     
+00:09 +26: completion-aware playback ignores a completed state from the old source                                                                                                                     
+00:09 +26: prearmed playback catches a clip that ends before play returns                                                                                                                              
+00:09 +27: prearmed playback catches a clip that ends before play returns                                                                                                                              
+00:09 +27: iOS accepts a stopped source at end without a native end event                                                                                                                              
+00:10 +27: iOS accepts a stopped source at end without a native end event                                                                                                                              
+00:10 +27: iOS accepts a stopped source at end without a native end event                                                                                                                              
+HOMI lesson playback completion inferred at source end: position=0:00:02.000000 duration=0:00:02.000000
+
+00:10 +28: iOS accepts a stopped source at end without a native end event                                                                                                                              
+00:10 +28: Android recorded take accepts a stable source end                                                                                                                                           
+00:11 +28: Android recorded take accepts a stable source end                                                                                                                                           
+00:11 +28: Android recorded take accepts a stable source end                                                                                                                                           
+HOMI lesson playback completion inferred at source end: position=0:00:02.000000 duration=0:00:02.000000
+
+00:11 +29: Android recorded take accepts a stable source end                                                                                                                                           
+00:11 +29: Android recorded take waits through an interruption at end                                                                                                                                  
+00:12 +29: Android recorded take waits through an interruption at end                                                                                                                                  
+00:12 +29: Android recorded take waits through an interruption at end                                                                                                                                  
+HOMI lesson playback completion inferred at source end: position=0:00:02.000000 duration=0:00:02.000000
+
+00:12 +30: Android recorded take waits through an interruption at end                                                                                                                                  
+00:12 +30: Android accepts a stopped HM-D001 clip at end without a native end event                                                                                                                    
+00:13 +30: Android accepts a stopped HM-D001 clip at end without a native end event                                                                                                                    
+00:13 +30: Android accepts a stopped HM-D001 clip at end without a native end event                                                                                                                    
+HOMI lesson playback completion inferred at source end: position=0:00:02.000000 duration=0:00:02.000000
+
+00:13 +31: Android accepts a stopped HM-D001 clip at end without a native end event                                                                                                                    
+00:13 +31: iOS end-position fallback waits through an interruption                                                                                                                                     
+00:14 +31: iOS end-position fallback waits through an interruption                                                                                                                                     
+00:14 +31: iOS end-position fallback waits through an interruption                                                                                                                                     
+HOMI lesson playback completion inferred at source end: position=0:00:02.000000 duration=0:00:02.000000
+
+00:14 +32: iOS end-position fallback waits through an interruption                                                                                                                                     
+00:14 +32: Android selected HM-D001 route is prepared before lesson playback starts                                                                                                                    
+00:14 +33: Android selected HM-D001 route is prepared before lesson playback starts                                                                                                                    
+00:14 +33: take replay retries the HFP route once before giving up                                                                                                                                     
+00:14 +34: take replay retries the HFP route once before giving up                                                                                                                                     
+00:14 +34: waits briefly for a lost HM-D001 route to come back                                                                                                                                         
+00:14 +35: waits briefly for a lost HM-D001 route to come back                                                                                                                                         
+00:14 +35: take replay route retry is bounded and stops with the clip                                                                                                                                  
+00:15 +35: take replay route retry is bounded and stops with the clip                                                                                                                                  
+00:15 +36: take replay route retry is bounded and stops with the clip                                                                                                                                  
+00:15 +36: iOS selected HM-D001 lesson playback holds HFP for output                                                                                                                                   
+00:15 +37: iOS selected HM-D001 lesson playback holds HFP for output                                                                                                                                   
+00:15 +37: iOS revalidates HFP before another lesson clip                                                                                                                                              
+00:15 +38: iOS revalidates HFP before another lesson clip                                                                                                                                              
+00:15 +38: phone playback does not activate an unselected HFP route                                                                                                                                    
+00:15 +39: phone playback does not activate an unselected HFP route                                                                                                                                    
+00:15 +39: navigation prompt never falls back to the phone when HFP setup fails                                                                                                                        
+00:15 +40: navigation prompt never falls back to the phone when HFP setup fails                                                                                                                        
+00:15 +40: coach prompt leaves HM-D001 and plays on the phone speaker                                                                                                                                  
+00:15 +41: coach prompt leaves HM-D001 and plays on the phone speaker                                                                                                                                  
+00:15 +41: consecutive HM-D001 clips revalidate a dropped SCO route                                                                                                                                    
+00:15 +42: consecutive HM-D001 clips revalidate a dropped SCO route                                                                                                                                    
+00:15 +42: per-play gain is applied after HM-D001 preparation and then reset                                                                                                                           
+00:15 +43: per-play gain is applied after HM-D001 preparation and then reset                                                                                                                           
+00:15 +43: child recording can request a fixed gain without source metering                                                                                                                            
+00:15 +44: child recording can request a fixed gain without source metering                                                                                                                            
+00:15 +44: iOS lesson recording configuration is input-capable                                                                                                                                         
+00:15 +45: iOS lesson recording configuration is input-capable                                                                                                                                         
+00:15 +45: Android capture leaves routing owned by HFP bridge and phone flow                                                                                                                           
+00:15 +46: Android capture leaves routing owned by HFP bridge and phone flow                                                                                                                           
+00:15 +46: iOS recording input selects exact HM-D001 UID and built-in phone mic                                                                                                                        
+00:15 +47: iOS recording input selects exact HM-D001 UID and built-in phone mic                                                                                                                        
+00:15 +47: All tests passed!                                                                                                                                                                           

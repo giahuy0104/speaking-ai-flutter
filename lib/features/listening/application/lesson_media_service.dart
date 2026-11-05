@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:record/record.dart';
 
 import '../../../core/audio/audio_input.dart';
+import '../../../core/audio/audio_diagnostics.dart';
 import '../../../core/audio/audio_gain.dart';
 import '../../../core/audio/audio_playback_service.dart';
 import '../../../core/audio/audio_turn_coordinator.dart';
@@ -46,12 +47,14 @@ class LessonMediaService {
     AudioTurnOwner audioTurnOwner = AudioTurnOwner.listeningLesson,
     LessonRecordingHistoryStore? historyStore,
     Stream<AudioInterruptionEvent>? audioInterruptionEvents,
+    bool useAndroidVoiceRecognitionSource = false,
   }) : _recorder = recorder,
        _playbackService = playbackService,
        _hfpAudioControl = hfpAudioControl,
        _audioTurnCoordinator = audioTurnCoordinator,
        _audioTurnOwner = audioTurnOwner,
        _audioInterruptionEvents = audioInterruptionEvents,
+       _useAndroidVoiceRecognitionSource = useAndroidVoiceRecognitionSource,
        historyStore = historyStore ?? const LessonRecordingHistoryStore() {
     if (!kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.android ||
@@ -97,6 +100,7 @@ class LessonMediaService {
   final AudioTurnCoordinator? _audioTurnCoordinator;
   final AudioTurnOwner _audioTurnOwner;
   final Stream<AudioInterruptionEvent>? _audioInterruptionEvents;
+  final bool _useAndroidVoiceRecognitionSource;
   DateTime? _recordingStartedAt;
   String? _activePath;
   _ActiveLessonRecording? _activeContext;
@@ -646,6 +650,7 @@ class LessonMediaService {
         lessonRecordConfig(
           useSelectedHfp: useSelectedHfp,
           inputDevice: recordingInput,
+          useAndroidVoiceRecognitionSource: _useAndroidVoiceRecognitionSource,
         ),
         path: path,
       );
@@ -708,6 +713,7 @@ class LessonMediaService {
   }
 
   Future<void> _preparePlaybackRoute(LessonPlaybackRoute route) async {
+    AudioDiagnostics.event('lesson.playback.route.prepare');
     final playback = _activePlayback;
     final selectedHfp =
         route == LessonPlaybackRoute.selectedLessonDevice &&
@@ -743,6 +749,7 @@ class LessonMediaService {
     await _activateSelectedHfpRoute(
       force: !kIsWeb && defaultTargetPlatform == TargetPlatform.android,
     );
+    AudioDiagnostics.event('lesson.playback.route.ready');
   }
 
   Future<void> _activateSelectedHfpRoute({bool force = false}) async {
@@ -788,6 +795,7 @@ class LessonMediaService {
   static RecordConfig lessonRecordConfig({
     required bool useSelectedHfp,
     InputDevice? inputDevice,
+    bool useAndroidVoiceRecognitionSource = false,
   }) => RecordConfig(
     encoder: !kIsWeb && defaultTargetPlatform == TargetPlatform.android
         ? AudioEncoder.wav
@@ -816,7 +824,11 @@ class LessonMediaService {
     androidConfig: AndroidRecordConfig(
       manageBluetooth: false,
       audioSource: useSelectedHfp
-          ? AndroidAudioSource.voiceCommunication
+          ? useAndroidVoiceRecognitionSource &&
+                    !kIsWeb &&
+                    defaultTargetPlatform == TargetPlatform.android
+                ? AndroidAudioSource.voiceRecognition
+                : AndroidAudioSource.voiceCommunication
           : AndroidAudioSource.mic,
       // record_android treats modeNormal as "do not manage AudioManager mode".
       // Its recorder remembers the mode from its first capture and would restore
@@ -853,7 +865,14 @@ class LessonMediaService {
         // file. On slower Android devices that finalization can take about a
         // second; including it made a six-second recording appear as seven.
         final stoppedAt = DateTime.now();
+        final operation = AudioDiagnostics.nextId();
+        AudioDiagnostics.event('lesson.recording.stop.request', {
+          'operation': operation,
+        });
         final recordedPath = await recorder.stop();
+        AudioDiagnostics.event('lesson.recording.stop.completed', {
+          'operation': operation,
+        });
         _recordingStartedAt = null;
         _activePath = null;
         _activeContext = null;
@@ -863,6 +882,9 @@ class LessonMediaService {
             duration: stoppedAt.difference(startedAt),
           ),
         );
+        AudioDiagnostics.event('lesson.recording.normalization.completed', {
+          'operation': operation,
+        });
         final resolvedPath = recording.filePath;
         if (context.saveToHistory) {
           final createdAt = DateTime.now();
@@ -884,6 +906,9 @@ class LessonMediaService {
             await deleteLessonRecording(path);
           }
         }
+        AudioDiagnostics.event('lesson.recording.history.completed', {
+          'operation': operation,
+        });
         // Keep the selected HM-D001 output through scoring and feedback on both
         // phones. Dropping the route here can finish its teardown after the
         // next prompt starts, moving that prompt to the phone speaker.
@@ -944,6 +969,7 @@ class LessonMediaService {
 
   /// Shared replay policy for prepared topic and challenge recordings.
   Future<void> playRecordingToCompletion(LessonRecording recording) {
+    AudioDiagnostics.event('lesson.recording.replay.request');
     final parsed = Uri.tryParse(recording.filePath);
     final isWindowsPath = RegExp(
       r'^[a-zA-Z]:[/\\]',
