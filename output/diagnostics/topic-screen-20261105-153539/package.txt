@@ -1,0 +1,255 @@
+Activity Resolver Table:
+  Non-Data Actions:
+      android.intent.action.MAIN:
+        836dd9a com.innotrik.aispeaking/.MainActivity filter 5fd76cb
+          Action: "android.intent.action.MAIN"
+          Category: "android.intent.category.LAUNCHER"
+
+Receiver Resolver Table:
+  Non-Data Actions:
+      androidx.profileinstaller.action.SAVE_PROFILE:
+        323fd54 com.innotrik.aispeaking/androidx.profileinstaller.ProfileInstallReceiver filter f83f443
+          Action: "androidx.profileinstaller.action.SAVE_PROFILE"
+      androidx.profileinstaller.action.INSTALL_PROFILE:
+        323fd54 com.innotrik.aispeaking/androidx.profileinstaller.ProfileInstallReceiver filter 7aa4fd
+          Action: "androidx.profileinstaller.action.INSTALL_PROFILE"
+      androidx.profileinstaller.action.SKIP_FILE:
+        323fd54 com.innotrik.aispeaking/androidx.profileinstaller.ProfileInstallReceiver filter b2b85f2
+          Action: "androidx.profileinstaller.action.SKIP_FILE"
+      androidx.profileinstaller.action.BENCHMARK_OPERATION:
+        323fd54 com.innotrik.aispeaking/androidx.profileinstaller.ProfileInstallReceiver filter e6d9ac0
+          Action: "androidx.profileinstaller.action.BENCHMARK_OPERATION"
+      android.intent.action.BOOT_COMPLETED:
+        31f9ea8 com.innotrik.aispeaking/androidx.work.impl.background.systemalarm.RescheduleReceiver filter 4bdedc1
+          Action: "android.intent.action.BOOT_COMPLETED"
+      androidx.work.diagnostics.REQUEST_DIAGNOSTICS:
+        7953966 com.innotrik.aispeaking/androidx.work.impl.diagnostics.DiagnosticsReceiver filter ceab4a7
+          Action: "androidx.work.diagnostics.REQUEST_DIAGNOSTICS"
+
+Service Resolver Table:
+  Non-Data Actions:
+      android.companion.CompanionDeviceService:
+        a5193f9 com.innotrik.aispeaking/.HomiCompanionDeviceService filter b680f3e permission android.permission.BIND_COMPANION_DEVICE_SERVICE
+          Action: "android.companion.CompanionDeviceService"
+
+Domain verification status:
+
+Permissions:
+  Permission [com.innotrik.aispeaking.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION] (1b51796):
+    sourcePackage=com.innotrik.aispeaking
+    uid=10426 gids=[] type=0 prot=signature
+    perm=PermissionInfo{3f31d38 com.innotrik.aispeaking.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION}
+
+Registered ContentProviders:
+  com.innotrik.aispeaking/com.google.mlkit.common.internal.MlKitInitProvider:
+    Provider{2bab111 com.innotrik.aispeaking/com.google.mlkit.common.internal.MlKitInitProvider}
+  com.innotrik.aispeaking/androidx.startup.InitializationProvider:
+    Provider{f96c276 com.innotrik.aispeaking/androidx.startup.InitializationProvider}
+
+ContentProvider Authorities:
+  [com.innotrik.aispeaking.androidx-startup]:
+    Provider{f96c276 com.innotrik.aispeaking/androidx.startup.InitializationProvider}
+      applicationInfo=ApplicationInfo{b4eef17 com.innotrik.aispeaking}
+  [com.innotrik.aispeaking.mlkitinitprovider]:
+    Provider{2bab111 com.innotrik.aispeaking/com.google.mlkit.common.internal.MlKitInitProvider}
+      applicationInfo=ApplicationInfo{3eff04 com.innotrik.aispeaking}
+
+Key Set Manager:
+  [com.innotrik.aispeaking]
+      Signing KeySets: 320
+
+Packages:
+  Package [com.innotrik.aispeaking] (7084d4d):
+    userId=10426
+    pkg=Package{7d37245 com.innotrik.aispeaking}
+    codePath=/data/app/~~kQN7YNlzJgqpYd_BQAVCzg==/com.innotrik.aispeaking-g30N8oZARoLxi3FX0_d2FA==
+    resourcePath=/data/app/~~kQN7YNlzJgqpYd_BQAVCzg==/com.innotrik.aispeaking-g30N8oZARoLxi3FX0_d2FA==
+    legacyNativeLibraryDir=/data/app/~~kQN7YNlzJgqpYd_BQAVCzg==/com.innotrik.aispeaking-g30N8oZARoLxi3FX0_d2FA==/lib
+    extractNativeLibs=false
+    primaryCpuAbi=arm64-v8a
+    secondaryCpuAbi=null
+    cpuAbiOverride=null
+    versionCode=20 minSdk=24 targetSdk=36
+    minExtensionVersions=[]
+    versionName=1.0.12
+    usesNonSdkApi=false
+    splits=[base]
+    apkSigningVersion=2
+    applicationInfo=PackageImpl{7d37245 com.innotrik.aispeaking}
+    flags=[ HAS_CODE ALLOW_CLEAR_USER_DATA ALLOW_BACKUP ]
+    privateFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION ALLOW_AUDIO_PLAYBACK_CAPTURE PARTIALLY_DIRECT_BOOT_AWARE PRIVATE_FLAG_ALLOW_NATIVE_HEAP_POINTER_TAGGING ]
+    forceQueryable=false
+    queriesPackages=[]
+    queriesIntents=[Intent { act=android.speech.RecognitionService }, Intent { act=android.intent.action.PROCESS_TEXT dat=content://*/* typ=text/plain }]
+    dataDir=/data/user/0/com.innotrik.aispeaking
+    supportsScreens=[small, medium, large, xlarge, resizeable, anyDensity]
+    usesOptionalLibraries:
+      androidx.window.extensions
+      androidx.window.sidecar
+    timeStamp=2026-11-05 11:20:36
+    firstInstallTime=2026-11-05 11:20:38
+    lastUpdateTime=2026-11-05 11:20:38
+    signatures=PackageSignatures{ca49002 version:2, signatures:[5fd6d5e6], past signatures:[]}
+    installPermissionsFixed=true
+    pkgFlags=[ HAS_CODE ALLOW_CLEAR_USER_DATA ALLOW_BACKUP ]
+    declared permissions:
+      com.innotrik.aispeaking.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION: prot=signature, INSTALLED
+    requested permissions:
+      android.permission.INTERNET
+      android.permission.ACCESS_NETWORK_STATE
+      android.permission.RECORD_AUDIO
+      android.permission.MODIFY_AUDIO_SETTINGS
+      android.permission.WAKE_LOCK
+      android.permission.FOREGROUND_SERVICE
+      android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE
+      android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK
+      android.permission.FOREGROUND_SERVICE_MICROPHONE
+      android.permission.POST_NOTIFICATIONS
+      android.permission.BLUETOOTH
+      android.permission.BLUETOOTH_SCAN
+      android.permission.BLUETOOTH_CONNECT
+      android.permission.REQUEST_COMPANION_RUN_IN_BACKGROUND
+      android.permission.REQUEST_COMPANION_START_FOREGROUND_SERVICES_FROM_BACKGROUND
+      android.permission.REQUEST_OBSERVE_COMPANION_DEVICE_PRESENCE
+      android.permission.RECEIVE_BOOT_COMPLETED
+      android.permission.VIBRATE
+      android.permission.USE_BIOMETRIC
+      android.permission.USE_FINGERPRINT
+      com.innotrik.aispeaking.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+    install permissions:
+      android.permission.MODIFY_AUDIO_SETTINGS: granted=true
+      android.permission.REQUEST_COMPANION_START_FOREGROUND_SERVICES_FROM_BACKGROUND: granted=true
+      android.permission.FOREGROUND_SERVICE: granted=true
+      android.permission.RECEIVE_BOOT_COMPLETED: granted=true
+      android.permission.BLUETOOTH: granted=true
+      android.permission.INTERNET: granted=true
+      android.permission.REQUEST_OBSERVE_COMPANION_DEVICE_PRESENCE: granted=true
+      android.permission.REQUEST_COMPANION_RUN_IN_BACKGROUND: granted=true
+      android.permission.ACCESS_NETWORK_STATE: granted=true
+      android.permission.USE_FINGERPRINT: granted=true
+      com.innotrik.aispeaking.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION: granted=true
+      android.permission.VIBRATE: granted=true
+      android.permission.USE_BIOMETRIC: granted=true
+      android.permission.WAKE_LOCK: granted=true
+    User 0: ceDataInode=449756 installed=true hidden=false vHidden=1 suspended=false distractionFlags=0 stopped=false notLaunched=false enabled=0 instant=false virtual=false
+      gids=[3002, 3003]
+      runtime permissions:
+        android.permission.BLUETOOTH_CONNECT: granted=true, flags=[ USER_SET|USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+        android.permission.RECORD_AUDIO: granted=true, flags=[ USER_SET|USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+        android.permission.BLUETOOTH_SCAN: granted=true, flags=[ USER_SET|USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+      disabledComponents:
+        androidx.work.impl.background.systemalarm.RescheduleReceiver
+      enabledComponents:
+        androidx.work.impl.background.systemjob.SystemJobService
+
+Queries:
+  system apps queryable: false
+  queries via package name:
+  queries via intent:
+    com.vmb.lichvannien.new2018:
+      com.innotrik.aispeaking
+    com.vivo.globalsearch:
+      com.innotrik.aispeaking
+    com.instagram.android:
+      com.innotrik.aispeaking
+    com.zing.zalo:
+      com.innotrik.aispeaking
+    com.facebook.orca:
+      com.innotrik.aispeaking
+    com.facebook.katana:
+      com.innotrik.aispeaking
+    com.google.android.play.games:
+      com.innotrik.aispeaking
+    com.VCB:
+      com.innotrik.aispeaking
+    com.innotrik.aispeaking:
+      com.google.android.googlequicksearchbox
+  queryable via interaction:
+    User 0:
+      [com.vivo.vtouch,com.android.keychain,com.vivo.audiofx,com.android.BBKCrontab,com.vivo.daemonService,com.vivo.floatingball,com.vivo.faceui,com.iqoo.powersaving,com.android.settings,com.qualcomm.qti.xrvd.service,com.android.location.fused,com.android.wallpaperbackup,com.vivo.epm,com.vivo.fingerprintui,com.bbk.facewake,com.vivo.agent,com.vivo.networkstate,com.android.localtransport,com.wapi.wapicertmanage,com.android.networkstack.tethering.inprocess,com.vivo.shortcutcenter,com.vivo.fingerprint,com.vivo.smartmultiwindow,com.vivo.setupwizard,com.vivo.globalanimation,com.android.server.telecom,android,com.android.dynsystem,com.vivo.contentcatcher,com.android.inputdevices,com.vivo.abe,com.vivo.appfilter,com.vivo.nightpearl,com.vivo.minscreen,com.vivo.vibrator4d,com.vivo.smartshot,com.qti.snapdragon.qdcm_ff,com.vivo.wifiengineermode,com.iqoo.engineermode,com.android.providers.settings,com.vivo.multinlp,com.vivo.assistant,com.vivo.fingerprintengineer,com.vivo.permissionmanager,com.bbk.SuperPowerSave,com.vivo.gamecube,com.android.bbklog,com.vivo.sps,com.qti.diagservices,com.vivo.faceunlock,com.vivo.doubleinstance,com.vivo.motormode,com.vivo.upslide,com.vivo.pem,com.vivo.gamewatch,com.vivo.smartunlock]:
+        com.innotrik.aispeaking
+      [com.android.mtp,com.android.soundpicker,com.android.providers.downloads,com.android.providers.media]:
+        com.innotrik.aispeaking
+      com.google.android.permissioncontroller:
+        com.innotrik.aispeaking
+      com.google.android.inputmethod.latin:
+        com.innotrik.aispeaking
+      [com.google.android.gsf,com.google.android.gms]:
+        com.innotrik.aispeaking
+      com.android.providers.media.module:
+        com.innotrik.aispeaking
+      com.innotrik.aispeaking:
+        [com.vivo.vtouch,com.android.keychain,com.vivo.audiofx,com.android.BBKCrontab,com.vivo.daemonService,com.vivo.floatingball,com.vivo.faceui,com.iqoo.powersaving,com.android.settings,com.qualcomm.qti.xrvd.service,com.android.location.fused,com.android.wallpaperbackup,com.vivo.epm,com.vivo.fingerprintui,com.bbk.facewake,com.vivo.agent,com.vivo.networkstate,com.android.localtransport,com.wapi.wapicertmanage,com.android.networkstack.tethering.inprocess,com.vivo.shortcutcenter,com.vivo.fingerprint,com.vivo.smartmultiwindow,com.vivo.setupwizard,com.vivo.globalanimation,com.android.server.telecom,android,com.android.dynsystem,com.vivo.contentcatcher,com.android.inputdevices,com.vivo.abe,com.vivo.appfilter,com.vivo.nightpearl,com.vivo.minscreen,com.vivo.vibrator4d,com.vivo.smartshot,com.qti.snapdragon.qdcm_ff,com.vivo.wifiengineermode,com.iqoo.engineermode,com.android.providers.settings,com.vivo.multinlp,com.vivo.assistant,com.vivo.fingerprintengineer,com.vivo.permissionmanager,com.bbk.SuperPowerSave,com.vivo.gamecube,com.android.bbklog,com.vivo.sps,com.qti.diagservices,com.vivo.faceunlock,com.vivo.doubleinstance,com.vivo.motormode,com.vivo.upslide,com.vivo.pem,com.vivo.gamewatch,com.vivo.smartunlock]
+        [com.android.mtp,com.android.soundpicker,com.android.providers.downloads,com.android.providers.media]
+  queryable via uses-library:
+
+Package Changes:
+  Sequence number=4882
+  User 0:
+    seq=75, package=com.instagram.android
+    seq=1647, package=com.google.android.webview
+    seq=2249, package=com.facebook.system
+    seq=2665, package=com.google.ar.core
+    seq=3044, package=com.facebook.services
+    seq=3384, package=com.facebook.orca
+    seq=3733, package=com.vivo.game
+    seq=3737, package=com.google.android.gms
+    seq=4055, package=com.facebook.katana
+    seq=4305, package=com.android.vending
+    seq=4306, package=com.google.android.safetycore
+    seq=4505, package=com.vivo.appstore
+    seq=4645, package=com.innotrik.aispeaking.codextest
+    seq=4661, package=com.android.bluetooth
+    seq=4869, package=com.facebook.appmanager
+    seq=4881, package=com.innotrik.aispeaking
+
+
+Dexopt state:
+  [com.innotrik.aispeaking]
+    path: /data/app/~~kQN7YNlzJgqpYd_BQAVCzg==/com.innotrik.aispeaking-g30N8oZARoLxi3FX0_d2FA==/base.apk
+      arm64: [status=speed-profile] [reason=cmdline]
+
+
+Compiler stats:
+  [com.innotrik.aispeaking]
+     base.apk - 4453
+Snapshot statistics
+   Unrecorded-hits: 10291  Cork-level: 0
+   Summary stats               TotBlds     TotUsed     TotCork     BigBlds    ShortLvd     TotTime     MaxTime
+          0:32         now           0           0           0           0           0           0           0
+          1:32        0:32           0           0           0           0           0           0           0
+          2:32        1:32           0           0           0           0           0           0           0
+          3:32        2:32           4       26305           0           0           1           5           3
+          4:32        3:32           0           0           0           0           0           0           0
+          5:32        4:32           0           0           0           0           0           0           0
+          6:32        5:32           0           0           0           0           0           0           0
+          7:32        6:32           1       23996           0           0           0           0           0
+          8:32        7:32           0           0           0           0           0           0           0
+          9:32        8:32           0           0           0           0           0           0           0
+   11:17:23:49         now        9895    28487612           0          93        2735       98609       20417
+
+   Build times                  <= 1ms      <= 2ms      <= 5ms     <= 10ms     <= 20ms     <= 50ms    <= 100ms     > 100ms
+          0:32         now           0           0           0           0           0           0           0           0
+          1:32        0:32           0           0           0           0           0           0           0           0
+          2:32        1:32           0           0           0           0           0           0           0           0
+          3:32        2:32           3           0           1           0           0           0           0           0
+          4:32        3:32           0           0           0           0           0           0           0           0
+          5:32        4:32           0           0           0           0           0           0           0           0
+          6:32        5:32           0           0           0           0           0           0           0           0
+          7:32        6:32           1           0           0           0           0           0           0           0
+          8:32        7:32           0           0           0           0           0           0           0           0
+          9:32        8:32           0           0           0           0           0           0           0           0
+   11:17:23:49         now        6797        2336         558         119          49          29           3           4
+
+   Use counters                   <= 1        <= 2        <= 5       <= 10       <= 20       <= 50      <= 100       > 100
+          0:32         now           0           0           0           0           0           0           0           0
+          1:32        0:32           0           0           0           0           0           0           0           0
+          2:32        1:32           0           0           0           0           0           0           0           0
+          3:32        2:32           1           0           0           0           0           0           1           2
+          4:32        3:32           0           0           0           0           0           0           0           0
+          5:32        4:32           0           0           0           0           0           0           0           0
+          6:32        5:32           0           0           0           0           0           0           0           0
+          7:32        6:32           0           0           0           0           0           0           0           1
+          8:32        7:32           0           0           0           0           0           0           0           0
+          9:32        8:32           0           0           0           0           0           0           0           0
+   11:17:23:49         now         992         508        1234         834         697         599         637        4393

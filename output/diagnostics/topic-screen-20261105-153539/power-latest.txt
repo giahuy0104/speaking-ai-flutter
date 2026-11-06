@@ -1,0 +1,508 @@
+POWER MANAGER (dumpsys power)
+
+Power Manager State:
+  Settings power_manager_constants:
+    no_cached_wake_locks=true
+  mDirty=0x0
+  mWakefulness=Asleep
+  mWakefulnessChanging=false
+  mIsPowered=true
+  mPlugType=1
+  mBatteryLevel=100
+  mBatteryLevelWhenDreamStarted=0
+  mDockState=0
+  mStayOn=false
+  mProximityPositive=false
+  mBootCompleted=true
+  mSystemReady=true
+  mEnhancedDischargeTimeElapsed=0
+  mLastEnhancedDischargeTimeUpdatedElapsed=0
+  mEnhancedDischargePredictionIsPersonalized=false
+  mHalAutoSuspendModeEnabled=true
+  mHalInteractiveModeEnabled=false
+  mWakeLockSummary=0x1
+  mNotifyLongScheduled=+42s451ms
+  mNotifyLongDispatched=-16s85ms
+  mNotifyLongNextCheck=+42s451ms
+  mRequestWaitForNegativeProximity=false
+  mInterceptedPowerKeyForProximity=false
+  mSandmanScheduled=false
+  mBatteryLevelLow=false
+  mLightDeviceIdleMode=false
+  mDeviceIdleMode=false
+  mDeviceIdleWhitelist=[1000, 1001, 1002, 2000, 10049, 10053, 10054, 10057, 10058, 10059, 10062, 10064, 10065, 10066, 10069, 10070, 10071, 10075, 10080, 10084, 10092, 10094, 10096, 10097, 10101, 10105, 10109, 10111, 10112, 10113, 10121, 10123, 10124, 10126, 10127, 10130, 10132, 10133, 10135, 10141, 10143, 10144, 10145, 10147, 10149, 10153, 10161, 10164, 10165, 10176, 10179, 10182, 10183, 10193, 10194, 10196, 10199, 10201, 10202, 10205, 10210, 10216, 10231, 10245, 10246, 10254, 10256, 10257, 10259]
+  mDeviceIdleTempWhitelist=[1000, 10062, 10176, 10204, 10426]
+  mLastWakeTime=152247003 (169578 ms ago)
+  mLastSleepTime=152253010 (163571 ms ago)
+  mLastSleepReason=power_button
+  mLastInteractivePowerHintTime=152253449 (163132 ms ago)
+  mLastScreenBrightnessBoostTime=0 (152416581 ms ago)
+  mScreenBrightnessBoostInProgress=false
+  mHoldingWakeLockSuspendBlocker=true
+  mHoldingDisplaySuspendBlocker=false
+  mLastFlipTime=0
+  mIsFaceDown=false
+
+Settings and Configuration:
+  mDecoupleHalAutoSuspendModeFromDisplayConfig=false
+  mDecoupleHalInteractiveModeFromDisplayConfig=false
+  mWakeUpWhenPluggedOrUnpluggedConfig=true
+  mWakeUpWhenPluggedOrUnpluggedInTheaterModeConfig=false
+  mTheaterModeEnabled=false
+  mSuspendWhenScreenOffDueToProximityConfig=true
+  mDreamsSupportedConfig=true
+  mDreamsEnabledByDefaultConfig=true
+  mDreamsActivatedOnSleepByDefaultConfig=false
+  mDreamsActivatedOnDockByDefaultConfig=true
+  mDreamsEnabledOnBatteryConfig=false
+  mDreamsBatteryLevelMinimumWhenPoweredConfig=-1
+  mDreamsBatteryLevelMinimumWhenNotPoweredConfig=15
+  mDreamsBatteryLevelDrainCutoffConfig=5
+  mDreamsEnabledSetting=true
+  mDreamsActivateOnSleepSetting=false
+  mDreamsActivateOnDockSetting=true
+  mDozeAfterScreenOff=false
+  mMinimumScreenOffTimeoutConfig=5000
+  mMaximumScreenDimDurationConfig=7000
+  mMaximumScreenDimRatioConfig=0.20000005
+  mAttentiveTimeoutConfig=-1
+  mAttentiveTimeoutSetting=-1
+  mAttentiveWarningDurationConfig=30000
+  mScreenOffTimeoutSetting=600000
+  mSleepTimeoutSetting=-1
+  mMaximumScreenOffTimeoutFromDeviceAdmin=9223372036854775807 (enforced=false)
+  mStayOnWhilePluggedInSetting=0
+  mScreenBrightnessModeSetting=0
+  mScreenBrightnessOverrideFromWindowManager=NaN
+  mUserActivityTimeoutOverrideFromWindowManager=7000
+  mUserInactiveOverrideFromWindowManager=false
+  mDozeScreenStateOverrideFromDreamManager=1
+  mDrawWakeLockOverrideFromSidekick=false
+  mDozeScreenBrightnessOverrideFromDreamManager=0
+  mScreenBrightnessMinimum=7.0E-5
+  mScreenBrightnessMaximum=1.0
+  mScreenBrightnessDefault=0.39763778
+  mDoubleTapWakeEnabled=false
+  mIsVrModeEnabled=false
+  mButtonLightOn=true
+  mButtonLightAlwaysOn=false
+  mButtonLightSensorControl=false
+  buttonLightControlMode=0
+  isButtonLightSpecialScene=true
+  isButtonLightSpecialSceneException=false
+  isButtonNeedReflectGlobal=false
+  mForegroundProfile=0
+  mUserId=0
+
+Attentive timeout: -1 ms
+Sleep timeout: -1 ms
+Screen off timeout: 7000 ms
+Screen dim duration: 1400 ms
+
+UID states (changing=false changed=false):
+  UID 1000:   ACTIVE  count=0 state=0
+  UID 1001:   ACTIVE  count=0 state=0
+  UID 1002:   ACTIVE  count=0 state=0
+  UID 1068:   ACTIVE  count=0 state=0
+  UID 1073:   ACTIVE  count=0 state=0
+  UID u0a55: INACTIVE  count=0 state=19
+  UID u0a57: INACTIVE  count=0 state=10
+  UID u0a62:   ACTIVE  count=0 state=5
+  UID u0a65: INACTIVE  count=0 state=10
+  UID u0a70: INACTIVE  count=0 state=19
+  UID u0a72: INACTIVE  count=0 state=19
+  UID u0a75:   ACTIVE  count=0 state=6
+  UID u0a80:   ACTIVE  count=0 state=5
+  UID u0a84: INACTIVE  count=0 state=10
+  UID u0a96:   ACTIVE  count=0 state=5
+  UID u0a97: INACTIVE  count=0 state=10
+  UID u0a101:   ACTIVE  count=0 state=0
+  UID u0a123:   ACTIVE  count=0 state=5
+  UID u0a127:   ACTIVE  count=0 state=5
+  UID u0a129:   ACTIVE  count=0 state=7
+  UID u0a133: INACTIVE  count=0 state=19
+  UID u0a141: INACTIVE  count=0 state=10
+  UID u0a145:   ACTIVE  count=0 state=0
+  UID u0a153: INACTIVE  count=0 state=19
+  UID u0a161:   ACTIVE  count=0 state=5
+  UID u0a164:   ACTIVE  count=0 state=5
+  UID u0a176:   ACTIVE  count=0 state=5
+  UID u0a179: INACTIVE  count=0 state=19
+  UID u0a182:   ACTIVE  count=0 state=5
+  UID u0a184: INACTIVE  count=0 state=19
+  UID u0a191: INACTIVE  count=0 state=19
+  UID u0a192:   ACTIVE  count=0 state=5
+  UID u0a204:   ACTIVE  count=0 state=6
+  UID u0a205: INACTIVE  count=0 state=10
+  UID u0a210: INACTIVE  count=0 state=10
+  UID u0a216:   ACTIVE  count=0 state=19
+  UID u0a221: INACTIVE  count=0 state=19
+  UID u0a238:   ACTIVE  count=0 state=0
+  UID u0a243:   ACTIVE  count=0 state=0
+  UID u0a245:   ACTIVE  count=0 state=0
+  UID u0a247:   ACTIVE  count=0 state=0
+  UID u0a250:   ACTIVE  count=0 state=0
+  UID u0a253:   ACTIVE  count=0 state=0
+  UID u0a256:   ACTIVE  count=0 state=0
+  UID u0a426:   ACTIVE  count=1 state=4
+  UID u0i22:   ACTIVE  count=0 state=5
+  UID u0i70: INACTIVE  count=0 state=19
+
+Looper state:
+  Looper (PowerManagerService, tid 67) {ace0cd8}
+    Now dispatching: null
+    Message 0: { id=515598 when=+42s450ms what=4 target=android.os.Handler }
+    (Total messages: 1, polling=true, quitting=false)
+
+Wake Locks: size=1
+  PARTIAL_WAKE_LOCK              'com.innotrik.aispeaking:ActiveLesson' ACQ=-3m6s746ms LONG (uid=10426 (displayid =0 pid=12104 pkg=com.innotrik.aispeaking uid=10426)
+
+Suspend Blockers: size=4
+  PowerManagerService.WakeLocks: ref count=1
+  PowerManagerService.Display: ref count=0
+  PowerManagerService.Broadcasts: ref count=0
+  PowerManagerService.WirelessChargerDetector: ref count=0
+
+Display Power: com.android.server.power.PowerManagerService$1@8b57831
+
+Battery saving stats:
+  Battery Saver is currently: OFF
+    Times full enabled: 0
+    Times adaptive enabled: 0
+  
+  Drain stats:
+                     Battery saver OFF                          ON
+  NonDoze NonIntr:    269m    239mAh( 18%)     53,5mAh/h          0m      0mAh(  0%)      0,0mAh/h
+             Intr:    343m   1713mAh( 83%)    298,9mAh/h          0m      0mAh(  0%)      0,0mAh/h
+  Deep    NonIntr:  12455m   2500mAh( 83%)     12,0mAh/h          0m      0mAh(  0%)      0,0mAh/h
+             Intr:      2m      0mAh(  0%)      0,0mAh/h          0m      0mAh(  0%)      0,0mAh/h
+  Light   NonIntr:   2625m   1438mAh( 48%)     32,9mAh/h          0m      0mAh(  0%)      0,0mAh/h
+             Intr:      3m      0mAh(  0%)      0,0mAh/h          0m      0mAh(  0%)      0,0mAh/h
+
+Battery saver policy (*NOTE* they only apply when battery saver is ON):
+  Settings: battery_saver_constants
+    value: 
+  Settings: (overlay)
+    value: 
+  DeviceConfig: battery_saver
+    location_mode: 
+  mAccessibilityEnabled=false
+  mAutomotiveProjectionActive=false
+  mPolicyLevel=0
+  
+  Policy 'default full'
+    advertise_is_enabled=true
+    disable_vibration=true
+    disable_animation=false
+    defer_full_backup=true
+    defer_keyvalue_backup=true
+    enable_firewall=true
+    enable_datasaver=false
+    disable_launch_boost=true
+    enable_brightness_adjustment=false
+    adjust_brightness_factor=0.5
+    location_mode=3
+    force_all_apps_standby=true
+    force_background_check=true
+    disable_optional_sensors=true
+    disable_aod=true
+    soundtrigger_mode=1
+    enable_quick_doze=true
+    enable_night_mode=false
+    Interactive File values:
+      N/A
+    
+    Noninteractive File values:
+      N/A
+  
+  Policy 'current full'
+    advertise_is_enabled=true
+    disable_vibration=true
+    disable_animation=false
+    defer_full_backup=true
+    defer_keyvalue_backup=true
+    enable_firewall=true
+    enable_datasaver=false
+    disable_launch_boost=true
+    enable_brightness_adjustment=false
+    adjust_brightness_factor=0.5
+    location_mode=3
+    force_all_apps_standby=true
+    force_background_check=true
+    disable_optional_sensors=true
+    disable_aod=true
+    soundtrigger_mode=1
+    enable_quick_doze=true
+    enable_night_mode=false
+    Interactive File values:
+      N/A
+    
+    Noninteractive File values:
+      N/A
+  
+  Policy 'default adaptive'
+    advertise_is_enabled=false
+    disable_vibration=false
+    disable_animation=false
+    defer_full_backup=false
+    defer_keyvalue_backup=false
+    enable_firewall=false
+    enable_datasaver=false
+    disable_launch_boost=false
+    enable_brightness_adjustment=false
+    adjust_brightness_factor=1.0
+    location_mode=0
+    force_all_apps_standby=false
+    force_background_check=false
+    disable_optional_sensors=false
+    disable_aod=false
+    soundtrigger_mode=0
+    enable_quick_doze=false
+    enable_night_mode=false
+    Interactive File values:
+      N/A
+    
+    Noninteractive File values:
+      N/A
+  
+  Policy 'current adaptive'
+    advertise_is_enabled=false
+    disable_vibration=false
+    disable_animation=false
+    defer_full_backup=false
+    defer_keyvalue_backup=false
+    enable_firewall=false
+    enable_datasaver=false
+    disable_launch_boost=false
+    enable_brightness_adjustment=false
+    adjust_brightness_factor=1.0
+    location_mode=0
+    force_all_apps_standby=false
+    force_background_check=false
+    disable_optional_sensors=false
+    disable_aod=false
+    soundtrigger_mode=0
+    enable_quick_doze=false
+    enable_night_mode=false
+    Interactive File values:
+      N/A
+    
+    Noninteractive File values:
+      N/A
+  
+  Policy 'effective'
+    advertise_is_enabled=false
+    disable_vibration=false
+    disable_animation=false
+    defer_full_backup=false
+    defer_keyvalue_backup=false
+    enable_firewall=false
+    enable_datasaver=false
+    disable_launch_boost=false
+    enable_brightness_adjustment=false
+    adjust_brightness_factor=1.0
+    location_mode=0
+    force_all_apps_standby=false
+    force_background_check=false
+    disable_optional_sensors=false
+    disable_aod=false
+    soundtrigger_mode=0
+    enable_quick_doze=false
+    enable_night_mode=false
+    Interactive File values:
+      N/A
+    
+    Noninteractive File values:
+      N/A
+
+Battery saver state machine:
+  Enabled=false
+    full=false
+    adaptive=false
+  mState=1
+  mLastChangedIntReason=0
+  mLastChangedStrReason=null
+  mBootCompleted=true
+  mSettingsLoaded=true
+  mBatteryStatusSet=true
+  mIsPowered=true
+  mBatteryLevel=100
+  mIsBatteryLevelLow=false
+  mSettingAutomaticBatterySaver=0
+  mSettingBatterySaverEnabled=false
+  mSettingBatterySaverEnabledSticky=false
+  mSettingBatterySaverStickyAutoDisableEnabled=true
+  mSettingBatterySaverStickyAutoDisableThreshold=100
+  mSettingBatterySaverTriggerThreshold=0
+  mBatterySaverStickyBehaviourDisabled=false
+  mDynamicPowerSavingsDefaultDisableThreshold=80
+  mDynamicPowerSavingsDisableThreshold=80
+  mDynamicPowerSavingsEnableBatterySaver=false
+  mLastAdaptiveBatterySaverChangedExternallyElapsed=0
+AttentionDetector:
+ mIsSettingEnabled=false
+ mMaxExtensionMillis=900000
+ mPreDimCheckDurationMillis=2000
+ mEffectivePostDimTimeout=0
+ mLastUserActivityTime(excludingAttention)=152253449
+ mAttentionServiceSupported=false
+ mRequested=false
+
+Profile power states: size=0
+Display Group User Activity:
+  displayGroupId=0
+  userActivitySummary=0x0
+  lastUserActivityTime=152250823 (165766 ms ago)
+  lastUserActivityTimeNoChangeLights=94298527 (58118062 ms ago)
+  mWakeLockSummary=0x1
+
+Wireless Charger Detector State:
+  mGravitySensor={Sensor name="gravity  Non-wakeup", vendor="qualcomm", version=1, type=9, maxRange=156.99008, resolution=0.01, power=0.515, minDelay=5000}
+  mPoweredWirelessly=false
+  mAtRest=false
+  mRestX=0.0, mRestY=0.0, mRestZ=0.0
+  mDetectionInProgress=false
+  mDetectionStartTime=0 (never)
+  mMustUpdateRestPosition=false
+  mTotalSamples=0
+  mMovingSamples=0
+  mFirstSampleX=0.0, mFirstSampleY=0.0, mFirstSampleZ=0.0
+  mLastSampleX=0.0, mLastSampleY=0.0, mLastSampleZ=0.0
+Wake Lock Log
+  11-05 15:39:03.872 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:03.921 - 1041 - REL AudioMix
+  11-05 15:39:03.921 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:04.868 - 1041 - REL AudioMix
+  11-05 15:39:04.875 - 1041 - REL AudioMix
+  11-05 15:39:04.878 - 1041 - REL AudioMix
+  11-05 15:39:04.880 - 1041 - REL AudioMix
+  11-05 15:39:04.882 - 1041 - REL AudioMix
+  11-05 15:39:05.761 - 1041 - REL AudioMix
+  11-05 15:39:05.761 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:06.117 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:06.118 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:06.119 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:06.122 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:06.123 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:06.174 - 1041 - REL AudioMix
+  11-05 15:39:06.174 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:07.114 - 1041 - REL AudioMix
+  11-05 15:39:07.115 - 1041 - REL AudioMix
+  11-05 15:39:07.116 - 1041 - REL AudioMix
+  11-05 15:39:07.122 - 1041 - REL AudioMix
+  11-05 15:39:07.128 - 1041 - REL AudioMix
+  11-05 15:39:07.938 - 1041 - REL AudioMix
+  11-05 15:39:07.938 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:08.123 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:08.556 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:08.557 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:08.560 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:08.562 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:08.611 - 1041 - REL AudioMix
+  11-05 15:39:08.611 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:09.126 - 1041 - REL AudioMix
+  11-05 15:39:09.556 - 1041 - REL AudioMix
+  11-05 15:39:09.557 - 1041 - REL AudioMix
+  11-05 15:39:09.560 - 1041 - REL AudioMix
+  11-05 15:39:09.571 - 1041 - REL AudioMix
+  11-05 15:39:10.035 - 1041 - REL AudioMix
+  11-05 15:39:10.036 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:10.371 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:10.373 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:10.375 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:10.378 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:10.379 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:10.413 - 1041 - REL AudioMix
+  11-05 15:39:10.413 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:11.373 - 1041 - REL AudioMix
+  11-05 15:39:11.375 - 1041 - REL AudioMix
+  11-05 15:39:11.376 - 1041 - REL AudioMix
+  11-05 15:39:11.377 - 1041 - REL AudioMix
+  11-05 15:39:11.386 - 1041 - REL AudioMix
+  11-05 15:39:12.455 - 1041 - REL AudioMix
+  11-05 15:39:12.456 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:12.777 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:12.779 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:12.781 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:12.783 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:12.784 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:12.836 - 1041 - REL AudioMix
+  11-05 15:39:12.836 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:13.000 - 1041 - REL AudioMix
+  11-05 15:39:13.000 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:13.391 - 1041 - REL AudioMix
+  11-05 15:39:13.391 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:13.415 - 1041 - ACQ AudioIn (partial)
+  11-05 15:39:13.416 - 1041 - REL AudioIn
+  11-05 15:39:13.434 - 1041 - REL AudioMix
+  11-05 15:39:13.435 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:13.539 - 1041 - ACQ AudioIn (partial)
+  11-05 15:39:13.540 - 1041 - REL AudioIn
+  11-05 15:39:13.540 - 1041 - ACQ AudioIn (partial)
+  11-05 15:39:13.776 - 1041 - REL AudioMix
+  11-05 15:39:13.779 - 1041 - REL AudioMix
+  11-05 15:39:13.780 - 1041 - REL AudioMix
+  11-05 15:39:13.782 - 1041 - REL AudioMix
+  11-05 15:39:13.785 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:13.796 - 1041 - REL AudioMix
+  11-05 15:39:14.214 - 1041 - REL AudioMix
+  11-05 15:39:14.786 - 1041 - REL AudioMix
+  11-05 15:39:14.836 - 1000 - ACQ *alarm* (partial)
+  11-05 15:39:14.898 - 1000 - REL *alarm*
+  11-05 15:39:17.516 - 1041 - REL AudioIn
+  11-05 15:39:17.518 - 1041 - ACQ AudioIn (partial)
+  11-05 15:39:17.629 - 1041 - REL AudioIn
+  11-05 15:39:17.638 - 1041 - ACQ AudioIn (partial)
+  11-05 15:39:17.644 - 1041 - REL AudioIn
+  11-05 15:39:17.731 - 10176 - ACQ IntentOp:.c.b.BackgroundBroadcastReceiverSupport$PersistentReceiverIntentOperation (partial)
+  11-05 15:39:17.747 - 10176 - REL IntentOp:.c.b.BackgroundBroadcastReceiverSupport$PersistentReceiverIntentOperation
+  11-05 15:39:17.812 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:17.856 - 1041 - ACQ AudioIn (partial)
+  11-05 15:39:17.857 - 1041 - REL AudioIn
+  11-05 15:39:17.858 - 1041 - ACQ AudioIn (partial)
+  11-05 15:39:17.859 - 1041 - REL AudioIn
+  11-05 15:39:17.864 - 1041 - ACQ AudioIn (partial)
+  11-05 15:39:17.866 - 1041 - REL AudioIn
+  11-05 15:39:18.297 - 10176 - ACQ IntentOp:.c.b.BackgroundBroadcastReceiverSupport$PersistentReceiverIntentOperation (partial)
+  11-05 15:39:18.308 - 10176 - ACQ IntentOp:.c.b.BackgroundBroadcastReceiverSupport$PersistentReceiverIntentOperation (partial)
+  11-05 15:39:18.330 - 10176 - REL IntentOp:.c.b.BackgroundBroadcastReceiverSupport$PersistentReceiverIntentOperation
+  11-05 15:39:18.337 - 10176 - ACQ IntentOp:.c.b.BackgroundBroadcastReceiverSupport$PersistentReceiverIntentOperation (partial)
+  11-05 15:39:18.359 - 10176 - REL IntentOp:.c.b.BackgroundBroadcastReceiverSupport$PersistentReceiverIntentOperation
+  11-05 15:39:18.384 - 10176 - REL IntentOp:.c.b.BackgroundBroadcastReceiverSupport$PersistentReceiverIntentOperation
+  11-05 15:39:18.820 - 1041 - REL AudioMix
+  11-05 15:39:18.835 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:18.937 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:19.002 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:19.004 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:19.005 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:19.006 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:19.089 - 1041 - REL AudioMix
+  11-05 15:39:19.090 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:19.837 - 1041 - REL AudioMix
+  11-05 15:39:20.005 - 1041 - REL AudioMix
+  11-05 15:39:20.006 - 1041 - REL AudioMix
+  11-05 15:39:20.007 - 1041 - REL AudioMix
+  11-05 15:39:20.008 - 1041 - REL AudioMix
+  11-05 15:39:22.164 - 1041 - REL AudioMix
+  11-05 15:39:22.165 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:23.186 - 1041 - REL AudioMix
+  11-05 15:39:23.936 - 1041 - ACQ AudioMix (partial)
+  11-05 15:39:24.942 - 1041 - REL AudioMix
+  -
+  Events: 119, Time-Resets: 24
+  Buffer, Bytes used: 511
+FaceDownDetector:
+  mFaceDown=false
+  mActive=false
+  mLastFlipTime=0
+  mSensorMaxLatencyMicros=2000000
+  mUserInteractionBackoffMillis=60000
+  mPreviousResultTime=0
+  mPreviousResultType=1
+  mMillisSaved=0
+  mZAccelerationThreshold=-9.5
+  mAccelerationThreshold=0.2
+  mTimeThreshold=PT1S
+AmbientDisplaySuppressionController:
+ ambientDisplaySuppressed=false
+ mSuppressionTokens={}

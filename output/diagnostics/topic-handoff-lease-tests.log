@@ -1,0 +1,197 @@
+
+00:00 +0: loading D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart                                                                   
+00:01 +0: loading D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart                                                                   
+00:02 +0: loading D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart                                                                   
+00:03 +0: loading D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart                                                                   
+00:04 +0: loading D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart                                                                   
+00:05 +0: loading D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart                                                                   
+00:05 +0: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS prepares normalized audio without history; registration saves it     
+00:05 +1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS prepares normalized audio without history; registration saves it     
+00:05 +1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: ... handoff starts before recorder stops and ends after replay starts    
+00:05 +2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: concurrent preparation and returned path normalize only once          
+00:05 +3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: concurrent preparation and returned path normalize only once          
+00:05 +4: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: concurrent preparation and returned path normalize only once          
+00:05 +5: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: concurrent preparation and returned path normalize only once          
+00:05 +5: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: ... failed replay releases handoff without waiting for native timeout    
+00:05 +5: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: transient normalization failure retries once                          
+Lesson recording preparation attempt 1: PlatformException(TEMPORARY, null, null, null)
+
+00:05 +6: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: ... failed replay releases handoff without waiting for native timeout    
+00:05 +7: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: platform never falls back to unnormalized audio                       
+00:05 +8: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: platform never falls back to unnormalized audio                       
+00:05 +8: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: platform never falls back to unnormalized audio                       
+Lesson recording preparation attempt 1: PlatformException(FAILED, null, null, null)
+Lesson recording preparation attempt 2: PlatformException(FAILED, null, null, null)
+
+00:05 +9: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: platform never falls back to unnormalized audio                       
+00:05 +10: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: platform never falls back to unnormalized audio                      
+00:05 +10: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: ... capture route playback stop cannot release the live recording route 
+00:05 +10: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: missingPlugin never falls back to unnormalized audio                 
+Lesson recording preparation attempt 1: MissingPluginException(No implementation found for method normalizeLessonRecording on channel ailingo_voice_prompt)
+
+00:05 +11: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: missingPlugin never falls back to unnormalized audio                 
+00:05 +11: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: missingPlugin never falls back to unnormalized audio                 
+Lesson recording preparation attempt 2: MissingPluginException(No implementation found for method normalizeLessonRecording on channel ailingo_voice_prompt)
+
+00:05 +12: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: ... route route lost while recorder starts never reports live capture   
+00:05 +13: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: null never falls back to unnormalized audio                          
+00:05 +13: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: null never falls back to unnormalized audio                          
+Lesson recording preparation attempt 1: Bad state: Native normalization returned no usable recording.
+Lesson recording preparation attempt 2: Bad state: Native normalization returned no usable recording.
+
+00:05 +14: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: ... capture route phone capture still explicitly uses the built-in input
+00:05 +15: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: missingFile never falls back to unnormalized audio                   
+00:05 +15: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: missingFile never falls back to unnormalized audio                   
+Lesson recording preparation attempt 1: Bad state: Native normalization returned no usable recording.
+Lesson recording preparation attempt 2: Bad state: Native normalization returned no usable recording.
+
+00:05 +16: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: ... route route loss reports capture failure instead of no recording    
+00:05 +17: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: already level native recording can keep its original path            
+00:05 +18: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: ... lost mic blocks phone fallback and reconnect allows a new recording 
+00:05 +19: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: shared replay fixes gain, output and duration and propagates failure 
+00:05 +20: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: ... route delayed loss from an old capture cannot cancel a newer one    
+00:05 +21: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: replay uses the prepared recording directly on TargetPlatform.android
+00:05 +22: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS HM-D001 capture keeps the selected output through feedback          
+00:05 +23: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS HM-D001 capture keeps the selected output through feedback          
+00:05 +24: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS HM-D001 capture keeps the selected output through feedback          
+00:05 +24: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: deleting a recording removes its legacy cleaned replay               
+00:05 +25: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: deleting a recording removes its legacy cleaned replay               
+00:05 +26: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: deleting a recording removes its legacy cleaned replay               
+00:05 +27: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: ... route loss stops the clip and fails its completion gate             
+00:05 +28: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: ... route loss stops the clip and fails its completion gate             
+00:05 +28: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: playToCompletion does not finish until playback reports ended           
+00:05 +29: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: playToCompletion does not finish until playback reports ended           
+00:05 +29: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback ignores a temporary playing false state       
+00:05 +30: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback ignores a temporary playing false state       
+00:05 +30: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback resumes once when a pause is never lifted     
+00:06 +30: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback resumes once when a pause is never lifted     
+00:07 +30: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback resumes once when a pause is never lifted     
+00:08 +30: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback resumes once when a pause is never lifted     
+00:08 +31: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: topic touch waits for device and cancellation has no navigation       
+00:09 +31: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: topic touch waits for device and cancellation has no navigation       
+00:09 +32: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: topic touch waits for device and cancellation has no navigation       
+00:09 +33: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback leaves a pause near the clip end alone        
+00:10 +33: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback leaves a pause near the clip end alone        
+00:10 +34: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback leaves a pause near the clip end alone        
+00:10 +35: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: topic songs require device before opening song list                   
+00:10 +36: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback does not resume during an audio interruption  
+00:11 +36: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback does not resume during an audio interruption  
+00:11 +37: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback does not resume during an audio interruption  
+00:11 +38: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback does not resume during an audio interruption  
+00:11 +39: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: journey text halos never use blurred shadows                          
+00:11 +40: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: journey text halos never use blurred shadows                          
+00:11 +41: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: journey text halos never use blurred shadows                          
+00:11 +41: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: prearmed playback catches a clip that ends before play returns          
+00:11 +42: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: ... has no shared bottom navigation (variant: TargetPlatform.android) 
+00:12 +42: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: ... has no shared bottom navigation (variant: TargetPlatform.android) 
+00:12 +43: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS accepts a stopped source at end without a native end event          
+00:12 +44: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS accepts a stopped source at end without a native end event          
+00:12 +45: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS accepts a stopped source at end without a native end event          
+00:12 +45: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS accepts a stopped source at end without a native end event          
+HOMI lesson playback completion inferred at source end: position=0:00:02.000000 duration=0:00:02.000000
+
+00:12 +46: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: entering topics offers all ten topics for every age group             
+00:13 +46: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: entering topics offers all ten topics for every age group             
+00:13 +46: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: Android recorded take accepts a stable source end                       
+HOMI lesson playback completion inferred at source end: position=0:00:02.000000 duration=0:00:02.000000
+
+00:13 +47: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: entering topics offers all ten topics for every age group             
+00:14 +47: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: entering topics offers all ten topics for every age group             
+00:14 +48: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: Android recorded take waits through an interruption at end              
+00:14 +49: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: Android recorded take waits through an interruption at end              
+00:14 +49: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: Android recorded take waits through an interruption at end              
+HOMI lesson playback completion inferred at source end: position=0:00:02.000000 duration=0:00:02.000000
+
+00:14 +50: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: ... Topic 2 choice (throws=false) (variant: TargetPlatform.iOS)       
+00:15 +50: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: ... Topic 2 choice (throws=false) (variant: TargetPlatform.iOS)       
+00:15 +51: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: Android accepts a stopped HM-D001 clip at end without a native end event
+00:15 +51: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: Android accepts a stopped HM-D001 clip at end without a native end event
+HOMI lesson playback completion inferred at source end: position=0:00:02.000000 duration=0:00:02.000000
+
+00:15 +52: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: ... Topic 2 choice (throws=true) (variant: TargetPlatform.android)    
+00:15 +52: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: failed topic assistant offers a working Topic 2 choice (throws=true) (variant: TargetPlatform.android)
+HOMI topic selection activation failed: Bad state: microphone unavailable
+
+00:15 +53: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS end-position fallback waits through an interruption                 
+00:16 +53: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS end-position fallback waits through an interruption                 
+00:16 +53: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: failed topic assistant offers a working Topic 2 choice (throws=true) (variant: TargetPlatform.iOS)
+HOMI topic selection activation failed: Bad state: microphone unavailable
+
+00:16 +54: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS end-position fallback waits through an interruption                 
+00:16 +55: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS end-position fallback waits through an interruption                 
+00:16 +56: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS end-position fallback waits through an interruption                 
+00:16 +56: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS end-position fallback waits through an interruption                 
+HOMI lesson playback completion inferred at source end: position=0:00:02.000000 duration=0:00:02.000000
+
+00:16 +57: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: shows bilingual topic and lesson titles                               
+00:16 +58: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: shows bilingual topic and lesson titles                               
+00:17 +58: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: shows bilingual topic and lesson titles                               
+00:17 +59: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: take replay retries the HFP route once before giving up                 
+00:17 +60: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: take replay retries the HFP route once before giving up                 
+00:17 +61: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: parent can change the global V4 age group from the topic screen       
+00:17 +62: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: parent can change the global V4 age group from the topic screen       
+00:17 +63: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: parent can change the global V4 age group from the topic screen       
+00:17 +64: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: parent can change the global V4 age group from the topic screen       
+00:17 +65: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: parent can change the global V4 age group from the topic screen       
+00:17 +66: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: parent can change the global V4 age group from the topic screen       
+00:17 +67: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: parent can change the global V4 age group from the topic screen       
+00:17 +68: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: parent can change the global V4 age group from the topic screen       
+00:17 +69: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: parent can change the global V4 age group from the topic screen       
+00:17 +70: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: parent can change the global V4 age group from the topic screen       
+00:17 +71: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: parent can change the global V4 age group from the topic screen       
+00:17 +72: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: parent can change the global V4 age group from the topic screen       
+00:17 +73: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: parent can change the global V4 age group from the topic screen       
+00:17 +74: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: parent can change the global V4 age group from the topic screen       
+00:17 +75: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: parent can change the global V4 age group from the topic screen       
+00:17 +75: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: opens the V4 listen-first lesson journey from a selected topic        
+00:18 +75: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: opens the V4 listen-first lesson journey from a selected topic        
+00:18 +76: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: opens the V4 listen-first lesson journey from a selected topic        
+00:18 +76: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: reports completed V4 topics again after replaying one                 
+00:18 +77: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: reports completed V4 topics again after replaying one                 
+00:18 +77: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: an in-progress topic resumes with its authored audio key              
+00:18 +78: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: an in-progress topic resumes with its authored audio key              
+00:18 +78: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: an in-progress topic opens its lesson while the resume line plays     
+00:19 +78: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: an in-progress topic opens its lesson while the resume line plays     
+00:19 +79: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: an in-progress topic opens its lesson while the resume line plays     
+00:19 +79: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: the initial lesson intro waits for a lead prompt                      
+00:19 +80: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: the initial lesson intro waits for a lead prompt                      
+00:19 +80: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: completed Course asks MAIN to choose one of ten topics                
+00:19 +81: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: completed Course asks MAIN to choose one of ten topics                
+00:19 +81: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: ... replay Topic 1 (throws=false) (variant: TargetPlatform.android)   
+00:19 +82: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: ... replay Topic 1 (throws=false) (variant: TargetPlatform.android)   
+00:19 +82: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: ... can replay Topic 1 (throws=false) (variant: TargetPlatform.iOS)   
+00:20 +82: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: ... can replay Topic 1 (throws=false) (variant: TargetPlatform.iOS)   
+00:20 +83: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: ... can replay Topic 1 (throws=false) (variant: TargetPlatform.iOS)   
+00:20 +83: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: ... can replay Topic 1 (throws=true) (variant: TargetPlatform.android)
+00:20 +83: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: failed completed Course assistant can replay Topic 1 (throws=true) (variant: TargetPlatform.android)
+HOMI topic selection activation failed: Bad state: microphone unavailable
+
+00:20 +84: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: ... can replay Topic 1 (throws=true) (variant: TargetPlatform.android)
+00:20 +84: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: ... can replay Topic 1 (throws=true) (variant: TargetPlatform.iOS)    
+00:20 +84: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: failed completed Course assistant can replay Topic 1 (throws=true) (variant: TargetPlatform.iOS)
+HOMI topic selection activation failed: Bad state: microphone unavailable
+
+00:20 +85: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: ... can replay Topic 1 (throws=true) (variant: TargetPlatform.iOS)    
+00:20 +85: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: ... report a V4 topic complete until its authored activities finish   
+00:21 +85: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: ... report a V4 topic complete until its authored activities finish   
+00:21 +86: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: ... report a V4 topic complete until its authored activities finish   
+00:21 +86: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: renders a V4 song milestone as a normal lesson, not a legacy clip     
+00:21 +87: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: renders a V4 song milestone as a normal lesson, not a legacy clip     
+00:21 +87: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: ... action appears only with content and opens the existing V4 lesson 
+00:21 +88: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: ... action appears only with content and opens the existing V4 lesson 
+00:21 +88: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: legacy content.songs opens through the same topic song list           
+00:22 +88: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: legacy content.songs opens through the same topic song list           
+00:22 +89: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: legacy content.songs opens through the same topic song list           
+00:22 +89: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: song action opens for any topic in the age group                      
+00:22 +90: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: song action opens for any topic in the age group                      
+00:22 +90: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: song directory keeps V4 lesson identity and deduplicates legacy audio 
+00:22 +91: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: song directory keeps V4 lesson identity and deduplicates legacy audio 
+00:22 +91: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: bundled lesson content matches the V4 source-of-truth catalog         
+00:22 +92: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: bundled lesson content matches the V4 source-of-truth catalog         
+00:22 +92: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: a compact phone can reach the V4 lesson intro without layout errors   
+00:22 +93: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: a compact phone can reach the V4 lesson intro without layout errors   
+00:22 +93: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: renders the learning journey responsively on web width                
+00:22 +94: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: renders the learning journey responsively on web width                
+00:22 +94: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: keeps core controls available at large text scale                     
+00:22 +95: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/topic_listening_screen_test.dart: keeps core controls available at large text scale                     
+00:22 +95: All tests passed!                                                                                                                                                                           

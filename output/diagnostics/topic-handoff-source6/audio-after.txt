@@ -1,0 +1,709 @@
+Audio event log: audio services lifecycle
+10-24 22:11:53:485 AudioService()
+
+Message handler (watch for unhandled messages):
+  Handler (com.android.server.audio.AudioService$AudioHandler) {cae4409} @ 156090247
+    Looper (AudioService, tid 183) {6e3e60e}
+      Now dispatching: null
+      (Total messages: 0, polling=true, quitting=false)
+
+MediaFocusControl dump time: 16:40:43
+
+Audio Focus stack entries (last is top of stack):
+
+
+No external focus policy
+
+
+
+ Notify on duck:  true
+
+ In ring or call: false
+
+
+
+Audio event log: focus commands as seen by MediaFocusControl
+11-05 16:26:34:909 requestAudioFocus() from uid/pid 10426/26661 AA=USAGE_VOICE_COMMUNICATION/CONTENT_TYPE_SPEECH clientId=android.media.AudioManager@6a618f9t7.b@7451b19 callingPack=com.innotrik.aispeaking req=1 flags=0x0 sdk=36
+11-05 16:26:37:087 abandonAudioFocus() from uid/pid 10426/26661 clientId=android.media.AudioManager@6a618f9t7.b@7451b19
+11-05 16:26:44:625 requestAudioFocus() from uid/pid 10426/26661 AA=USAGE_VOICE_COMMUNICATION/CONTENT_TYPE_SPEECH clientId=android.media.AudioManager@6a618f9t7.b@4a89fd8 callingPack=com.innotrik.aispeaking req=1 flags=0x0 sdk=36
+11-05 16:26:46:892 abandonAudioFocus() from uid/pid 10426/26661 clientId=android.media.AudioManager@6a618f9t7.b@4a89fd8
+11-05 16:33:43:149 requestAudioFocus() from uid/pid 10192/30175 AA=USAGE_MEDIA/CONTENT_TYPE_MUSIC clientId=android.media.AudioManager@ad7f4e6egu@6c8a11b callingPack=com.google.android.tts req=4 flags=0x0 sdk=31
+11-05 16:33:52:242 abandonAudioFocus() from uid/pid 10192/30175 clientId=android.media.AudioManager@ad7f4e6egu@6c8a11b
+11-05 16:33:56:956 requestAudioFocus() from uid/pid 10192/30175 AA=USAGE_MEDIA/CONTENT_TYPE_MUSIC clientId=android.media.AudioManager@ad7f4e6egu@a6138ba callingPack=com.google.android.tts req=4 flags=0x0 sdk=31
+11-05 16:34:01:641 abandonAudioFocus() from uid/pid 10192/30175 clientId=android.media.AudioManager@ad7f4e6egu@a6138ba
+11-05 16:34:05:980 requestAudioFocus() from uid/pid 10192/30175 AA=USAGE_MEDIA/CONTENT_TYPE_MUSIC clientId=android.media.AudioManager@ad7f4e6egu@fb1caac callingPack=com.google.android.tts req=4 flags=0x0 sdk=31
+11-05 16:34:10:409 abandonAudioFocus() from uid/pid 10192/30175 clientId=android.media.AudioManager@ad7f4e6egu@fb1caac
+11-05 16:34:18:674 requestAudioFocus() from uid/pid 10192/30175 AA=USAGE_MEDIA/CONTENT_TYPE_MUSIC clientId=android.media.AudioManager@ad7f4e6egu@ff7494c callingPack=com.google.android.tts req=4 flags=0x0 sdk=31
+11-05 16:34:22:326 abandonAudioFocus() from uid/pid 10192/30175 clientId=android.media.AudioManager@ad7f4e6egu@ff7494c
+11-05 16:34:42:568 requestAudioFocus() from uid/pid 10426/32492 AA=USAGE_VOICE_COMMUNICATION/CONTENT_TYPE_SPEECH clientId=android.media.AudioManager@e57478et7.b@8caebaf callingPack=com.innotrik.aispeaking req=1 flags=0x0 sdk=36
+11-05 16:34:48:764 abandonAudioFocus() from uid/pid 10426/32492 clientId=android.media.AudioManager@e57478et7.b@8caebaf
+11-05 16:34:59:968 requestAudioFocus() from uid/pid 10426/32492 AA=USAGE_VOICE_COMMUNICATION/CONTENT_TYPE_SPEECH clientId=android.media.AudioManager@e57478et7.b@ec5ff87 callingPack=com.innotrik.aispeaking req=1 flags=0x0 sdk=36
+11-05 16:35:06:137 abandonAudioFocus() from uid/pid 10426/32492 clientId=android.media.AudioManager@e57478et7.b@ec5ff87
+11-05 16:35:12:088 requestAudioFocus() from uid/pid 10192/30175 AA=USAGE_MEDIA/CONTENT_TYPE_MUSIC clientId=android.media.AudioManager@ad7f4e6egu@6d483ce callingPack=com.google.android.tts req=4 flags=0x0 sdk=31
+11-05 16:35:15:901 abandonAudioFocus() from uid/pid 10192/30175 clientId=android.media.AudioManager@ad7f4e6egu@6d483ce
+11-05 16:35:32:461 requestAudioFocus() from uid/pid 10426/32492 AA=USAGE_VOICE_COMMUNICATION/CONTENT_TYPE_SPEECH clientId=android.media.AudioManager@e57478et7.b@f69b709 callingPack=com.innotrik.aispeaking req=1 flags=0x0 sdk=36
+11-05 16:35:38:609 abandonAudioFocus() from uid/pid 10426/32492 clientId=android.media.AudioManager@e57478et7.b@f69b709
+11-05 16:35:49:804 requestAudioFocus() from uid/pid 10426/32492 AA=USAGE_VOICE_COMMUNICATION/CONTENT_TYPE_SPEECH clientId=android.media.AudioManager@e57478et7.b@e561388 callingPack=com.innotrik.aispeaking req=1 flags=0x0 sdk=36
+11-05 16:35:55:986 abandonAudioFocus() from uid/pid 10426/32492 clientId=android.media.AudioManager@e57478et7.b@e561388
+11-05 16:36:00:140 requestAudioFocus() from uid/pid 10192/30175 AA=USAGE_MEDIA/CONTENT_TYPE_MUSIC clientId=android.media.AudioManager@ad7f4e6egu@8838dd6 callingPack=com.google.android.tts req=4 flags=0x0 sdk=31
+11-05 16:36:04:312 abandonAudioFocus() from uid/pid 10192/30175 clientId=android.media.AudioManager@ad7f4e6egu@8838dd6
+11-05 16:36:22:424 requestAudioFocus() from uid/pid 10426/32492 AA=USAGE_VOICE_COMMUNICATION/CONTENT_TYPE_SPEECH clientId=android.media.AudioManager@e57478et7.b@9fe6e45 callingPack=com.innotrik.aispeaking req=1 flags=0x0 sdk=36
+11-05 16:36:28:581 abandonAudioFocus() from uid/pid 10426/32492 clientId=android.media.AudioManager@e57478et7.b@9fe6e45
+11-05 16:36:39:365 requestAudioFocus() from uid/pid 10426/32492 AA=USAGE_VOICE_COMMUNICATION/CONTENT_TYPE_SPEECH clientId=android.media.AudioManager@e57478et7.b@3f0fc4d callingPack=com.innotrik.aispeaking req=1 flags=0x0 sdk=36
+11-05 16:36:45:493 abandonAudioFocus() from uid/pid 10426/32492 clientId=android.media.AudioManager@e57478et7.b@3f0fc4d
+11-05 16:36:49:971 requestAudioFocus() from uid/pid 10192/30175 AA=USAGE_MEDIA/CONTENT_TYPE_MUSIC clientId=android.media.AudioManager@ad7f4e6egu@df1b484 callingPack=com.google.android.tts req=4 flags=0x0 sdk=31
+11-05 16:36:53:690 abandonAudioFocus() from uid/pid 10192/30175 clientId=android.media.AudioManager@ad7f4e6egu@df1b484
+11-05 16:37:07:818 requestAudioFocus() from uid/pid 10426/32492 AA=USAGE_VOICE_COMMUNICATION/CONTENT_TYPE_SPEECH clientId=android.media.AudioManager@e57478et7.b@dbd7ba3 callingPack=com.innotrik.aispeaking req=1 flags=0x0 sdk=36
+11-05 16:37:10:203 abandonAudioFocus() from uid/pid 10426/32492 clientId=android.media.AudioManager@e57478et7.b@dbd7ba3
+11-05 16:37:19:841 requestAudioFocus() from uid/pid 10426/32492 AA=USAGE_VOICE_COMMUNICATION/CONTENT_TYPE_SPEECH clientId=android.media.AudioManager@e57478et7.b@b634065 callingPack=com.innotrik.aispeaking req=1 flags=0x0 sdk=36
+11-05 16:37:22:275 abandonAudioFocus() from uid/pid 10426/32492 clientId=android.media.AudioManager@e57478et7.b@b634065
+11-05 16:37:36:289 requestAudioFocus() from uid/pid 10426/32492 AA=USAGE_VOICE_COMMUNICATION/CONTENT_TYPE_SPEECH clientId=android.media.AudioManager@e57478et7.b@65f5d9 callingPack=com.innotrik.aispeaking req=1 flags=0x0 sdk=36
+11-05 16:37:38:300 abandonAudioFocus() from uid/pid 10426/32492 clientId=android.media.AudioManager@e57478et7.b@65f5d9
+11-05 16:37:46:962 requestAudioFocus() from uid/pid 10426/32492 AA=USAGE_VOICE_COMMUNICATION/CONTENT_TYPE_SPEECH clientId=android.media.AudioManager@e57478et7.b@344efb0 callingPack=com.innotrik.aispeaking req=1 flags=0x0 sdk=36
+11-05 16:37:48:353 abandonAudioFocus() from uid/pid 10426/32492 clientId=android.media.AudioManager@e57478et7.b@344efb0
+11-05 16:38:00:873 requestAudioFocus() from uid/pid 10426/32492 AA=USAGE_VOICE_COMMUNICATION/CONTENT_TYPE_SPEECH clientId=android.media.AudioManager@e57478et7.b@cd73f9c callingPack=com.innotrik.aispeaking req=1 flags=0x0 sdk=36
+11-05 16:38:02:673 abandonAudioFocus() from uid/pid 10426/32492 clientId=android.media.AudioManager@e57478et7.b@cd73f9c
+11-05 16:38:12:411 requestAudioFocus() from uid/pid 10426/32492 AA=USAGE_VOICE_COMMUNICATION/CONTENT_TYPE_SPEECH clientId=android.media.AudioManager@e57478et7.b@2e8ad71 callingPack=com.innotrik.aispeaking req=1 flags=0x0 sdk=36
+11-05 16:38:14:288 abandonAudioFocus() from uid/pid 10426/32492 clientId=android.media.AudioManager@e57478et7.b@2e8ad71
+11-05 16:38:26:222 requestAudioFocus() from uid/pid 10426/32492 AA=USAGE_VOICE_COMMUNICATION/CONTENT_TYPE_SPEECH clientId=android.media.AudioManager@e57478et7.b@633c5f0 callingPack=com.innotrik.aispeaking req=1 flags=0x0 sdk=36
+11-05 16:38:27:709 abandonAudioFocus() from uid/pid 10426/32492 clientId=android.media.AudioManager@e57478et7.b@633c5f0
+11-05 16:38:46:005 requestAudioFocus() from uid/pid 10192/30175 AA=USAGE_MEDIA/CONTENT_TYPE_MUSIC clientId=android.media.AudioManager@ad7f4e6egu@f9829b8 callingPack=com.google.android.tts req=4 flags=0x0 sdk=31
+11-05 16:38:49:747 abandonAudioFocus() from uid/pid 10192/30175 clientId=android.media.AudioManager@ad7f4e6egu@f9829b8
+11-05 16:39:06:253 requestAudioFocus() from uid/pid 10426/32492 AA=USAGE_VOICE_COMMUNICATION/CONTENT_TYPE_SPEECH clientId=android.media.AudioManager@e57478et7.b@2efd31f callingPack=com.innotrik.aispeaking req=1 flags=0x0 sdk=36
+11-05 16:39:12:426 abandonAudioFocus() from uid/pid 10426/32492 clientId=android.media.AudioManager@e57478et7.b@2efd31f
+11-05 16:39:23:356 requestAudioFocus() from uid/pid 10426/32492 AA=USAGE_VOICE_COMMUNICATION/CONTENT_TYPE_SPEECH clientId=android.media.AudioManager@e57478et7.b@53d3300 callingPack=com.innotrik.aispeaking req=1 flags=0x0 sdk=36
+11-05 16:39:29:530 abandonAudioFocus() from uid/pid 10426/32492 clientId=android.media.AudioManager@e57478et7.b@53d3300
+Multi Audio Focus enabled :false
+
+Stream volumes (device: index)
+- STREAM_VOICE_CALL:
+   Muted: false
+   Muted Internally: false
+   ShouldZenMute: false
+   Min: 1
+   Max: 6
+   streamVolume:4
+   Current: 1 (earpiece): 5, 2 (speaker): 5, 4 (headset): 4, 8 (headphone): 4, 10 (bt_sco): 4, 20 (bt_sco_hs): 4, 40 (bt_sco_carkit): 4, 80 (bt_a2dp): 5, 100 (bt_a2dp_hp): 4, 200 (bt_a2dp_spk): 4, 400 (hdmi): 4, 800 (analog_dock): 4, 1000 (digital_dock): 4, 2000 (usb_accessory): 4, 4000 (usb_device): 4, 8000 (remote_submix): 4, 10000 (telephony_tx): 4, 20000 (line): 4, 40000 (hmdi_arc): 4, 40001 (hmdi_earc): 4, 80000 (spdif): 4, 100000 (fm_transmitter): 4, 200000 (aux_line): 4, 400000 (speaker_safe): 4, 800000 (ip): 4, 1000000 (bus): 4, 2000000 (proxy): 4, 4000000 (usb_headset): 4, 8000000 (hearing_aid_out): 4, 10000000 (echo_canceller): 4, 20000000 (ble_headset): 4, 20000001 (ble_speaker): 4, 40000000 (default): 4
+   Devices: bt_sco
+   Delta: 8000000 (hearing_aid_out_delta): 0, 4000000 (usb_headset_delta): 0, 2000000 (proxy_delta): 0, 1000000 (bus_delta): 0, 40000000 (default): 0, 100 (bt_a2dp_hp_delta): 0, 200 (bt_a2dp_spk_delta): 0, 400 (hdmi_delta): 0, 800 (analog_dock_delta): 0, 1000 (digital_dock_delta): 0, 2000 (usb_accessory_delta): 0, 4000 (usb_device_delta): 0, 8000 (remote_submix_delta): 0, 1 (earpiece_delta): 0, 10000 (telephony_tx_delta): 0, 2 (speaker_delta): 0, 20000 (line_delta): 0, 4 (headset_delta): 0, 40000 (hmdi_arc_delta): 0, 8 (headphone_delta): 0, 80000 (spdif_delta): 0, 10 (bt_sco_delta): 0, 100000 (fm_transmitter_delta): 0, 20 (bt_sco_hs_delta): 0, 200000 (aux_line_delta): 0, 40 (bt_sco_carkit_delta): 0, 400000 (speaker_safe_delta): 0, 80 (bt_a2dp_delta): 0, 800000 (ip_delta): 0
+- STREAM_SYSTEM:
+   Muted: true
+   Muted Internally: false
+   ShouldZenMute: false
+   Min: 0
+   Max: 7
+   streamVolume:0
+   Current: 1 (earpiece): 5, 2 (speaker): 7, 4 (headset): 7, 8 (headphone): 7, 10 (bt_sco): 5, 20 (bt_sco_hs): 5, 40 (bt_sco_carkit): 5, 80 (bt_a2dp): 7, 100 (bt_a2dp_hp): 7, 200 (bt_a2dp_spk): 5, 400 (hdmi): 5, 800 (analog_dock): 5, 1000 (digital_dock): 5, 2000 (usb_accessory): 5, 4000 (usb_device): 5, 8000 (remote_submix): 5, 10000 (telephony_tx): 5, 20000 (line): 5, 40000 (hmdi_arc): 5, 40001 (hmdi_earc): 5, 80000 (spdif): 5, 100000 (fm_transmitter): 5, 200000 (aux_line): 5, 400000 (speaker_safe): 5, 800000 (ip): 5, 1000000 (bus): 5, 2000000 (proxy): 5, 4000000 (usb_headset): 5, 8000000 (hearing_aid_out): 5, 10000000 (echo_canceller): 5, 20000000 (ble_headset): 5, 20000001 (ble_speaker): 5, 40000000 (default): 5
+   Devices: bt_sco
+   Delta: 8000000 (hearing_aid_out_delta): 0, 4000000 (usb_headset_delta): 0, 2000000 (proxy_delta): 0, 1000000 (bus_delta): 0, 40000000 (default): 0, 100 (bt_a2dp_hp_delta): 0, 200 (bt_a2dp_spk_delta): 0, 400 (hdmi_delta): 0, 800 (analog_dock_delta): 0, 1000 (digital_dock_delta): 0, 2000 (usb_accessory_delta): 0, 4000 (usb_device_delta): 0, 8000 (remote_submix_delta): 0, 1 (earpiece_delta): 0, 10000 (telephony_tx_delta): 0, 2 (speaker_delta): 0, 20000 (line_delta): 0, 4 (headset_delta): 0, 40000 (hmdi_arc_delta): 0, 8 (headphone_delta): 0, 80000 (spdif_delta): 0, 10 (bt_sco_delta): 0, 100000 (fm_transmitter_delta): 0, 20 (bt_sco_hs_delta): 0, 200000 (aux_line_delta): 0, 40 (bt_sco_carkit_delta): 0, 400000 (speaker_safe_delta): 0, 80 (bt_a2dp_delta): 0, 800000 (ip_delta): 0
+- STREAM_RING:
+   Muted: true
+   Muted Internally: false
+   ShouldZenMute: false
+   Min: 0
+   Max: 7
+   streamVolume:0
+   Current: 1 (earpiece): 5, 2 (speaker): 7, 4 (headset): 7, 8 (headphone): 7, 10 (bt_sco): 5, 20 (bt_sco_hs): 5, 40 (bt_sco_carkit): 5, 80 (bt_a2dp): 7, 100 (bt_a2dp_hp): 7, 200 (bt_a2dp_spk): 5, 400 (hdmi): 5, 800 (analog_dock): 5, 1000 (digital_dock): 5, 2000 (usb_accessory): 5, 4000 (usb_device): 5, 8000 (remote_submix): 5, 10000 (telephony_tx): 5, 20000 (line): 5, 40000 (hmdi_arc): 5, 40001 (hmdi_earc): 5, 80000 (spdif): 5, 100000 (fm_transmitter): 5, 200000 (aux_line): 5, 400000 (speaker_safe): 5, 800000 (ip): 5, 1000000 (bus): 5, 2000000 (proxy): 5, 4000000 (usb_headset): 5, 8000000 (hearing_aid_out): 5, 10000000 (echo_canceller): 5, 20000000 (ble_headset): 5, 20000001 (ble_speaker): 5, 40000000 (default): 5
+   Devices: speaker, bt_sco
+   Delta: 8000000 (hearing_aid_out_delta): 0, 4000000 (usb_headset_delta): 0, 2000000 (proxy_delta): 0, 1000000 (bus_delta): 0, 40000000 (default): 0, 100 (bt_a2dp_hp_delta): 0, 200 (bt_a2dp_spk_delta): 0, 400 (hdmi_delta): 0, 800 (analog_dock_delta): 0, 1000 (digital_dock_delta): 0, 2000 (usb_accessory_delta): 0, 4000 (usb_device_delta): 0, 8000 (remote_submix_delta): 0, 1 (earpiece_delta): 0, 10000 (telephony_tx_delta): 0, 2 (speaker_delta): 0, 20000 (line_delta): 0, 4 (headset_delta): 0, 40000 (hmdi_arc_delta): 0, 8 (headphone_delta): 0, 80000 (spdif_delta): 0, 10 (bt_sco_delta): 0, 100000 (fm_transmitter_delta): 0, 20 (bt_sco_hs_delta): 0, 200000 (aux_line_delta): 0, 40 (bt_sco_carkit_delta): 0, 400000 (speaker_safe_delta): 0, 80 (bt_a2dp_delta): 0, 800000 (ip_delta): 0
+- STREAM_MUSIC:
+   Muted: false
+   Muted Internally: false
+   ShouldZenMute: false
+   Min: 0
+   Max: 15
+   streamVolume:11
+   Current: 1 (earpiece): 13, 2 (speaker): 5, 4 (headset): 10, 8 (headphone): 10, 10 (bt_sco): 11, 20 (bt_sco_hs): 10, 40 (bt_sco_carkit): 10, 80 (bt_a2dp): 7, 100 (bt_a2dp_hp): 10, 200 (bt_a2dp_spk): 10, 400 (hdmi): 10, 800 (analog_dock): 15, 1000 (digital_dock): 15, 2000 (usb_accessory): 10, 4000 (usb_device): 10, 8000 (remote_submix): 7, 10000 (telephony_tx): 10, 20000 (line): 10, 40000 (hmdi_arc): 15, 40001 (hmdi_earc): 15, 80000 (spdif): 10, 100000 (fm_transmitter): 10, 200000 (aux_line): 15, 400000 (speaker_safe): 10, 800000 (ip): 10, 1000000 (bus): 10, 2000000 (proxy): 10, 4000000 (usb_headset): 6, 8000000 (hearing_aid_out): 10, 10000000 (echo_canceller): 10, 20000000 (ble_headset): 10, 20000001 (ble_speaker): 10, 40000000 (default): 10
+   Devices: bt_sco
+   Delta: 8000000 (hearing_aid_out_delta): 0, 4000000 (usb_headset_delta): 0, 2000000 (proxy_delta): 0, 1000000 (bus_delta): 0, 40000000 (default): 0, 100 (bt_a2dp_hp_delta): 0, 200 (bt_a2dp_spk_delta): 0, 400 (hdmi_delta): 0, 800 (analog_dock_delta): 0, 1000 (digital_dock_delta): 0, 2000 (usb_accessory_delta): 0, 4000 (usb_device_delta): 0, 8000 (remote_submix_delta): 0, 1 (earpiece_delta): 0, 10000 (telephony_tx_delta): 0, 2 (speaker_delta): 0, 20000 (line_delta): 0, 4 (headset_delta): 0, 40000 (hmdi_arc_delta): 0, 8 (headphone_delta): 0, 80000 (spdif_delta): 0, 10 (bt_sco_delta): 0, 100000 (fm_transmitter_delta): 0, 20 (bt_sco_hs_delta): 0, 200000 (aux_line_delta): 0, 40 (bt_sco_carkit_delta): 0, 400000 (speaker_safe_delta): 0, 80 (bt_a2dp_delta): 0, 800000 (ip_delta): 0
+- STREAM_ALARM:
+   Muted: false
+   Muted Internally: false
+   ShouldZenMute: false
+   Min: 0
+   Max: 7
+   streamVolume:7
+   Current: 1 (earpiece): 7, 2 (speaker): 7, 4 (headset): 6, 8 (headphone): 6, 10 (bt_sco): 6, 20 (bt_sco_hs): 6, 40 (bt_sco_carkit): 6, 80 (bt_a2dp): 6, 100 (bt_a2dp_hp): 6, 200 (bt_a2dp_spk): 6, 400 (hdmi): 6, 800 (analog_dock): 6, 1000 (digital_dock): 6, 2000 (usb_accessory): 6, 4000 (usb_device): 6, 8000 (remote_submix): 6, 10000 (telephony_tx): 6, 20000 (line): 6, 40000 (hmdi_arc): 6, 40001 (hmdi_earc): 6, 80000 (spdif): 6, 100000 (fm_transmitter): 6, 200000 (aux_line): 6, 400000 (speaker_safe): 6, 800000 (ip): 6, 1000000 (bus): 6, 2000000 (proxy): 6, 4000000 (usb_headset): 6, 8000000 (hearing_aid_out): 6, 10000000 (echo_canceller): 6, 20000000 (ble_headset): 6, 20000001 (ble_speaker): 6, 40000000 (default): 6
+   Devices: speaker, bt_sco
+   Delta: 8000000 (hearing_aid_out_delta): 0, 4000000 (usb_headset_delta): 0, 2000000 (proxy_delta): 0, 1000000 (bus_delta): 0, 40000000 (default): 0, 100 (bt_a2dp_hp_delta): 0, 200 (bt_a2dp_spk_delta): 0, 400 (hdmi_delta): 0, 800 (analog_dock_delta): 0, 1000 (digital_dock_delta): 0, 2000 (usb_accessory_delta): 0, 4000 (usb_device_delta): 0, 8000 (remote_submix_delta): 0, 1 (earpiece_delta): 0, 10000 (telephony_tx_delta): 0, 2 (speaker_delta): 0, 20000 (line_delta): 0, 4 (headset_delta): 0, 40000 (hmdi_arc_delta): 0, 8 (headphone_delta): 0, 80000 (spdif_delta): 0, 10 (bt_sco_delta): 0, 100000 (fm_transmitter_delta): 0, 20 (bt_sco_hs_delta): 0, 200000 (aux_line_delta): 0, 40 (bt_sco_carkit_delta): 0, 400000 (speaker_safe_delta): 0, 80 (bt_a2dp_delta): 0, 800000 (ip_delta): 0
+- STREAM_NOTIFICATION:
+   Muted: true
+   Muted Internally: false
+   ShouldZenMute: false
+   Min: 0
+   Max: 7
+   streamVolume:0
+   Current: 1 (earpiece): 6, 2 (speaker): 3, 4 (headset): 5, 8 (headphone): 5, 10 (bt_sco): 5, 20 (bt_sco_hs): 5, 40 (bt_sco_carkit): 5, 80 (bt_a2dp): 5, 100 (bt_a2dp_hp): 5, 200 (bt_a2dp_spk): 5, 400 (hdmi): 5, 800 (analog_dock): 5, 1000 (digital_dock): 5, 2000 (usb_accessory): 5, 4000 (usb_device): 5, 8000 (remote_submix): 5, 10000 (telephony_tx): 5, 20000 (line): 5, 40000 (hmdi_arc): 5, 40001 (hmdi_earc): 5, 80000 (spdif): 5, 100000 (fm_transmitter): 5, 200000 (aux_line): 5, 400000 (speaker_safe): 5, 800000 (ip): 5, 1000000 (bus): 5, 2000000 (proxy): 5, 4000000 (usb_headset): 5, 8000000 (hearing_aid_out): 5, 10000000 (echo_canceller): 5, 20000000 (ble_headset): 5, 20000001 (ble_speaker): 5, 40000000 (default): 5
+   Devices: bt_sco
+   Delta: 8000000 (hearing_aid_out_delta): 0, 4000000 (usb_headset_delta): 0, 2000000 (proxy_delta): 0, 1000000 (bus_delta): 0, 40000000 (default): 0, 100 (bt_a2dp_hp_delta): 0, 200 (bt_a2dp_spk_delta): 0, 400 (hdmi_delta): 0, 800 (analog_dock_delta): 0, 1000 (digital_dock_delta): 0, 2000 (usb_accessory_delta): 0, 4000 (usb_device_delta): 0, 8000 (remote_submix_delta): 0, 1 (earpiece_delta): 0, 10000 (telephony_tx_delta): 0, 2 (speaker_delta): 0, 20000 (line_delta): 0, 4 (headset_delta): 0, 40000 (hmdi_arc_delta): 0, 8 (headphone_delta): 0, 80000 (spdif_delta): 0, 10 (bt_sco_delta): 0, 100000 (fm_transmitter_delta): 0, 20 (bt_sco_hs_delta): 0, 200000 (aux_line_delta): 0, 40 (bt_sco_carkit_delta): 0, 400000 (speaker_safe_delta): 0, 80 (bt_a2dp_delta): 0, 800000 (ip_delta): 0
+- STREAM_BLUETOOTH_SCO:
+   Muted: false
+   Muted Internally: false
+   ShouldZenMute: false
+   Min: 1
+   Max: 15
+   streamVolume:6
+   Current: 1 (earpiece): 6, 2 (speaker): 7, 4 (headset): 7, 8 (headphone): 7, 10 (bt_sco): 6, 20 (bt_sco_hs): 7, 40 (bt_sco_carkit): 7, 80 (bt_a2dp): 9, 100 (bt_a2dp_hp): 7, 200 (bt_a2dp_spk): 7, 400 (hdmi): 7, 800 (analog_dock): 7, 1000 (digital_dock): 7, 2000 (usb_accessory): 7, 4000 (usb_device): 7, 8000 (remote_submix): 7, 10000 (telephony_tx): 7, 20000 (line): 7, 40000 (hmdi_arc): 7, 40001 (hmdi_earc): 7, 80000 (spdif): 7, 100000 (fm_transmitter): 7, 200000 (aux_line): 7, 400000 (speaker_safe): 7, 800000 (ip): 7, 1000000 (bus): 7, 2000000 (proxy): 7, 4000000 (usb_headset): 7, 8000000 (hearing_aid_out): 7, 10000000 (echo_canceller): 7, 20000000 (ble_headset): 7, 20000001 (ble_speaker): 7, 40000000 (default): 7
+   Devices: bt_sco
+   Delta: 8000000 (hearing_aid_out_delta): 0, 4000000 (usb_headset_delta): 0, 2000000 (proxy_delta): 0, 1000000 (bus_delta): 0, 40000000 (default): 0, 100 (bt_a2dp_hp_delta): 0, 200 (bt_a2dp_spk_delta): 0, 400 (hdmi_delta): 0, 800 (analog_dock_delta): 0, 1000 (digital_dock_delta): 0, 2000 (usb_accessory_delta): 0, 4000 (usb_device_delta): 0, 8000 (remote_submix_delta): 0, 1 (earpiece_delta): 0, 10000 (telephony_tx_delta): 0, 2 (speaker_delta): 0, 20000 (line_delta): 0, 4 (headset_delta): 0, 40000 (hmdi_arc_delta): 0, 8 (headphone_delta): 0, 80000 (spdif_delta): 0, 10 (bt_sco_delta): 0, 100000 (fm_transmitter_delta): 0, 20 (bt_sco_hs_delta): 0, 200000 (aux_line_delta): 0, 40 (bt_sco_carkit_delta): 0, 400000 (speaker_safe_delta): 0, 80 (bt_a2dp_delta): 0, 800000 (ip_delta): 0
+- STREAM_SYSTEM_ENFORCED:
+   Muted: true
+   Muted Internally: false
+   ShouldZenMute: false
+   Min: 0
+   Max: 7
+   streamVolume:0
+   Current: 1 (earpiece): 5, 2 (speaker): 7, 4 (headset): 7, 8 (headphone): 7, 10 (bt_sco): 5, 20 (bt_sco_hs): 5, 40 (bt_sco_carkit): 5, 80 (bt_a2dp): 7, 100 (bt_a2dp_hp): 7, 200 (bt_a2dp_spk): 5, 400 (hdmi): 5, 800 (analog_dock): 5, 1000 (digital_dock): 5, 2000 (usb_accessory): 5, 4000 (usb_device): 5, 8000 (remote_submix): 5, 10000 (telephony_tx): 5, 20000 (line): 5, 40000 (hmdi_arc): 5, 40001 (hmdi_earc): 5, 80000 (spdif): 5, 100000 (fm_transmitter): 5, 200000 (aux_line): 5, 400000 (speaker_safe): 5, 800000 (ip): 5, 1000000 (bus): 5, 2000000 (proxy): 5, 4000000 (usb_headset): 5, 8000000 (hearing_aid_out): 5, 10000000 (echo_canceller): 5, 20000000 (ble_headset): 5, 20000001 (ble_speaker): 5, 40000000 (default): 5
+   Devices: bt_sco
+   Delta: 8000000 (hearing_aid_out_delta): 0, 4000000 (usb_headset_delta): 0, 2000000 (proxy_delta): 0, 1000000 (bus_delta): 0, 40000000 (default): 0, 100 (bt_a2dp_hp_delta): 0, 200 (bt_a2dp_spk_delta): 0, 400 (hdmi_delta): 0, 800 (analog_dock_delta): 0, 1000 (digital_dock_delta): 0, 2000 (usb_accessory_delta): 0, 4000 (usb_device_delta): 0, 8000 (remote_submix_delta): 0, 1 (earpiece_delta): 0, 10000 (telephony_tx_delta): 0, 2 (speaker_delta): 0, 20000 (line_delta): 0, 4 (headset_delta): 0, 40000 (hmdi_arc_delta): 0, 8 (headphone_delta): 0, 80000 (spdif_delta): 0, 10 (bt_sco_delta): 0, 100000 (fm_transmitter_delta): 0, 20 (bt_sco_hs_delta): 0, 200000 (aux_line_delta): 0, 40 (bt_sco_carkit_delta): 0, 400000 (speaker_safe_delta): 0, 80 (bt_a2dp_delta): 0, 800000 (ip_delta): 0
+- STREAM_DTMF:
+   Muted: true
+   Muted Internally: false
+   ShouldZenMute: false
+   Min: 0
+   Max: 15
+   streamVolume:0
+   Current: 1 (earpiece): 8, 2 (speaker): 8, 4 (headset): 8, 8 (headphone): 8, 10 (bt_sco): 8, 20 (bt_sco_hs): 8, 40 (bt_sco_carkit): 8, 80 (bt_a2dp): 8, 100 (bt_a2dp_hp): 8, 200 (bt_a2dp_spk): 8, 400 (hdmi): 8, 800 (analog_dock): 8, 1000 (digital_dock): 8, 2000 (usb_accessory): 8, 4000 (usb_device): 8, 8000 (remote_submix): 8, 10000 (telephony_tx): 8, 20000 (line): 8, 40000 (hmdi_arc): 8, 40001 (hmdi_earc): 8, 80000 (spdif): 8, 100000 (fm_transmitter): 8, 200000 (aux_line): 8, 400000 (speaker_safe): 8, 800000 (ip): 8, 1000000 (bus): 8, 2000000 (proxy): 8, 4000000 (usb_headset): 8, 8000000 (hearing_aid_out): 8, 10000000 (echo_canceller): 8, 20000000 (ble_headset): 8, 20000001 (ble_speaker): 8, 40000000 (default): 8
+   Devices: bt_sco
+   Delta: 8000000 (hearing_aid_out_delta): 0, 4000000 (usb_headset_delta): 0, 2000000 (proxy_delta): 0, 1000000 (bus_delta): 0, 40000000 (default): 0, 100 (bt_a2dp_hp_delta): 0, 200 (bt_a2dp_spk_delta): 0, 400 (hdmi_delta): 0, 800 (analog_dock_delta): 0, 1000 (digital_dock_delta): 0, 2000 (usb_accessory_delta): 0, 4000 (usb_device_delta): 0, 8000 (remote_submix_delta): 0, 1 (earpiece_delta): 0, 10000 (telephony_tx_delta): 0, 2 (speaker_delta): 0, 20000 (line_delta): 0, 4 (headset_delta): 0, 40000 (hmdi_arc_delta): 0, 8 (headphone_delta): 0, 80000 (spdif_delta): 0, 10 (bt_sco_delta): 0, 100000 (fm_transmitter_delta): 0, 20 (bt_sco_hs_delta): 0, 200000 (aux_line_delta): 0, 40 (bt_sco_carkit_delta): 0, 400000 (speaker_safe_delta): 0, 80 (bt_a2dp_delta): 0, 800000 (ip_delta): 0
+- STREAM_TTS:
+   Muted: false
+   Muted Internally: false
+   ShouldZenMute: false
+   Min: 0
+   Max: 15
+   streamVolume:11
+   Current: 1 (earpiece): 13, 2 (speaker): 11, 4 (headset): 10, 8 (headphone): 10, 10 (bt_sco): 11, 20 (bt_sco_hs): 10, 40 (bt_sco_carkit): 10, 80 (bt_a2dp): 7, 100 (bt_a2dp_hp): 10, 200 (bt_a2dp_spk): 10, 400 (hdmi): 10, 800 (analog_dock): 15, 1000 (digital_dock): 15, 2000 (usb_accessory): 10, 4000 (usb_device): 10, 8000 (remote_submix): 7, 10000 (telephony_tx): 10, 20000 (line): 10, 40000 (hmdi_arc): 15, 40001 (hmdi_earc): 15, 80000 (spdif): 10, 100000 (fm_transmitter): 10, 200000 (aux_line): 15, 400000 (speaker_safe): 10, 800000 (ip): 10, 1000000 (bus): 10, 2000000 (proxy): 10, 4000000 (usb_headset): 6, 8000000 (hearing_aid_out): 10, 10000000 (echo_canceller): 10, 20000000 (ble_headset): 10, 20000001 (ble_speaker): 10, 40000000 (default): 10
+   Devices: speaker
+   Delta: 8000000 (hearing_aid_out_delta): 0, 4000000 (usb_headset_delta): 0, 2000000 (proxy_delta): 0, 1000000 (bus_delta): 0, 40000000 (default): 0, 100 (bt_a2dp_hp_delta): 0, 200 (bt_a2dp_spk_delta): 0, 400 (hdmi_delta): 0, 800 (analog_dock_delta): 0, 1000 (digital_dock_delta): 0, 2000 (usb_accessory_delta): 0, 4000 (usb_device_delta): 0, 8000 (remote_submix_delta): 0, 1 (earpiece_delta): 0, 10000 (telephony_tx_delta): 0, 2 (speaker_delta): 0, 20000 (line_delta): 0, 4 (headset_delta): 0, 40000 (hmdi_arc_delta): 0, 8 (headphone_delta): 0, 80000 (spdif_delta): 0, 10 (bt_sco_delta): 0, 100000 (fm_transmitter_delta): 0, 20 (bt_sco_hs_delta): 0, 200000 (aux_line_delta): 0, 40 (bt_sco_carkit_delta): 0, 400000 (speaker_safe_delta): 0, 80 (bt_a2dp_delta): 0, 800000 (ip_delta): 0
+- STREAM_ACCESSIBILITY:
+   Muted: false
+   Muted Internally: false
+   ShouldZenMute: false
+   Min: 1
+   Max: 15
+   streamVolume:11
+   Current: 1 (earpiece): 13, 2 (speaker): 6, 4 (headset): 10, 8 (headphone): 10, 10 (bt_sco): 11, 20 (bt_sco_hs): 10, 40 (bt_sco_carkit): 10, 80 (bt_a2dp): 8, 100 (bt_a2dp_hp): 10, 200 (bt_a2dp_spk): 10, 400 (hdmi): 10, 800 (analog_dock): 15, 1000 (digital_dock): 15, 2000 (usb_accessory): 10, 4000 (usb_device): 10, 8000 (remote_submix): 8, 10000 (telephony_tx): 10, 20000 (line): 10, 40000 (hmdi_arc): 15, 40001 (hmdi_earc): 15, 80000 (spdif): 10, 100000 (fm_transmitter): 10, 200000 (aux_line): 15, 400000 (speaker_safe): 10, 800000 (ip): 10, 1000000 (bus): 10, 2000000 (proxy): 10, 4000000 (usb_headset): 7, 8000000 (hearing_aid_out): 10, 10000000 (echo_canceller): 10, 20000000 (ble_headset): 10, 20000001 (ble_speaker): 10, 40000000 (default): 10
+   Devices: bt_sco
+   Delta: 8000000 (hearing_aid_out_delta): 0, 4000000 (usb_headset_delta): 0, 2000000 (proxy_delta): 0, 1000000 (bus_delta): 0, 40000000 (default): 0, 100 (bt_a2dp_hp_delta): 0, 200 (bt_a2dp_spk_delta): 0, 400 (hdmi_delta): 0, 800 (analog_dock_delta): 0, 1000 (digital_dock_delta): 0, 2000 (usb_accessory_delta): 0, 4000 (usb_device_delta): 0, 8000 (remote_submix_delta): 0, 1 (earpiece_delta): 0, 10000 (telephony_tx_delta): 0, 2 (speaker_delta): 0, 20000 (line_delta): 0, 4 (headset_delta): 0, 40000 (hmdi_arc_delta): 0, 8 (headphone_delta): 0, 80000 (spdif_delta): 0, 10 (bt_sco_delta): 0, 100000 (fm_transmitter_delta): 0, 20 (bt_sco_hs_delta): 0, 200000 (aux_line_delta): 0, 40 (bt_sco_carkit_delta): 0, 400000 (speaker_safe_delta): 0, 80 (bt_a2dp_delta): 0, 800000 (ip_delta): 0
+- STREAM_ASSISTANT:
+   Muted: false
+   Muted Internally: false
+   ShouldZenMute: false
+   Min: 0
+   Max: 15
+   streamVolume:7
+   Current: 1 (earpiece): 7, 2 (speaker): 7, 4 (headset): 7, 8 (headphone): 7, 10 (bt_sco): 7, 20 (bt_sco_hs): 7, 40 (bt_sco_carkit): 7, 80 (bt_a2dp): 7, 100 (bt_a2dp_hp): 7, 200 (bt_a2dp_spk): 7, 400 (hdmi): 7, 800 (analog_dock): 7, 1000 (digital_dock): 7, 2000 (usb_accessory): 7, 4000 (usb_device): 7, 8000 (remote_submix): 7, 10000 (telephony_tx): 7, 20000 (line): 7, 40000 (hmdi_arc): 7, 40001 (hmdi_earc): 7, 80000 (spdif): 7, 100000 (fm_transmitter): 7, 200000 (aux_line): 7, 400000 (speaker_safe): 7, 800000 (ip): 7, 1000000 (bus): 7, 2000000 (proxy): 7, 4000000 (usb_headset): 7, 8000000 (hearing_aid_out): 7, 10000000 (echo_canceller): 7, 20000000 (ble_headset): 7, 20000001 (ble_speaker): 7, 40000000 (default): 7
+   Devices: bt_sco
+   Delta: 8000000 (hearing_aid_out_delta): 0, 4000000 (usb_headset_delta): 0, 2000000 (proxy_delta): 0, 1000000 (bus_delta): 0, 40000000 (default): 0, 100 (bt_a2dp_hp_delta): 0, 200 (bt_a2dp_spk_delta): 0, 400 (hdmi_delta): 0, 800 (analog_dock_delta): 0, 1000 (digital_dock_delta): 0, 2000 (usb_accessory_delta): 0, 4000 (usb_device_delta): 0, 8000 (remote_submix_delta): 0, 1 (earpiece_delta): 0, 10000 (telephony_tx_delta): 0, 2 (speaker_delta): 0, 20000 (line_delta): 0, 4 (headset_delta): 0, 40000 (hmdi_arc_delta): 0, 8 (headphone_delta): 0, 80000 (spdif_delta): 0, 10 (bt_sco_delta): 0, 100000 (fm_transmitter_delta): 0, 20 (bt_sco_hs_delta): 0, 200000 (aux_line_delta): 0, 40 (bt_sco_carkit_delta): 0, 400000 (speaker_safe_delta): 0, 80 (bt_a2dp_delta): 0, 800000 (ip_delta): 0
+
+- mute affected streams = 0x6f
+
+Volume Groups (device: index)
+- VOLUME GROUP AUDIO_STREAM_ACCESSIBILITY:
+   Min: 1
+   Max: 15
+   Current: 40000000 (default): 5
+   Devices: bt_sco
+- VOLUME GROUP AUDIO_STREAM_ALARM:
+   Min: 0
+   Max: 7
+   Current: 40000000 (default): 6
+   Devices: speaker
+- VOLUME GROUP AUDIO_STREAM_ASSISTANT:
+   Min: 0
+   Max: 15
+   Current: 40000000 (default): 7
+   Devices: bt_sco
+- VOLUME GROUP AUDIO_STREAM_DTMF:
+   Min: 0
+   Max: 15
+   Current: 40000000 (default): 8
+   Devices: bt_sco
+- VOLUME GROUP AUDIO_STREAM_ENFORCED_AUDIBLE:
+   Min: 0
+   Max: 7
+   Current: 40000000 (default): 4
+   Devices: bt_sco
+- VOLUME GROUP AUDIO_STREAM_MUSIC:
+   Min: 0
+   Max: 15
+   Current: 40000000 (default): 10
+   Devices: bt_sco
+- VOLUME GROUP AUDIO_STREAM_NOTIFICATION:
+   Min: 0
+   Max: 7
+   Current: 40000000 (default): 5
+   Devices: bt_sco
+- VOLUME GROUP AUDIO_STREAM_REROUTING:
+   Min: 0
+   Max: 15
+   Current: 40000000 (default): 10
+   Devices: bt_sco
+- VOLUME GROUP AUDIO_STREAM_RING:
+   Min: 0
+   Max: 7
+   Current: 40000000 (default): 5
+   Devices: speaker
+- VOLUME GROUP AUDIO_STREAM_SYSTEM:
+   Min: 0
+   Max: 7
+   Current: 40000000 (default): 7
+   Devices: bt_sco
+- VOLUME GROUP AUDIO_STREAM_VOICE_CALL:
+   Min: 1
+   Max: 6
+   Current: 40000000 (default): 4
+   Devices: bt_sco
+- VOLUME GROUP AUDIO_STREAM_CALL_ASSISTANT:
+   Min: 0
+   Max: 15
+   Current: 40000000 (default): 10
+   Devices: bt_sco
+
+Ringer mode: 
+- mode (internal) = SILENT
+- mode (external) = SILENT
+- zen mode:ZEN_MODE_OFF
+- ringer mode affected streams = 0x1a6 (STREAM_SYSTEM,STREAM_RING,STREAM_NOTIFICATION,STREAM_SYSTEM_ENFORCED,STREAM_DTMF)
+- ringer mode muted streams = 0x1a6 (STREAM_SYSTEM,STREAM_RING,STREAM_NOTIFICATION,STREAM_SYSTEM_ENFORCED,STREAM_DTMF)
+- delegate = ZenModeHelper
+
+Audio mode: 
+- Requested mode = MODE_NORMAL
+- Actual mode = MODE_NORMAL
+- Mode owner: 
+   None
+- Mode owner stack: 
+   Empty
+
+Audio routes:
+  mMainType=0x0
+  mBluetoothName=HM-D001
+
+Other state:
+  mVolumeController=VolumeController(android.os.BinderProxy@25b6b99,mVisible=false)
+  mSafeMediaVolumeState=SAFE_MEDIA_VOLUME_INACTIVE
+  mSafeMediaVolumeIndex=110
+  mSafeUsbMediaVolumeIndex=110
+  mSafeUsbMediaVolumeDbfs=-37.0
+  sIndependentA11yVolume=false
+  mPendingVolumeCommand=null
+  mMusicActiveMs=1
+  mMcc=0
+  mCameraSoundForced=false
+  mHasVibrator=true
+  mVolumePolicy=VolumePolicy[volumeDownToEnterSilent=true,volumeUpToExitSilent=true,doNotDisturbWhenSilent=false,vibrateToSilentDebounce=400]
+  mAvrcpAbsVolSupported=true
+  mBtScoOnByApp=false
+  mleVcSupportsAbsoluteVolume=false
+  mIsSingleVolume=false
+  mUseFixedVolume=false
+  mFixedVolumeDevices=0x1000,0x800,0x200000,0x40000,0x40001
+  mFullVolumeDevices=
+  mExtVolumeController=null
+  mHdmiAudioSystemClient=null
+  mHdmiPlaybackClient=null
+  mHdmiTvClient=null
+  mHdmiSystemAudioSupported=false
+  mHdmiCecVolumeControlEnabled=false
+  mIsCallScreeningModeSupported=true
+  mic mute FromSwitch=false FromRestrictions=false FromApi=false from system=false  mMonitorRotation=false
+
+  mAssistantUid=10182
+  mCurrentImeUid=0
+  mMonitorRotation=false
+  mSlientKeyState=-1
+  mVibrateSetting=4
+  mSlientKeySupport=false
+  No accessibility service Uids.
+
+Audio policies:
+Audio event log: dynamic policy events (logged when command received by AudioService)
+
+PlaybackActivityMonitor dump time: 16:40:44
+
+  playback listeners:
+ (S)com.android.server.audio.PlaybackActivityMonitor$PlayMonitorClient@bf5682f (S)com.android.server.audio.PlaybackActivityMonitor$PlayMonitorClient@95de3c (P)com.android.server.audio.PlaybackActivityMonitor$PlayMonitorClient@7ee17c5 (P)com.android.server.audio.PlaybackActivityMonitor$PlayMonitorClient@2fc551a (P)com.android.server.audio.PlaybackActivityMonitor$PlayMonitorClient@37a584b (P)com.android.server.audio.PlaybackActivityMonitor$PlayMonitorClient@700a228 (P)com.android.server.audio.PlaybackActivityMonitor$PlayMonitorClient@f9d6b41 (P)com.android.server.audio.PlaybackActivityMonitor$PlayMonitorClient@1faa8e6 (P)com.android.server.audio.PlaybackActivityMonitor$PlayMonitorClient@f142e27 (P)com.android.server.audio.PlaybackActivityMonitor$PlayMonitorClient@ad1b8d4 (S)com.android.server.audio.PlaybackActivityMonitor$PlayMonitorClient@9947a7d (S)com.android.server.audio.PlaybackActivityMonitor$PlayMonitorClient@b386d72 (S)com.android.server.audio.PlaybackActivityMonitor$PlayMonitorClient@8b85c3 (S)com.android.server.audio.PlaybackActivityMonitor$PlayMonitorClient@5fb8e40 (S)com.android.server.audio.PlaybackActivityMonitor$PlayMonitorClient@6f34179 (P)com.android.server.audio.PlaybackActivityMonitor$PlayMonitorClient@1beebe (S)com.android.server.audio.PlaybackActivityMonitor$PlayMonitorClient@396bb1f (S)com.android.server.audio.PlaybackActivityMonitor$PlayMonitorClient@7fe7e3 (S)com.android.server.audio.PlaybackActivityMonitor$PlayMonitorClient@fff1abc
+
+
+  players:
+  AudioPlaybackConfiguration piid:63 deviceId:0 type:android.media.SoundPool u/pid:1000/1279 state:idle attr:AudioAttributes: usage=USAGE_ASSISTANCE_SONIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null sessionId:0
+  AudioPlaybackConfiguration piid:71 deviceId:0 type:android.media.SoundPool u/pid:10062/2534 state:idle attr:AudioAttributes: usage=USAGE_ASSISTANCE_SONIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null sessionId:0
+  AudioPlaybackConfiguration piid:79 deviceId:0 type:android.media.SoundPool u/pid:1000/3102 state:idle attr:AudioAttributes: usage=USAGE_NOTIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null sessionId:0
+  AudioPlaybackConfiguration piid:92847 deviceId:0 type:android.media.MediaPlayer u/pid:10062/2534 state:idle attr:AudioAttributes: usage=USAGE_ASSISTANCE_SONIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null sessionId:0
+  AudioPlaybackConfiguration piid:97551 deviceId:0 type:android.media.AudioTrack u/pid:10221/22307 state:idle attr:AudioAttributes: usage=USAGE_MEDIA content=CONTENT_TYPE_UNKNOWN flags=0xA00 tags= bundle=null sessionId:90473
+  AudioPlaybackConfiguration piid:101583 deviceId:14993 type:android.media.AudioTrack u/pid:10426/32492 state:stopped attr:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null sessionId:93273
+
+  ducked players piids:
+
+  faded out players piids:
+
+  muted player piids:
+
+  banned uids:
+
+Audio event log: playback activity as reported through PlayerBase
+11-05 16:38:28:080 player piid:101431 state:started DeviceId:0
+11-05 16:38:28:266 player piid:101431 state:device DeviceId:14993
+11-05 16:38:29:200 player piid:101431 state:stopped DeviceId:0
+11-05 16:38:29:203 releasing player piid:101431
+11-05 16:38:29:376 new player piid:101439 uid/pid:10426/32492 type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null session:0
+11-05 16:38:29:377 player piid:101439 new AudioAttributes:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null
+11-05 16:38:29:431 player piid:101439 state:started DeviceId:0
+11-05 16:38:29:600 player piid:101439 state:device DeviceId:14993
+11-05 16:38:31:824 player piid:101439 state:stopped DeviceId:0
+11-05 16:38:31:836 releasing player piid:101439
+11-05 16:38:31:879 new player piid:101447 uid/pid:10426/32492 type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null session:0
+11-05 16:38:31:879 player piid:101447 new AudioAttributes:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null
+11-05 16:38:31:967 player piid:101447 state:started DeviceId:0
+11-05 16:38:32:374 player piid:101447 state:device DeviceId:14993
+11-05 16:38:37:407 player piid:101447 state:stopped DeviceId:0
+11-05 16:38:37:441 releasing player piid:101447
+11-05 16:38:37:471 new player piid:101455 uid/pid:10426/32492 type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null session:0
+11-05 16:38:37:471 player piid:101455 new AudioAttributes:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null
+11-05 16:38:37:535 player piid:101455 state:started DeviceId:0
+11-05 16:38:37:950 player piid:101455 state:device DeviceId:14993
+11-05 16:38:39:312 releasing player piid:101455
+11-05 16:38:42:662 new player piid:101463 uid/pid:10426/32492 type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null session:0
+11-05 16:38:42:663 player piid:101463 new AudioAttributes:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null
+11-05 16:38:42:795 player piid:101463 state:started DeviceId:0
+11-05 16:38:43:265 player piid:101463 state:device DeviceId:14993
+11-05 16:38:45:929 player piid:101463 state:stopped DeviceId:0
+11-05 16:38:45:943 releasing player piid:101463
+11-05 16:38:46:394 new player piid:101479 uid/pid:10192/30175 type:android.media.AudioTrack attr:AudioAttributes: usage=USAGE_NOTIFICATION_EVENT content=CONTENT_TYPE_MUSIC flags=0x800 tags= bundle=null session:93945
+11-05 16:38:46:399 player piid:101479 state:started DeviceId:0
+11-05 16:38:46:425 new player piid:101487 uid/pid:10426/32492 type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null session:0
+11-05 16:38:46:455 player piid:101479 state:device DeviceId:14993
+11-05 16:38:46:460 player piid:101487 new AudioAttributes:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null
+11-05 16:38:46:518 player piid:101487 state:started DeviceId:0
+11-05 16:38:46:747 player piid:101487 state:device DeviceId:14993
+11-05 16:38:46:764 player piid:101479 state:stopped DeviceId:0
+11-05 16:38:46:767 releasing player piid:101479
+11-05 16:38:47:234 releasing player piid:101487
+11-05 16:38:50:034 new player piid:101495 uid/pid:10192/30175 type:android.media.AudioTrack attr:AudioAttributes: usage=USAGE_NOTIFICATION_EVENT content=CONTENT_TYPE_MUSIC flags=0x800 tags= bundle=null session:93961
+11-05 16:38:50:040 player piid:101495 state:started DeviceId:0
+11-05 16:38:50:130 player piid:101495 state:device DeviceId:14993
+11-05 16:38:50:259 new player piid:101503 uid/pid:10426/32492 type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null session:0
+11-05 16:38:50:260 player piid:101503 new AudioAttributes:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null
+11-05 16:38:50:484 player piid:101503 state:started DeviceId:0
+11-05 16:38:50:709 player piid:101495 state:stopped DeviceId:0
+11-05 16:38:50:714 releasing player piid:101495
+11-05 16:38:50:720 player piid:101503 state:device DeviceId:14993
+11-05 16:38:52:081 player piid:101503 state:stopped DeviceId:0
+11-05 16:38:52:104 releasing player piid:101503
+11-05 16:38:52:486 new player piid:101511 uid/pid:10426/32492 type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null session:0
+11-05 16:38:52:487 player piid:101511 new AudioAttributes:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null
+11-05 16:38:52:608 player piid:101511 state:started DeviceId:0
+11-05 16:38:52:819 player piid:101511 state:device DeviceId:14993
+11-05 16:38:53:762 player piid:101511 state:stopped DeviceId:0
+11-05 16:38:53:771 releasing player piid:101511
+11-05 16:38:53:886 new player piid:101519 uid/pid:10426/32492 type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null session:0
+11-05 16:38:53:888 player piid:101519 new AudioAttributes:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null
+11-05 16:38:53:975 player piid:101519 state:started DeviceId:0
+11-05 16:38:54:198 player piid:101519 state:device DeviceId:14993
+11-05 16:38:54:917 player piid:101519 state:stopped DeviceId:0
+11-05 16:38:54:941 releasing player piid:101519
+11-05 16:38:55:025 new player piid:101527 uid/pid:10426/32492 type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null session:0
+11-05 16:38:55:026 player piid:101527 new AudioAttributes:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null
+11-05 16:38:55:135 player piid:101527 state:started DeviceId:0
+11-05 16:38:55:404 player piid:101527 state:device DeviceId:14993
+11-05 16:38:57:413 player piid:101527 state:stopped DeviceId:0
+11-05 16:38:57:425 releasing player piid:101527
+11-05 16:38:57:761 new player piid:101535 uid/pid:10426/32492 type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null session:0
+11-05 16:38:57:783 player piid:101535 new AudioAttributes:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null
+11-05 16:38:57:853 player piid:101535 state:started DeviceId:0
+11-05 16:38:58:056 player piid:101535 state:device DeviceId:14993
+11-05 16:38:58:569 releasing player piid:101535
+11-05 16:39:06:040 player piid:101423 state:stopped DeviceId:0
+11-05 16:39:06:040 releasing player piid:101423
+11-05 16:39:06:229 new player piid:101551 uid/pid:10426/32492 type:android.media.AudioTrack attr:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null session:93273
+11-05 16:39:06:273 player piid:101551 state:started DeviceId:0
+11-05 16:39:06:334 player piid:101551 state:device DeviceId:14993
+11-05 16:39:12:044 player piid:101551 state:stopped DeviceId:0
+11-05 16:39:12:733 new player piid:101559 uid/pid:10426/32492 type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null session:0
+11-05 16:39:12:734 player piid:101559 new AudioAttributes:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null
+11-05 16:39:12:804 player piid:101559 state:started DeviceId:0
+11-05 16:39:12:958 player piid:101559 state:device DeviceId:14993
+11-05 16:39:14:290 player piid:101559 state:stopped DeviceId:0
+11-05 16:39:14:299 releasing player piid:101559
+11-05 16:39:14:639 new player piid:101567 uid/pid:10426/32492 type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null session:0
+11-05 16:39:14:645 player piid:101567 new AudioAttributes:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null
+11-05 16:39:14:704 player piid:101567 state:started DeviceId:0
+11-05 16:39:14:904 player piid:101567 state:device DeviceId:14993
+11-05 16:39:15:398 releasing player piid:101567
+11-05 16:39:23:265 player piid:101551 state:stopped DeviceId:0
+11-05 16:39:23:265 releasing player piid:101551
+11-05 16:39:23:328 new player piid:101583 uid/pid:10426/32492 type:android.media.AudioTrack attr:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null session:93273
+11-05 16:39:23:377 player piid:101583 state:started DeviceId:0
+11-05 16:39:23:446 player piid:101583 state:device DeviceId:14993
+11-05 16:39:29:158 player piid:101583 state:stopped DeviceId:0
+11-05 16:39:29:881 new player piid:101591 uid/pid:10426/32492 type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null session:0
+11-05 16:39:29:882 player piid:101591 new AudioAttributes:AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null
+11-05 16:39:29:963 player piid:101591 state:started DeviceId:0
+11-05 16:39:30:188 player piid:101591 state:device DeviceId:14993
+11-05 16:39:31:310 player piid:101591 state:stopped DeviceId:0
+11-05 16:39:31:318 releasing player piid:101591
+
+  allowed capture policies:
+
+RecordActivityMonitor dump time: 16:40:44
+
+
+Audio event log: recording activity received by AudioService
+11-05 16:26:30:605 rec update riid:100447 uid:10426 session:93025 src:VOICE_COMMUNICATION not silenced pack:com.innotrik.aispeaking
+11-05 16:26:33:529 rec stop riid:100447 uid:10426 session:93025 src:VOICE_COMMUNICATION not silenced pack:com.innotrik.aispeaking
+11-05 16:26:40:573 rec update riid:100479 uid:10426 session:93049 src:VOICE_COMMUNICATION not silenced pack:com.innotrik.aispeaking
+11-05 16:26:43:072 rec stop riid:100479 uid:10426 session:93049 src:VOICE_COMMUNICATION not silenced pack:com.innotrik.aispeaking
+11-05 16:33:43:267 rec update riid:100511 uid:10192 session:93073 src:VOICE_RECOGNITION not silenced pack:com.google.android.tts
+11-05 16:33:52:304 rec stop riid:100511 uid:10192 session:93073 src:VOICE_RECOGNITION not silenced pack:com.google.android.tts
+11-05 16:33:57:057 rec update riid:100551 uid:10192 session:93113 src:VOICE_RECOGNITION not silenced pack:com.google.android.tts
+11-05 16:34:01:703 rec stop riid:100551 uid:10192 session:93113 src:VOICE_RECOGNITION not silenced pack:com.google.android.tts
+11-05 16:34:06:078 rec update riid:100591 uid:10192 session:93153 src:VOICE_RECOGNITION not silenced pack:com.google.android.tts
+11-05 16:34:10:501 rec stop riid:100591 uid:10192 session:93153 src:VOICE_RECOGNITION not silenced pack:com.google.android.tts
+11-05 16:34:18:784 rec update riid:100631 uid:10192 session:93193 src:VOICE_RECOGNITION not silenced pack:com.google.android.tts
+11-05 16:34:22:393 rec stop riid:100631 uid:10192 session:93193 src:VOICE_RECOGNITION not silenced pack:com.google.android.tts
+11-05 16:34:34:481 rec update riid:100703 uid:10426 session:93265 src:VOICE_RECOGNITION silenced pack:com.innotrik.aispeaking
+11-05 16:34:40:609 rec stop riid:100703 uid:10426 session:93265 src:VOICE_RECOGNITION silenced pack:com.innotrik.aispeaking
+11-05 16:34:52:245 rec update riid:100735 uid:10426 session:93297 src:VOICE_RECOGNITION silenced pack:com.innotrik.aispeaking
+11-05 16:34:58:456 rec stop riid:100735 uid:10426 session:93297 src:VOICE_RECOGNITION silenced pack:com.innotrik.aispeaking
+11-05 16:35:12:284 rec update riid:100767 uid:10192 session:93321 src:VOICE_RECOGNITION not silenced pack:com.google.android.tts
+11-05 16:35:15:983 rec stop riid:100767 uid:10192 session:93321 src:VOICE_RECOGNITION not silenced pack:com.google.android.tts
+11-05 16:35:24:633 rec update riid:100839 uid:10426 session:93393 src:VOICE_RECOGNITION silenced pack:com.innotrik.aispeaking
+11-05 16:35:30:755 rec stop riid:100839 uid:10426 session:93393 src:VOICE_RECOGNITION silenced pack:com.innotrik.aispeaking
+11-05 16:35:42:131 rec update riid:100871 uid:10426 session:93417 src:VOICE_RECOGNITION silenced pack:com.innotrik.aispeaking
+11-05 16:35:48:339 rec stop riid:100871 uid:10426 session:93417 src:VOICE_RECOGNITION silenced pack:com.innotrik.aispeaking
+11-05 16:36:00:264 rec update riid:100903 uid:10192 session:93441 src:VOICE_RECOGNITION not silenced pack:com.google.android.tts
+11-05 16:36:04:385 rec stop riid:100903 uid:10192 session:93441 src:VOICE_RECOGNITION not silenced pack:com.google.android.tts
+11-05 16:36:14:759 rec update riid:100975 uid:10426 session:93513 src:VOICE_RECOGNITION silenced pack:com.innotrik.aispeaking
+11-05 16:36:20:984 rec stop riid:100975 uid:10426 session:93513 src:VOICE_RECOGNITION silenced pack:com.innotrik.aispeaking
+11-05 16:36:31:962 rec update riid:101007 uid:10426 session:93537 src:VOICE_RECOGNITION silenced pack:com.innotrik.aispeaking
+11-05 16:36:38:158 rec stop riid:101007 uid:10426 session:93537 src:VOICE_RECOGNITION silenced pack:com.innotrik.aispeaking
+11-05 16:36:50:043 rec update riid:101039 uid:10192 session:93561 src:VOICE_RECOGNITION not silenced pack:com.google.android.tts
+11-05 16:36:53:755 rec stop riid:101039 uid:10192 session:93561 src:VOICE_RECOGNITION not silenced pack:com.google.android.tts
+11-05 16:37:02:713 rec update riid:101111 uid:10426 session:93633 src:VOICE_RECOGNITION not silenced pack:com.innotrik.aispeaking
+11-05 16:37:06:521 rec stop riid:101111 uid:10426 session:93633 src:VOICE_RECOGNITION not silenced pack:com.innotrik.aispeaking
+11-05 16:37:14:637 rec update riid:101151 uid:10426 session:93665 src:VOICE_RECOGNITION not silenced pack:com.innotrik.aispeaking
+11-05 16:37:18:355 rec stop riid:101151 uid:10426 session:93665 src:VOICE_RECOGNITION not silenced pack:com.innotrik.aispeaking
+11-05 16:37:31:577 rec update riid:101215 uid:10426 session:93721 src:VOICE_RECOGNITION not silenced pack:com.innotrik.aispeaking
+11-05 16:37:34:820 rec stop riid:101215 uid:10426 session:93721 src:VOICE_RECOGNITION not silenced pack:com.innotrik.aispeaking
+11-05 16:37:42:273 rec update riid:101255 uid:10426 session:93753 src:VOICE_RECOGNITION not silenced pack:com.innotrik.aispeaking
+11-05 16:37:45:678 rec stop riid:101255 uid:10426 session:93753 src:VOICE_RECOGNITION not silenced pack:com.innotrik.aispeaking
+11-05 16:37:56:428 rec update riid:101319 uid:10426 session:93809 src:VOICE_RECOGNITION not silenced pack:com.innotrik.aispeaking
+11-05 16:37:59:670 rec stop riid:101319 uid:10426 session:93809 src:VOICE_RECOGNITION not silenced pack:com.innotrik.aispeaking
+11-05 16:38:07:138 rec update riid:101359 uid:10426 session:93841 src:VOICE_RECOGNITION not silenced pack:com.innotrik.aispeaking
+11-05 16:38:10:953 rec stop riid:101359 uid:10426 session:93841 src:VOICE_RECOGNITION not silenced pack:com.innotrik.aispeaking
+11-05 16:38:21:913 rec update riid:101415 uid:10426 session:93889 src:VOICE_RECOGNITION not silenced pack:com.innotrik.aispeaking
+11-05 16:38:24:677 rec stop riid:101415 uid:10426 session:93889 src:VOICE_RECOGNITION not silenced pack:com.innotrik.aispeaking
+11-05 16:38:46:100 rec update riid:101471 uid:10192 session:93937 src:VOICE_RECOGNITION not silenced pack:com.google.android.tts
+11-05 16:38:49:978 rec stop riid:101471 uid:10192 session:93937 src:VOICE_RECOGNITION not silenced pack:com.google.android.tts
+11-05 16:38:58:760 rec update riid:101543 uid:10426 session:94009 src:VOICE_RECOGNITION silenced pack:com.innotrik.aispeaking
+11-05 16:39:04:908 rec stop riid:101543 uid:10426 session:94009 src:VOICE_RECOGNITION silenced pack:com.innotrik.aispeaking
+11-05 16:39:15:488 rec update riid:101575 uid:10426 session:94033 src:VOICE_RECOGNITION not silenced pack:com.innotrik.aispeaking
+11-05 16:39:21:707 rec stop riid:101575 uid:10426 session:94033 src:VOICE_RECOGNITION not silenced pack:com.innotrik.aispeaking
+
+AudioDeviceBroker:
+  Message handler (watch for unhandled messages):
+    Handler (com.android.server.audio.AudioDeviceBroker$BrokerHandler) {d2b4e6c} @ 156090605
+      Looper (AudioDeviceBroker, tid 184) {dd7c35}
+        Now dispatching: null
+        (Total messages: 0, polling=true, quitting=false)
+
+  Preferred devices for strategy:
+    strategy:16 device:[AudioDeviceAttributes: role:output type:bt_sco addr:XX:XX:XX:00:00:00]
+
+  Connected devices:
+    [DeviceInfo: type:0x80 (bt_a2dp) name:HM-D001 addr:41:42:80:08:6B:C6 codec: 4000000]
+    [DeviceInfo: type:0x10 (bt_sco) name: addr:00:00:00:00:00:00 codec: 0]
+    [DeviceInfo: type:0x80000008 (bt_sco_hs) name: addr:00:00:00:00:00:00 codec: 0]
+
+  APM Connected device (A2DP sink only):
+     type:0x80 (bt_a2dp) addr:0x80:41:42:80:08:6B:C6
+
+  Communication route clients:
+    pid: 32492 device: AudioDeviceAttributes: role:output type:bt_sco addr:XX:XX:XX:00:00:00 cb: android.os.BinderProxy@7eac748
+
+  Computed Preferred communication device: AudioDeviceAttributes: role:output type:bt_sco addr:XX:XX:XX:00:00:00
+
+  Applied Preferred communication device: AudioDeviceAttributes: role:output type:bt_sco addr:XX:XX:XX:00:00:00
+  Active communication device: AudioDeviceAttributes: role:output type:bt_sco addr:XX:XX:XX:00:00:00
+  mCommunicationStrategyId: 16
+
+  mModeOwnerPid: 0
+
+  mBluetoothHeadset: android.bluetooth.BluetoothHeadset@a7928c9
+  mBluetoothHeadsetDevice: 41:42:80:08:6B:C6
+  mScoAudioState: SCO_STATE_ACTIVE_INTERNAL
+  mScoAudioMode: SCO_MODE_VIRTUAL_CALL
+
+  mHearingAid: null
+  mA2dp: android.bluetooth.BluetoothA2dp@d34fde4
+  mAvrcpAbsVolSupported: true
+
+SoundEffects:
+  Message handler (watch for unhandled messages):
+  Handler (com.android.server.audio.SoundEffectsHelper$SfxHandler) {2438ca} @ 156090610
+    Looper (AS.SfxWorker, tid 182) {ef5ea3b}
+      Now dispatching: null
+      (Total messages: 0, polling=true, quitting=false)
+  Default attenuation (dB): -6
+Audio event log: Sound Effects Loading
+10-24 22:11:56:033 effects loading started
+10-24 22:11:57:192 effect Effect_Tick.ogg loaded
+10-24 22:11:57:200 effect KeypressStandard.ogg loaded
+10-24 22:11:57:275 effect KeypressDelete.ogg loaded
+10-24 22:11:57:281 effect KeypressSpacebar.ogg loaded
+10-24 22:11:57:394 effect KeypressReturn.ogg loaded
+10-24 22:11:57:427 effect KeypressInvalid.ogg loaded
+10-24 22:11:57:427 effects loading completed
+
+
+
+Event logs:
+Audio event log: phone state (logged after successful call to AudioSystem.setPhoneState(int, int))
+11-05 16:34:12:173 setMode(MODE_NORMAL) from package=android pid=1279 selected mode=MODE_NORMAL by pid=0
+11-05 16:34:12:796 setMode(MODE_IN_COMMUNICATION) from package=android pid=1279 selected mode=MODE_IN_COMMUNICATION by pid=32492
+11-05 16:35:12:238 setMode(MODE_NORMAL) from package=android pid=1279 selected mode=MODE_NORMAL by pid=0
+11-05 16:35:12:803 setMode(MODE_IN_COMMUNICATION) from package=com.innotrik.aispeaking pid=32492 selected mode=MODE_IN_COMMUNICATION by pid=32492
+11-05 16:35:18:442 setMode(MODE_NORMAL) from package=android pid=1279 selected mode=MODE_NORMAL by pid=0
+11-05 16:35:19:106 setMode(MODE_IN_COMMUNICATION) from package=android pid=1279 selected mode=MODE_IN_COMMUNICATION by pid=32492
+11-05 16:36:02:155 setMode(MODE_NORMAL) from package=android pid=1279 selected mode=MODE_NORMAL by pid=0
+11-05 16:36:04:730 setMode(MODE_IN_COMMUNICATION) from package=com.innotrik.aispeaking pid=32492 selected mode=MODE_IN_COMMUNICATION by pid=32492
+11-05 16:37:07:723 setMode(MODE_NORMAL) from package=android pid=1279 selected mode=MODE_NORMAL by pid=0
+11-05 16:37:08:209 setMode(MODE_IN_COMMUNICATION) from package=android pid=1279 selected mode=MODE_IN_COMMUNICATION by pid=32492
+11-05 16:37:19:750 setMode(MODE_NORMAL) from package=android pid=1279 selected mode=MODE_NORMAL by pid=0
+11-05 16:37:20:220 setMode(MODE_IN_COMMUNICATION) from package=android pid=1279 selected mode=MODE_IN_COMMUNICATION by pid=32492
+11-05 16:38:12:370 setMode(MODE_NORMAL) from package=android pid=1279 selected mode=MODE_NORMAL by pid=0
+11-05 16:38:14:645 setMode(MODE_IN_COMMUNICATION) from package=com.innotrik.aispeaking pid=32492 selected mode=MODE_IN_COMMUNICATION by pid=32492
+11-05 16:38:40:430 setMode(MODE_NORMAL) from package=com.innotrik.aispeaking pid=32492 selected mode=MODE_NORMAL by pid=0
+11-05 16:38:42:004 setMode(MODE_IN_COMMUNICATION) from package=com.innotrik.aispeaking pid=32492 selected mode=MODE_IN_COMMUNICATION by pid=32492
+11-05 16:38:48:001 setMode(MODE_NORMAL) from package=android pid=1279 selected mode=MODE_NORMAL by pid=0
+11-05 16:38:49:964 setMode(MODE_IN_COMMUNICATION) from package=com.innotrik.aispeaking pid=32492 selected mode=MODE_IN_COMMUNICATION by pid=32492
+11-05 16:39:35:674 setMode(MODE_NORMAL) from package=android pid=1279 selected mode=MODE_NORMAL by pid=0
+11-05 16:40:01:317 setMode(MODE_NORMAL) from package=AudioPomService pid=32492 selected mode=MODE_NORMAL by pid=0
+
+
+Audio event log: wired/A2DP/hearing aid device connection
+11-05 16:39:15:522 setCommunicationRouteForClient for pid: 32492 device: AudioDeviceAttributes: role:output type:bt_sco addr: from API: startBluetoothSco() by system
+11-05 16:39:15:524 onUpdateCommunicationRoute, preferredCommunicationDevice: AudioDeviceAttributes: role:output type:bt_sco addr:XX:XX:XX:00:00:00 eventSource: startBluetoothSco() by system
+11-05 16:39:15:532 setPreferredDevicesForStrategySync, strategy: 16 devices: [AudioDeviceAttributes: role:output type:bt_sco addr:XX:XX:XX:00:00:00]
+11-05 16:39:18:441 onUpdateCommunicationRoute, preferredCommunicationDevice: AudioDeviceAttributes: role:output type:bt_sco addr:XX:XX:XX:00:00:00 eventSource: setNewModeOwner
+11-05 16:39:18:445 setPreferredDevicesForStrategySync, strategy: 16 devices: [AudioDeviceAttributes: role:output type:bt_sco addr:XX:XX:XX:00:00:00]
+11-05 16:39:21:500 onUpdateCommunicationRoute, preferredCommunicationDevice: AudioDeviceAttributes: role:output type:bt_sco addr:XX:XX:XX:00:00:00 eventSource: setNewModeOwner
+11-05 16:39:21:506 setPreferredDevicesForStrategySync, strategy: 16 devices: [AudioDeviceAttributes: role:output type:bt_sco addr:XX:XX:XX:00:00:00]
+11-05 16:39:21:597 setCommunicationRouteForClient for pid: 32492 device: null from API: stopBluetoothSco()) from u/pid:10426/32492
+11-05 16:39:21:598 stopBluetoothSco()) from u/pid:10426/32492
+11-05 16:39:21:754 onUpdateCommunicationRoute, preferredCommunicationDevice: AudioDeviceAttributes: role:output type:bt_sco addr:XX:XX:XX:00:00:00 eventSource: stopBluetoothSco()) from u/pid:10426/32492
+11-05 16:39:21:758 setPreferredDevicesForStrategySync, strategy: 16 devices: [AudioDeviceAttributes: role:output type:bt_sco addr:XX:XX:XX:00:00:00]
+11-05 16:39:21:961 onUpdateCommunicationRoute, preferredCommunicationDevice: null eventSource: setBluetoothScoOn(false) from u/pid:1002/10903
+11-05 16:39:21:967 onUpdateCommunicationRoute, preferredCommunicationDevice: null eventSource: BtHelper.receiveBtEvent
+11-05 16:39:21:971 removePreferredDevicesForStrategySync, strategy: 16
+11-05 16:39:22:404 onUpdateCommunicationRoute, preferredCommunicationDevice: null eventSource: setNewModeOwner
+11-05 16:39:22:408 removePreferredDevicesForStrategySync, strategy: 16
+11-05 16:39:22:413 setCommunicationRouteForClient for pid: 32492 device: AudioDeviceAttributes: role:output type:bt_sco addr:XX:XX:XX:00:00:00 from API: setCommunicationDevice() from u/pid:10426/32492
+11-05 16:39:22:413 setCommunicationDevice() from u/pid:10426/32492
+11-05 16:39:22:480 onUpdateCommunicationRoute, preferredCommunicationDevice: null eventSource: setCommunicationDevice() from u/pid:10426/32492
+11-05 16:39:22:492 removePreferredDevicesForStrategySync, strategy: 16
+11-05 16:39:22:603 onUpdateCommunicationRoute, preferredCommunicationDevice: AudioDeviceAttributes: role:output type:bt_sco addr:XX:XX:XX:00:00:00 eventSource: setBluetoothScoOn(true) from u/pid:1002/10903
+11-05 16:39:22:607 setPreferredDevicesForStrategySync, strategy: 16 devices: [AudioDeviceAttributes: role:output type:bt_sco addr:XX:XX:XX:00:00:00]
+11-05 16:39:22:984 onUpdateCommunicationRoute, preferredCommunicationDevice: AudioDeviceAttributes: role:output type:bt_sco addr:XX:XX:XX:00:00:00 eventSource: BtHelper.receiveBtEvent
+11-05 16:39:22:989 setPreferredDevicesForStrategySync, strategy: 16 devices: [AudioDeviceAttributes: role:output type:bt_sco addr:XX:XX:XX:00:00:00]
+11-05 16:39:29:559 onUpdateCommunicationRoute, preferredCommunicationDevice: AudioDeviceAttributes: role:output type:bt_sco addr:XX:XX:XX:00:00:00 eventSource: setNewModeOwner
+11-05 16:39:29:566 setPreferredDevicesForStrategySync, strategy: 16 devices: [AudioDeviceAttributes: role:output type:bt_sco addr:XX:XX:XX:00:00:00]
+11-05 16:39:35:765 onUpdateCommunicationRoute, preferredCommunicationDevice: AudioDeviceAttributes: role:output type:bt_sco addr:XX:XX:XX:00:00:00 eventSource: setNewModeOwner
+11-05 16:39:35:769 setPreferredDevicesForStrategySync, strategy: 16 devices: [AudioDeviceAttributes: role:output type:bt_sco addr:XX:XX:XX:00:00:00]
+11-05 16:40:01:430 onUpdateCommunicationRoute, preferredCommunicationDevice: AudioDeviceAttributes: role:output type:bt_sco addr:XX:XX:XX:00:00:00 eventSource: setNewModeOwner
+11-05 16:40:01:434 setPreferredDevicesForStrategySync, strategy: 16 devices: [AudioDeviceAttributes: role:output type:bt_sco addr:XX:XX:XX:00:00:00]
+
+
+Audio event log: force use (logged before setForceUse() is executed)
+11-05 16:39:05:145 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to muteRingerModeStreams() from u/pid:1000/1279
+11-05 16:39:05:601 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to muteRingerModeStreams() from u/pid:1000/1279
+11-05 16:39:05:624 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to muteRingerModeStreams() from u/pid:1000/1279
+11-05 16:39:06:005 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to muteRingerModeStreams() from u/pid:1000/1279
+11-05 16:39:06:208 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to muteRingerModeStreams() from u/pid:1000/1279
+11-05 16:39:12:642 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to muteRingerModeStreams() from u/pid:1000/1279
+11-05 16:39:15:712 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to muteRingerModeStreams() from u/pid:1000/1279
+11-05 16:39:18:666 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to muteRingerModeStreams() from u/pid:1000/1279
+11-05 16:39:21:769 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to muteRingerModeStreams() from u/pid:1000/1279
+11-05 16:39:21:992 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to muteRingerModeStreams() from u/pid:1000/1279
+11-05 16:39:22:421 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to muteRingerModeStreams() from u/pid:1000/1279
+11-05 16:39:22:432 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to muteRingerModeStreams() from u/pid:1000/1279
+11-05 16:39:22:507 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to muteRingerModeStreams() from u/pid:1000/1279
+11-05 16:39:22:997 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to muteRingerModeStreams() from u/pid:1000/1279
+11-05 16:39:23:220 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to muteRingerModeStreams() from u/pid:1000/1279
+11-05 16:39:29:797 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to muteRingerModeStreams() from u/pid:1000/1279
+11-05 16:39:35:771 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to muteRingerModeStreams() from u/pid:1000/1279
+11-05 16:39:36:122 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to muteRingerModeStreams() from u/pid:1000/1279
+11-05 16:40:01:406 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to muteRingerModeStreams() from u/pid:1000/1279
+11-05 16:40:01:642 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to muteRingerModeStreams() from u/pid:1000/1279
+
+
+Audio event log: volume changes (logged when command received by AudioService)
+11-05 16:38:21:048 Voice activity change (active) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:38:21:760 Voice activity change (inactive) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:38:26:258 Voice activity change (active) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:38:26:838 setStreamVolume(stream:STREAM_BLUETOOTH_SCO index:6 flags:0x0) from com.android.bluetooth
+11-05 16:38:27:334 Voice activity change (inactive) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:38:28:083 Voice activity change (active) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:38:29:202 Voice activity change (inactive) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:38:29:434 Voice activity change (active) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:38:31:833 Voice activity change (inactive) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:38:31:968 Voice activity change (active) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:38:37:417 Voice activity change (inactive) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:38:37:536 Voice activity change (active) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:38:39:316 Voice activity change (inactive) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:38:43:437 setStreamVolume(stream:STREAM_BLUETOOTH_SCO index:6 flags:0x0) from com.android.bluetooth
+11-05 16:38:43:772 Voice activity change (active) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:38:45:932 Voice activity change (inactive) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:38:46:525 Voice activity change (active) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:38:47:235 Voice activity change (inactive) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:38:50:800 Voice activity change (active) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:38:52:086 Voice activity change (inactive) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:38:52:610 Voice activity change (active) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:38:53:765 Voice activity change (inactive) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:38:53:981 Voice activity change (active) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:38:54:933 Voice activity change (inactive) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:38:55:142 Voice activity change (active) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:38:57:415 Voice activity change (inactive) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:38:57:857 Voice activity change (active) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:38:58:573 Voice activity change (inactive) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:39:06:275 Voice activity change (active) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:39:06:817 setStreamVolume(stream:STREAM_BLUETOOTH_SCO index:6 flags:0x0) from com.android.bluetooth
+11-05 16:39:12:045 Voice activity change (inactive) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:39:12:809 Voice activity change (active) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:39:14:290 Voice activity change (inactive) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:39:14:712 Voice activity change (active) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:39:15:398 Voice activity change (inactive) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:39:23:379 Voice activity change (active) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:39:23:805 setStreamVolume(stream:STREAM_BLUETOOTH_SCO index:6 flags:0x0) from com.android.bluetooth
+11-05 16:39:29:159 Voice activity change (inactive) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:39:29:966 Voice activity change (active) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+11-05 16:39:31:311 Voice activity change (inactive) causes setting HEARING_AID volume to idx:4 stream:STREAM_VOICE_CALL
+
+
+Audio event log: device cache changes (logged when devices cached updated in AudioSystemAdapter)
+11-05 16:38:46:018 AudioSystemAdapter : getDevicesForStream stream=3 dev=0x10
+11-05 16:38:46:511 AudioSystemAdapter : getDevicesForStream stream=3 dev=0x10
+11-05 16:38:48:024 AudioSystemAdapter : getDevicesForStream stream=3 dev=0x10
+11-05 16:38:50:102 AudioSystemAdapter : getDevicesForStream stream=3 dev=0x10
+11-05 16:38:50:529 AudioSystemAdapter : getDevicesForStream stream=3 dev=0x10
+11-05 16:38:51:031 AudioSystemAdapter : getDevicesForStream stream=3 dev=0x10
+11-05 16:38:52:631 AudioSystemAdapter : getDevicesForStream stream=3 dev=0x10
+11-05 16:38:57:846 AudioSystemAdapter : getDevicesForStream stream=3 dev=0x10
+11-05 16:39:01:052 AudioSystemAdapter : getDevicesForStream stream=3 dev=0x10
+11-05 16:39:06:179 AudioSystemAdapter : getDevicesForStream stream=3 dev=0x10
+11-05 16:39:10:692 AudioSystemAdapter : getDevicesForStream stream=3 dev=0x10
+11-05 16:39:12:816 AudioSystemAdapter : getDevicesForStream stream=3 dev=0x10
+11-05 16:39:16:205 AudioSystemAdapter : getDevicesForStream stream=3 dev=0x10
+11-05 16:39:19:137 AudioSystemAdapter : getDevicesForStream stream=3 dev=0x10
+11-05 16:39:24:712 AudioSystemAdapter : getDevicesForStream stream=3 dev=0x10
+11-05 16:39:29:986 AudioSystemAdapter : getDevicesForStream stream=3 dev=0x10
+11-05 16:39:35:694 AudioSystemAdapter : getDevicesForStream stream=3 dev=0x10
+11-05 16:39:36:242 AudioSystemAdapter : getDevicesForStream stream=3 dev=0x10
+11-05 16:40:01:408 AudioSystemAdapter : getDevicesForStream stream=3 dev=0x10
+11-05 16:40:06:310 AudioSystemAdapter : getDevicesForStream stream=3 dev=0x10
+
+
+Supported System Usages:
+	USAGE_CALL_ASSISTANT

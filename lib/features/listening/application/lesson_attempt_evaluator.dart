@@ -66,11 +66,14 @@ class MethodChannelLessonRecordedSpeechRecognizer
   const MethodChannelLessonRecordedSpeechRecognizer({
     MethodChannel channel = const MethodChannel('homi_offline_speech'),
     Duration timeout = const Duration(seconds: 20),
+    bool cancelFileOnTimeout = true,
   }) : _channel = channel,
-       _timeout = timeout;
+       _timeout = timeout,
+       _cancelFileOnTimeout = cancelFileOnTimeout;
 
   final MethodChannel _channel;
   final Duration _timeout;
+  final bool _cancelFileOnTimeout;
 
   @override
   Future<void> prepare() async {
@@ -153,12 +156,16 @@ class MethodChannelLessonRecordedSpeechRecognizer
           .timeout(_timeout);
       return _parseRecognition(payload);
     } on TimeoutException {
-      try {
-        await _channel
-            .invokeMethod<void>('cancel')
-            .timeout(const Duration(seconds: 2));
-      } catch (_) {
-        // Native cleanup is best-effort after a bounded recognition timeout.
+      // Topic scoring can already have returned a backend result. Its old
+      // unscoped cancel must never invalidate another view's newer native file.
+      if (_cancelFileOnTimeout) {
+        try {
+          await _channel
+              .invokeMethod<void>('cancel')
+              .timeout(const Duration(seconds: 2));
+        } catch (_) {
+          // Native cleanup is best-effort after a bounded recognition timeout.
+        }
       }
       throw const LessonRecordedSpeechRecognitionException(
         'SPEECH_TIMEOUT',
@@ -338,8 +345,11 @@ class AndroidOnDeviceFirstLessonAttemptEvaluator
     LessonRecordedSpeechRecognizer recognizer =
         const MethodChannelLessonRecordedSpeechRecognizer(
           timeout: Duration(seconds: 3),
+          cancelFileOnTimeout: false,
         ),
     Future<bool> Function()? networkTransportAvailable,
+    this.localBudget = const Duration(seconds: 3),
+    this.backendHedgeDelay = const Duration(milliseconds: 300),
   }) : _backendEvaluator = backendEvaluator,
        _recognizer = recognizer,
        _networkTransportAvailable = networkTransportAvailable;
@@ -347,46 +357,89 @@ class AndroidOnDeviceFirstLessonAttemptEvaluator
   final LessonAttemptEvaluator _backendEvaluator;
   final LessonRecordedSpeechRecognizer _recognizer;
   final Future<bool> Function()? _networkTransportAvailable;
+  final Duration localBudget;
+  final Duration backendHedgeDelay;
   Future<bool>? _liveStart;
   int _liveTurnId = 0;
+  Future<void> _localTail = Future<void>.value();
+  int _generation = 0;
+  bool _disposed = false;
+  Completer<LessonAttemptOutcome>? _evaluation;
 
-  Future<void> prepare() async {
+  // Keep late local work ordered within this evaluator; topic file timeouts
+  // never send an unscoped native cancellation into a replacement view.
+  Future<T> _serializeLocal<T>(Future<T> Function() action) {
+    final operation = _localTail.then<T>((_) => action());
+    _localTail = operation.then<void>(
+      (_) {},
+      onError: (Object error, StackTrace stack) {},
+    );
+    return operation;
+  }
+
+  void _invalidateEvaluation() {
+    ++_generation;
+    final previous = _evaluation;
+    _evaluation = null;
+    if (previous != null && !previous.isCompleted) {
+      previous.completeError(
+        const LessonAttemptEvaluationException(
+          'Lượt chấm câu trả lời đã dừng.',
+          backendUnavailable: true,
+        ),
+      );
+    }
+  }
+
+  Future<void> prepare() => _serializeLocal(() async {
+    if (_disposed) return;
     final recognizer = _recognizer;
     if (recognizer is LessonRecordedSpeechRecognizerPreparer) {
       await (recognizer as LessonRecordedSpeechRecognizerPreparer).prepare();
     }
-  }
+  });
 
   void beginLiveRecognition(String? recordingPath) {
+    _invalidateEvaluation();
     final recognizer = _recognizer;
-    if (recordingPath == null ||
+    if (_disposed ||
+        recordingPath == null ||
         recordingPath.isEmpty ||
         recognizer is! LessonStreamingRecordedSpeechRecognizer) {
       return;
     }
     final turnId = ++_nextLiveTurnId;
     _liveTurnId = turnId;
-    _liveStart = (recognizer as LessonStreamingRecordedSpeechRecognizer)
-        .startStream(recordingPath, turnId);
+    _liveStart = _serializeLocal(() async {
+      if (_disposed || _liveTurnId != turnId) return false;
+      return (recognizer as LessonStreamingRecordedSpeechRecognizer)
+          .startStream(recordingPath, turnId);
+    });
+    // Failure may arrive before evaluate/cancel attaches to this start.
+    _liveStart!.ignore();
   }
 
-  Future<void> cancelLiveRecognition() async {
+  Future<void> cancelLiveRecognition() {
+    _invalidateEvaluation();
     final started = _liveStart;
     _liveStart = null;
     final turnId = _liveTurnId;
+    _liveTurnId = 0;
     final recognizer = _recognizer;
     if (started == null ||
         recognizer is! LessonStreamingRecordedSpeechRecognizer) {
-      return;
+      return Future<void>.value();
     }
-    try {
-      if (await started) {
-        await (recognizer as LessonStreamingRecordedSpeechRecognizer)
-            .cancelStream(turnId);
+    return _serializeLocal(() async {
+      try {
+        if (await started) {
+          await (recognizer as LessonStreamingRecordedSpeechRecognizer)
+              .cancelStream(turnId);
+        }
+      } on Exception {
+        // A replaced native turn needs no further cleanup here.
       }
-    } on Exception {
-      // The next lesson turn starts with a fresh native recognition session.
-    }
+    });
   }
 
   @override
@@ -400,97 +453,234 @@ class AndroidOnDeviceFirstLessonAttemptEvaluator
     required int childAge,
     Iterable<String> acceptedVariants = const <String>[],
     bool requireAllExpectedTokens = false,
-  }) async {
-    final localTimer = Stopwatch()..start();
-    try {
+  }) {
+    _invalidateEvaluation();
+    if (_disposed) {
+      return Future<LessonAttemptOutcome>.error(
+        const LessonAttemptEvaluationException(
+          'Lượt chấm câu trả lời đã dừng.',
+          backendUnavailable: true,
+        ),
+      );
+    }
+    final generation = _generation;
+    final result = Completer<LessonAttemptOutcome>();
+    _evaluation = result;
+    final elapsed = Stopwatch()..start();
+    final variants = List<String>.of(acceptedVariants);
+    final liveStart = _liveStart;
+    _liveStart = null;
+    final turnId = _liveTurnId;
+    bool current() =>
+        !_disposed && generation == _generation && !result.isCompleted;
+    bool localEligible() => current() && elapsed.elapsed < localBudget;
+    var localDone = false;
+    var backendStarted = false;
+    var backendDone = false;
+    Object? localError;
+    Object? backendError;
+    LessonAttemptOutcome? backendOutcome;
+
+    void completeOutcome(LessonAttemptOutcome outcome, String source) {
+      if (!current()) return;
+      debugPrint(
+        jsonEncode(<String, Object?>{
+          'event': 'lesson_scoring_android_winner',
+          'source': source,
+          'durationMs': elapsed.elapsedMilliseconds,
+        }),
+      );
+      result.complete(outcome);
+    }
+
+    void finishFallback() {
+      if (current() && localDone && backendDone) {
+        final fallback = backendOutcome;
+        if (fallback != null) {
+          completeOutcome(fallback, 'backend');
+          return;
+        }
+        result.completeError(
+          backendError ??
+              localError ??
+              const LessonAttemptEvaluationException(
+                'Chưa thể chấm câu trả lời.',
+                backendUnavailable: true,
+              ),
+        );
+      }
+    }
+
+    Future<void> startBackend() async {
+      if (!current() || backendStarted) return;
+      backendStarted = true;
+      try {
+        final checker = _networkTransportAvailable;
+        bool? available;
+        if (checker != null) {
+          try {
+            available = await checker().timeout(const Duration(seconds: 2));
+          } catch (_) {
+            // Unknown transport state preserves the existing backend fallback.
+          }
+        }
+        if (!current()) return;
+        if (available == false) {
+          throw const LessonAttemptEvaluationException(
+            'Thiết bị đang ngoại tuyến và chưa thể chấm câu trên máy.',
+            backendUnavailable: true,
+          );
+        }
+        final outcome = await _backendEvaluator.evaluate(
+          lessonCode: lessonCode,
+          sentenceId: sentenceId,
+          expectedEnglish: expectedEnglish,
+          recordingPath: recordingPath,
+          recordingDuration: recordingDuration,
+          attemptNumber: attemptNumber,
+          childAge: childAge,
+          acceptedVariants: variants,
+          requireAllExpectedTokens: requireAllExpectedTokens,
+        );
+        // A hedged negative result must not discard a correct local answer
+        // still eligible inside its bounded primary recognition window.
+        if (outcome == LessonAttemptOutcome.good) {
+          completeOutcome(outcome, 'backend');
+        } else {
+          backendOutcome = outcome;
+        }
+      } catch (error) {
+        backendError = error;
+      } finally {
+        backendDone = true;
+        finishFallback();
+      }
+    }
+
+    final deadline = Timer(localBudget, () {
+      if (!current() || localDone) return;
+      localDone = true;
+      debugPrint(
+        jsonEncode(<String, Object?>{
+          'event': 'lesson_scoring_android_local_budget_expired',
+          'durationMs': elapsed.elapsedMilliseconds,
+        }),
+      );
+      localError = TimeoutException(
+        'Local lesson scoring budget exhausted.',
+        localBudget,
+      );
+      unawaited(startBackend());
+      finishFallback();
+    });
+    final hedge = Timer(backendHedgeDelay, () => unawaited(startBackend()));
+
+    final local = _serializeLocal(() async {
+      if (!localEligible()) {
+        throw TimeoutException('Local scoring turn expired.');
+      }
       LessonRecordedSpeechRecognition? recognition;
       var usedLiveRecognition = false;
-      final liveStart = _liveStart;
-      _liveStart = null;
-      final turnId = _liveTurnId;
       final recognizer = _recognizer;
       if (liveStart != null &&
-          recognizer is LessonStreamingRecordedSpeechRecognizer &&
-          await liveStart) {
+          recognizer is LessonStreamingRecordedSpeechRecognizer) {
         try {
-          recognition =
+          if (await liveStart) {
+            if (!localEligible()) {
               await (recognizer as LessonStreamingRecordedSpeechRecognizer)
-                  .stopStream(turnId);
-          usedLiveRecognition = true;
-        } on LessonRecordedSpeechRecognitionException {
-          // A service can reject live file tailing; score the completed WAV.
+                  .cancelStream(turnId);
+              throw TimeoutException('Local scoring turn expired.');
+            }
+            recognition =
+                await (recognizer as LessonStreamingRecordedSpeechRecognizer)
+                    .stopStream(turnId);
+            usedLiveRecognition = true;
+          }
+        } on Exception {
+          // A completed WAV is eligible only inside the same total budget.
         }
       }
-      recognition ??= await _recognizer.recognizeFile(
+      if (!localEligible()) {
+        throw TimeoutException('Local scoring turn expired.');
+      }
+      recognition ??= await recognizer.recognizeFile(
         path: recordingPath,
         locale: 'en-US',
         preferOnDevice: true,
         requireOnDevice: true,
       );
+      if (!localEligible()) {
+        throw TimeoutException('Local scoring turn expired.');
+      }
       final outcome = evaluateNativeLessonTranscripts(
         expectedEnglish: expectedEnglish,
-        transcripts: <String>[
-          recognition.transcript,
-          ...recognition.alternatives,
-        ],
-        acceptedVariants: acceptedVariants,
+        transcripts: [recognition.transcript, ...recognition.alternatives],
+        acceptedVariants: variants,
         requireAllExpectedTokens: requireAllExpectedTokens,
       );
       debugPrint(
         jsonEncode(<String, Object?>{
           'event': 'lesson_scoring_android_local',
-          'durationMs': localTimer.elapsedMilliseconds,
+          'durationMs': elapsed.elapsedMilliseconds,
           'mode': usedLiveRecognition ? 'live' : 'file',
           'outcome': outcome.name,
         }),
       );
       return outcome;
-    } on Exception catch (error) {
-      // The model may not be installed, or this recording may not be usable by
-      // the local recognizer. Keep the existing online scorer for these cases.
-      debugPrint(
-        jsonEncode(<String, Object?>{
-          'event': 'lesson_scoring_android_local_fallback',
-          'durationMs': localTimer.elapsedMilliseconds,
-          'reason': error is LessonRecordedSpeechRecognitionException
-              ? error.code
-              : error.runtimeType.toString(),
-        }),
-      );
-    }
-
-    final checker = _networkTransportAvailable;
-    if (checker != null) {
-      bool? hasNetworkTransport;
-      try {
-        hasNetworkTransport = await checker().timeout(
-          const Duration(seconds: 2),
-        );
-      } catch (_) {
-        // An unavailable network signal is not proof that the API is offline.
-      }
-      if (hasNetworkTransport == false) {
-        throw const LessonAttemptEvaluationException(
-          'Thiết bị đang ngoại tuyến và chưa thể chấm câu trên máy.',
-          backendUnavailable: true,
-        );
-      }
-    }
-    return _backendEvaluator.evaluate(
-      lessonCode: lessonCode,
-      sentenceId: sentenceId,
-      expectedEnglish: expectedEnglish,
-      recordingPath: recordingPath,
-      recordingDuration: recordingDuration,
-      attemptNumber: attemptNumber,
-      childAge: childAge,
-      acceptedVariants: acceptedVariants,
-      requireAllExpectedTokens: requireAllExpectedTokens,
+    });
+    unawaited(
+      local.then<void>(
+        (outcome) {
+          if (!current() || localDone) return;
+          localDone = true;
+          completeOutcome(outcome, 'local');
+        },
+        onError: (Object error, StackTrace stack) {
+          if (!current() || localDone) return;
+          localDone = true;
+          localError = error;
+          debugPrint(
+            jsonEncode(<String, Object?>{
+              'event': 'lesson_scoring_android_local_fallback',
+              'durationMs': elapsed.elapsedMilliseconds,
+              'reason': error is LessonRecordedSpeechRecognitionException
+                  ? error.code
+                  : error.runtimeType.toString(),
+            }),
+          );
+          unawaited(startBackend());
+          finishFallback();
+        },
+      ),
     );
+    return result.future.whenComplete(() {
+      deadline.cancel();
+      hedge.cancel();
+      if (liveStart != null &&
+          _recognizer is LessonStreamingRecordedSpeechRecognizer) {
+        // evaluate consumed _liveStart. Always retire that captured turn even
+        // when the backend won before its queued local action could run.
+        unawaited(
+          _serializeLocal(() async {
+            try {
+              if (await liveStart) {
+                await (_recognizer as LessonStreamingRecordedSpeechRecognizer)
+                    .cancelStream(turnId);
+              }
+            } catch (_) {
+              // Cancellation is scoped to this old native turn only.
+            }
+          }),
+        );
+      }
+      if (identical(_evaluation, result)) _evaluation = null;
+    });
   }
 
   @override
   void dispose() {
+    if (_disposed) return;
+    _disposed = true;
     unawaited(cancelLiveRecognition());
     final backendEvaluator = _backendEvaluator;
     if (backendEvaluator is DisposableLessonAttemptEvaluator) {
