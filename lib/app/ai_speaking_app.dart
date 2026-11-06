@@ -37,6 +37,7 @@ import '../core/device/device_registration_service.dart';
 import '../core/device/device_connection_coordinator.dart';
 import '../core/device/device_display_name.dart';
 import '../core/device/main_button_coordinator.dart';
+import '../core/device/homi_connection_state.dart';
 import '../core/network/network_availability.dart';
 import '../core/pwa/pwa_install_gate.dart';
 import '../core/platform/background_learning_session.dart';
@@ -213,6 +214,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   Future<bool>? _androidHfpAutoSelectionFuture;
   Timer? _androidHfpAutoSelectionTimer;
   Future<bool>? _iosHfpAutoSelectionFuture;
+  int _iosMainRecoveryLifecycleGeneration = 0;
   Timer? _iosUnifiedConnectionRetryTimer;
   bool _iosBleWasConnected = false;
   bool _iosHfpAutoSelectionPending = false;
@@ -554,6 +556,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed) {
+      _iosMainRecoveryLifecycleGeneration += 1;
       _listeningAudioPrefetcher.pause();
       _hideIosBleReconnectNotice();
       return;
@@ -3092,19 +3095,30 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       );
       return MainButtonActionResult.busy;
     }
-    final route = MainButtonActivationPolicy.audioRoute(
-      source: event.source,
-      isNativeMobile:
-          !kIsWeb &&
-          (defaultTargetPlatform == TargetPlatform.android ||
-              defaultTargetPlatform == TargetPlatform.iOS),
-      isIos: _usesIosHfpLifecycle,
-      isHomiReady: controller?.isHomiReady == true,
-      isHomiAudioReady: controller?.isHomiAudioReady == true,
-      hasSelectedHfpInput:
-          controller?.hasSelectedHfpInput == true ||
-          controller?.usesHfpInput == true,
-    );
+    MainButtonAudioRoute currentRoute() =>
+        MainButtonActivationPolicy.audioRoute(
+          source: event.source,
+          isNativeMobile:
+              !kIsWeb &&
+              (defaultTargetPlatform == TargetPlatform.android ||
+                  defaultTargetPlatform == TargetPlatform.iOS),
+          isIos: _usesIosHfpLifecycle,
+          isHomiReady: controller?.isHomiReady == true,
+          isHomiAudioReady: controller?.isHomiAudioReady == true,
+          hasSelectedHfpInput:
+              controller?.hasSelectedHfpInput == true ||
+              controller?.usesHfpInput == true,
+        );
+    var route = currentRoute();
+    if (route == MainButtonAudioRoute.unavailable &&
+        _usesIosHfpLifecycle &&
+        WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed &&
+        controller != null &&
+        (controller.hasSelectedHfpInput || controller.usesHfpInput)) {
+      final ready = await _waitForSelectedIosMainMicrophone(controller);
+      if (ready == null) return MainButtonActionResult.busy;
+      if (ready) route = currentRoute();
+    }
     if (route == MainButtonAudioRoute.unavailable) {
       controller?.recordAiv0MainDiagnostic(
         'MAIN_APP_HANDLER_REJECTED',
@@ -3153,6 +3167,91 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     return activated
         ? MainButtonActionResult.accepted
         : MainButtonActionResult.busy;
+  }
+
+  /// Holds only this explicit foreground MAIN while the selected microphone
+  /// recovers. Null means the action was cancelled; false means it timed out.
+  Future<bool?> _waitForSelectedIosMainMicrophone(
+    ConversationController controller,
+  ) async {
+    final canContinue = _mainAssistantSession.captureCancellationGuard();
+    final deviceGeneration = _deviceAttemptGeneration;
+    final lifecycleGeneration = _iosMainRecoveryLifecycleGeneration;
+    final navigationRevision = _mainOverlayNavigatorObserver.navigationRevision;
+    final microphoneId =
+        controller.hfpAudioStatus.deviceId ??
+        controller.lastConnectedMicrophone?.id;
+    final controlId =
+        controller.aiv0BleStatus.deviceId ??
+        controller.lastConnectedBleDevice?.id;
+    if (microphoneId == null) return null;
+    final completion = Completer<bool?>();
+    bool isCurrent() =>
+        mounted &&
+        identical(_controller, controller) &&
+        canContinue() &&
+        deviceGeneration == _deviceAttemptGeneration &&
+        lifecycleGeneration == _iosMainRecoveryLifecycleGeneration &&
+        navigationRevision ==
+            _mainOverlayNavigatorObserver.navigationRevision &&
+        WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed &&
+        _startupReady &&
+        _voiceAccessEnabled &&
+        !_isStoppingSpeakingSession &&
+        controller.automaticHfpSelectionAllowed &&
+        controller.automaticBleConnectionAllowed &&
+        (controller.hfpAudioStatus.deviceId == null ||
+            sameConnectionDeviceId(
+              controller.hfpAudioStatus.deviceId,
+              microphoneId,
+            )) &&
+        (controller.aiv0BleStatus.deviceId == controlId ||
+            sameConnectionDeviceId(
+              controller.aiv0BleStatus.deviceId,
+              controlId,
+            ));
+    void checkReadiness() {
+      if (completion.isCompleted) return;
+      if (!isCurrent()) {
+        completion.complete(null);
+      } else if (controller.isHomiAudioReady) {
+        completion.complete(true);
+      }
+    }
+
+    controller.recordAiv0MainDiagnostic(
+      'MAIN_MICROPHONE_RECOVERY_WAIT_STARTED',
+    );
+    controller.showHomiConnectionMessage('Đang kết nối lại micro HOMI…');
+    controller.addListener(checkReadiness);
+    final cancellationCheck = Timer.periodic(
+      const Duration(milliseconds: 50),
+      (_) => checkReadiness(),
+    );
+    final deadline = Timer(const Duration(seconds: 3), () {
+      if (!completion.isCompleted) {
+        completion.complete(isCurrent() ? false : null);
+      }
+    });
+    try {
+      checkReadiness();
+      // This joins the existing connection policy and never forces a new
+      // device selection or starts a microphone on its own.
+      if (!completion.isCompleted) {
+        unawaited(_autoSelectAvailableIosHfp().catchError((Object _) => false));
+      }
+      final ready = await completion.future;
+      if (!isCurrent()) return null;
+      controller.recordAiv0MainDiagnostic(
+        'MAIN_MICROPHONE_RECOVERY_WAIT_COMPLETED',
+        values: <String, Object?>{'ready': ready == true},
+      );
+      return ready;
+    } finally {
+      deadline.cancel();
+      cancellationCheck.cancel();
+      controller.removeListener(checkReadiness);
+    }
   }
 
   Future<bool> _interruptContinuousTranslationWithMain() async {
@@ -4160,8 +4259,10 @@ class _MainOverlayNavigatorObserver extends NavigatorObserver {
 
   final ValueChanged<bool> onVisibilityChanged;
   final Set<Route<dynamic>> _pageRoutes = <Route<dynamic>>{};
+  int navigationRevision = 0;
 
   void _notify() {
+    navigationRevision += 1;
     final topRoute = _pageRoutes.isEmpty ? null : _pageRoutes.last;
     final topName = topRoute?.settings.name;
     final hideFloatingMainButton =

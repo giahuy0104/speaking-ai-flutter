@@ -4,9 +4,162 @@ import google_mlkit_translation
 @testable import Runner
 import Speech
 import UIKit
+import UserNotifications
 import XCTest
 
 class RunnerTests: XCTestCase {
+
+  func testIOSInterruptedBackgroundMainPostsOnlySilentAuthorizedGuidance() throws {
+    for status in [UNAuthorizationStatus.authorized, .provisional] {
+      try withBackgroundMixingHarness { h in
+        try h.arm()
+        _ = h.coordinator.beginMainTurn(source: "MAIN", forceNewTurn: true)
+        h.coordinator.recordInterruption(mainInterruptionNotification())
+        XCTAssertFalse(h.coordinator.isMainTurnActive)
+        XCTAssertTrue(h.coordinator.isAudioInterruptionSuspended)
+        XCTAssertFalse(h.coordinator.isBackgroundCaptureEngineRunning)
+        XCTAssertEqual(h.notices.authorizations.count, 1)
+        h.notices.authorizations[0](status)
+        XCTAssertEqual(h.notices.requests.count, 1)
+        let request = try XCTUnwrap(h.notices.requests.first)
+        XCTAssertNil(request.content.sound)
+        XCTAssertNil(request.trigger)
+        XCTAssertTrue(request.content.body.contains("nhấn MAIN"))
+        if #available(iOS 15.0, *) {
+          XCTAssertEqual(request.content.interruptionLevel, .active)
+        }
+        h.notices.addCompletions[0](nil)
+        XCTAssertEqual(h.armCount, 0, "Guidance must never reopen input")
+        XCTAssertTrue(h.appliedMixing.isEmpty, "Guidance must not reclaim audio")
+        XCTAssertFalse(h.coordinator.isPromptActive)
+        XCTAssertFalse(h.coordinator.isSpeechCaptureActive)
+      }
+    }
+  }
+
+  func testIOSInterruptionGuidanceNeverRequestsPermissionOrAddsWhenUnavailable() throws {
+    for status in [UNAuthorizationStatus.notDetermined, .denied, .ephemeral] {
+      try withBackgroundMixingHarness { h in
+        try h.arm()
+        _ = h.coordinator.beginMainTurn(source: "MAIN", forceNewTurn: true)
+        h.coordinator.recordInterruption(mainInterruptionNotification())
+        h.notices.authorizations[0](status)
+        XCTAssertTrue(h.notices.requests.isEmpty)
+        XCTAssertEqual(h.armCount, 0)
+        XCTAssertTrue(h.coordinator.isAudioInterruptionSuspended)
+      }
+    }
+  }
+
+  func testIOSIdleForegroundAndGraphFailuresDoNotPostMainInterruptionNotice() throws {
+    for scenario in ["idle", "foreground", "graph"] {
+      try withBackgroundMixingHarness { h in
+        try h.arm()
+        if scenario != "idle" {
+          _ = h.coordinator.beginMainTurn(source: "MAIN", forceNewTurn: true)
+        }
+        if scenario == "foreground" { IOSNativeWork.markApplicationActive() }
+        if scenario == "graph" {
+          h.coordinator.suspendForAudioInterruption(reason: "background_capture_priority_failed")
+        } else {
+          h.coordinator.recordInterruption(mainInterruptionNotification())
+        }
+        XCTAssertTrue(h.notices.authorizations.isEmpty, scenario)
+        XCTAssertTrue(h.notices.requests.isEmpty, scenario)
+        XCTAssertTrue(h.coordinator.isAudioInterruptionSuspended, scenario)
+      }
+    }
+  }
+
+  func testIOSLateNoticeCallbacksCannotSurviveMainForegroundOrDisposal() throws {
+    for cancellation in ["MAIN", "physicalMAIN", "foreground", "dispose"] {
+      for pendingAdd in [false, true] {
+        try withBackgroundMixingHarness { h in
+          try h.arm()
+          _ = h.coordinator.beginMainTurn(source: "old", forceNewTurn: true)
+          h.coordinator.recordInterruption(mainInterruptionNotification())
+          if pendingAdd { h.notices.authorizations[0](.authorized) }
+          switch cancellation {
+          case "MAIN":
+            _ = h.coordinator.beginMainTurn(source: "new", forceNewTurn: true)
+          case "physicalMAIN":
+            h.coordinator.notePhysicalMain(rawHex: "test-main")
+          case "foreground":
+            IOSNativeWork.markApplicationActive()
+            h.coordinator.applicationWillEnterForeground()
+          default:
+            h.coordinator.dispose()
+          }
+          if pendingAdd {
+            h.notices.addCompletions[0](nil)
+            XCTAssertEqual(h.notices.requests.count, 1, cancellation)
+            XCTAssertEqual(h.notices.removals, [h.notices.requests[0].identifier,
+                                               h.notices.requests[0].identifier])
+          } else {
+            h.notices.authorizations[0](.authorized)
+            XCTAssertTrue(h.notices.requests.isEmpty, cancellation)
+            XCTAssertEqual(h.notices.removals.count, 1, cancellation)
+          }
+          XCTAssertEqual(h.armCount, 0, cancellation)
+        }
+      }
+    }
+  }
+
+  func testIOSLateNoticeAddCompletionRemovesOnlyItsOldGeneration() throws {
+    try withBackgroundMixingHarness { h in
+      try h.arm()
+      _ = h.coordinator.beginMainTurn(source: "old", forceNewTurn: true)
+      h.coordinator.recordInterruption(mainInterruptionNotification())
+      h.notices.authorizations[0](.authorized)
+      let oldID = try XCTUnwrap(h.notices.requests.first?.identifier)
+      _ = h.coordinator.beginMainTurn(source: "new", forceNewTurn: true)
+      h.coordinator.recordInterruption(mainInterruptionNotification())
+      h.notices.authorizations[1](.authorized)
+      let newID = h.notices.requests[1].identifier
+      XCTAssertNotEqual(oldID, newID)
+      h.notices.addCompletions[0](nil)
+      h.notices.addCompletions[1](nil)
+      XCTAssertEqual(h.notices.removals, [oldID, oldID])
+      XCTAssertFalse(h.notices.removals.contains(newID))
+      XCTAssertEqual(h.armCount, 0)
+    }
+  }
+
+  func testIOSInterruptionEndedAndRepeatedBeganDoNotRetryAudioOrNotice() throws {
+    try withBackgroundMixingHarness { h in
+      try h.arm()
+      _ = h.coordinator.beginMainTurn(source: "MAIN", forceNewTurn: true)
+      h.coordinator.recordInterruption(mainInterruptionNotification())
+      h.notices.authorizations[0](.authorized)
+      h.coordinator.recordInterruption(mainInterruptionNotification())
+      h.coordinator.recordInterruption(Notification(
+        name: AVAudioSession.interruptionNotification,
+        userInfo: [
+          AVAudioSessionInterruptionTypeKey: NSNumber(value: AVAudioSession.InterruptionType.ended.rawValue),
+          AVAudioSessionInterruptionOptionKey: NSNumber(value: AVAudioSession.InterruptionOptions.shouldResume.rawValue),
+        ]
+      ))
+      XCTAssertEqual(h.notices.authorizations.count, 1)
+      XCTAssertEqual(h.notices.requests.count, 1)
+      XCTAssertEqual(h.armCount, 0)
+      XCTAssertTrue(h.appliedMixing.isEmpty)
+      XCTAssertTrue(h.coordinator.isAudioInterruptionSuspended)
+      XCTAssertFalse(h.coordinator.isMainTurnActive)
+    }
+  }
+
+  func testIOSMissingInterruptionTypeDoesNotInventInterruptionOrNotice() throws {
+    try withBackgroundMixingHarness { h in
+      try h.arm()
+      _ = h.coordinator.beginMainTurn(source: "MAIN", forceNewTurn: true)
+      h.coordinator.recordInterruption(Notification(name: AVAudioSession.interruptionNotification))
+      XCTAssertTrue(h.coordinator.isMainTurnActive)
+      XCTAssertFalse(h.coordinator.isAudioInterruptionSuspended)
+      XCTAssertEqual(h.interruptionCount, 0)
+      XCTAssertTrue(h.notices.authorizations.isEmpty)
+    }
+  }
 
   func testIOSWarmInputStaysExclusiveAcrossMainPromptCaptureAndResponse() throws {
     try withBackgroundMixingHarness { h in
@@ -2560,6 +2713,7 @@ private func withBackgroundMixingHarness(
 }
 
 private final class BackgroundMixingHarness: IOSBackgroundCaptureHandoffDelegate {
+  let notices = MainInterruptionNoticeHarness()
   var otherAudioPlaying = false
   var ready = true
   var failMixingChange = false
@@ -2586,7 +2740,8 @@ private final class BackgroundMixingHarness: IOSBackgroundCaptureHandoffDelegate
         self.onApplyMixing?()
       },
       isOtherAudioPlaying: { [weak self] in self?.otherAudioPlaying ?? false }
-    )
+    ),
+    interruptionNoticeDriver: notices.driver
   )
 
   func arm() throws {
@@ -2631,6 +2786,31 @@ private final class BackgroundMixingHarness: IOSBackgroundCaptureHandoffDelegate
   func isBackgroundAudioHandoffReady(for target: IOSAudioInputTarget?) -> Bool {
     ready && (target == nil || target == .builtInMic)
   }
+}
+
+private func mainInterruptionNotification() -> Notification {
+  Notification(
+    name: AVAudioSession.interruptionNotification,
+    userInfo: [
+      AVAudioSessionInterruptionTypeKey: NSNumber(value: AVAudioSession.InterruptionType.began.rawValue),
+    ]
+  )
+}
+
+private final class MainInterruptionNoticeHarness {
+  var authorizations: [(UNAuthorizationStatus) -> Void] = []
+  var requests: [UNNotificationRequest] = []
+  var addCompletions: [(Error?) -> Void] = []
+  var removals: [String] = []
+
+  lazy var driver = IOSMainInterruptionNoticeDriver(
+    authorizationStatus: { [weak self] completion in self?.authorizations.append(completion) },
+    add: { [weak self] request, completion in
+      self?.requests.append(request)
+      self?.addCompletions.append(completion)
+    },
+    remove: { [weak self] identifiers in self?.removals.append(contentsOf: identifiers) }
+  )
 }
 
 private final class DeferredMainTurnHandoff: IOSBackgroundCaptureHandoffDelegate {

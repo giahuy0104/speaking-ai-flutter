@@ -24,6 +24,169 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  for (final localFailure in [
+    'prompt',
+    'IOS_SPEECH_AUDIO_FOCUS_LOST',
+    'IOS_SPEECH_AUDIO_SESSION_INTERRUPTED',
+  ]) {
+    test(
+      'iOS $localFailure before global interruption retains guidance and suppresses auto restart',
+      () async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+        addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        final input = localFailure == 'prompt'
+            ? _FakeNavigationSpeechInput()
+            : _FocusLostStartSpeechInput(localFailure);
+        final prompt = _RetryableMainTurnVoicePromptService()
+          ..interruptPrompt = localFailure == 'prompt';
+        final controller = VoiceNavigationController(
+          speechInput: input,
+          voicePromptService: prompt,
+        );
+        expect(await controller.activateFromMainButton(), isFalse);
+        expect(controller.isMainButtonSessionActive, isFalse);
+        expect(
+          (controller.lastError as StreamingSpeechInputException).code,
+          'AUDIO_SESSION_INTERRUPTED',
+        );
+        final guidance = controller.lastError;
+        await controller.pauseForAudioInterruption();
+        controller.startContinuous();
+        await Future<void>.delayed(Duration.zero);
+        expect(controller.lastError, same(guidance));
+        expect(controller.isListening, isFalse);
+        expect(controller.canResumeLearningAfterFailedActivation, isFalse);
+        final promptCount = prompt.spokenTexts.length;
+        prompt.rejection = 'BACKGROUND_MIC_NOT_READY';
+        expect(await controller.activateFromMainButton(), isFalse);
+        expect(controller.lastError, same(guidance));
+        expect(prompt.spokenTexts, hasLength(promptCount));
+        controller.dispose();
+        await input.dispose();
+      },
+    );
+  }
+
+  for (final platform in [TargetPlatform.iOS, TargetPlatform.android]) {
+    test(
+      '$platform interruption guidance is limited to an active iOS MAIN',
+      () async {
+        debugDefaultTargetPlatformOverride = platform;
+        addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        final input = _FakeNavigationSpeechInput();
+        final prompt = _FirstPromptBlockedService();
+        final controller = VoiceNavigationController(
+          speechInput: input,
+          voicePromptService: prompt,
+        );
+        await controller.pauseForAudioInterruption();
+        expect(controller.lastError, isNull);
+        final activation = controller.activateFromMainButton();
+        await prompt.firstPromptStarted.future;
+        final paused = controller.pauseForAudioInterruption();
+        if (platform == TargetPlatform.iOS) {
+          expect(
+            (controller.lastError as StreamingSpeechInputException).code,
+            'AUDIO_SESSION_INTERRUPTED',
+          );
+          expect(
+            controller.lastErrorMessage,
+            contains('Tạm dừng âm thanh khác'),
+          );
+        } else {
+          expect(controller.lastError, isNull);
+        }
+        prompt.firstPrompt.complete();
+        await paused;
+        expect(await activation, isFalse);
+        expect(input.events, isNot(contains('start')));
+        expect(prompt.spokenTexts, hasLength(1));
+        final interruptedError = controller.lastError;
+        await controller.pause();
+        expect(controller.lastError, same(interruptedError));
+        controller.dispose();
+        await input.dispose();
+      },
+    );
+  }
+
+  for (final rejection in [
+    'BACKGROUND_MIC_NOT_READY',
+    'EXTERNAL_MEDIA_ACTIVE',
+    'AUDIO_FOCUS_DENIED',
+    'MAIN_TURN_CANCELLED',
+    'OTHER_FAILURE',
+  ]) {
+    test(
+      'iOS interrupted MAIN keeps silent guidance after $rejection then recovers',
+      () async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+        addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        final input = _FakeNavigationSpeechInput();
+        final prompt = _RetryableMainTurnVoicePromptService();
+        final controller = VoiceNavigationController(
+          speechInput: input,
+          voicePromptService: prompt,
+        );
+        expect(await controller.activateFromMainButton(), isTrue);
+        await controller.pauseForAudioInterruption();
+        final interruptedError = controller.lastError;
+        final promptsBeforeRetry = prompt.spokenTexts.length;
+        final startsBeforeRetry = input.events
+            .where((e) => e == 'start')
+            .length;
+        prompt.rejection = rejection;
+        expect(await controller.activateFromMainButton(), isFalse);
+        expect(controller.lastError, same(interruptedError));
+        expect(controller.canResumeLearningAfterFailedActivation, isFalse);
+        expect(prompt.spokenTexts, hasLength(promptsBeforeRetry));
+        expect(
+          input.events.where((e) => e == 'start'),
+          hasLength(startsBeforeRetry),
+        );
+        prompt.rejection = null;
+        expect(await controller.activateFromMainButton(), isTrue);
+        expect(controller.lastError, isNull);
+        expect(
+          input.events.where((e) => e == 'start'),
+          hasLength(startsBeforeRetry + 1),
+        );
+        controller.dispose();
+        await input.dispose();
+      },
+    );
+  }
+
+  test(
+    'iOS late interrupted preparation cannot erase guidance or stop a new MAIN',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final input = _FakeNavigationSpeechInput();
+      final prompt = _LateBeginMainTurnVoicePromptService();
+      final controller = VoiceNavigationController(
+        speechInput: input,
+        voicePromptService: prompt,
+      );
+      final oldActivation = controller.activateFromMainButton();
+      await Future<void>.delayed(Duration.zero);
+      await controller.pauseForAudioInterruption();
+      expect(
+        (controller.lastError as StreamingSpeechInputException).code,
+        'AUDIO_SESSION_INTERRUPTED',
+      );
+      expect(await controller.activateFromMainButton(), isTrue);
+      prompt.pendingBegin.complete('interrupted-old-turn');
+      expect(await oldActivation, isFalse);
+      expect(controller.lastError, isNull);
+      expect(controller.isListening, isTrue);
+      expect(prompt.endedTurnIds, contains('interrupted-old-turn'));
+      expect(input.events.where((e) => e == 'start'), hasLength(1));
+      controller.dispose();
+      await input.dispose();
+    },
+  );
+
   for (final platform in ['ANDROID', 'IOS']) {
     test(
       '$platform speech focus error prevents lesson resume before global interruption',
@@ -3873,6 +4036,26 @@ class _BackgroundMicUnavailableVoicePromptService
   @override
   Future<String?> beginMainTurn() async {
     throw PlatformException(code: 'BACKGROUND_MIC_NOT_READY');
+  }
+}
+
+class _RetryableMainTurnVoicePromptService
+    extends _FakeMainTurnVoicePromptService {
+  String? rejection;
+  bool interruptPrompt = false;
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
+    if (interruptPrompt) {
+      throw PlatformException(code: 'AUDIO_SESSION_INTERRUPTED');
+    }
+    await super.speakAndWait(text, locale: locale);
+  }
+
+  @override
+  Future<String?> beginMainTurn() async {
+    if (rejection != null) throw PlatformException(code: rejection!);
+    return super.beginMainTurn();
   }
 }
 

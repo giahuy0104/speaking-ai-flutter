@@ -10,6 +10,87 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  for (final strict in [false, true]) {
+    test(
+      'iOS interruption discards partial and ignores late final, strict=$strict',
+      () async {
+        final channel = MethodChannel('test_ios_interruption_latch_$strict');
+        final events = StreamController<dynamic>.broadcast();
+        final messenger =
+            TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+        final turns = <int>[];
+        messenger.setMockMethodCallHandler(channel, (call) async {
+          if (call.method == 'speech.start') {
+            final turn = (call.arguments as Map)['turnId'] as int;
+            turns.add(turn);
+            scheduleMicrotask(
+              () => events.add({'type': 'speech.ready', 'turnId': turn}),
+            );
+          }
+          return true;
+        });
+        final input = AndroidStreamingSpeechInput(
+          methodChannel: channel,
+          eventStream: events.stream,
+          platformName: 'iOS',
+          failOnRuntimeError: strict,
+        );
+        addTearDown(() async {
+          await input.dispose();
+          await events.close();
+          messenger.setMockMethodCallHandler(channel, null);
+        });
+        await input.start();
+        final oldTurn = turns.single;
+        events.add({
+          'type': 'speech.partial',
+          'turnId': oldTurn,
+          'text': 'mở DSTA',
+        });
+        events.add({
+          'type': 'speech.error',
+          'turnId': oldTurn,
+          'code': 'AUDIO_SESSION_INTERRUPTED',
+          'audioPath': '/tmp/interrupted.wav',
+          'audioMimeType': 'audio/wav',
+          'audioByteLength': 4096,
+          'audioSampleRate': 16000,
+        });
+        events.add({
+          'type': 'speech.final',
+          'turnId': oldTurn,
+          'text': 'lệnh đến muộn',
+        });
+        await Future<void>.delayed(Duration.zero);
+        await expectLater(
+          input.stop(),
+          throwsA(
+            isA<StreamingSpeechInputException>().having(
+              (e) => e.code,
+              'code',
+              'IOS_SPEECH_AUDIO_SESSION_INTERRUPTED',
+            ),
+          ),
+        );
+        expect(input.takeFallbackAudioCapture(), isNull);
+        await input.start();
+        events.add({
+          'type': 'speech.error',
+          'turnId': oldTurn,
+          'code': 'AUDIO_SESSION_INTERRUPTED',
+        });
+        events.add({
+          'type': 'speech.final',
+          'turnId': turns.last,
+          'text': 'lệnh mới',
+        });
+        await Future<void>.delayed(Duration.zero);
+        expect((await input.stop()).sourceText, 'lệnh mới');
+      },
+    );
+  }
+
+
   test('Android uses recorded-audio recognition only while offline', () async {
     const methodChannel = MethodChannel('test_android_recorded_audio_support');
     final events = StreamController<dynamic>.broadcast();

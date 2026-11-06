@@ -2,6 +2,29 @@ import AVFoundation
 import Flutter
 import Foundation
 import UIKit
+import UserNotifications
+
+struct IOSMainInterruptionNoticeDriver {
+  let authorizationStatus: (@escaping (UNAuthorizationStatus) -> Void) -> Void
+  let add: (UNNotificationRequest, @escaping (Error?) -> Void) -> Void
+  let remove: ([String]) -> Void
+
+  static let system = IOSMainInterruptionNoticeDriver(
+    authorizationStatus: { completion in
+      UNUserNotificationCenter.current().getNotificationSettings {
+        completion($0.authorizationStatus)
+      }
+    },
+    add: { request, completion in
+      UNUserNotificationCenter.current().add(request, withCompletionHandler: completion)
+    },
+    remove: { identifiers in
+      let center = UNUserNotificationCenter.current()
+      center.removePendingNotificationRequests(withIdentifiers: identifiers)
+      center.removeDeliveredNotifications(withIdentifiers: identifiers)
+    }
+  )
+}
 
 enum IOSAudioInputTarget: String {
   case builtInMic
@@ -431,6 +454,8 @@ final class IOSAudioSessionCoordinator: NSObject {
   private var playbackTokens = Set<String>()
   private let passiveAudioEvents = IOSPassiveAudioEventGate()
   private let backgroundCaptureSessionDriver: IOSBackgroundCaptureSessionDriver?
+  private let interruptionNoticeDriver: IOSMainInterruptionNoticeDriver
+  private var interruptionNoticeIdentifier: String?
   private(set) var isBackgroundCaptureMixing = false
   private var preferredHfpInputUID: String?
   private var preferredHfpInputName: String?
@@ -462,8 +487,12 @@ final class IOSAudioSessionCoordinator: NSObject {
   var onBackgroundLearningEvent: (([String: Any]) -> Void)?
   weak var backgroundCaptureHandoffDelegate: IOSBackgroundCaptureHandoffDelegate?
 
-  init(backgroundCaptureSessionDriver: IOSBackgroundCaptureSessionDriver? = nil) {
+  init(
+    backgroundCaptureSessionDriver: IOSBackgroundCaptureSessionDriver? = nil,
+    interruptionNoticeDriver: IOSMainInterruptionNoticeDriver = .system
+  ) {
     self.backgroundCaptureSessionDriver = backgroundCaptureSessionDriver
+    self.interruptionNoticeDriver = interruptionNoticeDriver
     super.init()
     routeChangeToken = NotificationCenter.default.addObserver(
       forName: AVAudioSession.routeChangeNotification,
@@ -525,6 +554,7 @@ final class IOSAudioSessionCoordinator: NSObject {
   }
 
   func applicationWillEnterForeground() {
+    cancelMainInterruptionNotice()
     cancelPassiveAudioEvent()
     // Opening HOMI is an explicit opportunity to prepare its input again.
     // An interruption-ended notification alone must not reclaim another app's audio.
@@ -636,6 +666,7 @@ final class IOSAudioSessionCoordinator: NSObject {
   }
 
   func notePhysicalMain(rawHex: String, source: String = "ble") {
+    cancelMainInterruptionNotice()
     // Every accepted physical MAIN packet starts a new logical turn. The BLE
     // bridge has already collapsed the firmware notification burst before this
     // method is called, so retaining an older active turn here can only make a
@@ -720,6 +751,7 @@ final class IOSAudioSessionCoordinator: NSObject {
     audioInputTarget: IOSAudioInputTarget? = nil,
     forceNewTurn: Bool = false
   ) -> String {
+    cancelMainInterruptionNotice()
     cancelPassiveAudioEvent()
     backgroundCaptureHandoffDelegate?.cancelBackgroundAudioHandoffConfirmation()
     let now = Date()
@@ -1539,6 +1571,7 @@ final class IOSAudioSessionCoordinator: NSObject {
   }
 
   func dispose() {
+    cancelMainInterruptionNotice()
     cancelPassiveAudioEvent()
     turnTimeout?.cancel()
     turnTimeout = nil
@@ -1802,29 +1835,75 @@ final class IOSAudioSessionCoordinator: NSObject {
     }
   }
 
-  private func recordInterruption(_ notification: Notification) {
-    let rawType = (notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? NSNumber)?.uintValue ?? 0
-    let rawReason = (notification.userInfo?[AVAudioSessionInterruptionReasonKey] as? NSNumber)?.uintValue ?? 0
-    let type = AVAudioSession.InterruptionType(rawValue: rawType)
+  private func cancelMainInterruptionNotice() {
+    guard let identifier = interruptionNoticeIdentifier else { return }
+    interruptionNoticeIdentifier = nil
+    interruptionNoticeDriver.remove([identifier])
+  }
+
+  private func requestMainInterruptionNotice() {
+    guard interruptionNoticeIdentifier == nil else { return }
+    // Each request is its own generation, including an add still in flight.
+    let identifier = "homi-main-interrupted-\(UUID().uuidString)"
+    interruptionNoticeIdentifier = identifier
+    let driver = interruptionNoticeDriver
+    driver.authorizationStatus { [weak self] status in
+      let deliver = { [weak self] in
+        guard let self,
+              self.interruptionNoticeIdentifier == identifier,
+              !IOSNativeWork.applicationIsActive else { return }
+        guard status == .authorized || status == .provisional else { return }
+        let content = UNMutableNotificationContent()
+        content.title = "HOMI"
+        content.body = "HOMI đã tạm dừng. Tạm dừng âm thanh khác, mở HOMI rồi nhấn MAIN để dùng micro."
+        content.sound = nil
+        if #available(iOS 15.0, *) { content.interruptionLevel = .active }
+        driver.add(UNNotificationRequest(identifier: identifier, content: content, trigger: nil)) {
+          [weak self] error in
+          let finish = { [weak self] in
+            guard let self, self.interruptionNoticeIdentifier == identifier else {
+              // Cancellation can precede the notification center accepting add.
+              driver.remove([identifier])
+              return
+            }
+            if let error {
+              self.trace(stage: "main_interruption_notice_failed", caller: "UserNotifications",
+                         message: error.localizedDescription)
+            }
+          }
+          if IOSNativeWork.isCurrent { finish() }
+          else { IOSNativeWork.queue.async(execute: finish) }
+        }
+      }
+      if IOSNativeWork.isCurrent { deliver() }
+      else { IOSNativeWork.queue.async(execute: deliver) }
+    }
+  }
+
+  func recordInterruption(_ notification: Notification) {
+    let rawType = (notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? NSNumber)?.uintValue
+    let rawReason = (notification.userInfo?[AVAudioSessionInterruptionReasonKey] as? NSNumber)?.uintValue
+    let rawOptions = (notification.userInfo?[AVAudioSessionInterruptionOptionKey] as? NSNumber)?.uintValue
+    let type = rawType.flatMap { AVAudioSession.InterruptionType(rawValue: $0) }
+    let reason = rawReason.map { String($0) } ?? "missing"
     trace(
-      stage: type == .began ? "audio_interruption_began" : "audio_interruption_ended",
+      stage: type == .began ? "audio_interruption_began" : (type == .ended ? "audio_interruption_ended" : "audio_interruption_unknown"),
       caller: "AVAudioSession",
-      message: "reason=\(rawReason)"
+      message: "type=\(rawType.map { String($0) } ?? "missing") reason=\(reason) reasonKeyPresent=\(notification.userInfo?[AVAudioSessionInterruptionReasonKey] != nil) options=\(rawOptions.map { String($0) } ?? "missing")"
     )
     guard let type else { return }
 
     switch type {
     case .began:
+      let interruptedBackgroundMain = isMainTurnActive && !IOSNativeWork.applicationIsActive
       // Locking the screen does not emit an AVAudioSession interruption while
       // the background audio mode remains active. Calls, Siri, alarms and
       // competing non-mixable audio do, and must pause the current turn.
-      suspendForAudioInterruption(reason: "audio_session_interruption_\(rawReason)")
+      suspendForAudioInterruption(reason: "audio_session_interruption_\(reason)")
+      if interruptedBackgroundMain { requestMainInterruptionNotice() }
     case .ended:
       guard isBackgroundLearningEnabled else { return }
-      let rawOptions =
-        (notification.userInfo?[AVAudioSessionInterruptionOptionKey] as? NSNumber)?
-          .uintValue ?? 0
-      let options = AVAudioSession.InterruptionOptions(rawValue: rawOptions)
+      let options = AVAudioSession.InterruptionOptions(rawValue: rawOptions ?? 0)
       guard options.contains(.shouldResume) else { return }
       // Eligibility is not an instruction to resume. Only a fresh MAIN or
       // opening HOMI clears the suspension gate and may prepare audio again.

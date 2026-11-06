@@ -190,6 +190,7 @@ class VoiceNavigationController extends ChangeNotifier {
   String? _mainNoSpeechRetryPromptOverride;
   Object? _lastError;
   bool _mainActivationInterrupted = false;
+  bool _hasInterruptedMainRecovery = false;
   String? _activeInputLabelOverride;
   String? _nativeMainTurnId;
   int? _nativeMainTurnGeneration;
@@ -262,7 +263,10 @@ class VoiceNavigationController extends ChangeNotifier {
   }
 
   void startContinuous({Duration delay = Duration.zero}) {
-    if (_disposed || !wakeWordEnabled || _translationStoppedAwaitingMain) {
+    if (_disposed ||
+        !wakeWordEnabled ||
+        _translationStoppedAwaitingMain ||
+        _hasInterruptedMainRecovery) {
       return;
     }
     if (!_continuousRequested) {
@@ -392,6 +396,7 @@ class VoiceNavigationController extends ChangeNotifier {
       if (_disposed || activationGeneration != _generation) return false;
       _activeInputLabelOverride = inputLabelOverride;
       _lastError = null;
+      _hasInterruptedMainRecovery = false;
       _buttonCommandSession = true;
       _mainNoSpeechRetryCount = 0;
       _mainPrematureCompletionRecoveryCount = 0;
@@ -445,8 +450,39 @@ class VoiceNavigationController extends ChangeNotifier {
 
   /// An interruption must not trigger the failed-activation lesson resume.
   Future<void> pauseForAudioInterruption() {
+    _rememberInterruptedMain();
     _mainActivationInterrupted = true;
-    return pause(preserveChoice: true, stopPrompt: true);
+    final paused = pause(preserveChoice: true, stopPrompt: true);
+    // Show guidance immediately, even while native cancellation is draining.
+    if (!_disposed) notifyListeners();
+    return paused;
+  }
+
+  void _rememberInterruptedMain() {
+    if (!_disposed &&
+        !kIsWeb &&
+        defaultTargetPlatform == TargetPlatform.iOS &&
+        isMainButtonSessionActive) {
+      _hasInterruptedMainRecovery = true;
+      _mainActivationInterrupted = true;
+      _lastError = const StreamingSpeechInputException(
+        'HOMI đã tạm dừng. Tạm dừng âm thanh khác, mở HOMI rồi nhấn MAIN để dùng micro.',
+        code: 'AUDIO_SESSION_INTERRUPTED',
+      );
+    }
+  }
+
+  void _rememberNativeMainInterruption(Object error) {
+    final code = error is PlatformException
+        ? error.code
+        : error is StreamingSpeechInputException
+        ? error.code
+        : null;
+    if (code == 'AUDIO_SESSION_INTERRUPTED' ||
+        code == 'IOS_SPEECH_AUDIO_SESSION_INTERRUPTED' ||
+        code == 'IOS_SPEECH_AUDIO_FOCUS_LOST') {
+      _rememberInterruptedMain();
+    }
   }
 
   Future<void> pause({bool preserveChoice = false, bool stopPrompt = false}) {
@@ -990,6 +1026,7 @@ class VoiceNavigationController extends ChangeNotifier {
         // recognition here both hides the failure and records the tail of a
         // prompt whose native completion was lost. The caller may still
         // dispatch an already recognized terminal action after this cleanup.
+        _rememberNativeMainInterruption(error);
         await _suspendForExternalSpeechHandoff();
         await _endNativeMainTurn('prompt_failed', generation: generation);
       }
@@ -1363,6 +1400,7 @@ class VoiceNavigationController extends ChangeNotifier {
         message: error.toString(),
       );
       _lastError = error;
+      _rememberNativeMainInterruption(error);
       final errorCode = error is PlatformException
           ? error.code
           : error is StreamingSpeechInputException
@@ -1473,6 +1511,11 @@ class VoiceNavigationController extends ChangeNotifier {
       return true;
     } on PlatformException catch (error) {
       if (_disposed || generation != _generation) return false;
+      _rememberNativeMainInterruption(error);
+      if (_hasInterruptedMainRecovery) {
+        _mainActivationInterrupted = true;
+        return false;
+      }
       if (error.code == 'MAIN_TURN_CANCELLED') {
         _mainActivationInterrupted = true;
         return false;
@@ -1509,6 +1552,7 @@ class VoiceNavigationController extends ChangeNotifier {
 
   bool _failMainTurnPreparation(String code) {
     _mainActivationInterrupted = true;
+    if (_hasInterruptedMainRecovery) return false;
     _lastError = StreamingSpeechInputException(
       'Chưa mở được micro. Mở lại ứng dụng HOMI rồi nhấn MAIN để thử lại.',
       code: code,
@@ -1522,6 +1566,9 @@ class VoiceNavigationController extends ChangeNotifier {
   }) async {
     if (_disposed || generation != _generation) return;
     _mainActivationInterrupted = true;
+    // A failed retry cannot establish that a call/Siri interruption ended.
+    // Keep visible guidance without reclaiming the audio session for a warning.
+    if (_hasInterruptedMainRecovery) return;
     const message = 'Mở lại ứng dụng HOMI rồi nhấn MAIN để dùng micro.';
     _lastError = StreamingSpeechInputException(message, code: code);
     try {
@@ -1543,6 +1590,7 @@ class VoiceNavigationController extends ChangeNotifier {
   Future<void> _explainCompetingMedia(int generation) async {
     if (_disposed || generation != _generation) return;
     _mainActivationInterrupted = true;
+    if (_hasInterruptedMainRecovery) return;
     const message =
         'Vẫn có âm thanh đang phát. Tạm dừng video hoặc chờ âm thanh dừng rồi nhấn MAIN lại.';
     _lastError = const StreamingSpeechInputException(
@@ -1983,6 +2031,7 @@ class VoiceNavigationController extends ChangeNotifier {
         }
         _lastError = error;
         _reportIosTopicRecognitionFailure();
+        _rememberNativeMainInterruption(error);
         _continuousRequested = false;
         if (_buttonCommandSession) {
           _awaitingCommand = false;

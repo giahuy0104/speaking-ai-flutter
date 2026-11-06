@@ -1,4 +1,5 @@
 import 'package:ai_speaking_flutter_app/core/audio/main_assistant_audio_state.dart';
+import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
 import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart';
 import 'package:ai_speaking_flutter_app/core/device/aiv0_ble_control.dart';
 import 'package:ai_speaking_flutter_app/core/device/aivo_control_dispatcher.dart';
@@ -13,6 +14,60 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets(
+    'iOS interrupted MAIN visibly explains recovery and clears when ready',
+    (tester) async {
+      tester.view.physicalSize = const Size(320, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      const message =
+          'HOMI đã tạm dừng. Tạm dừng âm thanh khác, mở HOMI rồi nhấn MAIN để dùng micro.';
+      final voice = _VoiceState()
+        ..error = const StreamingSpeechInputException(
+          message,
+          code: 'AUDIO_SESSION_INTERRUPTED',
+        );
+      final audio = _AudioState();
+      final speaking = MainSpeakingSessionController();
+      addTearDown(voice.dispose);
+      addTearDown(audio.dispose);
+      addTearDown(speaking.dispose);
+      var presses = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            floatingActionButton: MainVoiceAssistantButton(
+              voiceController: voice,
+              audioState: audio,
+              speakingSessionController: speaking,
+              isActivationPending: false,
+              onPressed: () async {
+                presses++;
+              },
+              onLongPressed: () async {},
+              onLongPressReleased: () async {},
+            ),
+          ),
+        ),
+      );
+      expect(find.text(message), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.byKey(const Key('main-voice-assistant-button')));
+      expect(presses, 1);
+      await tester.pump();
+      expect(find.text(message), findsOneWidget);
+      voice.error = null;
+      voice.notifyListeners();
+      await tester.pump();
+      expect(
+        find.byKey(const Key('main-audio-interruption-guidance')),
+        findsNothing,
+      );
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
   for (final source in [
     AivoControlSource.virtualButton,
     AivoControlSource.ble,
@@ -457,6 +512,9 @@ class _CollectionModule extends _Module implements ActiveLearningVoiceContext {
 
 class _VoiceState extends ChangeNotifier implements VoiceNavigationController {
   bool mainActive = false;
+  Object? error;
+  @override
+  Object? get lastError => error;
   @override
   bool get isMainButtonSessionActive => mainActive;
   @override
@@ -470,7 +528,7 @@ class _VoiceState extends ChangeNotifier implements VoiceNavigationController {
   @override
   String get activeInputLabel => 'HM-D001';
   @override
-  String? get lastErrorMessage => null;
+  String? get lastErrorMessage => error?.toString();
   @override
   bool get hasUnhandledLearningCommandError => false;
   @override

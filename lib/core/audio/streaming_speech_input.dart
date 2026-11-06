@@ -1164,12 +1164,15 @@ class AndroidStreamingSpeechInput
       _resultAt = DateTime.now();
       final message =
           event['message'] as String? ?? 'Không thể nhận diện giọng nói.';
-      if (event['code'] == 'AUDIO_FOCUS_LOST') {
+      final nativeErrorCode = event['code'];
+      if (nativeErrorCode == 'AUDIO_FOCUS_LOST' ||
+          (_platformName.toLowerCase() == 'ios' &&
+              nativeErrorCode == 'AUDIO_SESSION_INTERRUPTED')) {
         // This event can reach speech consumers before the shared background
         // interruption. Never dispatch a cached partial from a cancelled turn.
         _interruptionError = StreamingSpeechInputException(
           message,
-          code: '${_platformName.toUpperCase()}_SPEECH_AUDIO_FOCUS_LOST',
+          code: '${_platformName.toUpperCase()}_SPEECH_$nativeErrorCode',
         );
         _latestText = '';
         _latestAlternatives = const <String>[];

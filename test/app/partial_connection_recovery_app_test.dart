@@ -4,6 +4,7 @@ import 'package:ai_speaking_flutter_app/app/ai_speaking_app.dart';
 import 'package:ai_speaking_flutter_app/config/app_config.dart';
 import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_control.dart';
 import 'package:ai_speaking_flutter_app/core/device/aivo_control_dispatcher.dart';
+import 'package:ai_speaking_flutter_app/core/device/aiv0_ble_control.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_screen.dart';
 import 'package:ai_speaking_flutter_app/features/home/presentation/home_learning_shell.dart';
@@ -24,6 +25,151 @@ const mic = HfpAudioDevice(
 );
 
 void main() {
+  testWidgets(
+    'iOS physical MAIN waits once for retained or temporarily cleared microphone identity',
+    (tester) async {
+      final app = await _pumpApp(tester, grantPrivacy: true);
+      await app.finishStartupScans();
+      await app.emitBle('connected');
+      await app.controller.connectHfpDevice(mic);
+      for (final clearsSelectedInput in [false, true]) {
+        final previousMainTurns = app.mainTurnCount;
+        final previousPrompts = app.normalPromptCount;
+        final previousStarts = app.speechCalls
+            .where((call) => call.method == 'speech.start')
+            .length;
+        await app.emitHfpStatus('idle', hasSelectedInput: !clearsSelectedInput);
+        app.hfpConnection = Completer<Map<String, Object?>>();
+        final recovery = app.controller.connectHfpDevice(mic);
+        await _pumpAsync(tester);
+        final main = app.pressMain(source: AivoControlSource.ble);
+        await _pumpAsync(tester);
+        await app.advance(const Duration(milliseconds: 1350));
+        expect(app.mainTurnCount, previousMainTurns);
+        expect(app.normalPromptCount, previousPrompts);
+        expect(
+          app.speechCalls.where((call) => call.method == 'speech.start'),
+          hasLength(previousStarts),
+        );
+        expect(await app.pressMain(), AivoControlStatus.busy);
+        app.hfpConnection!.complete(_NativeAppHarness.readyHfpRoute);
+        await app.drain(recovery);
+        await app.drain(main);
+        expect(await main, AivoControlStatus.accepted);
+        expect(app.mainTurnCount, previousMainTurns + 1);
+        expect(app.normalPromptCount, previousPrompts + 1);
+        expect(
+          app.speechCalls.where((call) => call.method == 'speech.start'),
+          hasLength(previousStarts + 1),
+        );
+        await app.drain(app.pressMain(gesture: Aiv0ButtonGesture.longPress));
+      }
+      await app.close();
+    },
+    variant: TargetPlatformVariant({TargetPlatform.iOS}),
+  );
+
+  for (final platform in [TargetPlatform.iOS, TargetPlatform.android]) {
+    testWidgets(
+      '$platform unavailable microphone never starts MAIN after its deadline',
+      (tester) async {
+        final app = await _pumpApp(tester, grantPrivacy: true);
+        await app.finishStartupScans();
+        await app.emitBle('connected');
+        await app.controller.connectHfpDevice(mic);
+        await app.emitHfpStatus('idle');
+        final main = app.pressMain();
+        await _pumpAsync(tester);
+        await app.advance(const Duration(milliseconds: 3100));
+        expect(await main, AivoControlStatus.busy);
+        await app.emitHfpStatus('ready');
+        await app.advance(const Duration(milliseconds: 100));
+        expect(app.mainTurnCount, 0);
+        expect(
+          app.speechCalls.where((call) => call.method == 'speech.start'),
+          isEmpty,
+        );
+        await app.close();
+      },
+      variant: TargetPlatformVariant({platform}),
+    );
+  }
+
+  for (final cancellation in [
+    'stop',
+    'navigation',
+    'device',
+    'disconnect',
+    'background',
+    'dispose',
+  ]) {
+    testWidgets(
+      'iOS pending MAIN ignores late microphone readiness after $cancellation',
+      (tester) async {
+        final app = await _pumpApp(tester, grantPrivacy: true);
+        await app.finishStartupScans();
+        await app.emitBle('connected');
+        await app.controller.connectHfpDevice(mic);
+        await app.emitHfpStatus('idle');
+        final main = app.pressMain();
+        await _pumpAsync(tester);
+        switch (cancellation) {
+          case 'stop':
+            await app.drain(
+              app.pressMain(gesture: Aiv0ButtonGesture.longPress),
+            );
+          case 'navigation':
+            final navigator = tester.state<NavigatorState>(
+              find.byType(Navigator).first,
+            );
+            unawaited(
+              navigator.push<void>(
+                MaterialPageRoute<void>(
+                  builder: (_) => const Scaffold(body: Text('New route')),
+                ),
+              ),
+            );
+            await _pumpAsync(tester);
+          case 'device':
+            await app.emitBle('connected', deviceId: 'another-homi');
+          case 'disconnect':
+            await app.drain(app.controller.disconnectHfpDevice());
+          case 'background':
+            tester.binding.handleAppLifecycleStateChanged(
+              AppLifecycleState.inactive,
+            );
+            tester.binding.handleAppLifecycleStateChanged(
+              AppLifecycleState.resumed,
+            );
+            await _pumpAsync(tester);
+          case 'dispose':
+            await tester.pumpWidget(const SizedBox.shrink());
+            await tester.pump(const Duration(milliseconds: 100));
+        }
+        if (cancellation != 'dispose') {
+          await app.advance(const Duration(milliseconds: 100));
+        }
+        expect(
+          await main,
+          cancellation == 'stop' || cancellation == 'dispose'
+              ? AivoControlStatus.ignored
+              : AivoControlStatus.busy,
+        );
+        if (cancellation != 'dispose') {
+          await app.emitHfpStatus('ready');
+          await app.advance(const Duration(milliseconds: 100));
+        }
+        expect(app.mainTurnCount, 0);
+        expect(
+          app.speechCalls.where((call) => call.method == 'speech.start'),
+          isEmpty,
+        );
+        await app.close();
+      },
+      variant: TargetPlatformVariant({TargetPlatform.iOS}),
+    );
+  }
+
   testWidgets(
     'live BLE battery telemetry delivers deduplicated system reminders',
     (tester) async {
@@ -489,6 +635,7 @@ Future<_NativeAppHarness> _pumpApp(
   WidgetTester tester, {
   bool grantPrivacy = false,
 }) async {
+  tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
   tester.view.physicalSize = const Size(390, 844);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
@@ -553,6 +700,40 @@ class _NativeAppHarness {
   bool failBleConnect = true;
   Completer<void>? speechCancellation;
   Completer<Map<String, Object?>>? hfpRouteStart;
+  int get mainTurnCount => nativeCalls
+      .where((call) => call == 'ailingo_voice_prompt.beginMainTurn')
+      .length;
+  int get normalPromptCount => nativeCalls
+      .where(
+        (call) =>
+            call == 'ailingo_voice_prompt.speakAndWait' ||
+            call == 'ailingo_voice_prompt.playAuthoredAudioAndWait',
+      )
+      .length;
+
+  Future<AivoControlStatus> pressMain({
+    Aiv0ButtonGesture gesture = Aiv0ButtonGesture.shortPress,
+    AivoControlSource source = AivoControlSource.virtualButton,
+  }) => tester
+      .widget<AivoControlScope>(find.byType(AivoControlScope))
+      .notifier!
+      .dispatch(
+        AivoControlInput(
+          source: source,
+          button: Aiv0Button.main,
+          gesture: gesture,
+          occurredAt: DateTime.now(),
+          actionable: true,
+          protocol: 'virtual',
+        ),
+      );
+
+  static const readyHfpRoute = <String, Object?>{
+    'phase': 'ready',
+    'deviceId': 'AA:BB:CC:DD:EE:FF',
+    'deviceName': 'HM-D001',
+    'routeActive': false,
+  };
 
   static const recordingHfpRoute = <String, Object?>{
     'phase': 'recording',
@@ -703,6 +884,7 @@ class _NativeAppHarness {
           }
           if (call.method == 'connect') {
             hfpConnectCalls += 1;
+            if (hfpConnection != null) return hfpConnection!.future;
             final arguments = call.arguments as Map<Object?, Object?>;
             return <String, Object?>{
               'phase': 'ready',
@@ -711,6 +893,10 @@ class _NativeAppHarness {
               'routeActive': false,
             };
           }
+        }
+        if (channel.name == 'ailingo_voice_prompt' &&
+            call.method == 'beginMainTurn') {
+          return 'test-main-$mainTurnCount';
         }
         if (channel.name == 'ailingo_aiv0_ble_control') {
           bleCalls.add(call);
