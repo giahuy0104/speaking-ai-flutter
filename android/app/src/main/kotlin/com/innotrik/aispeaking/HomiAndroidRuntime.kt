@@ -85,14 +85,17 @@ object HomiAndroidRuntime {
         flutterEngine: FlutterEngine,
     ) {
         private val messenger = flutterEngine.dartExecutor.binaryMessenger
-        private val speechRecognizerBridge = AndroidSpeechRecognizerBridge(host, messenger)
+        private val audioFocus = AndroidAudioFocusCoordinator(
+            host.applicationContext.getSystemService(android.media.AudioManager::class.java),
+        )
+        private val speechRecognizerBridge = AndroidSpeechRecognizerBridge(host, messenger, audioFocus)
         private val homiOfflineSpeechBridge = HomiOfflineSpeechBridge(host, messenger)
         private val offlineIntentRecognizerBridge = OfflineIntentRecognizerBridge(messenger)
         private val innotrikBleAudioBridge = InnotrikBleAudioBridge(host, messenger)
         private val aiv0BleControlBridge = Aiv0BleControlBridge(host, messenger)
         private val hfpAudioBridge = HfpAudioBridge(host, messenger)
-        private val voicePromptBridge = VoicePromptBridge(host.applicationContext, messenger)
-        private val backgroundLearningBridge = AndroidBackgroundLearningBridge(host, messenger)
+        private val voicePromptBridge = VoicePromptBridge(host.applicationContext, messenger, audioFocus)
+        private val backgroundLearningBridge = AndroidBackgroundLearningBridge(host, messenger, audioFocus)
         private val installationCredentialStore =
             AndroidInstallationCredentialStore(host.applicationContext)
         private val clientIdentityStore = AndroidClientIdentityStore(host.applicationContext)
@@ -100,6 +103,15 @@ object HomiAndroidRuntime {
         init {
             hfpAudioBridge.onUnexpectedRouteLoss = voicePromptBridge::stopForRouteLoss
             voicePromptBridge.isHomiRouteOwned = { hfpAudioBridge.ownsAudioRoute }
+            audioFocus.onInterrupted = { reason ->
+                // Queue the global cancellation before local prompt/recognizer
+                // errors so Dart cannot interpret them as a reason to retry.
+                backgroundLearningBridge.notifyAudioInterruption(reason)
+                voicePromptBridge.stopForAudioFocusLoss()
+                speechRecognizerBridge.onAudioFocusLost()
+                homiOfflineSpeechBridge.onBackgroundSessionStopped()
+                hfpAudioBridge.onBackgroundSessionStopped()
+            }
             registerPlatformChannels()
         }
 
@@ -124,6 +136,7 @@ object HomiAndroidRuntime {
         }
 
         fun onBackgroundSessionStopped() {
+            audioFocus.releaseAll()
             speechRecognizerBridge.onBackgroundSessionStopped()
             homiOfflineSpeechBridge.onBackgroundSessionStopped()
             innotrikBleAudioBridge.onBackgroundSessionStopped()

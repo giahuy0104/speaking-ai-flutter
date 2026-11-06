@@ -121,6 +121,139 @@ class RunnerTests: XCTestCase {
     coordinator.dispose()
   }
 
+  func testIOSInterruptionBlocksPassiveArmAndPromptUntilAnExplicitAction() {
+    let coordinator = IOSAudioSessionCoordinator()
+    let handoff = DeferredMainTurnHandoff()
+    coordinator.backgroundCaptureHandoffDelegate = handoff
+    coordinator.setBackgroundLearningEnabled(true)
+    IOSNativeWork.sync {
+      coordinator.suspendForAudioInterruption()
+      coordinator.requestBackgroundCaptureArm(caller: "passiveRouteRecovery")
+      XCTAssertEqual(handoff.armCount, 0)
+      XCTAssertEqual(handoff.interruptionCount, 1)
+      XCTAssertThrowsError(try coordinator.preparePhoneSpeaker(caller: "latePrompt"))
+      XCTAssertThrowsError(try coordinator.preparePrompt(preferredHfpInput: nil, caller: "latePrompt"))
+      XCTAssertFalse(coordinator.isPromptActive)
+      coordinator.applicationWillEnterForeground()
+      XCTAssertFalse(coordinator.isAudioInterruptionSuspended)
+      XCTAssertFalse(coordinator.isMainTurnActive)
+      coordinator.requestBackgroundCaptureArm(caller: "foregroundPreparation")
+      XCTAssertEqual(handoff.armCount, 1)
+      handoff.completeNext()
+      coordinator.dispose()
+    }
+  }
+
+  func testIOSInterruptionCancelsGloballyBeforeCaptureEvenWithoutBackgroundLearning() {
+    let coordinator = IOSAudioSessionCoordinator()
+    let handoff = DeferredMainTurnHandoff()
+    coordinator.backgroundCaptureHandoffDelegate = handoff
+    var events: [String] = []
+    coordinator.onBackgroundLearningEvent = { payload in
+      XCTAssertTrue(coordinator.isAudioInterruptionSuspended)
+      events.append(payload["type"] as? String ?? "unknown")
+    }
+    handoff.onInterrupt = { events.append("captureCancelled") }
+    IOSNativeWork.sync {
+      coordinator.suspendForAudioInterruption()
+      XCTAssertEqual(events, ["background.interrupted", "captureCancelled"])
+      coordinator.dispose()
+    }
+  }
+
+  func testIOSBackgroundMainAttemptsRecoveryBeforeReportingUnavailableMicrophone() {
+    let wasActive = IOSNativeWork.applicationIsActive
+    IOSNativeWork.markApplicationInactive()
+    defer {
+      if wasActive { IOSNativeWork.markApplicationActive() }
+    }
+    let coordinator = IOSAudioSessionCoordinator()
+    let handoff = DeferredMainTurnHandoff()
+    coordinator.backgroundCaptureHandoffDelegate = handoff
+    coordinator.setBackgroundLearningEnabled(true)
+    IOSNativeWork.sync {
+      coordinator.suspendForAudioInterruption()
+      var preparation: Result<String, IOSMainTurnPreparationError>?
+      coordinator.prepareExplicitMainTurn(source: "physicalMAIN", audioInputTarget: .hfp) {
+        preparation = $0
+      }
+      XCTAssertEqual(handoff.armCount, 1)
+      XCTAssertNil(preparation)
+      XCTAssertEqual(coordinator.mainAudioInputTarget, .hfp)
+      handoff.completeNext()
+      XCTAssertEqual(preparation, .failure(.microphoneUnavailable))
+      XCTAssertFalse(coordinator.isMainTurnActive)
+      XCTAssertNil(coordinator.mainAudioInputTarget)
+      coordinator.dispose()
+    }
+  }
+
+  func testIOSForegroundMainCanPrepareAgainAfterInterruption() {
+    let wasActive = IOSNativeWork.applicationIsActive
+    IOSNativeWork.markApplicationActive()
+    defer {
+      if !wasActive { IOSNativeWork.markApplicationInactive() }
+    }
+    let coordinator = IOSAudioSessionCoordinator()
+    let handoff = DeferredMainTurnHandoff()
+    coordinator.backgroundCaptureHandoffDelegate = handoff
+    coordinator.setBackgroundLearningEnabled(true)
+    IOSNativeWork.sync {
+      coordinator.suspendForAudioInterruption()
+      var preparation: Result<String, IOSMainTurnPreparationError>?
+      coordinator.prepareExplicitMainTurn(source: "visibleMAIN", audioInputTarget: .builtInMic) {
+        preparation = $0
+      }
+      let turnId = coordinator.activeTurnId!
+      handoff.completeNext()
+      XCTAssertEqual(preparation, .success(turnId))
+      XCTAssertFalse(coordinator.isAudioInterruptionSuspended)
+      coordinator.endMainTurn(reason: "testComplete", caller: "RunnerTests", expectedTurnId: turnId)
+      coordinator.dispose()
+    }
+  }
+
+  func testIOSInterruptionCancelsAnInFlightMainPreparation() {
+    let coordinator = IOSAudioSessionCoordinator()
+    let handoff = DeferredMainTurnHandoff()
+    coordinator.backgroundCaptureHandoffDelegate = handoff
+    coordinator.setBackgroundLearningEnabled(true)
+    IOSNativeWork.sync {
+      var preparation: Result<String, IOSMainTurnPreparationError>?
+      coordinator.prepareExplicitMainTurn(source: "physicalMAIN", audioInputTarget: .hfp) {
+        preparation = $0
+      }
+      coordinator.suspendForAudioInterruption()
+      XCTAssertEqual(preparation, .failure(.cancelled))
+      XCTAssertFalse(coordinator.isMainTurnActive)
+      coordinator.requestBackgroundCaptureArm(caller: "lateRouteChange")
+      XCTAssertEqual(handoff.armCount, 1)
+      coordinator.dispose()
+    }
+  }
+
+  func testIOSStaleMainPreparationCannotFinishOrCloseItsReplacement() {
+    let coordinator = IOSAudioSessionCoordinator()
+    let handoff = DeferredMainTurnHandoff()
+    coordinator.backgroundCaptureHandoffDelegate = handoff
+    coordinator.setBackgroundLearningEnabled(true)
+    IOSNativeWork.sync {
+      var first: Result<String, IOSMainTurnPreparationError>?
+      coordinator.prepareExplicitMainTurn(source: "firstMAIN", audioInputTarget: .hfp) {
+        first = $0
+      }
+      coordinator.prepareExplicitMainTurn(source: "secondMAIN", audioInputTarget: .builtInMic) { _ in }
+      let replacementId = coordinator.activeTurnId
+      handoff.completeNext()
+      XCTAssertEqual(first, .failure(.cancelled))
+      XCTAssertTrue(coordinator.isMainTurnActive)
+      XCTAssertEqual(coordinator.activeTurnId, replacementId)
+      XCTAssertEqual(coordinator.mainAudioInputTarget, .builtInMic)
+      coordinator.suspendForAudioInterruption()
+      coordinator.dispose()
+    }
+  }
+
   func testIOSNativeWorkActorKeepsAsyncBridgeCodeOnTheNativeWorkQueue() {
     let finished = expectation(description: "actor job finished")
     Task { @IOSNativeWorkActor in
@@ -1981,6 +2114,35 @@ class RunnerTests: XCTestCase {
     )
   }
 
+}
+
+private final class DeferredMainTurnHandoff: IOSBackgroundCaptureHandoffDelegate {
+  private(set) var armCount = 0
+  private(set) var interruptionCount = 0
+  var onInterrupt: (() -> Void)?
+  private var completions: [() -> Void] = []
+
+  func armBackgroundAudioHandoff(caller: String, completion: @escaping () -> Void) {
+    armCount += 1
+    completions.append(completion)
+  }
+
+  func completeNext() {
+    guard !completions.isEmpty else { return }
+    completions.removeFirst()()
+  }
+
+  func disarmBackgroundAudioHandoff(caller: String) {}
+
+  func interruptBackgroundAudioHandoff(caller: String) {
+    interruptionCount += 1
+    onInterrupt?()
+    let pending = completions
+    completions.removeAll()
+    pending.forEach { $0() }
+  }
+
+  func isBackgroundAudioHandoffReady(for target: IOSAudioInputTarget?) -> Bool { false }
 }
 
 private final class MainTurnAudioTargetHandoff: IOSBackgroundCaptureHandoffDelegate {

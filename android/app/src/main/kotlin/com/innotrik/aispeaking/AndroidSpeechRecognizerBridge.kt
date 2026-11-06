@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 class AndroidSpeechRecognizerBridge(
     private val host: HomiAndroidHost,
     messenger: BinaryMessenger,
+    private val audioFocus: AndroidAudioFocusCoordinator? = null,
 ) : MethodChannel.MethodCallHandler,
     EventChannel.StreamHandler,
     RecognitionListener {
@@ -49,6 +50,7 @@ class AndroidSpeechRecognizerBridge(
     private var recognizerMode: RecognizerMode? = null
     private var events: EventChannel.EventSink? = null
     private var listening = false
+    private var captureFocusOwner: String? = null
     private var pendingPermissionResult: MethodChannel.Result? = null
     private var pendingPermissionCommandMode = false
     private var pendingPermissionPreferOnDevice = false
@@ -289,6 +291,19 @@ class AndroidSpeechRecognizerBridge(
         }
     }
 
+    fun onAudioFocusLost() {
+        // The focus listener runs on the platform thread. Retire the recognizer
+        // before Dart handles the interruption so no late final can be scored.
+        retireRecognizer()
+        completePendingFileError("AUDIO_FOCUS_LOST", "Lượt nghe đã bị âm thanh khác gián đoạn.")
+        events?.success(mapOf(
+            "type" to "speech.error",
+            "code" to "AUDIO_FOCUS_LOST",
+            "message" to "Lượt nghe đã bị âm thanh khác gián đoạn.",
+            "turnId" to clientTurnId,
+        ))
+    }
+
     private fun requestOnDeviceModelDownload(
         call: MethodCall,
         result: MethodChannel.Result,
@@ -411,18 +426,30 @@ class AndroidSpeechRecognizerBridge(
         closeInjectedAudio()
         resetCapturedAudio()
 
+        val owner = audioFocus?.newOwner("capture")
+        if (owner != null && !audioFocus.acquire(owner)) {
+            result.error("AUDIO_FOCUS_DENIED", "Chưa thể dùng micro. Hãy dừng ứng dụng đang phát rồi thử lại.", null)
+            return
+        }
+        captureFocusOwner = owner
+
         val intent =
             createRecognizerIntent(
                 commandMode = commandMode,
                 locale = locale,
                 preferOnDevice = preferOnDevice || requireOnDevice,
             )
-        attachAppMicrophone(intent)
-        listening = true
-        activeRequireOnDevice = requireOnDevice
-        bindTurnListener()
-        recognizer?.startListening(intent)
-        result.success(true)
+        try {
+            attachAppMicrophone(intent)
+            listening = true
+            activeRequireOnDevice = requireOnDevice
+            bindTurnListener()
+            recognizer?.startListening(intent)
+            result.success(true)
+        } catch (error: RuntimeException) {
+            retireRecognizer()
+            result.error("SPEECH_START_FAILED", error.message, null)
+        }
     }
 
     /**
@@ -1314,6 +1341,8 @@ class AndroidSpeechRecognizerBridge(
     }
 
     private fun closeInjectedAudio() {
+        captureFocusOwner?.let { audioFocus?.release(it) }
+        captureFocusOwner = null
         scheduleNotificationStreamRestore()
         appMicrophone?.stop()
         appMicrophone = null

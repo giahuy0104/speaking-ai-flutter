@@ -6,7 +6,11 @@ import 'package:flutter/widgets.dart';
 import '../../../core/platform/background_learning_session.dart';
 import '../../listening/data/active_listening_session_store.dart';
 
-enum BackgroundLearningDirective { keepVoiceNavigation, pauseVoiceNavigation }
+enum BackgroundLearningDirective {
+  keepVoiceNavigation,
+  pauseVoiceNavigation,
+  pauseAllAudio,
+}
 
 typedef BackgroundLearningDirectiveHandler =
     void Function(BackgroundLearningDirective directive);
@@ -46,10 +50,12 @@ class BackgroundLearningCoordinator {
   bool _checkpointHandled = false;
   bool _disposed = false;
   bool _voiceAccessEnabled = false;
+  bool _interrupted = false;
   int _sessionGeneration = 0;
   Future<void>? _sessionStopOperation;
 
   bool get isActive => _active;
+  bool get automaticVoiceNavigationAllowed => !_interrupted;
   bool get isForeground => _lifecycleState == AppLifecycleState.resumed;
 
   Future<void> initialize({required bool voiceAccessEnabled}) async {
@@ -132,7 +138,9 @@ class BackgroundLearningCoordinator {
       }
       _active = active;
       if (active) {
-        _onDirective(BackgroundLearningDirective.keepVoiceNavigation);
+        if (!_interrupted) {
+          _onDirective(BackgroundLearningDirective.keepVoiceNavigation);
+        }
       }
     } catch (error) {
       debugPrint('Cannot start background learning session: $error');
@@ -213,12 +221,15 @@ class BackgroundLearningCoordinator {
       _active = true;
       _microphoneRequiresVisibleResume =
           event.reason == 'microphone_requires_visible_resume';
-      _onDirective(BackgroundLearningDirective.keepVoiceNavigation);
+      if (!_interrupted) {
+        _onDirective(BackgroundLearningDirective.keepVoiceNavigation);
+      }
       return;
     }
-    _active = false;
+    if (event.type == BackgroundLearningEventType.stopped) _active = false;
+    _interrupted = true;
     _microphoneRequiresVisibleResume = false;
-    _onDirective(BackgroundLearningDirective.pauseVoiceNavigation);
+    _onDirective(BackgroundLearningDirective.pauseAllAudio);
   }
 
   void dispose() {

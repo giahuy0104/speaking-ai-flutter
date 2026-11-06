@@ -323,7 +323,20 @@ protocol IOSBackgroundCaptureHandoffDelegate: AnyObject {
 
   func disarmBackgroundAudioHandoff(caller: String)
 
+  func interruptBackgroundAudioHandoff(caller: String)
+
   func isBackgroundAudioHandoffReady(for target: IOSAudioInputTarget?) -> Bool
+}
+
+extension IOSBackgroundCaptureHandoffDelegate {
+  func interruptBackgroundAudioHandoff(caller: String) {
+    disarmBackgroundAudioHandoff(caller: caller)
+  }
+}
+
+enum IOSMainTurnPreparationError: Error, Equatable {
+  case cancelled
+  case microphoneUnavailable
 }
 
 /// The single writer for AVAudioSession during an iOS MAIN turn.
@@ -357,6 +370,7 @@ final class IOSAudioSessionCoordinator: NSObject {
   /// this coordinator separate from that lagging route snapshot so a new HFP
   /// owner never mistakes a stale route for a usable audio session.
   private(set) var isAudioSessionActive = false
+  private(set) var isAudioInterruptionSuspended = false
   private(set) var isMainTurnActive = false
   private(set) var mainAudioInputTarget: IOSAudioInputTarget?
   private(set) var isBackgroundLearningEnabled = false
@@ -440,6 +454,9 @@ final class IOSAudioSessionCoordinator: NSObject {
   }
 
   func applicationWillEnterForeground() {
+    // Opening HOMI is an explicit opportunity to prepare its input again.
+    // An interruption-ended notification alone must not reclaim another app's audio.
+    isAudioInterruptionSuspended = false
     endBackgroundTurnExecution(
       caller: "BackgroundLearningBridge.willEnterForeground"
     )
@@ -462,8 +479,11 @@ final class IOSAudioSessionCoordinator: NSObject {
       }
       return
     }
-    guard isBackgroundLearningEnabled else {
-      trace(stage: "background_capture_arm_skipped", caller: caller, message: "disabled")
+    guard isBackgroundLearningEnabled, !isAudioInterruptionSuspended else {
+      trace(
+        stage: "background_capture_arm_skipped", caller: caller,
+        message: isAudioInterruptionSuspended ? "interrupted" : "disabled"
+      )
       completion()
       return
     }
@@ -477,6 +497,50 @@ final class IOSAudioSessionCoordinator: NSObject {
       caller: caller,
       completion: completion
     )
+  }
+
+  /// A physical/visible MAIN action may try normal session activation again
+  /// after interruption. iOS still decides whether background recording is allowed.
+  /// No prompt is acknowledged until the current turn's input is actually ready.
+  func prepareExplicitMainTurn(
+    source: String,
+    audioInputTarget: IOSAudioInputTarget?,
+    completion: @escaping (Result<String, IOSMainTurnPreparationError>) -> Void
+  ) {
+    guard IOSNativeWork.isCurrent else {
+      IOSNativeWork.queue.async { [weak self] in
+        guard let self else {
+          completion(.failure(.cancelled))
+          return
+        }
+        self.prepareExplicitMainTurn(
+          source: source, audioInputTarget: audioInputTarget, completion: completion
+        )
+      }
+      return
+    }
+    isAudioInterruptionSuspended = false
+    let turnId = beginMainTurn(
+      source: source, audioInputTarget: audioInputTarget, forceNewTurn: true
+    )
+    requestBackgroundCaptureArm(caller: source) { [weak self] in
+      guard let self, self.isMainTurnActive, self.activeTurnId == turnId else {
+        completion(.failure(.cancelled))
+        return
+      }
+      if self.isAudioInterruptionSuspended {
+        completion(.failure(.cancelled))
+        return
+      }
+      if !IOSNativeWork.applicationIsActive &&
+        !self.hasBackgroundCaptureReady(for: audioInputTarget) {
+        self.endMainTurn(reason: "microphone_unavailable", caller: source, expectedTurnId: turnId)
+        self.requestBackgroundCaptureDisarm(caller: "\(source).failed")
+        completion(.failure(.microphoneUnavailable))
+        return
+      }
+      completion(.success(turnId))
+    }
   }
 
   func requestBackgroundCaptureDisarm(caller: String) {
@@ -723,6 +787,9 @@ final class IOSAudioSessionCoordinator: NSObject {
   }
 
   func preparePrompt(preferredHfpInput: AVAudioSessionPortDescription?, caller: String) throws -> Bool {
+    guard !isAudioInterruptionSuspended else {
+      throw IOSAudioSessionCoordinatorError.audioSessionInterrupted
+    }
     acquireSessionOwner(.prompt, caller: caller)
     trace(stage: "prompt_audio_prepare", caller: caller)
     do {
@@ -763,7 +830,7 @@ final class IOSAudioSessionCoordinator: NSObject {
       }
       try ensureCategory(
         mode: .default,
-        options: [.defaultToSpeaker, .duckOthers],
+        options: [.defaultToSpeaker],
         caller: caller
       )
       try ensurePreferredInput(nil, caller: caller)
@@ -781,6 +848,9 @@ final class IOSAudioSessionCoordinator: NSObject {
   /// input is paired. The selected HM-D001 UID remains owned by HfpAudioBridge and
   /// can be reactivated for the following sample/capture turn.
   func preparePhoneSpeaker(caller: String) throws {
+    guard !isAudioInterruptionSuspended else {
+      throw IOSAudioSessionCoordinatorError.audioSessionInterrupted
+    }
     acquireSessionOwner(.prompt, caller: caller)
     trace(stage: "phone_prompt_audio_prepare", caller: caller)
     do {
@@ -797,7 +867,7 @@ final class IOSAudioSessionCoordinator: NSObject {
       }
       try ensureCategory(
         mode: .default,
-        options: [.defaultToSpeaker, .duckOthers],
+        options: [.defaultToSpeaker],
         caller: caller
       )
       try ensureActive(caller: caller)
@@ -834,6 +904,9 @@ final class IOSAudioSessionCoordinator: NSObject {
   /// assistant speech stays on that device instead of falling back to the
   /// iPhone speaker.
   func prepareMediaPlayback(caller: String) throws {
+    guard !isAudioInterruptionSuspended else {
+      throw IOSAudioSessionCoordinatorError.audioSessionInterrupted
+    }
     acquireSessionOwner(.prompt, caller: caller)
     trace(stage: "media_prompt_audio_prepare", caller: caller)
     do {
@@ -1018,6 +1091,9 @@ final class IOSAudioSessionCoordinator: NSObject {
   }
 
   func prepareCapture(target: IOSAudioInputTarget, caller: String) throws {
+    guard !isAudioInterruptionSuspended else {
+      throw IOSAudioSessionCoordinatorError.audioSessionInterrupted
+    }
     retainBackgroundTurnExecutionIfNeeded(caller: caller)
     let captureWasAlreadyPrepared = ownership.contains(.speechCapture)
     if captureWasAlreadyPrepared {
@@ -1029,6 +1105,11 @@ final class IOSAudioSessionCoordinator: NSObject {
     do {
       switch target {
       case .hfp:
+        if selectedOrAvailableHfpInput() == nil {
+          // A competing media app may leave an A2DP-only route. Publish the
+          // record-capable inputs before resolving the selected HM-D001 again.
+          try configureHfp(activate: true, preferredInput: nil, caller: caller)
+        }
         guard let input = selectedOrAvailableHfpInput() else {
           throw IOSAudioSessionCoordinatorError.hfpInputUnavailable
         }
@@ -1045,11 +1126,11 @@ final class IOSAudioSessionCoordinator: NSObject {
         }
         try configureHfp(activate: true, preferredInput: input, caller: caller)
       case .builtInMic:
+        try ensureCategory(mode: .voiceChat, options: [.defaultToSpeaker], caller: caller)
+        try ensureActive(caller: caller)
         guard let input = currentOrAvailableInput(portType: .builtInMic) else {
           throw IOSAudioSessionCoordinatorError.builtInMicUnavailable
         }
-        try ensureCategory(mode: .voiceChat, options: [.defaultToSpeaker], caller: caller)
-        try ensureActive(caller: caller)
         try ensurePreferredInput(input, caller: caller)
       }
       trace(stage: "audio_session_active", caller: caller, values: ["audioSource": target.rawValue])
@@ -1080,6 +1161,9 @@ final class IOSAudioSessionCoordinator: NSObject {
     do {
       switch target {
       case .hfp:
+        if selectedOrAvailableHfpInput() == nil {
+          try configureHfp(activate: true, preferredInput: nil, caller: caller)
+        }
         guard let input = selectedOrAvailableHfpInput() else {
           throw IOSAudioSessionCoordinatorError.hfpInputUnavailable
         }
@@ -1092,11 +1176,11 @@ final class IOSAudioSessionCoordinator: NSObject {
           try configureHfp(activate: true, preferredInput: input, caller: caller)
         }
       case .builtInMic:
+        try ensureCategory(mode: .voiceChat, options: [.defaultToSpeaker], caller: caller)
+        try ensureActive(caller: caller)
         guard let input = currentOrAvailableInput(portType: .builtInMic) else {
           throw IOSAudioSessionCoordinatorError.builtInMicUnavailable
         }
-        try ensureCategory(mode: .voiceChat, options: [.defaultToSpeaker], caller: caller)
-        try ensureActive(caller: caller)
         try ensurePreferredInput(input, caller: caller)
       }
       trace(
@@ -1349,6 +1433,9 @@ final class IOSAudioSessionCoordinator: NSObject {
     options: AVAudioSession.CategoryOptions,
     caller: String
   ) throws {
+    guard !isAudioInterruptionSuspended else {
+      throw IOSAudioSessionCoordinatorError.audioSessionInterrupted
+    }
     guard session.category != category || session.mode != mode || session.categoryOptions != options else {
       trace(stage: "setCategory_skipped", caller: caller)
       return
@@ -1359,6 +1446,9 @@ final class IOSAudioSessionCoordinator: NSObject {
   }
 
   private func ensureActive(caller: String) throws {
+    guard !isAudioInterruptionSuspended else {
+      throw IOSAudioSessionCoordinatorError.audioSessionInterrupted
+    }
     try setActive(true, notifyOthers: false, caller: caller)
   }
 
@@ -1421,31 +1511,23 @@ final class IOSAudioSessionCoordinator: NSObject {
       caller: "AVAudioSession",
       message: "reason=\(rawReason)"
     )
-    if type == .began {
-      isAudioSessionActive = false
-    }
-    guard isBackgroundLearningEnabled, let type else { return }
+    guard let type else { return }
 
     switch type {
     case .began:
       // Locking the screen does not emit an AVAudioSession interruption while
       // the background audio mode remains active. Calls, Siri, alarms and
       // competing non-mixable audio do, and must pause the current turn.
-      requestBackgroundCaptureDisarm(
-        caller: "IOSAudioSessionCoordinator.interruptionBegan"
-      )
-      onBackgroundLearningEvent?([
-        "type": "background.interrupted",
-        "reason": "audio_session_interruption_\(rawReason)",
-      ])
+      suspendForAudioInterruption(reason: "audio_session_interruption_\(rawReason)")
     case .ended:
+      guard isBackgroundLearningEnabled else { return }
       let rawOptions =
         (notification.userInfo?[AVAudioSessionInterruptionOptionKey] as? NSNumber)?
           .uintValue ?? 0
       let options = AVAudioSession.InterruptionOptions(rawValue: rawOptions)
       guard options.contains(.shouldResume) else { return }
-      // This only rearms the explicit HM-D001 learning session. Flutter still
-      // requires a valid MAIN turn before opening the microphone again.
+      // Eligibility is not an instruction to resume. Only a fresh MAIN or
+      // opening HOMI clears the suspension gate and may prepare audio again.
       onBackgroundLearningEvent?([
         "type": "background.resumable",
         "reason": "audio_session_interruption_ended",
@@ -1453,6 +1535,22 @@ final class IOSAudioSessionCoordinator: NSObject {
     @unknown default:
       break
     }
+  }
+
+  func suspendForAudioInterruption(reason: String = "audio_session_interruption") {
+    isAudioInterruptionSuspended = true
+    isAudioSessionActive = false
+    // Queue global cancellation before individual speech/prompt failures so
+    // Flutter cannot interpret an interrupted capture as a reason to retry.
+    // Foreground lessons also need this event when background learning is off.
+    onBackgroundLearningEvent?([
+      "type": "background.interrupted",
+      "reason": reason,
+    ])
+    backgroundCaptureHandoffDelegate?.interruptBackgroundAudioHandoff(
+      caller: "IOSAudioSessionCoordinator.interruptionBegan"
+    )
+    endMainTurn(reason: "audio_session_interrupted", caller: "IOSAudioSessionCoordinator.interruptionBegan")
   }
 
   private func routeDescription(_ route: AVAudioSessionRouteDescription) -> String {
@@ -1481,12 +1579,15 @@ final class IOSAudioSessionCoordinator: NSObject {
 }
 
 private enum IOSAudioSessionCoordinatorError: LocalizedError {
+  case audioSessionInterrupted
   case builtInMicUnavailable
   case hfpInputUnavailable
   case mainAudioSourceConflict
 
   var errorDescription: String? {
     switch self {
+    case .audioSessionInterrupted:
+      return "Âm thanh HOMI đã tạm dừng vì ứng dụng khác đang sử dụng âm thanh."
     case .builtInMicUnavailable:
       return "Không tìm thấy mic tích hợp của iPhone/iPad."
     case .hfpInputUnavailable:

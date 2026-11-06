@@ -199,8 +199,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         );
     _vocabularyDictionaryProvider = MinhqndDictionaryProvider();
     _backgroundLearningSession =
-        widget.backgroundLearningSession ??
-        MethodChannelBackgroundLearningSession();
+        widget.backgroundLearningSession ?? sharedBackgroundLearningSession;
     _backgroundLearningCoordinator = BackgroundLearningCoordinator(
       session: _backgroundLearningSession,
       initialLifecycleState:
@@ -495,6 +494,40 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     BackgroundLearningDirective directive,
   ) {
     if (!mounted) return;
+    if (directive == BackgroundLearningDirective.pauseAllAudio) {
+      _voiceNavigationRestartTimer?.cancel();
+      // Invoke each owner before awaiting cleanup: their generation guards
+      // must invalidate pending capture/scoring in the same event turn.
+      final registry = ActiveLearningModuleScope.read(context);
+      unawaited(
+        Future.wait<void>([
+          _runBackgroundStopStep(
+            'active learning interruption',
+            () => registry?.pauseForMainAssistant(),
+          ),
+          _runBackgroundStopStep(
+            'MAIN interruption',
+            () => widget.voiceNavigationController?.pause(
+              preserveChoice: true,
+              stopPrompt: true,
+            ),
+          ),
+          _runBackgroundStopStep(
+            'conversation interruption',
+            widget.controller.cancelCurrentMainAction,
+          ),
+          _runBackgroundStopStep(
+            'speaking interruption',
+            () async => widget.speakingSessionController?.exit(),
+          ),
+          _runBackgroundStopStep(
+            'background interruption',
+            () => _backgroundLearningCoordinator.setActiveLearning(false),
+          ),
+        ]),
+      );
+      return;
+    }
     if (directive == BackgroundLearningDirective.keepVoiceNavigation) {
       _scheduleVoiceNavigationListening();
       return;
@@ -691,6 +724,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
 
   bool get _canStartVoiceNavigationListening =>
       mounted &&
+      _backgroundLearningCoordinator.automaticVoiceNavigationAllowed &&
       _continuousVoiceNavigationEnabled &&
       (_backgroundLearningCoordinator.isForeground ||
           _backgroundLearningCoordinator.canKeepMainListeningInBackground(

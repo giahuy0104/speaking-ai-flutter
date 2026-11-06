@@ -44,6 +44,27 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  const focusChannel = MethodChannel('ailingo_background_learning');
+  const focusEventsChannel = MethodChannel(
+    'ailingo_background_learning/events',
+  );
+  final messenger =
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+  setUp(() {
+    // These widget tests already fake playback and capture. Supply the OS
+    // focus boundary too, so their real controllers can reach those fakes.
+    messenger.setMockMethodCallHandler(focusChannel, (call) async {
+      if (call.method == 'acquireAudioFocus') return true;
+      return null;
+    });
+    messenger.setMockMethodCallHandler(focusEventsChannel, (_) async => null);
+  });
+  tearDown(() {
+    messenger.setMockMethodCallHandler(focusChannel, null);
+    messenger.setMockMethodCallHandler(focusEventsChannel, null);
+  });
+
   testWidgets(
     'Home starts background preparation after rendering and not on rebuild',
     (tester) async {
@@ -1183,7 +1204,7 @@ void main() {
   });
 
   testWidgets(
-    'rearms an Android background session without opening a busy microphone',
+    'Android native resume keeps wake listening paused until explicit MAIN',
     (tester) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
@@ -1221,11 +1242,81 @@ void main() {
 
       backgroundSession.resume();
       await tester.pump(const Duration(milliseconds: 400));
+      expect(voiceNavigationController.isListening, isFalse);
+
+      expect(await voiceNavigationController.activateFromMainButton(), isTrue);
       expect(voiceNavigationController.isListening, isTrue);
 
       await tester.pumpWidget(const SizedBox.shrink());
       debugDefaultTargetPlatformOverride = null;
     },
+  );
+
+  testWidgets(
+    'native interruption pauses the learning owner before cleanup and does not resume it',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final registry = ActiveLearningModuleRegistry();
+      final module = _InterruptedLearningModule();
+      registry.register(module);
+      final backgroundSession = _FakeBackgroundLearningSession();
+      final speechInput = _FakeStreamingSpeechInput();
+      final voice = VoiceNavigationController(speechInput: speechInput);
+      final controller = _controller();
+      addTearDown(registry.dispose);
+      addTearDown(module.finishCleanup);
+      addTearDown(backgroundSession.dispose);
+      addTearDown(voice.dispose);
+      addTearDown(controller.dispose);
+
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _app(
+            controller,
+            voiceNavigationController: voice,
+            backgroundLearningSession: backgroundSession,
+            parentMediaSettingsStore: const _FakeParentMediaSettingsStore(
+              false,
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(await voice.activateFromMainButton(), isTrue);
+      expect(voice.isListening, isTrue);
+
+      backgroundSession.interrupt('audio_focus_loss');
+      await tester.pump();
+
+      expect(module.isPausedForMain, isTrue);
+      expect(module.cleanup.isCompleted, isFalse);
+      expect(voice.isListening, isFalse);
+      expect(speechInput.cancelCount, 1);
+      expect(registry.controller, same(module));
+
+      backgroundSession.resume();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(voice.isListening, isFalse);
+      expect(module.isPausedForMain, isTrue);
+      expect(module.commands, isEmpty);
+
+      module.finishCleanup();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(backgroundSession.activeLearningValues, contains(false));
+      expect(registry.controller, same(module));
+      expect(module.commands, isEmpty);
+      expect(await voice.activateFromMainButton(), isTrue);
+      expect(voice.isListening, isTrue);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
   );
 
   testWidgets(
@@ -3833,11 +3924,19 @@ class _HomeListeningProgressStore extends ListeningProgressStore {
 }
 
 class _FakeBackgroundLearningSession
-    implements BackgroundLearningSessionControl {
+    implements
+        BackgroundLearningSessionControl,
+        ActiveLearningBackgroundSessionControl {
   final StreamController<BackgroundLearningEvent> _events =
       StreamController<BackgroundLearningEvent>.broadcast();
   int startCount = 0;
   int stopCount = 0;
+  final List<bool> activeLearningValues = <bool>[];
+
+  @override
+  Future<void> setActiveLearning(bool active) async {
+    activeLearningValues.add(active);
+  }
 
   @override
   Stream<BackgroundLearningEvent> get events => _events.stream;
@@ -4038,6 +4137,29 @@ class _ChallengeVoiceModule
   Future<ActiveLearningCommandResult> handleMainCommand(
     ActiveLearningCommand command,
   ) async => const ActiveLearningCommandResult.handled();
+}
+
+class _InterruptedLearningModule extends _ChallengeVoiceModule {
+  final cleanup = Completer<void>();
+  final List<ActiveLearningCommand> commands = <ActiveLearningCommand>[];
+
+  @override
+  Future<void> pauseForMainAssistant() async {
+    paused = true;
+    await cleanup.future;
+  }
+
+  void finishCleanup() {
+    if (!cleanup.isCompleted) cleanup.complete();
+  }
+
+  @override
+  Future<ActiveLearningCommandResult> handleMainCommand(
+    ActiveLearningCommand command,
+  ) async {
+    commands.add(command);
+    return const ActiveLearningCommandResult.handled();
+  }
 }
 
 class _FakeStreamingSpeechInput implements StreamingSpeechInput {

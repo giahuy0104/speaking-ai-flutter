@@ -1,5 +1,8 @@
 import 'dart:async';
 
+import 'package:ai_speaking_flutter_app/core/audio/native_audio_focus.dart';
+import 'package:ai_speaking_flutter_app/core/platform/background_learning_session.dart';
+
 import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/main_assistant_audio_state.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
@@ -19,6 +22,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   test('iOS waits for a quiet unfinished MAIN answer', () async {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
@@ -1527,7 +1531,9 @@ void main() {
         prompt.transition.complete();
         await _waitUntil(() => prompt.spokenTexts.length == 2);
         if (failIntro) {
-          prompt.intro.completeError(StateError('HM-D001 intro playback failed'));
+          prompt.intro.completeError(
+            StateError('HM-D001 intro playback failed'),
+          );
         } else {
           await controller.pause();
           prompt.intro.complete();
@@ -2278,42 +2284,45 @@ void main() {
     await speechInput.dispose();
   });
 
-  test('Today MAIN other-content command speaks the three-choice menu', () async {
-    final speech = _FakeNavigationSpeechInput();
-    final prompt = _KeyedFakeVoicePromptService();
-    final controller = VoiceNavigationController(
-      speechInput: speech,
-      voicePromptService: prompt,
-    );
-    expect(
-      await controller.activateFromMainButton(
-        activeLearning: true,
-        activeLearningKind: ActiveLearningModuleKind.vocabulary,
-        promptAlreadySpoken: true,
-      ),
-      isTrue,
-    );
+  test(
+    'Today MAIN other-content command speaks the three-choice menu',
+    () async {
+      final speech = _FakeNavigationSpeechInput();
+      final prompt = _KeyedFakeVoicePromptService();
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: prompt,
+      );
+      expect(
+        await controller.activateFromMainButton(
+          activeLearning: true,
+          activeLearningKind: ActiveLearningModuleKind.vocabulary,
+          promptAlreadySpoken: true,
+        ),
+        isTrue,
+      );
 
-    expect(
-      await controller.dispatchRecognizedText('Học nội dung khác'),
-      isTrue,
-    );
-    expect(
-      prompt.spokenTexts.last,
-      MainVoiceAssistantFlow.vocabularyOtherLearningPrompt,
-    );
-    expect(
-      prompt.keyedPlays.where(
-        (play) =>
-            play.$2 == MainVoiceAssistantFlow.vocabularyOtherLearningPrompt,
-      ),
-      hasLength(1),
-    );
-    expect(controller.isAwaitingCommand, isTrue);
+      expect(
+        await controller.dispatchRecognizedText('Học nội dung khác'),
+        isTrue,
+      );
+      expect(
+        prompt.spokenTexts.last,
+        MainVoiceAssistantFlow.vocabularyOtherLearningPrompt,
+      );
+      expect(
+        prompt.keyedPlays.where(
+          (play) =>
+              play.$2 == MainVoiceAssistantFlow.vocabularyOtherLearningPrompt,
+        ),
+        hasLength(1),
+      );
+      expect(controller.isAwaitingCommand, isTrue);
 
-    controller.dispose();
-    await speech.dispose();
-  });
+      controller.dispose();
+      await speech.dispose();
+    },
+  );
 
   test(
     'two silent translation-switch windows pause without redirecting',
@@ -2470,6 +2479,56 @@ void main() {
     },
   );
 
+  for (final fails in [false, true]) {
+    test('Android keeps focus through MAIN handoff (fails=$fails)', () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      const channel = MethodChannel('test.main_handoff_focus');
+      final calls = <String>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            calls.add(call.method);
+            return call.method == 'acquireAudioFocus' ? true : null;
+          });
+      final focus = NativeAudioFocus(
+        channel: channel,
+        session: _EmptyBackgroundSession(),
+        isAndroid: true,
+      );
+      final speech = _FakeNavigationSpeechInput();
+      final prompt = _FakeMainTurnVoicePromptService();
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: prompt,
+        audioFocus: focus,
+        activeLearningCommandHandler: (_) async {
+          expect(prompt.endedReasons.last, 'main_assistant_completed');
+          expect(calls, ['acquireAudioFocus']);
+          await Future<void>.delayed(Duration.zero);
+          expect(calls, ['acquireAudioFocus']);
+          if (fails) throw StateError('handoff failed');
+          return const ActiveLearningCommandResult.handled();
+        },
+      );
+      expect(
+        await controller.activateFromMainButton(activeLearning: true),
+        isTrue,
+      );
+      final dispatch = controller.dispatchRecognizedText('Câu tiếp theo');
+      if (fails) {
+        await expectLater(dispatch, throwsStateError);
+      } else {
+        expect(await dispatch, isTrue);
+      }
+      expect(calls, ['acquireAudioFocus', 'releaseAudioFocus']);
+      controller.dispose();
+      await speech.dispose();
+      await focus.dispose();
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+  }
+
   test(
     'Android Core resume speaks HOMI before handing audio to the lesson',
     () async {
@@ -2507,7 +2566,7 @@ void main() {
   );
 
   test(
-    'locked iOS MAIN asks for unlock before prompting when native input is gone',
+    'iOS MAIN asks to open HOMI when native input recovery is unavailable',
     () async {
       final speechInput = _FakeNavigationSpeechInput();
       final voicePrompt = _BackgroundMicUnavailableVoicePromptService();
@@ -2520,13 +2579,36 @@ void main() {
       expect(controller.isMainButtonSessionActive, isFalse);
       expect(speechInput.events, isNot(contains('start')));
       expect(voicePrompt.spokenTexts, <String>[
-        'Mở khóa iPhone rồi nhấn MAIN lại để dùng micro.',
+        'Mở lại ứng dụng HOMI rồi nhấn MAIN để dùng micro.',
       ]);
 
       controller.dispose();
       await speechInput.dispose();
     },
   );
+
+  for (final code in <String>[
+    'AUDIO_FOCUS_DENIED',
+    'AUDIO_FOCUS_LOST',
+    'MAIN_TURN_CANCELLED',
+  ]) {
+    test('MAIN $code does not start capture or a competing prompt', () async {
+      final speechInput = _FakeNavigationSpeechInput();
+      final voicePrompt = _RejectedMainTurnVoicePromptService(code);
+      final controller = VoiceNavigationController(
+        speechInput: speechInput,
+        voicePromptService: voicePrompt,
+      );
+
+      expect(await controller.activateFromMainButton(), isFalse);
+      expect(controller.isMainButtonSessionActive, isFalse);
+      expect(speechInput.events, isNot(contains('start')));
+      expect(voicePrompt.spokenTexts, isEmpty);
+
+      controller.dispose();
+      await speechInput.dispose();
+    });
+  }
 
   test(
     'iOS lesson MAIN does not stay blocked by a late native turn arm',
@@ -3432,6 +3514,17 @@ class _BackgroundMicUnavailableVoicePromptService
   }
 }
 
+class _RejectedMainTurnVoicePromptService
+    extends _FakeMainTurnVoicePromptService {
+  _RejectedMainTurnVoicePromptService(this.code);
+  final String code;
+
+  @override
+  Future<String?> beginMainTurn() async {
+    throw PlatformException(code: code);
+  }
+}
+
 class _DeferredEndMainTurnVoicePromptService
     extends _FakeMainTurnVoicePromptService {
   final pendingEnd = Completer<void>();
@@ -3652,4 +3745,13 @@ class _FailingNavigationSpeechInput extends _FakeNavigationSpeechInput {
       );
     }
   }
+}
+
+class _EmptyBackgroundSession implements BackgroundLearningSessionControl {
+  @override
+  Stream<BackgroundLearningEvent> get events => const Stream.empty();
+  @override
+  Future<bool> start() async => true;
+  @override
+  Future<void> stop() async {}
 }

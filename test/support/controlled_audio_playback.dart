@@ -31,6 +31,7 @@ class ControlledCache extends DeviceAudioCache {
 
 class ControlledPlayer implements AudioPlayer {
   final _states = StreamController<PlayerState>.broadcast(sync: true);
+  final _events = StreamController<PlayerEvent>.broadcast(sync: true);
   final _positions = StreamController<Duration>.broadcast(sync: true);
   final List<String> playedPaths = <String>[];
   final List<double> volumeChanges = <double>[];
@@ -48,6 +49,8 @@ class ControlledPlayer implements AudioPlayer {
   double _volume = 1.0;
   ProcessingState _processingState = ProcessingState.ready;
   Duration _position = Duration.zero;
+  Object? pauseError;
+  bool finishImmediately = false;
 
   /// Pushes a player state the way just_audio would, so a test can replay the
   /// exact event order around a completion.
@@ -55,12 +58,29 @@ class ControlledPlayer implements AudioPlayer {
     required bool playing,
     required ProcessingState processingState,
     Duration position = Duration.zero,
+    bool publishPlayerState = true,
   }) {
     _playing = playing;
     _processingState = processingState;
     _position = position;
-    _states.add(PlayerState(playing, processingState));
+    _events.add(
+      PlayerEvent(
+        playing: playing,
+        playbackEvent: PlaybackEvent(
+          processingState: processingState,
+          updatePosition: position,
+          duration: duration,
+        ),
+      ),
+    );
+    if (publishPlayerState) {
+      emitDelayedPlayerState(PlayerState(playing, processingState));
+    }
   }
+
+  /// Delivers an older derived state after its source event, as just_audio's
+  /// asynchronous playerStateStream can do after a replacement play starts.
+  void emitDelayedPlayerState(PlayerState state) => _states.add(state);
 
   @override
   bool get playing => _playing;
@@ -72,6 +92,8 @@ class ControlledPlayer implements AudioPlayer {
   Duration? get duration => const Duration(seconds: 2);
   @override
   Stream<PlayerState> get playerStateStream => _states.stream;
+  @override
+  Stream<PlayerEvent> get playerEventStream => _events.stream;
   @override
   Stream<Duration> get positionStream => _positions.stream;
 
@@ -130,20 +152,27 @@ class ControlledPlayer implements AudioPlayer {
     playedPaths.add(loadedPath!);
     volumesAtPlay.add(_volume);
     if (attributes != null) attributesAtPlay.add(attributes!);
-    _playing = true;
-    _states.add(PlayerState(true, ProcessingState.ready));
+    emitState(playing: true, processingState: ProcessingState.ready);
+    if (finishImmediately) {
+      emitState(
+        playing: true,
+        processingState: ProcessingState.completed,
+        position: duration!,
+      );
+    }
   }
 
   @override
   Future<void> pause() async {
-    _playing = false;
-    _states.add(PlayerState(false, ProcessingState.ready));
+    if (pauseError case final error?) throw error;
+    emitState(playing: false, processingState: ProcessingState.ready);
   }
 
   @override
   Future<void> dispose() async {
     disposeCalls++;
     await _states.close();
+    await _events.close();
     await _positions.close();
   }
 

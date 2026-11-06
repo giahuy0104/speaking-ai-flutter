@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../../../core/audio/adaptive_voice_activity_detector.dart';
 import '../../../core/audio/streaming_speech_input.dart';
 import '../../../core/audio/audio_diagnostics.dart';
+import '../../../core/audio/native_audio_focus.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/device/active_learning_module.dart';
 import '../../listening/domain/listening_content.dart';
@@ -37,6 +38,7 @@ class VoiceNavigationController extends ChangeNotifier {
         const VoiceNavigationIntentResolver(),
     MainVoiceAssistantFlow? mainAssistantFlow,
     VoicePromptService? voicePromptService,
+    NativeAudioFocus? audioFocus,
     bool ownsSpeechInput = false,
     bool ownsVoicePromptService = false,
     Duration restartDelay = const Duration(milliseconds: 300),
@@ -56,6 +58,7 @@ class VoiceNavigationController extends ChangeNotifier {
        _resolver = resolver,
        _mainAssistantFlow = mainAssistantFlow ?? MainVoiceAssistantFlow(),
        _voicePromptService = voicePromptService,
+       _audioFocus = audioFocus ?? nativeAudioFocus,
        _ownsSpeechInput = ownsSpeechInput,
        _ownsVoicePromptService = ownsVoicePromptService,
        _restartDelay = restartDelay,
@@ -115,6 +118,7 @@ class VoiceNavigationController extends ChangeNotifier {
   final VoiceNavigationIntentResolver _resolver;
   final MainVoiceAssistantFlow _mainAssistantFlow;
   final VoicePromptService? _voicePromptService;
+  final NativeAudioFocus _audioFocus;
   final bool _ownsSpeechInput;
   final bool _ownsVoicePromptService;
   final Duration _restartDelay;
@@ -730,80 +734,97 @@ class VoiceNavigationController extends ChangeNotifier {
     } else if (!iosNavigation || turn.navigationAfterPrompt == null) {
       _mainAssistantFlow.reset();
     }
-    // The MAIN controller is the sole owner of the native turn. Apple Speech
-    // may start, stop, or be replaced several times while the assistant asks
-    // follow-up questions, so recognition callbacks must not release HFP/BLE.
-    AudioDiagnostics.event('main.native_end.request', {
-      'generation': generation,
-    });
-    await _endNativeMainTurn(
-      'main_assistant_completed',
-      generation: generation,
-    );
-    if (_disposed || generation != _generation) return false;
-    if (turn.exhaustedUnrecognizedInput) {
-      _reportIosTopicRecognitionFailure(stage: choiceStage);
-    }
-    AudioDiagnostics.event('main.native_end.completed', {
-      'generation': generation,
-    });
-    final activeLearningCommand = turn.activeLearningCommand;
-    if (activeLearningCommand != null) {
-      final handler = _activeLearningCommandHandler;
-      if (handler != null) {
-        final result = await handler(activeLearningCommand);
-        if ((canCompleteRecognizedSongSkip || canCompleteVocabularyReturn) &&
-            result.wasHandled) {
-          _lastError = null;
-        }
-        if (!kIsWeb &&
-            defaultTargetPlatform == TargetPlatform.iOS &&
-            !result.wasHandled) {
-          _lastError = StreamingSpeechInputException(
-            result.spokenReply ??
-                'Chưa thực hiện được lệnh học. Bạn hãy thử lại hoặc chạm nút trên màn hình.',
-            code: 'NAVIGATION_COMMAND_UNHANDLED',
+    // Keep Android focus while the finished MAIN hands off to a lesson or
+    // conversation. Native turn cleanup still precedes navigation on iOS.
+    NativeAudioFocusLease? handoffFocus;
+    try {
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+        handoffFocus = await _audioFocus.acquire(
+          'main-handoff',
+          transientExclusive: true,
+        );
+        if (_disposed || generation != _generation) return false;
+        handoffFocus.requireCurrent();
+      }
+      // The MAIN controller is the sole owner of the native turn. Apple Speech
+      // may start, stop, or be replaced several times while the assistant asks
+      // follow-up questions, so recognition callbacks must not release HFP/BLE.
+      AudioDiagnostics.event('main.native_end.request', {
+        'generation': generation,
+      });
+      await _endNativeMainTurn(
+        'main_assistant_completed',
+        generation: generation,
+      );
+      if (_disposed || generation != _generation) return false;
+      if (turn.exhaustedUnrecognizedInput) {
+        _reportIosTopicRecognitionFailure(stage: choiceStage);
+      }
+      AudioDiagnostics.event('main.native_end.completed', {
+        'generation': generation,
+      });
+      final activeLearningCommand = turn.activeLearningCommand;
+      if (activeLearningCommand != null) {
+        final handler = _activeLearningCommandHandler;
+        if (handler != null) {
+          final result = await handler(activeLearningCommand);
+          if (_disposed || generation != _generation) return result.wasHandled;
+          if ((canCompleteRecognizedSongSkip || canCompleteVocabularyReturn) &&
+              result.wasHandled) {
+            _lastError = null;
+          }
+          if (!kIsWeb &&
+              defaultTargetPlatform == TargetPlatform.iOS &&
+              !result.wasHandled) {
+            _lastError = StreamingSpeechInputException(
+              result.spokenReply ??
+                  'Chưa thực hiện được lệnh học. Bạn hãy thử lại hoặc chạm nút trên màn hình.',
+              code: 'NAVIGATION_COMMAND_UNHANDLED',
+            );
+            AudioDiagnostics.event('main.active_command.unhandled', {
+              'generation': generation,
+              'command': activeLearningCommand.name,
+              'status': result.status.name,
+            });
+            notifyListeners();
+            return false;
+          }
+        } else if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+          _lastError = const StreamingSpeechInputException(
+            'Chưa thực hiện được lệnh học. Bạn hãy thử lại.',
+            code: 'NAVIGATION_COMMAND_UNAVAILABLE',
           );
           AudioDiagnostics.event('main.active_command.unhandled', {
             'generation': generation,
             'command': activeLearningCommand.name,
-            'status': result.status.name,
+            'status': 'unavailable',
           });
           notifyListeners();
           return false;
         }
-      } else if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
-        _lastError = const StreamingSpeechInputException(
-          'Chưa thực hiện được lệnh học. Bạn hãy thử lại.',
-          code: 'NAVIGATION_COMMAND_UNAVAILABLE',
-        );
-        AudioDiagnostics.event('main.active_command.unhandled', {
-          'generation': generation,
-          'command': activeLearningCommand.name,
-          'status': 'unavailable',
-        });
-        notifyListeners();
-        return false;
       }
+      if (navigationAfterPrompt != null) {
+        final dispatched = await _dispatchIntent(navigationAfterPrompt);
+        if (_disposed || generation != _generation) return dispatched;
+        if (!dispatched &&
+            (iosNavigation ||
+                navigationAfterPrompt.vocabularyTarget != null ||
+                navigationAfterPrompt.enterMainSpeakingMode)) {
+          notifyListeners();
+          return false;
+        }
+        if (iosNavigation &&
+            !_disposed &&
+            generation == _generation &&
+            _mainAssistantFlow.stage == choiceStage) {
+          _mainAssistantFlow.reset();
+        }
+      }
+      notifyListeners();
+      return true;
+    } finally {
+      await handoffFocus?.release();
     }
-    if (navigationAfterPrompt != null) {
-      final dispatched = await _dispatchIntent(navigationAfterPrompt);
-      if (!dispatched &&
-          (iosNavigation ||
-              navigationAfterPrompt.vocabularyTarget != null ||
-              navigationAfterPrompt.enterMainSpeakingMode)) {
-        notifyListeners();
-        return false;
-      }
-      if (iosNavigation &&
-          !_disposed &&
-          generation == _generation &&
-          _mainAssistantFlow.stage == choiceStage) {
-        _mainAssistantFlow.reset();
-      }
-    }
-    notifyListeners();
-    return true;
   }
 
   /// Stops only the navigation-side recognition lifecycle before another
@@ -1386,8 +1407,17 @@ class VoiceNavigationController extends ChangeNotifier {
       );
       return true;
     } on PlatformException catch (error) {
+      if (error.code == 'MAIN_TURN_CANCELLED') return false;
+      if (error.code == 'AUDIO_FOCUS_LOST' ||
+          error.code == 'AUDIO_FOCUS_DENIED') {
+        _lastError = StreamingSpeechInputException(
+          'Âm thanh đang bị gián đoạn. Bạn nhấn MAIN để thử lại.',
+          code: error.code,
+        );
+        return false;
+      }
       if (error.code != 'BACKGROUND_MIC_NOT_READY') return true;
-      const message = 'Mở khóa iPhone rồi nhấn MAIN lại để dùng micro.';
+      const message = 'Mở lại ứng dụng HOMI rồi nhấn MAIN để dùng micro.';
       _lastError = const StreamingSpeechInputException(
         message,
         code: 'BACKGROUND_MIC_NOT_READY',

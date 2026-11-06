@@ -10,6 +10,7 @@ import '../../../core/audio/audio_playback_service.dart';
 import '../../../core/audio/audio_turn_coordinator.dart';
 import '../../../core/audio/hfp_audio_control.dart';
 import '../../../core/audio/hfp_audio_route_coordinator.dart';
+import '../../../core/audio/native_audio_focus.dart';
 import '../data/lesson_recording_history_store.dart';
 import 'lesson_recording_storage.dart';
 
@@ -43,6 +44,7 @@ class LessonMediaService {
     AudioPlaybackService? playbackService,
     HfpAudioControl? hfpAudioControl,
     AudioTurnCoordinator? audioTurnCoordinator,
+    NativeAudioFocus? audioFocus,
     AudioTurnOwner audioTurnOwner = AudioTurnOwner.listeningLesson,
     LessonRecordingHistoryStore? historyStore,
     Stream<AudioInterruptionEvent>? audioInterruptionEvents,
@@ -50,9 +52,23 @@ class LessonMediaService {
        _playbackService = playbackService,
        _hfpAudioControl = hfpAudioControl,
        _audioTurnCoordinator = audioTurnCoordinator,
+       _audioFocus = audioFocus ?? nativeAudioFocus,
        _audioTurnOwner = audioTurnOwner,
        _audioInterruptionEvents = audioInterruptionEvents,
        historyStore = historyStore ?? const LessonRecordingHistoryStore() {
+    _focusInterruptionSubscription = _audioFocus.interruptions.listen((_) {
+      final completion = _activePlaybackCompletion;
+      if (completion != null && !completion.isCompleted) {
+        completion.completeError(
+          const LessonMediaException(
+            'Âm thanh bị gián đoạn. Bạn nhấn MAIN để tiếp tục.',
+          ),
+        );
+      }
+      // cancelRecording invalidates in-flight start/stop before queued cleanup.
+      unawaited(cancelRecording().catchError((Object _) {}));
+      unawaited(stopPlayback().catchError((Object _) {}));
+    });
     if (!kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.android ||
             defaultTargetPlatform == TargetPlatform.iOS)) {
@@ -95,6 +111,13 @@ class LessonMediaService {
   AudioPlaybackService? _playbackService;
   final HfpAudioControl? _hfpAudioControl;
   final AudioTurnCoordinator? _audioTurnCoordinator;
+  final NativeAudioFocus _audioFocus;
+  NativeAudioFocusLease? _focusLease;
+  Future<NativeAudioFocusLease>? _focusAcquisition;
+  StreamSubscription<void>? _focusInterruptionSubscription;
+  int _focusGeneration = 0;
+  int _captureGeneration = 0;
+  bool _disposed = false;
   final AudioTurnOwner _audioTurnOwner;
   final Stream<AudioInterruptionEvent>? _audioInterruptionEvents;
   DateTime? _recordingStartedAt;
@@ -103,6 +126,7 @@ class LessonMediaService {
   Completer<void>? _activePlaybackCompletion;
   Future<void> _recordingOperation = Future<void>.value();
   Object? _activeHfpRouteToken;
+  int _hfpRouteGeneration = 0;
   StreamSubscription<BluetoothAudioStatus>? _hfpStatusSubscription;
   int _playbackRequestGeneration = 0;
   LessonMediaException? _recordingRouteFailure;
@@ -186,13 +210,19 @@ class LessonMediaService {
     bool fixedPlaybackGain = false,
   }) async {
     final generation = ++_playbackRequestGeneration;
-    await _preparePlaybackRoute(route);
-    _requireCurrentPlayback(generation);
-    // Route/session preparation can rebuild Android's playback chain. Apply
-    // gain afterwards so every clip starts with the requested level.
-    await _setPlaybackGain(playbackGainDb, fixed: fixedPlaybackGain);
-    _requireCurrentPlayback(generation);
-    await _activePlayback.play(uri);
+    final focusGeneration = _focusGeneration;
+    try {
+      await _preparePlaybackRoute(route);
+      _requireCurrentPlayback(generation);
+      // Route/session preparation can rebuild Android's playback chain. Apply
+      // gain afterwards so every clip starts with the requested level.
+      await _setPlaybackGain(playbackGainDb, fixed: fixedPlaybackGain);
+      _requireCurrentPlayback(generation);
+      await _activePlayback.play(uri);
+    } catch (_) {
+      await _releaseFailedPlayback(generation, focusGeneration);
+      rethrow;
+    }
   }
 
   Stream<AudioInterruptionEvent> get _interruptions =>
@@ -217,7 +247,7 @@ class LessonMediaService {
     int generation,
   ) async {
     try {
-      await _preparePlaybackRoute(route);
+      await _preparePlaybackRoute(route, retainFocusOnFailure: true);
     } on HfpAudioException {
       _requireCurrentPlayback(generation);
       await Future<void>.delayed(const Duration(milliseconds: 250));
@@ -317,6 +347,50 @@ class LessonMediaService {
     bool fixedPlaybackGain = false,
   }) async {
     final generation = ++_playbackRequestGeneration;
+    final focusGeneration = _focusGeneration;
+    try {
+      await _playToCompletion(
+        uri,
+        generation: generation,
+        timeout: timeout,
+        route: route,
+        playbackGainDb: playbackGainDb,
+        fixedPlaybackGain: fixedPlaybackGain,
+      );
+    } catch (_) {
+      await _releaseFailedPlayback(generation, focusGeneration);
+      rethrow;
+    }
+  }
+
+  Future<void> _releaseFailedPlayback(
+    int generation,
+    int focusGeneration,
+  ) async {
+    if (generation != _playbackRequestGeneration ||
+        focusGeneration != _focusGeneration) {
+      return;
+    }
+    // Start cleanup before yielding so a newer playback cannot be stopped or
+    // have its route released by this failed request's delayed continuation.
+    final playbackStop = Future<void>.sync(() => _playbackService?.stop());
+    final focusRelease = _releaseFocus();
+    final routeRelease = _releaseHfpRoute();
+    try {
+      await Future.wait<void>([playbackStop, focusRelease, routeRelease]);
+    } catch (_) {
+      // Preserve the playback failure that caused this cleanup.
+    }
+  }
+
+  Future<void> _playToCompletion(
+    Uri uri, {
+    required int generation,
+    required Duration timeout,
+    required LessonPlaybackRoute route,
+    required double playbackGainDb,
+    required bool fixedPlaybackGain,
+  }) async {
     final playback = _activePlayback;
     await _preparePlaybackRouteWithRetry(route, generation);
     _requireCurrentPlayback(generation);
@@ -523,7 +597,12 @@ class LessonMediaService {
         !kIsWeb &&
         defaultTargetPlatform == TargetPlatform.android &&
         _recordingStartedAt != null;
-    await _stopPlayback(releaseAudioRoute: !androidCaptureActive);
+    final focusRelease = androidCaptureActive ? null : _releaseFocus();
+    try {
+      await _stopPlayback(releaseAudioRoute: !androidCaptureActive);
+    } finally {
+      await focusRelease;
+    }
   }
 
   /// Explicitly leaves a lesson-owned HFP route and prepares phone output.
@@ -590,90 +669,104 @@ class LessonMediaService {
     String? english,
     String? vietnamese,
     bool saveToHistory = true,
-  }) => _serializeRecordingOperation(() async {
-    var recorderStarted = false;
-    try {
-      _recordingRouteFailure = null;
-      // Keep an already confirmed HFP route alive while switching from the final
-      // guide clip to capture. Releasing it here makes iOS renegotiate to the
-      // phone between "Con nói lại nhé" and AVAudioRecorder opening its input.
-      await _stopPlayback(releaseAudioRoute: false);
-      final recorder = _activeRecorder;
-      if (!await recorder.hasPermission()) {
-        throw const LessonMediaException(
-          'Ứng dụng cần quyền micro để lưu bản ghi của bạn.',
-        );
-      }
+  }) {
+    final generation = _captureGeneration;
+    return _serializeRecordingOperation(() async {
+      _requireCurrentCapture(generation);
+      var recorderStarted = false;
+      final focusGeneration = _focusGeneration;
+      try {
+        _recordingRouteFailure = null;
+        await _acquireFocus();
+        _requireCurrentCapture(generation);
+        // Keep an already confirmed HFP route alive while switching from the final
+        // guide clip to capture. Releasing it here makes iOS renegotiate to the
+        // phone between "Con nói lại nhé" and AVAudioRecorder opening its input.
+        await _stopPlayback(releaseAudioRoute: false);
+        _requireCurrentCapture(generation);
+        final recorder = _activeRecorder;
+        if (!await recorder.hasPermission()) {
+          throw const LessonMediaException(
+            'Ứng dụng cần quyền micro để lưu bản ghi của bạn.',
+          );
+        }
+        _requireCurrentCapture(generation);
 
-      final useSelectedHfp = _shouldUseSelectedHfp;
-      final session = await AudioSession.instance;
-      await session.configure(
-        lessonRecordingAudioSessionConfiguration(
+        final useSelectedHfp = _shouldUseSelectedHfp;
+        final session = await AudioSession.instance;
+        await session.configure(
+          lessonRecordingAudioSessionConfiguration(
+            useSelectedHfp: useSelectedHfp,
+          ),
+        );
+        _requireCurrentCapture(generation);
+
+        if (useSelectedHfp) {
+          // On iOS, the Dart ownership flag is not proof that AVAudioSession still
+          // exposes the selected HFP input. Revalidate the native route at the
+          // exact playback-to-capture boundary before resolving recorder inputs.
+          await _activateSelectedHfpRoute(
+            force: !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS,
+            focusGeneration: focusGeneration,
+          );
+        } else {
+          await _releaseHfpRoute();
+        }
+
+        final recordingInput = await _resolveRecordingInput(
+          recorder,
           useSelectedHfp: useSelectedHfp,
-        ),
-      );
-
-      if (useSelectedHfp) {
-        // On iOS, the Dart ownership flag is not proof that AVAudioSession still
-        // exposes the selected HFP input. Revalidate the native route at the
-        // exact playback-to-capture boundary before resolving recorder inputs.
-        await _activateSelectedHfpRoute(
-          force: !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS,
         );
-      } else {
+
+        if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+          // AudioSession/HfpAudioControl already selected and verified the input.
+          // Letting record_ios configure AVAudioSession again at recorder.start()
+          // can replace the confirmed HM-D001 route and produce a silent M4A even
+          // though the UI still reports HFP as active. Restore plugin ownership
+          // for phone-mic recordings, where there is no HFP route owner.
+          await recorder.ios?.manageAudioSession(!useSelectedHfp);
+        }
+
+        final path = await recordingPath(
+          lessonId: lessonId,
+          sentenceNumber: sentenceNumber,
+        );
+        _requireCurrentCapture(generation);
+        await recorder.start(
+          lessonRecordConfig(
+            useSelectedHfp: useSelectedHfp,
+            inputDevice: recordingInput,
+          ),
+          path: path,
+        );
+        recorderStarted = true;
+        _requireCurrentCapture(generation);
+        if (useSelectedHfp && _hfpAudioControl?.status.routeActive != true) {
+          throw const LessonMediaException(
+            'Mic HM-D001 bị ngắt kết nối khi mở ghi âm. Bạn kết nối lại HM-D001 rồi thử lại nhé.',
+          );
+        }
+        _activePath = path;
+        _activeContext = _ActiveLessonRecording(
+          lessonId: lessonId,
+          lessonTitle: lessonTitle ?? lessonId,
+          sentenceId: sentenceId ?? '$lessonId-sentence-$sentenceNumber',
+          sentenceNumber: sentenceNumber,
+          english: english ?? '',
+          vietnamese: vietnamese ?? '',
+          saveToHistory: saveToHistory,
+        );
+        _recordingStartedAt = DateTime.now();
+      } catch (_) {
+        if (recorderStarted) {
+          await _recorder?.cancel().catchError((Object _) {});
+        }
         await _releaseHfpRoute();
+        await _releaseFocusIfCurrent(focusGeneration);
+        rethrow;
       }
-
-      final recordingInput = await _resolveRecordingInput(
-        recorder,
-        useSelectedHfp: useSelectedHfp,
-      );
-
-      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
-        // AudioSession/HfpAudioControl already selected and verified the input.
-        // Letting record_ios configure AVAudioSession again at recorder.start()
-        // can replace the confirmed HM-D001 route and produce a silent M4A even
-        // though the UI still reports HFP as active. Restore plugin ownership
-        // for phone-mic recordings, where there is no HFP route owner.
-        await recorder.ios?.manageAudioSession(!useSelectedHfp);
-      }
-
-      final path = await recordingPath(
-        lessonId: lessonId,
-        sentenceNumber: sentenceNumber,
-      );
-      await recorder.start(
-        lessonRecordConfig(
-          useSelectedHfp: useSelectedHfp,
-          inputDevice: recordingInput,
-        ),
-        path: path,
-      );
-      recorderStarted = true;
-      if (useSelectedHfp && _hfpAudioControl?.status.routeActive != true) {
-        throw const LessonMediaException(
-          'Mic HM-D001 bị ngắt kết nối khi mở ghi âm. Bạn kết nối lại HM-D001 rồi thử lại nhé.',
-        );
-      }
-      _activePath = path;
-      _activeContext = _ActiveLessonRecording(
-        lessonId: lessonId,
-        lessonTitle: lessonTitle ?? lessonId,
-        sentenceId: sentenceId ?? '$lessonId-sentence-$sentenceNumber',
-        sentenceNumber: sentenceNumber,
-        english: english ?? '',
-        vietnamese: vietnamese ?? '',
-        saveToHistory: saveToHistory,
-      );
-      _recordingStartedAt = DateTime.now();
-    } catch (_) {
-      if (recorderStarted) {
-        await _recorder?.cancel().catchError((Object _) {});
-      }
-      await _releaseHfpRoute();
-      rethrow;
-    }
-  });
+    });
+  }
 
   Future<InputDevice?> _resolveRecordingInput(
     AudioRecorder recorder, {
@@ -707,7 +800,40 @@ class LessonMediaService {
     );
   }
 
-  Future<void> _preparePlaybackRoute(LessonPlaybackRoute route) async {
+  Future<void> _preparePlaybackRoute(
+    LessonPlaybackRoute route, {
+    bool retainFocusOnFailure = false,
+  }) async {
+    final generation = _focusGeneration;
+    final playbackGeneration = _playbackRequestGeneration;
+    void requireCurrent() {
+      _requireCurrentFocus(generation);
+      _requireCurrentPlayback(playbackGeneration);
+    }
+
+    try {
+      await _acquireFocus();
+      requireCurrent();
+      await _preparePlaybackRouteWithFocus(route, generation, requireCurrent);
+      requireCurrent();
+    } catch (_) {
+      if (retainFocusOnFailure) {
+        if (generation == _focusGeneration &&
+            playbackGeneration == _playbackRequestGeneration) {
+          await _releaseHfpRoute();
+        }
+      } else {
+        await _releaseFailedPlayback(playbackGeneration, generation);
+      }
+      rethrow;
+    }
+  }
+
+  Future<void> _preparePlaybackRouteWithFocus(
+    LessonPlaybackRoute route,
+    int focusGeneration,
+    void Function() requireCurrent,
+  ) async {
     final playback = _activePlayback;
     final selectedHfp =
         route == LessonPlaybackRoute.selectedLessonDevice &&
@@ -726,6 +852,7 @@ class LessonMediaService {
       // Clear SCO before configuring ordinary playback. This prevents a coach
       // prompt from inheriting the preceding HM-D001 communication route.
       await _releaseHfpRoute(immediately: true);
+      requireCurrent();
       await playback.prepare();
       return;
     }
@@ -734,18 +861,28 @@ class LessonMediaService {
       // prepare() checks isAudioHandoffActive. Preparing first can race the
       // speech-to-playback handoff and make iOS reject a category change with
       // '!pri', leaving the child's recording inaudible.
-      await _activateSelectedHfpRoute(force: true);
+      await _activateSelectedHfpRoute(
+        force: true,
+        focusGeneration: focusGeneration,
+      );
+      requireCurrent();
       await playback.prepare();
       return;
     }
     // Android sets communication attributes before opening SCO.
     await playback.prepare();
+    requireCurrent();
     await _activateSelectedHfpRoute(
       force: !kIsWeb && defaultTargetPlatform == TargetPlatform.android,
+      focusGeneration: focusGeneration,
     );
   }
 
-  Future<void> _activateSelectedHfpRoute({bool force = false}) async {
+  Future<void> _activateSelectedHfpRoute({
+    bool force = false,
+    required int focusGeneration,
+  }) async {
+    _requireCurrentFocus(focusGeneration);
     final control = _hfpAudioControl;
     // A Bluetooth audio-state broadcast can report that SCO dropped while the
     // Dart lease is still valid. Re-open the selected HM-D001 in that case instead
@@ -758,7 +895,15 @@ class LessonMediaService {
     if (control == null) {
       return;
     }
+    final routeGeneration = ++_hfpRouteGeneration;
+    // A cancellation while native start is pending must also stop raw controls
+    // that do not expose a lease token until their start future completes.
+    _activeHfpRouteToken = Object();
     await control.startAudioRoute();
+    _requireCurrentFocus(focusGeneration);
+    if (routeGeneration != _hfpRouteGeneration) {
+      throw const LessonMediaException('Lượt chuẩn bị âm thanh đã dừng.');
+    }
     final leaseControl = control is HfpAudioRouteLeaseControl
         ? control as HfpAudioRouteLeaseControl
         : null;
@@ -768,6 +913,7 @@ class LessonMediaService {
   }
 
   Future<void> _releaseHfpRoute({bool immediately = false}) async {
+    ++_hfpRouteGeneration;
     // A start may still be awaiting native confirmation and have no token yet.
     // Scoped controls serialize stop behind it and invalidate that late start.
     if (_activeHfpRouteToken == null &&
@@ -834,9 +980,12 @@ class LessonMediaService {
     ),
   );
 
-  Future<LessonRecording> stopRecording() => _serializeRecordingOperation(
-    () async {
+  Future<LessonRecording> stopRecording() {
+    final generation = _captureGeneration;
+    return _serializeRecordingOperation(() async {
+      final focusGeneration = _focusGeneration;
       try {
+        _requireCurrentCapture(generation);
         final routeFailure = _recordingRouteFailure;
         if (routeFailure != null) throw routeFailure;
         final recorder = _recorder;
@@ -854,6 +1003,8 @@ class LessonMediaService {
         // second; including it made a six-second recording appear as seven.
         final stoppedAt = DateTime.now();
         final recordedPath = await recorder.stop();
+        _requireCurrentCapture(generation);
+        if (_recordingRouteFailure != null) throw _recordingRouteFailure!;
         _recordingStartedAt = null;
         _activePath = null;
         _activeContext = null;
@@ -863,6 +1014,7 @@ class LessonMediaService {
             duration: stoppedAt.difference(startedAt),
           ),
         );
+        _requireCurrentCapture(generation);
         final resolvedPath = recording.filePath;
         if (context.saveToHistory) {
           final createdAt = DateTime.now();
@@ -892,13 +1044,15 @@ class LessonMediaService {
                 defaultTargetPlatform != TargetPlatform.iOS)) {
           await _releaseHfpRoute();
         }
+        _requireCurrentCapture(generation);
         return recording;
       } catch (_) {
         await _releaseHfpRoute();
+        await _releaseFocusIfCurrent(focusGeneration);
         rethrow;
       }
-    },
-  );
+    });
+  }
 
   /// Normalizes native recordings for replay without adding lesson history.
   Future<LessonRecording> prepareExternalRecordingForPlayback(
@@ -976,7 +1130,9 @@ class LessonMediaService {
     required String english,
     required String vietnamese,
   }) async {
+    final generation = _captureGeneration;
     final prepared = await prepareExternalRecordingForPlayback(recording);
+    _requireCurrentCapture(generation);
     final resolvedPath = prepared.filePath;
     final createdAt = DateTime.now();
     final evictedPaths = await historyStore.addSuccessful(
@@ -996,43 +1152,98 @@ class LessonMediaService {
     for (final path in evictedPaths) {
       await deleteLessonRecording(path);
     }
+    _requireCurrentCapture(generation);
     return prepared;
   }
 
-  Future<void> cancelRecording() => _serializeRecordingOperation(() async {
-    _recordingRouteFailure = null;
-    try {
-      await _recorder?.cancel();
-      _recordingStartedAt = null;
-      _activePath = null;
-      _activeContext = null;
-    } finally {
-      await _releaseHfpRoute();
+  Future<void> cancelRecording() {
+    ++_captureGeneration;
+    final focusRelease = _releaseFocus();
+    return _serializeRecordingOperation(() async {
+      _recordingRouteFailure = null;
+      try {
+        await _recorder?.cancel();
+      } finally {
+        _recordingStartedAt = null;
+        _activePath = null;
+        _activeContext = null;
+        await _releaseHfpRoute();
+        await focusRelease;
+      }
+    });
+  }
+
+  void _requireCurrentCapture(int generation) {
+    if (_disposed || generation != _captureGeneration) {
+      throw const LessonMediaException(
+        'Lượt ghi âm đã bị gián đoạn. Bạn nhấn MAIN để ghi lại.',
+      );
     }
-  });
+    _focusLease?.requireCurrent();
+  }
+
+  Future<void> _acquireFocus() async {
+    if (_disposed) throw const LessonMediaException('Phiên âm thanh đã đóng.');
+    if (_focusLease?.isCurrent == true) return;
+    final generation = _focusGeneration;
+    final pending = _focusAcquisition ??= _audioFocus.acquire('lesson');
+    try {
+      final lease = await pending;
+      if (_disposed || generation != _focusGeneration) {
+        await lease.release();
+        throw const LessonMediaException('Lượt phát âm thanh đã dừng.');
+      }
+      lease.requireCurrent();
+      _focusLease = lease;
+    } finally {
+      if (identical(_focusAcquisition, pending)) _focusAcquisition = null;
+    }
+  }
+
+  void _requireCurrentFocus(int generation) {
+    if (_disposed || generation != _focusGeneration || _focusLease == null) {
+      throw const LessonMediaException('Lượt chuẩn bị âm thanh đã dừng.');
+    }
+    _focusLease!.requireCurrent();
+  }
+
+  Future<void> _releaseFocusIfCurrent(int generation) =>
+      generation == _focusGeneration ? _releaseFocus() : Future<void>.value();
+
+  Future<void> _releaseFocus() {
+    ++_focusGeneration;
+    final lease = _focusLease;
+    _focusLease = null;
+    _focusAcquisition = null;
+    return lease?.release() ?? Future<void>.value();
+  }
 
   Future<void> _cancelRecordingAfterRouteLoss(
     LessonMediaException failure,
     _ActiveLessonRecording context,
-  ) => _serializeRecordingOperation(() async {
-    // A navigation cancellation or a newer capture can overtake the queued
-    // route-loss callback. Only the recording that lost its route may stop.
-    if (_recordingStartedAt == null || !identical(_activeContext, context)) {
-      return;
-    }
-    _recordingRouteFailure = failure;
-    try {
-      await _recorder?.cancel();
-    } catch (_) {
-      // The route is already unavailable; keep the original useful failure.
-    } finally {
-      _recordingStartedAt = null;
-      _activePath = null;
-      _activeContext = null;
-      await _releaseHfpRoute().catchError((Object _) {});
-      _recordingErrors.add(failure);
-    }
-  });
+  ) {
+    // Invalidate a stop already waiting on the plugin, before cleanup can queue.
+    if (identical(_activeContext, context)) _recordingRouteFailure = failure;
+    return _serializeRecordingOperation(() async {
+      // A navigation cancellation or a newer capture can overtake the queued
+      // route-loss callback. Only the recording that lost its route may stop.
+      if (_recordingStartedAt == null || !identical(_activeContext, context)) {
+        return;
+      }
+      _recordingRouteFailure = failure;
+      try {
+        await _recorder?.cancel();
+      } catch (_) {
+        // The route is already unavailable; keep the original useful failure.
+      } finally {
+        _recordingStartedAt = null;
+        _activePath = null;
+        _activeContext = null;
+        await _releaseHfpRoute().catchError((Object _) {});
+        _recordingErrors.add(failure);
+      }
+    });
+  }
 
   Future<T> _serializeRecordingOperation<T>(Future<T> Function() action) {
     final operation = _recordingOperation.then<T>((_) => action());
@@ -1053,6 +1264,10 @@ class LessonMediaService {
   }
 
   Future<void> dispose() async {
+    _disposed = true;
+    ++_captureGeneration;
+    final focusRelease = _releaseFocus();
+    await _focusInterruptionSubscription?.cancel();
     _preparedRecordingPaths.clear();
     _playbackRequestGeneration += 1;
     await _hfpStatusSubscription?.cancel();
@@ -1061,6 +1276,7 @@ class LessonMediaService {
     await _recorder?.dispose();
     await _playbackService?.dispose();
     await _recordingErrors.close();
+    await focusRelease;
   }
 }
 

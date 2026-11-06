@@ -6,6 +6,8 @@ import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
 import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_control.dart';
 import 'package:ai_speaking_flutter_app/core/audio/wav_audio.dart';
+import 'package:ai_speaking_flutter_app/core/audio/native_audio_focus.dart';
+import 'package:ai_speaking_flutter_app/core/platform/background_learning_session.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
@@ -70,6 +72,337 @@ void main() {
       expect((await history.readAll()).single.filePath, normalized.path);
     },
   );
+
+  for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
+    group('${platform.name} native audio interruption', () {
+      late Directory temporary;
+      late _FakeLessonRecorder recorder;
+      late _RecordingTestMediaService media;
+      late _FocusTestBackgroundSession session;
+      late NativeAudioFocus focus;
+      late LessonRecordingHistoryStore history;
+      late List<String> focusCalls;
+      const focusChannel = MethodChannel('test_lesson_audio_focus');
+      const normalizeChannel = MethodChannel('ailingo_voice_prompt');
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+
+      setUp(() async {
+        debugDefaultTargetPlatformOverride = platform;
+        temporary = await Directory.systemTemp.createTemp('lesson-focus-test-');
+        recorder = _FakeLessonRecorder();
+        session = _FocusTestBackgroundSession();
+        focusCalls = [];
+        messenger.setMockMethodCallHandler(focusChannel, (call) async {
+          focusCalls.add(call.method);
+          return call.method == 'acquireAudioFocus' ? true : null;
+        });
+        messenger.setMockMethodCallHandler(
+          normalizeChannel,
+          (call) async => (call.arguments as Map)['path'],
+        );
+        focus = NativeAudioFocus(
+          session: session,
+          channel: focusChannel,
+          isAndroid: true,
+        );
+        history = LessonRecordingHistoryStore(
+          customPath: '${temporary.path}/history.json',
+        );
+        media = _RecordingTestMediaService(
+          '${temporary.path}/attempt.wav',
+          recorder: recorder,
+          playbackService: _ControlledPlaybackService(),
+          audioFocus: focus,
+          historyStore: history,
+        );
+      });
+
+      tearDown(() async {
+        await media.dispose();
+        await focus.dispose();
+        await session.close();
+        messenger.setMockMethodCallHandler(focusChannel, null);
+        messenger.setMockMethodCallHandler(normalizeChannel, null);
+        await temporary.delete(recursive: true);
+        debugDefaultTargetPlatformOverride = null;
+      });
+
+      Future<void> start() =>
+          media.startRecording(lessonId: 'numbers', sentenceNumber: 1);
+
+      for (final preparationOnly in [false, true]) {
+        test(
+          'interrupted delayed preparation cannot reclaim HFP (prepareOnly=$preparationOnly)',
+          () async {
+            await media.dispose();
+            final playback = _BlockedPreparationPlaybackService();
+            final hfp = _FakeHfpAudioControl(
+              [],
+              status: const BluetoothAudioStatus(
+                phase: BluetoothAudioConnectionPhase.ready,
+                deviceId: 'hm-d001-uid',
+                deviceName: 'HM-D001',
+                sampleRate: 16000,
+              ),
+            );
+            media = _RecordingTestMediaService(
+              '${temporary.path}/attempt.wav',
+              recorder: recorder,
+              playbackService: playback,
+              hfpAudioControl: hfp,
+              audioFocus: focus,
+              historyStore: history,
+            );
+            final operation = preparationOnly
+                ? media.prepareSelectedLessonOutput()
+                : media.playToCompletion(
+                    Uri.parse('https://example.test/prompt.mp3'),
+                  );
+            final rejected = expectLater(
+              operation,
+              throwsA(isA<LessonMediaException>()),
+            );
+            await playback.entered.future;
+            final startsBeforeInterruption = hfp.startCalls;
+            session.interrupt();
+            await Future<void>.delayed(Duration.zero);
+            playback.ready.complete();
+            await rejected;
+            expect(hfp.startCalls, startsBeforeInterruption);
+            if (platform == TargetPlatform.android) expect(hfp.startCalls, 0);
+            expect(playback.playCalls, 0);
+            expect(focusCalls, ['acquireAudioFocus', 'releaseAudioFocus']);
+          },
+        );
+      }
+
+      for (final failedStage in ['prepare', 'gain', 'play']) {
+        test('clip $failedStage failure releases its focus lease', () async {
+          await media.dispose();
+          final playback = _FailingPlaybackService(failedStage);
+          media = _RecordingTestMediaService(
+            '${temporary.path}/attempt.wav',
+            recorder: recorder,
+            playbackService: playback,
+            audioFocus: focus,
+            historyStore: history,
+          );
+          await expectLater(
+            media.playToCompletion(
+              Uri.parse('https://example.test/prompt.mp3'),
+            ),
+            throwsStateError,
+          );
+          expect(focusCalls, ['acquireAudioFocus', 'releaseAudioFocus']);
+          expect(playback.stopCalls, 1);
+        });
+      }
+
+      test(
+        'one focus lease spans prompt capture and feedback until explicit stop',
+        () async {
+          await media.play(Uri.parse('https://example.test/prompt.mp3'));
+          await start();
+          await media.stopRecording();
+          await media.play(Uri.parse('https://example.test/feedback.mp3'));
+          expect(focusCalls, ['acquireAudioFocus']);
+          expect((await history.readAll()).length, 1);
+          await media.stopPlayback();
+          expect(focusCalls, ['acquireAudioFocus', 'releaseAudioFocus']);
+        },
+      );
+
+      test(
+        'interruption during recorder stop cannot save a contaminated take',
+        () async {
+          await start();
+          final gate = recorder.stopGate = Completer<void>();
+          final stopping = media.stopRecording();
+          final rejected = expectLater(
+            stopping,
+            throwsA(isA<LessonMediaException>()),
+          );
+          await Future<void>.delayed(Duration.zero);
+          session.interrupt();
+          gate.complete();
+          await rejected;
+          await Future<void>.delayed(Duration.zero);
+          expect(await history.readAll(), isEmpty);
+          expect(media.activeRecordingPath, isNull);
+          recorder.stopGate = null;
+          await start();
+          await media.stopRecording();
+          expect((await history.readAll()).length, 1);
+        },
+      );
+
+      test(
+        'cancel during delayed recorder start never publishes live capture',
+        () async {
+          final gate = recorder.startGate = Completer<void>();
+          final starting = start();
+          final rejected = expectLater(
+            starting,
+            throwsA(isA<LessonMediaException>()),
+          );
+          while (recorder.startCalls == 0) {
+            await Future<void>.delayed(Duration.zero);
+          }
+          final cancellation = media.cancelRecording();
+          gate.complete();
+          await rejected;
+          await cancellation;
+          expect(media.activeRecordingPath, isNull);
+          expect(await history.readAll(), isEmpty);
+          recorder.startGate = null;
+          await start();
+          expect(media.activeRecordingPath, isNotNull);
+        },
+      );
+
+      test(
+        'native interruption during delayed recorder start never publishes capture',
+        () async {
+          final gate = recorder.startGate = Completer<void>();
+          final starting = start();
+          final rejected = expectLater(
+            starting,
+            throwsA(isA<LessonMediaException>()),
+          );
+          while (recorder.startCalls == 0) {
+            await Future<void>.delayed(Duration.zero);
+          }
+          session.interrupt();
+          gate.complete();
+          await rejected;
+          await Future<void>.delayed(Duration.zero);
+          expect(media.activeRecordingPath, isNull);
+          expect(await history.readAll(), isEmpty);
+        },
+      );
+
+      test(
+        'late canceled capture cleanup cannot release a newer playback lease',
+        () async {
+          final gate = recorder.startGate = Completer<void>();
+          final starting = start();
+          final rejected = expectLater(
+            starting,
+            throwsA(isA<LessonMediaException>()),
+          );
+          while (recorder.startCalls == 0) {
+            await Future<void>.delayed(Duration.zero);
+          }
+          final cancellation = media.cancelRecording();
+          await media.play(Uri.parse('https://example.test/new-prompt.mp3'));
+          expect(focusCalls, [
+            'acquireAudioFocus',
+            'releaseAudioFocus',
+            'acquireAudioFocus',
+          ]);
+          gate.complete();
+          await rejected;
+          await cancellation;
+          expect(
+            focusCalls.where((call) => call == 'releaseAudioFocus').length,
+            1,
+          );
+          await media.stopPlayback();
+          expect(
+            focusCalls.where((call) => call == 'releaseAudioFocus').length,
+            2,
+          );
+        },
+      );
+
+      test('late focus grant cannot replace a newer playback lease', () async {
+        final firstGrant = Completer<bool>();
+        final owners = <String>[];
+        final released = <String>[];
+        messenger.setMockMethodCallHandler(focusChannel, (call) async {
+          final owner = (call.arguments as Map)['ownerId'] as String;
+          if (call.method == 'acquireAudioFocus') {
+            owners.add(owner);
+            return owners.length == 1 ? firstGrant.future : true;
+          }
+          released.add(owner);
+          return null;
+        });
+        final firstPlay = media.play(Uri.parse('https://example.test/old.mp3'));
+        final rejected = expectLater(
+          firstPlay,
+          throwsA(isA<LessonMediaException>()),
+        );
+        while (owners.isEmpty) {
+          await Future<void>.delayed(Duration.zero);
+        }
+        await media.stopPlayback();
+        await media.play(Uri.parse('https://example.test/new.mp3'));
+        firstGrant.complete(true);
+        await rejected;
+        expect(released, [owners.first]);
+        await media.stopPlayback();
+        expect(released, owners);
+      });
+
+      test(
+        'native interruption fails clip completion and never automatically resumes it',
+        () async {
+          await media.dispose();
+          final playback = _CompletionAwareControlledPlaybackService();
+          media = _RecordingTestMediaService(
+            '${temporary.path}/attempt.wav',
+            recorder: recorder,
+            playbackService: playback,
+            audioFocus: focus,
+            historyStore: history,
+          );
+          final clip = media.playToCompletion(
+            Uri.parse('https://example.test/prompt.mp3'),
+          );
+          final rejected = expectLater(
+            clip,
+            throwsA(isA<LessonMediaException>()),
+          );
+          while (playback.playCalls == 0) {
+            await Future<void>.delayed(Duration.zero);
+          }
+          session.interrupt();
+          await rejected;
+          await Future<void>.delayed(const Duration(milliseconds: 1100));
+          expect(playback.playCalls, 1);
+          expect(focusCalls, ['acquireAudioFocus', 'releaseAudioFocus']);
+        },
+      );
+
+      if (platform == TargetPlatform.iOS) {
+        test(
+          'interruption during normalization blocks history and scoring result',
+          () async {
+            final entered = Completer<void>();
+            final normalization = Completer<void>();
+            messenger.setMockMethodCallHandler(normalizeChannel, (call) async {
+              entered.complete();
+              await normalization.future;
+              return (call.arguments as Map)['path'];
+            });
+            await start();
+            final stopping = media.stopRecording();
+            final rejected = expectLater(
+              stopping,
+              throwsA(isA<LessonMediaException>()),
+            );
+            await entered.future;
+            session.interrupt();
+            normalization.complete();
+            await rejected;
+            expect(await history.readAll(), isEmpty);
+          },
+        );
+      }
+    });
+  }
 
   group('Android lesson capture route', () {
     late Directory temporary;
@@ -242,6 +575,10 @@ void main() {
         final oldStop = Completer<void>();
         recorder.stopGate = oldStop;
         final stopping = media.stopRecording();
+        final rejected = expectLater(
+          stopping,
+          throwsA(isA<LessonMediaException>()),
+        );
         final restarting = start();
         await Future<void>.delayed(Duration.zero);
         statuses.add(
@@ -252,7 +589,7 @@ void main() {
         );
         await Future<void>.delayed(Duration.zero);
         oldStop.complete();
-        await stopping;
+        await rejected;
         await restarting;
         await Future<void>.delayed(Duration.zero);
         expect(recorder.startCalls, 2);
@@ -1026,7 +1363,14 @@ void main() {
         ),
       );
 
-      expect(events, <String>['communication:true', 'prepare', 'hfp:start']);
+      // A failed native start still needs explicit teardown; no phone playback
+      // may follow the failed selected-device preparation.
+      expect(events, <String>[
+        'communication:true',
+        'prepare',
+        'hfp:start',
+        'hfp:stop',
+      ]);
       await mediaService.dispose();
     },
   );
@@ -1339,6 +1683,8 @@ class _RecordingTestMediaService extends LessonMediaService {
     super.recorder,
     super.playbackService,
     super.hfpAudioControl,
+    super.audioFocus,
+    super.historyStore,
   });
 
   final String path;
@@ -1411,8 +1757,33 @@ class _FakeLessonRecorder implements AudioRecorder {
 
 class _BlockedPreparationPlaybackService extends _ControlledPlaybackService {
   final ready = Completer<void>();
+  final entered = Completer<void>();
   @override
-  Future<void> prepare() => ready.future;
+  Future<void> prepare() {
+    if (!entered.isCompleted) entered.complete();
+    return ready.future;
+  }
+}
+
+class _FailingPlaybackService extends _ControlledPlaybackService
+    implements PlaybackGainAwareAudioPlaybackService {
+  _FailingPlaybackService(this.failedStage);
+  final String failedStage;
+  @override
+  Future<void> prepare() async {
+    if (failedStage == 'prepare') throw StateError('prepare failed');
+  }
+
+  @override
+  Future<void> setPlaybackGainDb(double gainDb) async {
+    if (failedStage == 'gain') throw StateError('gain failed');
+  }
+
+  @override
+  Future<PlaybackStartMetrics> play(Uri uri) {
+    if (failedStage == 'play') throw StateError('play failed');
+    return super.play(uri);
+  }
 }
 
 class _CompletionAwareControlledPlaybackService
@@ -1668,4 +2039,22 @@ class _FakeHfpAudioControl implements HfpAudioControl {
 
   @override
   Future<void> dispose() async {}
+}
+
+class _FocusTestBackgroundSession implements BackgroundLearningSessionControl {
+  final _events = StreamController<BackgroundLearningEvent>.broadcast(
+    sync: true,
+  );
+  @override
+  Stream<BackgroundLearningEvent> get events => _events.stream;
+  void interrupt() => _events.add(
+    const BackgroundLearningEvent(
+      type: BackgroundLearningEventType.interrupted,
+    ),
+  );
+  @override
+  Future<bool> start() async => true;
+  @override
+  Future<void> stop() async {}
+  Future<void> close() => _events.close();
 }

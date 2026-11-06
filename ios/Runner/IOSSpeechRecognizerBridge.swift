@@ -1009,33 +1009,6 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     }
 
     backgroundHandoffDisarmWhenIdle = false
-    let target: IOSAudioInputTarget = audioSource == .hfp ? .hfp : .builtInMic
-    do {
-      try audioSessionCoordinator.prepareBackgroundCapture(
-        target: target,
-        caller: caller
-      )
-      if active, audioEngine.isRunning {
-        backgroundHandoffAudioSource = audioSource
-        backgroundHandoffPhase = .capturing
-        audioSessionCoordinator.setBackgroundCaptureEngineRunning(
-          true,
-          caller: caller
-        )
-        audioSessionCoordinator.trace(
-          stage: "background_capture_engine_adopted_active_capture",
-          caller: caller,
-          values: ["audioSource": audioSource.rawValue]
-        )
-        audioSessionCoordinator.backgroundAudioActivityDidStart(caller: caller)
-        finishBackgroundHandoffArmCompletions()
-        return
-      }
-    } catch {
-      failBackgroundAudioHandoffArm(caller: caller, error: error)
-      return
-    }
-
     backgroundHandoffPhase = .arming
     backgroundHandoffAudioSource = audioSource
     backgroundHandoffArmGeneration += 1
@@ -1078,6 +1051,20 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       return
     }
     do {
+      let target: IOSAudioInputTarget = audioSource == .hfp ? .hfp : .builtInMic
+      try audioSessionCoordinator.prepareBackgroundCapture(target: target, caller: caller)
+      if active, audioEngine.isRunning {
+        backgroundHandoffPhase = .capturing
+        audioSessionCoordinator.setBackgroundCaptureEngineRunning(true, caller: caller)
+        audioSessionCoordinator.trace(
+          stage: "background_capture_engine_adopted_active_capture",
+          caller: caller,
+          values: ["audioSource": audioSource.rawValue]
+        )
+        audioSessionCoordinator.backgroundAudioActivityDidStart(caller: caller)
+        finishBackgroundHandoffArmCompletions()
+        return
+      }
       rebuildAudioEngineForCurrentRoute()
       try installAudioTap()
       audioEngine.prepare()
@@ -1115,7 +1102,8 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       )
       tearDownAudioEngineGraphForRetry()
       if IOSAudioEngineStartupPolicy.shouldRetry(afterAttempt: attempt),
-        IOSNativeWork.applicationIsActive
+        !audioSessionCoordinator.isAudioInterruptionSuspended,
+        IOSNativeWork.applicationIsActive || audioSessionCoordinator.isMainTurnActive
       {
         IOSNativeWork.queue.asyncAfter(
           deadline: .now() + .nanoseconds(
@@ -1173,6 +1161,21 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       return
     }
     forceDisarmBackgroundAudioHandoff(caller: caller)
+  }
+
+  func interruptBackgroundAudioHandoff(caller: String) {
+    // Interruption is not a normal stop: never salvage a partial transcript or
+    // defer microphone teardown until a queued Dart cancellation reaches us.
+    let captureWasActive = active
+    startRequestGeneration += 1
+    cancelCurrent(deleteRecording: true, caller: caller)
+    forceDisarmBackgroundAudioHandoff(caller: caller)
+    if captureWasActive {
+      emit(type: "speech.error", values: [
+        "code": "AUDIO_SESSION_INTERRUPTED",
+        "message": "Phiên thu âm đã tạm dừng vì âm thanh bị gián đoạn.",
+      ])
+    }
   }
 
   private func forceDisarmBackgroundAudioHandoff(caller: String) {

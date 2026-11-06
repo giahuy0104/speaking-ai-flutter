@@ -8,6 +8,7 @@ import 'package:just_audio/just_audio.dart';
 
 import 'audio_diagnostics.dart';
 import 'audio_gain.dart';
+import 'native_audio_focus.dart';
 import 'audio_loudness_manifest.dart';
 import 'audio_turn_coordinator.dart';
 import 'browser_audio_playback.dart';
@@ -200,15 +201,17 @@ class JustAudioPlaybackService
        _audioTurnOwner = audioTurnOwner,
        _manageIosAudioSession = manageIosAudioSession {
     _audioSession = AudioSession.instance;
-    if (audioTurnCoordinator != null) {
+    if (audioTurnCoordinator != null && kIsWeb) {
       _audioTurnCompletionSubscription = completionStream.listen((_) {
         if (!identical(_turnReleasableFor, _playbackRequest)) return;
         unawaited(_releaseAudioTurn());
       });
     }
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-      _androidFocusReleaseSubscription = completionStream.listen((_) {
-        unawaited(_releaseAndroidAudioFocus());
+      _androidInterruptionSubscription = nativeAudioFocus.interruptions.listen((
+        _,
+      ) {
+        unawaited(stop());
       });
     }
   }
@@ -233,9 +236,12 @@ class JustAudioPlaybackService
         // that redundant call with '!pri' after Apple Speech, leaving the
         // player flagged as started without audible output.
         handleAudioSessionActivation:
-            !manageIosAudioSession ||
             kIsWeb ||
-            defaultTargetPlatform != TargetPlatform.iOS,
+            (defaultTargetPlatform != TargetPlatform.android &&
+                (!manageIosAudioSession ||
+                    defaultTargetPlatform != TargetPlatform.iOS)),
+        handleInterruptions:
+            kIsWeb || defaultTargetPlatform != TargetPlatform.android,
         // Android attributes belong to this player. Another idle feature may
         // configure the process-wide session for media while HM-D001 is playing.
         androidApplyAudioAttributes:
@@ -265,7 +271,7 @@ class JustAudioPlaybackService
   final bool _manageIosAudioSession;
   late final Future<AudioSession> _audioSession;
   StreamSubscription<void>? _audioTurnCompletionSubscription;
-  StreamSubscription<void>? _androidFocusReleaseSubscription;
+  StreamSubscription<void>? _androidInterruptionSubscription;
   AudioTurnLease? _audioTurnLease;
   _PlaybackRequest? _turnReleasableFor;
   Future<void>? _playbackSessionPreparation;
@@ -586,18 +592,6 @@ class JustAudioPlaybackService
         _applyAndroidPlaybackAttributes(request.communicationRoute),
       );
       _requireCurrentPlayback(request);
-      if (!kIsWeb &&
-          defaultTargetPlatform == TargetPlatform.android &&
-          _audioTurnOwner == AudioTurnOwner.continuousTranslation) {
-        // just_audio publishes playing=true before it requests audio focus.
-        // The first translated clip can therefore look started while Android
-        // has not let its AudioTrack run. Obtain focus before that state change.
-        final active = await request.wait((await _audioSession).setActive(true));
-        if (!active) {
-          throw const PlaybackException('Không thể kích hoạt âm thanh Android.');
-        }
-        _requireCurrentPlayback(request);
-      }
       request.playbackInvoked = true;
       final playback = _player.play();
       unawaited(
@@ -880,13 +874,33 @@ class JustAudioPlaybackService
       'scheme': uri.scheme,
     });
     if (_disposed) throw const PlaybackException('Lượt phát âm thanh đã dừng.');
+    // Capture the previous request before installing its replacement. Native
+    // player events identify completion synchronously, unlike queued player
+    // states which may belong to a clip that has already been replaced.
+    final requestCompletion =
+        !kIsWeb &&
+            (_audioTurnCoordinator != null ||
+                defaultTargetPlatform == TargetPlatform.android)
+        ? completionStreamForNextPlay(uri)
+        : null;
     _playbackRequest?.cancel();
+    unawaited(_playbackRequest?.focusLease?.release());
     final request = _PlaybackRequest(_communicationRouteActive);
     _playbackRequest = request;
     _turnReleasableFor = null;
     try {
       await _acquireAudioTurn(request);
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+        final lease = await nativeAudioFocus.acquire('playback');
+        request.focusLease = lease;
+      }
       _requireCurrentPlayback(request);
+      request.completionSubscription = requestCompletion?.listen((_) {
+        unawaited(request.focusLease?.release());
+        if (identical(_playbackRequest, request) && !request.isCancelled) {
+          unawaited(_releaseAudioTurn());
+        }
+      });
       final metrics = await _playWithoutTurnCoordination(uri, request);
       _turnReleasableFor = request;
       AudioDiagnostics.event('media.play.started', {
@@ -895,6 +909,8 @@ class JustAudioPlaybackService
       });
       return metrics;
     } catch (_) {
+      request.cancel();
+      await request.focusLease?.release();
       // An older failed/cancelled start cannot release the next clip's lease.
       if (identical(_playbackRequest, request)) {
         _playbackRequest = null;
@@ -928,6 +944,7 @@ class JustAudioPlaybackService
   }
 
   void _requireCurrentPlayback(_PlaybackRequest request) {
+    request.focusLease?.requireCurrent();
     if (_disposed ||
         request.isCancelled ||
         !identical(_playbackRequest, request)) {
@@ -1091,6 +1108,7 @@ class JustAudioPlaybackService
 
   @override
   Future<void> stop() async {
+    final focusLease = _playbackRequest?.focusLease;
     _playbackRequest?.cancel();
     _playbackRequest = null;
     ++_playbackPreparationGeneration;
@@ -1101,20 +1119,12 @@ class JustAudioPlaybackService
     try {
       await (_browserPlayback?.pause() ?? _player.pause());
     } finally {
-      await lease?.release();
+      try {
+        await lease?.release();
+      } finally {
+        await focusLease?.release();
+      }
     }
-    await _releaseAndroidAudioFocus();
-  }
-
-  /// Android keeps the focus just_audio requests for a clip until it is
-  /// abandoned, so the app would stay in the focus stack between clips. A
-  /// recognizer that opens its own microphone (Google below Android 13) takes
-  /// transient focus for every listening window, and the framework then ducks
-  /// or fades every player of the app that lost it, native prompts included.
-  /// Leave the stack as soon as a clip ends.
-  Future<void> _releaseAndroidAudioFocus() async {
-    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
-    await (await _audioSession).setActive(false);
   }
 
   Future<void> _acquireAudioTurn(_PlaybackRequest request) async {
@@ -1150,16 +1160,23 @@ class JustAudioPlaybackService
   Future<void> dispose() async {
     if (_disposed) return;
     _disposed = true;
+    final focusLease = _playbackRequest?.focusLease;
     _playbackRequest?.cancel();
     _playbackRequest = null;
     ++_playbackPreparationGeneration;
     _playbackSessionPreparation = null;
     ++_preloadRevision;
-    await _audioTurnCompletionSubscription?.cancel();
-    await _androidFocusReleaseSubscription?.cancel();
-    await _releaseAudioTurn();
-    await _releaseAndroidAudioFocus();
+    try {
+      await _audioTurnCompletionSubscription?.cancel();
+      await _androidInterruptionSubscription?.cancel();
+      await _releaseAudioTurn();
+    } finally {
+      await focusLease?.release();
+    }
     await _browserPlayback?.dispose();
+    // just_audio attaches session listeners asynchronously during construction.
+    // Let that initialization settle before closing its derived event streams.
+    await _audioSession;
     await _player.dispose();
     if (_ownsCache) {
       _cache.dispose();
@@ -1176,11 +1193,15 @@ class _PlaybackRequest {
   final AudioTurnCancellation turnCancellation = AudioTurnCancellation();
   final Completer<void> _cancelled = Completer<void>();
   bool playbackInvoked = false;
+  NativeAudioFocusLease? focusLease;
+  StreamSubscription<void>? completionSubscription;
 
   bool get isCancelled => _cancelled.isCompleted;
 
   void cancel() {
     if (isCancelled) return;
+    unawaited(completionSubscription?.cancel());
+    completionSubscription = null;
     turnCancellation.cancel();
     _cancelled.complete();
   }

@@ -5,6 +5,10 @@ import 'package:flutter/services.dart';
 
 enum BackgroundLearningEventType { stopped, interrupted, resumable }
 
+// All consumers share one subscription to the native EventChannel.
+final sharedBackgroundLearningSession =
+    MethodChannelBackgroundLearningSession();
+
 class BackgroundLearningEvent {
   const BackgroundLearningEvent({required this.type, this.reason});
 
