@@ -47,6 +47,280 @@ void main() {
     messenger.setMockMethodCallHandler(focusChannel, null);
   });
 
+  group('iOS native playback ownership', () {
+    late _IosControlledPlayer player;
+    late ControlledCache cache;
+    late JustAudioPlaybackService service;
+    late List<String> acquired;
+    late List<String> released;
+    Completer<bool>? pendingBegin;
+    Object? beginError;
+    bool? beginResult;
+
+    setUp(() {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      player = _IosControlledPlayer();
+      cache = ControlledCache();
+      service = JustAudioPlaybackService(player: player, cache: cache);
+      acquired = [];
+      released = [];
+      pendingBegin = null;
+      beginError = null;
+      beginResult = true;
+      messenger.setMockMethodCallHandler(focusChannel, (call) async {
+        if (call.method == 'isAudioHandoffActive') return true;
+        final token = (call.arguments as Map?)?['token'] as String?;
+        if (call.method == 'beginAudioPlayback') {
+          acquired.add(token!);
+          if (beginError case final error?) throw error;
+          return pendingBegin == null
+              ? beginResult
+              : await pendingBegin!.future;
+        }
+        if (call.method == 'endAudioPlayback') released.add(token!);
+        return null;
+      });
+    });
+
+    tearDown(() async {
+      await service.dispose();
+      cache.dispose();
+    });
+
+    test(
+      'holds priority until completion without a Dart turn coordinator',
+      () async {
+        await service.play(uri);
+        expect(acquired, hasLength(1));
+        expect(released, isEmpty);
+        player.emitState(
+          playing: true,
+          processingState: ProcessingState.completed,
+          position: const Duration(seconds: 2),
+        );
+        await flushMicrotasks();
+        expect(released, acquired);
+      },
+    );
+
+    test('a very short clip releases its own token exactly once', () async {
+      player.finishImmediately = true;
+      await service.play(uri);
+      await flushMicrotasks();
+      expect(released, acquired);
+      await service.stop();
+      expect(released, hasLength(1));
+    });
+
+    test('prepare and preload never acquire playback priority', () async {
+      await service.prepare();
+      await service.preload(uri);
+      expect(acquired, isEmpty);
+      expect(released, isEmpty);
+    });
+
+    test('does not play before the native priority acknowledgement', () async {
+      pendingBegin = Completer<bool>();
+      final started = service.play(uri);
+      await flushMicrotasks();
+      expect(acquired, hasLength(1));
+      expect(player.playedPaths, isEmpty);
+      pendingBegin!.complete(true);
+      await started;
+      expect(player.playedPaths, hasLength(1));
+      expect(released, isEmpty);
+    });
+
+    test(
+      'stop waits for actual player pause before releasing priority',
+      () async {
+        await service.play(uri);
+        player.pauseGate = Completer<void>();
+        final stopped = service.stop();
+        await flushMicrotasks();
+        expect(player.playing, isTrue);
+        expect(released, isEmpty);
+        player.pauseGate!.complete();
+        await stopped;
+        expect(player.playing, isFalse);
+        expect(released, acquired);
+      },
+    );
+
+    test(
+      'failed pause retains priority until the player is disposed',
+      () async {
+        await service.play(uri);
+        player.pauseError = StateError('pause failed');
+        await expectLater(service.stop(), throwsStateError);
+        expect(released, isEmpty);
+        await service.dispose();
+        expect(player.disposeCalls, 1);
+        expect(released, acquired);
+      },
+    );
+
+    test(
+      'retry after failed pause retires old priority before playing again',
+      () async {
+        await service.play(uri);
+        final oldToken = acquired.single;
+        player.pauseError = StateError('pause failed');
+        await expectLater(service.stop(), throwsStateError);
+        expect(released, isEmpty);
+        await expectLater(service.play(uri), throwsStateError);
+        expect(acquired, [oldToken]);
+        player.pauseError = null;
+        await service.play(uri);
+        expect(released, contains(oldToken));
+        final currentToken = acquired.last;
+        expect(currentToken, isNot(oldToken));
+        expect(released, isNot(contains(currentToken)));
+        player.emitState(
+          playing: true,
+          processingState: ProcessingState.completed,
+          position: const Duration(seconds: 2),
+        );
+        await flushMicrotasks();
+        expect(released, containsAll(acquired));
+      },
+    );
+
+    test(
+      'post-start decode failure pauses before releasing native priority',
+      () async {
+        player.playbackResult = Completer<void>();
+        await service.play(uri);
+        player.pauseGate = Completer<void>();
+        player.playbackResult!.completeError(StateError('decode failed'));
+        await flushMicrotasks();
+        expect(released, isEmpty);
+        player.pauseGate!.complete();
+        await flushMicrotasks();
+        expect(player.playing, isFalse);
+        expect(released, acquired);
+      },
+    );
+
+    test('source error after startup releases native priority', () async {
+      await service.play(uri);
+      player.emitState(
+        playing: true,
+        processingState: ProcessingState.ready,
+        errorCode: 500,
+      );
+      await flushMicrotasks();
+      expect(player.playing, isFalse);
+      expect(released, acquired);
+    });
+
+    test(
+      'an old play future failure cannot stop the replacement clip',
+      () async {
+        final oldResult = Completer<void>();
+        player.playbackResult = oldResult;
+        await service.play(uri);
+        player.playbackResult = null;
+        await service.play(uri);
+        final current = acquired.last;
+        oldResult.completeError(StateError('old decode failed'));
+        await flushMicrotasks();
+        expect(player.playing, isTrue);
+        expect(released, isNot(contains(current)));
+        await service.stop();
+        expect(released, contains(current));
+      },
+    );
+
+    test(
+      'replacement waits for old pause and ignores its queued completion',
+      () async {
+        await service.play(uri);
+        final first = acquired.single;
+        player.pauseGate = Completer<void>();
+        final next = service.play(uri);
+        await flushMicrotasks();
+        expect(acquired, hasLength(1));
+        expect(released, isEmpty);
+        player.pauseGate!.complete();
+        await next;
+        final second = acquired.last;
+        expect(first, isNot(second));
+        expect(released, [first]);
+        player.emitDelayedPlayerState(
+          PlayerState(true, ProcessingState.completed),
+        );
+        await flushMicrotasks();
+        expect(released, [first]);
+        await service.stop();
+        expect(released, [first, second]);
+      },
+    );
+
+    test('late cancelled begin cannot release the replacement token', () async {
+      final delayed = Completer<bool>();
+      pendingBegin = delayed;
+      final first = service.play(uri);
+      final cancelled = expectLater(first, throwsA(isA<PlaybackException>()));
+      await flushMicrotasks();
+      final oldToken = acquired.single;
+      await service.stop();
+      await cancelled;
+      pendingBegin = null;
+      await service.play(uri);
+      final newToken = acquired.last;
+      delayed.complete(true);
+      await flushMicrotasks();
+      expect(released, contains(oldToken));
+      expect(released, isNot(contains(newToken)));
+      expect(player.playedPaths, hasLength(1));
+    });
+
+    test(
+      'dispose closes a delayed begin without starting the player',
+      () async {
+        final delayed = Completer<bool>();
+        pendingBegin = delayed;
+        final started = service.play(uri);
+        final cancelled = expectLater(
+          started,
+          throwsA(isA<PlaybackException>()),
+        );
+        await flushMicrotasks();
+        await service.dispose();
+        await cancelled;
+        delayed.complete(true);
+        await flushMicrotasks();
+        expect(player.playedPaths, isEmpty);
+        expect(released, contains(acquired.single));
+      },
+    );
+
+    test(
+      'native media conflict prevents playback and cleans up its token',
+      () async {
+        beginError = PlatformException(code: 'EXTERNAL_MEDIA_ACTIVE');
+        await expectLater(service.play(uri), throwsA(isA<PlatformException>()));
+        expect(player.playedPaths, isEmpty);
+        expect(released, contains(acquired.single));
+      },
+    );
+
+    test('missing success acknowledgement fails closed', () async {
+      beginResult = null;
+      await expectLater(service.play(uri), throwsA(isA<PlaybackException>()));
+      expect(player.playedPaths, isEmpty);
+      expect(released, contains(acquired.single));
+    });
+
+    test('older native build without the optional API still plays', () async {
+      beginError = MissingPluginException();
+      await service.play(uri);
+      expect(player.playedPaths, hasLength(1));
+      expect(released, isEmpty);
+    });
+  });
+
   test(
     'queued old completion cannot release replacement audio leases',
     () async {
@@ -224,4 +498,22 @@ void main() {
       await flushMicrotasks();
     },
   );
+}
+
+class _IosControlledPlayer extends ControlledPlayer {
+  Completer<void>? pauseGate;
+  Completer<void>? playbackResult;
+
+  @override
+  Future<void> play() async {
+    final result = playbackResult;
+    await super.play();
+    await result?.future;
+  }
+
+  @override
+  Future<void> pause() async {
+    await pauseGate?.future;
+    await super.pause();
+  }
 }

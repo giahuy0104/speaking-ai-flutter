@@ -34,8 +34,71 @@ enum IOSAudioSessionOwner: String, Hashable {
   case backgroundTransition
   case mainTurn
   case prompt
+  case playback
   case hfpRoute
   case speechCapture
+}
+
+struct IOSBackgroundCaptureMixingPolicy {
+  static func shouldMix(
+    backgroundCaptureArmed: Bool,
+    owners: [IOSAudioSessionOwner],
+    interrupted: Bool
+  ) -> Bool {
+    backgroundCaptureArmed && !interrupted && !owners.contains {
+      $0 == .mainTurn || $0 == .prompt || $0 == .playback
+        || $0 == .speechCapture || $0 == .hfpRoute
+    }
+  }
+
+  static func options(
+    base: AVAudioSession.CategoryOptions,
+    mixing: Bool
+  ) -> AVAudioSession.CategoryOptions {
+    mixing ? base.union(.mixWithOthers) : base.subtracting(.mixWithOthers)
+  }
+}
+
+/// The hardware operations at the warm-input boundary are injectable; ownership
+/// and generation checks remain in the coordinator for both device and tests.
+struct IOSBackgroundCaptureSessionDriver {
+  let prepare: (IOSAudioInputTarget, Bool, String) throws -> Void
+  let applyMixing: (Bool, String) throws -> Void
+  let isOtherAudioPlaying: () -> Bool
+}
+
+/// Shared with the main-thread event sink; never waits for native audio work.
+private final class IOSPassiveAudioEventGate {
+  private let lock = NSLock()
+  private var generation = 0
+  private var pending: Int?
+  private var delivered = false
+
+  func issue() -> Int? {
+    lock.lock()
+    defer { lock.unlock() }
+    guard pending == nil, !delivered else { return nil }
+    generation += 1
+    pending = generation
+    return generation
+  }
+
+  func claim(_ candidate: Int) -> Bool {
+    lock.lock()
+    defer { lock.unlock() }
+    guard pending == candidate else { return false }
+    pending = nil
+    delivered = true
+    return true
+  }
+
+  func cancel() {
+    lock.lock()
+    defer { lock.unlock() }
+    generation += 1
+    pending = nil
+    delivered = false
+  }
 }
 
 /// Keep speech capture on the headset selected in Settings, including when
@@ -326,9 +389,12 @@ protocol IOSBackgroundCaptureHandoffDelegate: AnyObject {
   func interruptBackgroundAudioHandoff(caller: String)
 
   func isBackgroundAudioHandoffReady(for target: IOSAudioInputTarget?) -> Bool
+  func cancelBackgroundAudioHandoffConfirmation()
 }
 
 extension IOSBackgroundCaptureHandoffDelegate {
+  func cancelBackgroundAudioHandoffConfirmation() {}
+
   func interruptBackgroundAudioHandoff(caller: String) {
     disarmBackgroundAudioHandoff(caller: caller)
   }
@@ -362,6 +428,10 @@ final class IOSAudioSessionCoordinator: NSObject {
   private var backgroundTurnTaskEnder: IOSBackgroundTaskEnder?
   private var backgroundTurnTaskGeneration = 0
   private var ownership = IOSAudioSessionOwnershipState()
+  private var playbackTokens = Set<String>()
+  private let passiveAudioEvents = IOSPassiveAudioEventGate()
+  private let backgroundCaptureSessionDriver: IOSBackgroundCaptureSessionDriver?
+  private(set) var isBackgroundCaptureMixing = false
   private var preferredHfpInputUID: String?
   private var preferredHfpInputName: String?
   private var hasVerifiedHfpSelection = false
@@ -392,7 +462,8 @@ final class IOSAudioSessionCoordinator: NSObject {
   var onBackgroundLearningEvent: (([String: Any]) -> Void)?
   weak var backgroundCaptureHandoffDelegate: IOSBackgroundCaptureHandoffDelegate?
 
-  override init() {
+  init(backgroundCaptureSessionDriver: IOSBackgroundCaptureSessionDriver? = nil) {
+    self.backgroundCaptureSessionDriver = backgroundCaptureSessionDriver
     super.init()
     routeChangeToken = NotificationCenter.default.addObserver(
       forName: AVAudioSession.routeChangeNotification,
@@ -454,6 +525,7 @@ final class IOSAudioSessionCoordinator: NSObject {
   }
 
   func applicationWillEnterForeground() {
+    cancelPassiveAudioEvent()
     // Opening HOMI is an explicit opportunity to prepare its input again.
     // An interruption-ended notification alone must not reclaim another app's audio.
     isAudioInterruptionSuspended = false
@@ -532,6 +604,13 @@ final class IOSAudioSessionCoordinator: NSObject {
         completion(.failure(.cancelled))
         return
       }
+      do {
+        try self.reconcileBackgroundCaptureMixing(caller: source)
+      } catch {
+        self.endMainTurn(reason: "audio_priority_unavailable", caller: source, expectedTurnId: turnId)
+        completion(.failure(.microphoneUnavailable))
+        return
+      }
       if !IOSNativeWork.applicationIsActive &&
         !self.hasBackgroundCaptureReady(for: audioInputTarget) {
         self.endMainTurn(reason: "microphone_unavailable", caller: source, expectedTurnId: turnId)
@@ -579,9 +658,40 @@ final class IOSAudioSessionCoordinator: NSObject {
     )
   }
 
-  func acquireHfpRoute(caller: String) {
+  func acquireHfpRoute(caller: String) throws {
+    try requirePassiveAudioPriority(caller: caller)
     acquireSessionOwner(.hfpRoute, caller: caller)
+    do {
+      try reconcileBackgroundCaptureMixing(caller: caller)
+      try ensureExclusiveAudioSession(caller: caller)
+    } catch {
+      releaseSessionOwner(.hfpRoute, caller: caller)
+      releaseAudioSessionIfIdle(caller: "\(caller).failed")
+      throw error
+    }
     onHfpRouteOwnershipChanged?()
+  }
+
+  func beginAudioPlayback(token: String, caller: String) throws -> Bool {
+    guard !token.isEmpty else { return false }
+    if playbackTokens.contains(token) { return true }
+    try requirePassiveAudioPriority(caller: caller)
+    playbackTokens.insert(token)
+    acquireSessionOwner(.playback, caller: caller)
+    do {
+      try reconcileBackgroundCaptureMixing(caller: caller)
+      try ensureExclusiveAudioSession(caller: caller)
+      return true
+    } catch {
+      endAudioPlayback(token: token, caller: "\(caller).failed")
+      throw error
+    }
+  }
+
+  func endAudioPlayback(token: String, caller: String) {
+    guard playbackTokens.remove(token) != nil else { return }
+    releaseSessionOwner(.playback, caller: caller)
+    releaseAudioSessionIfIdle(caller: caller)
   }
 
   func releaseHfpRoute(caller: String) {
@@ -610,6 +720,8 @@ final class IOSAudioSessionCoordinator: NSObject {
     audioInputTarget: IOSAudioInputTarget? = nil,
     forceNewTurn: Bool = false
   ) -> String {
+    cancelPassiveAudioEvent()
+    backgroundCaptureHandoffDelegate?.cancelBackgroundAudioHandoffConfirmation()
     let now = Date()
     let pendingIsRecent = pendingTurnStartedAt.map {
       now.timeIntervalSince($0) <= 5
@@ -696,6 +808,7 @@ final class IOSAudioSessionCoordinator: NSObject {
       return
     }
     trace(stage: "main_turn_ended", caller: caller, message: reason)
+    backgroundCaptureHandoffDelegate?.cancelBackgroundAudioHandoffConfirmation()
     turnTimeout?.cancel()
     turnTimeout = nil
     isMainTurnActive = false
@@ -790,10 +903,12 @@ final class IOSAudioSessionCoordinator: NSObject {
     guard !isAudioInterruptionSuspended else {
       throw IOSAudioSessionCoordinatorError.audioSessionInterrupted
     }
+    try requirePassiveAudioPriority(caller: caller)
     acquireSessionOwner(.prompt, caller: caller)
     trace(stage: "prompt_audio_prepare", caller: caller)
     do {
       if isBackgroundCaptureEngineRunning {
+        try reconcileBackgroundCaptureMixing(caller: caller)
         let usesHfp = hasTwoWayHfpRoute()
         if mainAudioInputTarget == .hfp && !usesHfp {
           // A previous phone capture may still be draining after Dart's
@@ -814,6 +929,7 @@ final class IOSAudioSessionCoordinator: NSObject {
         hasTwoWayHfpRoute: hasTwoWayHfpRoute(),
         audioSessionActive: isAudioSessionActive
       ), currentRouteUsesPreferredHfp {
+        try ensureExclusiveAudioSession(caller: caller)
         trace(stage: "prompt_audio_route_reused", caller: caller)
         return true
       }
@@ -851,10 +967,12 @@ final class IOSAudioSessionCoordinator: NSObject {
     guard !isAudioInterruptionSuspended else {
       throw IOSAudioSessionCoordinatorError.audioSessionInterrupted
     }
+    try requirePassiveAudioPriority(caller: caller)
     acquireSessionOwner(.prompt, caller: caller)
     trace(stage: "phone_prompt_audio_prepare", caller: caller)
     do {
       if isBackgroundCaptureEngineRunning {
+        try reconcileBackgroundCaptureMixing(caller: caller)
         if mainAudioInputTarget == .builtInMic,
           session.currentRoute.inputs.contains(where: { $0.portType == .bluetoothHFP })
         {
@@ -907,10 +1025,12 @@ final class IOSAudioSessionCoordinator: NSObject {
     guard !isAudioInterruptionSuspended else {
       throw IOSAudioSessionCoordinatorError.audioSessionInterrupted
     }
+    try requirePassiveAudioPriority(caller: caller)
     acquireSessionOwner(.prompt, caller: caller)
     trace(stage: "media_prompt_audio_prepare", caller: caller)
     do {
       if isBackgroundCaptureEngineRunning {
+        try reconcileBackgroundCaptureMixing(caller: caller)
         trace(stage: "media_prompt_background_capture_reused", caller: caller)
         return
       }
@@ -934,6 +1054,13 @@ final class IOSAudioSessionCoordinator: NSObject {
   /// session is released only when no other owner, including a foreground-armed
   /// background capture, still needs it.
   func releaseAudioSessionIfIdle(caller: String) {
+    if isBackgroundCaptureEngineRunning && !isAudioInterruptionSuspended {
+      do {
+        try reconcileBackgroundCaptureMixing(caller: caller)
+      } catch {
+        trace(stage: "background_capture_priority_failed", caller: caller, message: error.localizedDescription)
+      }
+    }
     guard ownership.canDeactivate else {
       trace(
         stage: "audio_session_release_preserved",
@@ -976,7 +1103,9 @@ final class IOSAudioSessionCoordinator: NSObject {
   func configureHfp(activate: Bool, preferredInput: AVAudioSessionPortDescription?, caller: String) throws {
     try ensureCategory(
       mode: .voiceChat,
-      options: IOSHfpRoutePolicy.categoryOptions,
+      options: IOSBackgroundCaptureMixingPolicy.options(
+        base: IOSHfpRoutePolicy.categoryOptions, mixing: shouldMixBackgroundCapture
+      ),
       caller: caller
     )
     if activate {
@@ -989,6 +1118,37 @@ final class IOSAudioSessionCoordinator: NSObject {
       try ensurePreferredInput(preferredInput, caller: caller)
       try ensureOutputOverride(.none, caller: caller)
     }
+  }
+
+  func initializeHfpSession(caller: String) throws {
+    // A Settings status lookup must not replace an armed phone/HFP graph or
+    // change a session owned by playback, MAIN or a recording utterance.
+    guard ownership.canDeactivate,
+      !isBackgroundCaptureArmed, !isBackgroundCaptureEngineRunning else {
+      trace(stage: "hfp_initialization_session_preserved", caller: caller)
+      return
+    }
+    try configureHfp(activate: false, preferredInput: nil, caller: caller)
+  }
+
+  func prepareForHfpSettingsChange(caller: String) throws {
+    guard !isAudioInterruptionSuspended else {
+      throw IOSAudioSessionCoordinatorError.audioSessionInterrupted
+    }
+    guard IOSNativeWork.applicationIsActive,
+      !ownership.activeOwners.contains(where: {
+        $0 == .mainTurn || $0 == .prompt || $0 == .speechCapture
+          || $0 == .playback || $0 == .hfpRoute
+      }) else {
+      throw IOSAudioSessionCoordinatorError.audioRouteChangeBusy
+    }
+    if isBackgroundCaptureArmed || isBackgroundCaptureEngineRunning {
+      requestBackgroundCaptureDisarm(caller: caller)
+    }
+    guard !isBackgroundCaptureArmed, !isBackgroundCaptureEngineRunning else {
+      throw IOSAudioSessionCoordinatorError.audioRouteChangeBusy
+    }
+    trace(stage: "hfp_settings_route_change_prepared", caller: caller)
   }
 
   func clearPreferredInput(caller: String) throws {
@@ -1094,6 +1254,7 @@ final class IOSAudioSessionCoordinator: NSObject {
     guard !isAudioInterruptionSuspended else {
       throw IOSAudioSessionCoordinatorError.audioSessionInterrupted
     }
+    try requirePassiveAudioPriority(caller: caller)
     retainBackgroundTurnExecutionIfNeeded(caller: caller)
     let captureWasAlreadyPrepared = ownership.contains(.speechCapture)
     if captureWasAlreadyPrepared {
@@ -1103,6 +1264,14 @@ final class IOSAudioSessionCoordinator: NSObject {
     }
     trace(stage: "audio_session_prepare", caller: caller, values: ["audioSource": target.rawValue])
     do {
+      if isBackgroundCaptureEngineRunning {
+        try reconcileBackgroundCaptureMixing(caller: caller)
+        guard hasBackgroundCaptureReady(for: target) else {
+          throw IOSAudioSessionCoordinatorError.mainAudioSourceConflict
+        }
+        if !captureWasAlreadyPrepared { onSpeechCaptureStarted?() }
+        return
+      }
       switch target {
       case .hfp:
         if selectedOrAvailableHfpInput() == nil {
@@ -1117,6 +1286,7 @@ final class IOSAudioSessionCoordinator: NSObject {
           hasTwoWayHfpRoute: hasSelectedTwoWayHfpRoute(input: input),
           audioSessionActive: isAudioSessionActive
         ) {
+          try ensureExclusiveAudioSession(caller: caller)
           trace(stage: "audio_session_active", caller: caller, values: ["audioSource": target.rawValue])
           trace(stage: "route_confirmed", caller: caller, values: ["audioSource": target.rawValue])
           if !captureWasAlreadyPrepared {
@@ -1150,6 +1320,9 @@ final class IOSAudioSessionCoordinator: NSObject {
   /// an active recognition turn. IOSSpeechRecognizerBridge keeps its input tap
   /// running with a closed buffer gate until Flutter explicitly starts speech.
   func prepareBackgroundCapture(target: IOSAudioInputTarget, caller: String) throws {
+    guard !isAudioInterruptionSuspended else {
+      throw IOSAudioSessionCoordinatorError.audioSessionInterrupted
+    }
     if !isBackgroundCaptureArmed {
       acquireSessionOwner(.backgroundCapture, caller: caller)
     }
@@ -1159,6 +1332,12 @@ final class IOSAudioSessionCoordinator: NSObject {
       values: ["audioSource": target.rawValue]
     )
     do {
+      let mixing = shouldMixBackgroundCapture
+      if let driver = backgroundCaptureSessionDriver {
+        try driver.prepare(target, mixing, caller)
+        isBackgroundCaptureMixing = mixing
+        return
+      }
       switch target {
       case .hfp:
         if selectedOrAvailableHfpInput() == nil {
@@ -1171,18 +1350,28 @@ final class IOSAudioSessionCoordinator: NSObject {
           $0.uid == input.uid
         }
         if hasTwoWayHfpRoute(), currentRouteUsesInput {
+          try ensureCategory(
+            mode: .voiceChat,
+            options: IOSBackgroundCaptureMixingPolicy.options(base: IOSHfpRoutePolicy.categoryOptions, mixing: mixing),
+            caller: caller
+          )
           try ensureActive(caller: caller)
         } else {
           try configureHfp(activate: true, preferredInput: input, caller: caller)
         }
       case .builtInMic:
-        try ensureCategory(mode: .voiceChat, options: [.defaultToSpeaker], caller: caller)
+        try ensureCategory(
+          mode: .voiceChat,
+          options: IOSBackgroundCaptureMixingPolicy.options(base: [.defaultToSpeaker], mixing: mixing),
+          caller: caller
+        )
         try ensureActive(caller: caller)
         guard let input = currentOrAvailableInput(portType: .builtInMic) else {
           throw IOSAudioSessionCoordinatorError.builtInMicUnavailable
         }
         try ensurePreferredInput(input, caller: caller)
       }
+      isBackgroundCaptureMixing = mixing
       trace(
         stage: "background_capture_audio_active",
         caller: caller,
@@ -1197,9 +1386,112 @@ final class IOSAudioSessionCoordinator: NSObject {
   func releaseBackgroundCapture(caller: String) {
     guard releaseSessionOwner(.backgroundCapture, caller: caller) else { return }
     setBackgroundCaptureEngineRunning(false, caller: caller)
+    isBackgroundCaptureMixing = false
     trace(stage: "background_capture_audio_released", caller: caller)
     releaseAudioSessionIfIdle(caller: caller)
     endBackgroundTurnExecutionIfIdle(caller: caller)
+  }
+
+  private var shouldMixBackgroundCapture: Bool {
+    IOSBackgroundCaptureMixingPolicy.shouldMix(
+      backgroundCaptureArmed: isBackgroundCaptureArmed,
+      owners: ownership.activeOwners,
+      interrupted: isAudioInterruptionSuspended
+    )
+  }
+
+  /// Only an explicit MAIN or foreground action may interrupt competing media.
+  /// Observing other media is not an OS interruption: retain the valid idle
+  /// graph and its closed buffer gate while Flutter pauses its learning flow.
+  private func requirePassiveAudioPriority(caller: String) throws {
+    guard !isAudioInterruptionSuspended else {
+      throw IOSAudioSessionCoordinatorError.audioSessionInterrupted
+    }
+    let otherAudioPlaying = backgroundCaptureSessionDriver?.isOtherAudioPlaying()
+      ?? session.isOtherAudioPlaying
+    let mixing = backgroundCaptureSessionDriver == nil
+      ? session.categoryOptions.contains(.mixWithOthers) : isBackgroundCaptureMixing
+    if !IOSNativeWork.applicationIsActive && !isMainTurnActive
+      && isBackgroundCaptureArmed && mixing && otherAudioPlaying {
+      trace(stage: "background_passive_audio_denied", caller: caller, code: "EXTERNAL_MEDIA_ACTIVE")
+      if let generation = passiveAudioEvents.issue() {
+        onBackgroundLearningEvent?([
+          "type": "background.interrupted",
+          "reason": "external_media_active",
+          "passiveAudioGeneration": generation,
+        ])
+      }
+      throw IOSAudioSessionCoordinatorError.externalMediaActive
+    }
+  }
+
+  /// Claim immediately before the bridge emits on the main thread. A MAIN or
+  /// foreground action which superseded this queued pause invalidates it.
+  func claimPassiveAudioEvent(generation: Int) -> Bool {
+    passiveAudioEvents.claim(generation)
+  }
+
+  private func cancelPassiveAudioEvent() {
+    passiveAudioEvents.cancel()
+  }
+
+  /// Change priority on the existing graph. Never deactivate the session to
+  /// notify other apps: doing so destroys the background recording capability.
+  func reconcileBackgroundCaptureMixing(caller: String) throws {
+    guard isBackgroundCaptureEngineRunning else { return }
+    guard !isAudioInterruptionSuspended else {
+      throw IOSAudioSessionCoordinatorError.audioSessionInterrupted
+    }
+    do {
+      guard hasBackgroundCaptureReady(for: nil) else {
+        throw IOSAudioSessionCoordinatorError.backgroundGraphUnavailable
+      }
+      let mixing = shouldMixBackgroundCapture
+      let currentlyMixing = backgroundCaptureSessionDriver == nil
+        ? session.categoryOptions.contains(.mixWithOthers) : isBackgroundCaptureMixing
+      if mixing != currentlyMixing {
+        if let driver = backgroundCaptureSessionDriver {
+          try driver.applyMixing(mixing, caller)
+        } else {
+          try ensureCategory(
+            category: session.category,
+            mode: session.mode,
+            options: IOSBackgroundCaptureMixingPolicy.options(base: session.categoryOptions, mixing: mixing),
+            caller: caller
+          )
+          try ensureActive(caller: caller)
+        }
+        guard hasBackgroundCaptureReady(for: nil) else {
+          throw IOSAudioSessionCoordinatorError.backgroundGraphUnavailable
+        }
+        trace(
+          stage: mixing ? "background_capture_idle_mixing" : "background_capture_exclusive",
+          caller: caller,
+          values: ["owners": ownership.activeOwners.map(\.rawValue)]
+        )
+      }
+      isBackgroundCaptureMixing = mixing
+    } catch {
+      trace(stage: "background_capture_priority_failed", caller: caller, message: error.localizedDescription)
+      // A category change may invalidate the engine or its route. Stop instead
+      // of rebuilding a background graph or opening a stale input gate.
+      suspendForAudioInterruption(reason: "background_capture_priority_failed")
+      throw error
+    }
+  }
+
+  private func ensureExclusiveAudioSession(caller: String) throws {
+    guard backgroundCaptureSessionDriver == nil,
+      !isBackgroundCaptureEngineRunning,
+      session.categoryOptions.contains(.mixWithOthers)
+    else { return }
+    try ensureCategory(
+      category: session.category,
+      mode: session.mode,
+      options: IOSBackgroundCaptureMixingPolicy.options(base: session.categoryOptions, mixing: false),
+      caller: caller
+    )
+    try ensureActive(caller: caller)
   }
 
   func setBackgroundCaptureEngineRunning(_ running: Bool, caller: String) {
@@ -1240,6 +1532,7 @@ final class IOSAudioSessionCoordinator: NSObject {
   }
 
   func dispose() {
+    cancelPassiveAudioEvent()
     turnTimeout?.cancel()
     turnTimeout = nil
     endBackgroundTurnExecution(caller: "IOSAudioSessionCoordinator.dispose")
@@ -1538,8 +1831,13 @@ final class IOSAudioSessionCoordinator: NSObject {
   }
 
   func suspendForAudioInterruption(reason: String = "audio_session_interruption") {
+    cancelPassiveAudioEvent()
     isAudioInterruptionSuspended = true
     isAudioSessionActive = false
+    for _ in playbackTokens {
+      releaseSessionOwner(.playback, caller: reason)
+    }
+    playbackTokens.removeAll()
     // Queue global cancellation before individual speech/prompt failures so
     // Flutter cannot interpret an interrupted capture as a reason to retry.
     // Foreground lessons also need this event when background learning is off.
@@ -1583,6 +1881,9 @@ private enum IOSAudioSessionCoordinatorError: LocalizedError {
   case builtInMicUnavailable
   case hfpInputUnavailable
   case mainAudioSourceConflict
+  case backgroundGraphUnavailable
+  case externalMediaActive
+  case audioRouteChangeBusy
 
   var errorDescription: String? {
     switch self {
@@ -1594,6 +1895,12 @@ private enum IOSAudioSessionCoordinatorError: LocalizedError {
       return "Không tìm thấy mic HFP đang kết nối."
     case .mainAudioSourceConflict:
       return "Phiên micro HM-D001 trước đang kết thúc. Hãy thử lại."
+    case .backgroundGraphUnavailable:
+      return "Đường micro đã thay đổi. Mở lại HOMI rồi nhấn MAIN để thử lại."
+    case .externalMediaActive:
+      return "Âm thanh khác đang phát. Nhấn MAIN để tiếp tục với HOMI."
+    case .audioRouteChangeBusy:
+      return "Dừng âm thanh HOMI và mở ứng dụng trước khi đổi mic HFP."
     }
   }
 }

@@ -59,6 +59,7 @@ class ControlledPlayer implements AudioPlayer {
     required ProcessingState processingState,
     Duration position = Duration.zero,
     bool publishPlayerState = true,
+    int? errorCode,
   }) {
     _playing = playing;
     _processingState = processingState;
@@ -70,6 +71,7 @@ class ControlledPlayer implements AudioPlayer {
           processingState: processingState,
           updatePosition: position,
           duration: duration,
+          errorCode: errorCode,
         ),
       ),
     );

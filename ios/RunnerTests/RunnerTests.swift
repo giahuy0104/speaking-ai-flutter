@@ -8,6 +8,380 @@ import XCTest
 
 class RunnerTests: XCTestCase {
 
+  func testIOSWarmInputStaysExclusiveAcrossMainPromptCaptureAndResponse() throws {
+    try withBackgroundMixingHarness { h in
+      try h.arm()
+      XCTAssertEqual(h.preparedMixing, [true])
+      XCTAssertTrue(h.coordinator.isBackgroundCaptureMixing)
+      XCTAssertFalse(h.coordinator.isSpeechCaptureActive)
+      var prepared: Result<String, IOSMainTurnPreparationError>?
+      h.coordinator.prepareExplicitMainTurn(source: "MAIN", audioInputTarget: .builtInMic) {
+        prepared = $0
+      }
+      guard case .success(let turnId)? = prepared else {
+        return XCTFail("MAIN must acquire exclusive priority before reporting readiness")
+      }
+      XCTAssertEqual(h.appliedMixing, [false])
+      try h.coordinator.preparePhoneSpeaker(caller: "question")
+      h.coordinator.releasePrompt(usedHfp: false, caller: "question.done")
+      XCTAssertFalse(h.coordinator.isBackgroundCaptureMixing)
+      try h.coordinator.prepareCapture(target: .builtInMic, caller: "answer")
+      XCTAssertTrue(h.coordinator.isSpeechCaptureActive)
+      h.coordinator.releaseCapture(caller: "answer.done")
+      try h.coordinator.preparePhoneSpeaker(caller: "response")
+      h.coordinator.endMainTurn(reason: "complete", caller: "MAIN", expectedTurnId: turnId)
+      XCTAssertFalse(h.coordinator.isBackgroundCaptureMixing, "The response still owns audio")
+      h.coordinator.releasePrompt(usedHfp: false, caller: "response.done")
+      XCTAssertEqual(h.appliedMixing, [false, true])
+      XCTAssertTrue(h.coordinator.isBackgroundCaptureEngineRunning)
+      XCTAssertTrue(h.coordinator.isBackgroundCaptureArmed)
+      XCTAssertEqual(h.preparedMixing.count, 1, "Changing priority must not restart input")
+      XCTAssertEqual(h.disarmCount, 0)
+      XCTAssertEqual(h.sessionReleasedCount, 0)
+    }
+  }
+
+  func testIOSStaleMainEndCannotMakeReplacementMixWithVideo() throws {
+    try withBackgroundMixingHarness { h in
+      try h.arm()
+      let old = h.coordinator.beginMainTurn(source: "old", forceNewTurn: true)
+      try h.coordinator.reconcileBackgroundCaptureMixing(caller: "old.ready")
+      let current = h.coordinator.beginMainTurn(source: "current", forceNewTurn: true)
+      try h.coordinator.reconcileBackgroundCaptureMixing(caller: "current.ready")
+      h.coordinator.endMainTurn(reason: "late", caller: "old", expectedTurnId: old)
+      XCTAssertTrue(h.coordinator.isMainTurnActive)
+      XCTAssertFalse(h.coordinator.isBackgroundCaptureMixing)
+      XCTAssertEqual(h.appliedMixing, [false])
+      h.coordinator.endMainTurn(reason: "done", caller: "current", expectedTurnId: current)
+      XCTAssertEqual(h.appliedMixing, [false, true])
+    }
+  }
+
+  func testIOSPlaybackTokensAndPromptKeepPriorityUntilLastAudioOwnerEnds() throws {
+    try withBackgroundMixingHarness { h in
+      try h.arm()
+      h.coordinator.setActiveLearningRequested(true)
+      XCTAssertTrue(h.coordinator.isBackgroundCaptureMixing, "An idle lesson checkpoint is not playback")
+      XCTAssertTrue(try h.coordinator.beginAudioPlayback(token: "a", caller: "lesson"))
+      XCTAssertTrue(try h.coordinator.beginAudioPlayback(token: "a", caller: "duplicate"))
+      XCTAssertTrue(try h.coordinator.beginAudioPlayback(token: "b", caller: "replacement"))
+      try h.coordinator.preparePhoneSpeaker(caller: "coach")
+      h.coordinator.endAudioPlayback(token: "a", caller: "old.done")
+      h.coordinator.endAudioPlayback(token: "a", caller: "old.duplicate")
+      h.coordinator.endAudioPlayback(token: "unknown", caller: "stale")
+      XCTAssertFalse(h.coordinator.isBackgroundCaptureMixing)
+      h.coordinator.endAudioPlayback(token: "b", caller: "current.done")
+      XCTAssertFalse(h.coordinator.isBackgroundCaptureMixing, "Coach prompt is still active")
+      h.coordinator.releasePrompt(usedHfp: false, caller: "coach.done")
+      XCTAssertEqual(h.appliedMixing, [false, true])
+      XCTAssertTrue(h.coordinator.isActiveLearningRequested)
+      XCTAssertTrue(h.coordinator.isBackgroundCaptureEngineRunning)
+    }
+  }
+
+  func testIOSCompetingVideoBlocksPassiveAudioButExplicitMainCanTakePriority() throws {
+    try withBackgroundMixingHarness { h in
+      try h.arm()
+      IOSNativeWork.markApplicationInactive()
+      h.otherAudioPlaying = true
+      XCTAssertThrowsError(try h.coordinator.preparePhoneSpeaker(caller: "passive.prompt"))
+      XCTAssertThrowsError(try h.coordinator.prepareCapture(target: .builtInMic, caller: "passive.capture"))
+      XCTAssertThrowsError(try h.coordinator.beginAudioPlayback(token: "lesson", caller: "passive.playback"))
+      XCTAssertFalse(h.coordinator.isPromptActive)
+      XCTAssertFalse(h.coordinator.isSpeechCaptureActive)
+      XCTAssertTrue(h.coordinator.isBackgroundCaptureMixing)
+      XCTAssertTrue(h.coordinator.isBackgroundCaptureEngineRunning)
+      XCTAssertFalse(h.events.isEmpty)
+      XCTAssertTrue(h.events.allSatisfy { $0 == "background.interrupted" })
+      XCTAssertEqual(h.disarmCount, 0)
+      var prepared: Result<String, IOSMainTurnPreparationError>?
+      h.coordinator.prepareExplicitMainTurn(source: "MAIN", audioInputTarget: .builtInMic) {
+        prepared = $0
+      }
+      guard case .success(let turnId)? = prepared else {
+        return XCTFail("A fresh MAIN must be able to request exclusive priority")
+      }
+      XCTAssertFalse(h.coordinator.isBackgroundCaptureMixing)
+      h.coordinator.endMainTurn(reason: "done", caller: "MAIN", expectedTurnId: turnId)
+    }
+  }
+
+  func testIOSRealInterruptionCancelsMainAndDisarmsInsteadOfRestoringMixing() throws {
+    try withBackgroundMixingHarness { h in
+      try h.arm()
+      _ = h.coordinator.beginMainTurn(source: "MAIN", forceNewTurn: true)
+      try h.coordinator.reconcileBackgroundCaptureMixing(caller: "MAIN.ready")
+      h.coordinator.suspendForAudioInterruption()
+      XCTAssertEqual(h.events.first, "background.interrupted")
+      XCTAssertEqual(h.interruptionCount, 1)
+      XCTAssertFalse(h.coordinator.isMainTurnActive)
+      XCTAssertFalse(h.coordinator.isBackgroundCaptureEngineRunning)
+      XCTAssertTrue(h.coordinator.isAudioInterruptionSuspended)
+      XCTAssertEqual(h.appliedMixing, [false], "A real interruption must not reactivate idle input")
+      let arms = h.armCount
+      h.coordinator.requestBackgroundCaptureArm(caller: "late.route.callback")
+      XCTAssertEqual(h.armCount, arms)
+    }
+  }
+
+  func testIOSNewInputPreparedDuringMainStartsExclusive() throws {
+    try withBackgroundMixingHarness { h in
+      let turn = h.coordinator.beginMainTurn(source: "MAIN", forceNewTurn: true)
+      try h.arm()
+      XCTAssertEqual(h.preparedMixing, [false])
+      XCTAssertFalse(h.coordinator.isBackgroundCaptureMixing)
+      h.coordinator.endMainTurn(reason: "done", caller: "MAIN", expectedTurnId: turn)
+      XCTAssertEqual(h.appliedMixing, [true])
+      XCTAssertEqual(h.preparedMixing.count, 1)
+    }
+  }
+
+  func testIOSCaptureAndHfpOwnersIndependentlyExcludeIdleMixing() throws {
+    try withBackgroundMixingHarness { h in
+      try h.arm()
+      try h.coordinator.prepareCapture(target: .builtInMic, caller: "lesson.capture")
+      XCTAssertFalse(h.coordinator.isBackgroundCaptureMixing)
+      h.coordinator.releaseCapture(caller: "lesson.capture.done")
+      XCTAssertTrue(h.coordinator.isBackgroundCaptureMixing)
+      try h.coordinator.acquireHfpRoute(caller: "lesson.hfp")
+      XCTAssertFalse(h.coordinator.isBackgroundCaptureMixing)
+      h.coordinator.releaseHfpRoute(caller: "lesson.hfp.done")
+      XCTAssertEqual(h.appliedMixing, [false, true, false, true])
+      XCTAssertTrue(h.coordinator.isBackgroundCaptureEngineRunning)
+    }
+  }
+
+  func testIOSFailedExclusivePromotionCannotAuthorizeMain() throws {
+    try withBackgroundMixingHarness { h in
+      try h.arm()
+      h.failMixingChange = true
+      var prepared: Result<String, IOSMainTurnPreparationError>?
+      h.coordinator.prepareExplicitMainTurn(source: "MAIN", audioInputTarget: .builtInMic) {
+        prepared = $0
+      }
+      XCTAssertEqual(prepared, .failure(.microphoneUnavailable))
+      XCTAssertFalse(h.coordinator.isMainTurnActive)
+      XCTAssertFalse(h.coordinator.isSpeechCaptureActive)
+      XCTAssertFalse(h.coordinator.isBackgroundCaptureEngineRunning)
+      XCTAssertTrue(h.coordinator.isAudioInterruptionSuspended)
+      XCTAssertEqual(h.interruptionCount, 1)
+      XCTAssertEqual(h.preparedMixing.count, 1, "A failed promotion must not rebuild background recording")
+    }
+  }
+
+  func testIOSGraphLostDuringPriorityChangeRejectsPromptAndClosesWarmInput() throws {
+    try withBackgroundMixingHarness { h in
+      try h.arm()
+      h.onApplyMixing = { [weak h] in h?.ready = false }
+      XCTAssertThrowsError(try h.coordinator.preparePhoneSpeaker(caller: "lesson.prompt"))
+      XCTAssertFalse(h.coordinator.isPromptActive)
+      XCTAssertFalse(h.coordinator.isBackgroundCaptureEngineRunning)
+      XCTAssertFalse(h.coordinator.hasBackgroundCaptureReady(for: .builtInMic))
+      XCTAssertEqual(h.interruptionCount, 1)
+      XCTAssertEqual(h.appliedMixing, [false])
+      XCTAssertEqual(h.preparedMixing.count, 1)
+    }
+  }
+
+  func testIOSDisablingBackgroundInputPreservesPlaybackUntilItsExactOwnerEnds() throws {
+    try withBackgroundMixingHarness { h in
+      try h.arm()
+      XCTAssertTrue(try h.coordinator.beginAudioPlayback(token: "lesson", caller: "lesson.start"))
+      h.coordinator.setBackgroundLearningEnabled(false)
+      XCTAssertFalse(h.coordinator.isBackgroundCaptureArmed)
+      XCTAssertFalse(h.coordinator.isBackgroundCaptureEngineRunning)
+      XCTAssertEqual(h.disarmCount, 1)
+      XCTAssertFalse(h.traceStages.contains("audio_session_release_requested"),
+                     "Stopping the idle input must preserve an active playback owner")
+      h.coordinator.endAudioPlayback(token: "obsolete", caller: "stale.done")
+      XCTAssertFalse(h.traceStages.contains("audio_session_release_requested"))
+      h.coordinator.endAudioPlayback(token: "lesson", caller: "lesson.done")
+      XCTAssertTrue(h.traceStages.contains("audio_session_release_requested"))
+      XCTAssertEqual(h.appliedMixing, [false], "Disabling background input must not restore a warm graph")
+    }
+  }
+
+  func testIOSVideoResumingAfterMainBlocksCommandedLessonWithoutLosingWarmInput() throws {
+    try withBackgroundMixingHarness { h in
+      try h.arm()
+      IOSNativeWork.markApplicationInactive()
+      var prepared: Result<String, IOSMainTurnPreparationError>?
+      h.coordinator.prepareExplicitMainTurn(source: "MAIN", audioInputTarget: .builtInMic) {
+        prepared = $0
+      }
+      guard case .success(let first)? = prepared else { return XCTFail("MAIN was not ready") }
+      h.coordinator.endMainTurn(reason: "command.handoff", caller: "MAIN", expectedTurnId: first)
+      h.otherAudioPlaying = true
+      XCTAssertThrowsError(try h.coordinator.beginAudioPlayback(token: "commanded.lesson", caller: "handoff"))
+      XCTAssertTrue(h.coordinator.isBackgroundCaptureEngineRunning)
+      XCTAssertTrue(h.coordinator.isBackgroundCaptureMixing)
+      XCTAssertEqual(h.disarmCount, 0)
+      prepared = nil
+      h.coordinator.prepareExplicitMainTurn(source: "retry.MAIN", audioInputTarget: .builtInMic) {
+        prepared = $0
+      }
+      guard case .success(let retry)? = prepared else { return XCTFail("A fresh MAIN must remain available") }
+      XCTAssertFalse(h.coordinator.isBackgroundCaptureMixing)
+      h.coordinator.endMainTurn(reason: "done", caller: "retry.MAIN", expectedTurnId: retry)
+    }
+  }
+
+  func testIOSPassiveMediaDenialsCoalesceAndCanOnlyBeDeliveredOnce() throws {
+    try withBackgroundMixingHarness { h in
+      try h.arm()
+      IOSNativeWork.markApplicationInactive()
+      h.otherAudioPlaying = true
+      XCTAssertThrowsError(try h.coordinator.preparePhoneSpeaker(caller: "first.passive"))
+      XCTAssertThrowsError(try h.coordinator.preparePhoneSpeaker(caller: "duplicate.passive"))
+      XCTAssertEqual(h.passiveEventGenerations.count, 1)
+      guard let generation = h.passiveEventGenerations.first else {
+        return XCTFail("Passive media denial must carry its delivery generation")
+      }
+      XCTAssertTrue(h.coordinator.claimPassiveAudioEvent(generation: generation))
+      XCTAssertFalse(h.coordinator.claimPassiveAudioEvent(generation: generation))
+      XCTAssertTrue(h.coordinator.isBackgroundCaptureEngineRunning)
+      XCTAssertEqual(h.interruptionCount, 0)
+    }
+  }
+
+  func testIOSQueuedPassiveDenialCannotPauseANewerMainOrSurviveLifecycleReset() throws {
+    for reset in ["main", "foreground", "dispose", "interruption"] {
+      try withBackgroundMixingHarness { h in
+        try h.arm()
+        IOSNativeWork.markApplicationInactive()
+        h.otherAudioPlaying = true
+        XCTAssertThrowsError(try h.coordinator.preparePhoneSpeaker(caller: "old.passive"))
+        guard let generation = h.passiveEventGenerations.first else {
+          return XCTFail("Missing passive event generation for \(reset)")
+        }
+        switch reset {
+        case "main":
+          _ = h.coordinator.beginMainTurn(source: "new.MAIN", forceNewTurn: true)
+        case "foreground":
+          h.coordinator.applicationWillEnterForeground()
+        case "dispose":
+          h.coordinator.dispose()
+        default:
+          h.coordinator.suspendForAudioInterruption()
+          XCTAssertEqual(h.interruptionCount, 1, "Real interruptions must still cancel capture")
+        }
+        XCTAssertFalse(h.coordinator.claimPassiveAudioEvent(generation: generation), reset)
+      }
+    }
+  }
+
+  func testIOSOnlyCurrentMainBoundariesCancelWarmInputConfirmation() throws {
+    try withBackgroundMixingHarness { h in
+      try h.arm()
+      let first = h.coordinator.beginMainTurn(source: "first", forceNewTurn: true)
+      let afterFirst = h.confirmationCancellationCount
+      XCTAssertGreaterThan(afterFirst, 0)
+      let current = h.coordinator.beginMainTurn(source: "current", forceNewTurn: true)
+      let afterReplacement = h.confirmationCancellationCount
+      XCTAssertGreaterThan(afterReplacement, afterFirst)
+      h.coordinator.endMainTurn(reason: "late", caller: "first", expectedTurnId: first)
+      XCTAssertEqual(h.confirmationCancellationCount, afterReplacement)
+      XCTAssertTrue(h.coordinator.isMainTurnActive)
+      h.coordinator.endMainTurn(reason: "done", caller: "current", expectedTurnId: current)
+      XCTAssertGreaterThan(h.confirmationCancellationCount, afterReplacement)
+    }
+  }
+
+  func testIOSForegroundHfpSettingsDrainsIdleGraphBeforeAllowingRouteMutation() throws {
+    try withBackgroundMixingHarness { h in
+      try h.arm()
+      IOSNativeWork.markApplicationActive()
+      try h.coordinator.prepareForHfpSettingsChange(caller: "Settings.connect")
+      // The caller may mutate AVAudioSession only after this method returns.
+      XCTAssertFalse(h.coordinator.isBackgroundCaptureEngineRunning)
+      XCTAssertFalse(h.coordinator.isBackgroundCaptureArmed)
+      XCTAssertFalse(h.coordinator.isAudioInterruptionSuspended)
+      XCTAssertEqual(h.disarmCount, 1)
+      XCTAssertEqual(h.armCount, 0, "Settings preflight must not reopen input before changing route")
+      XCTAssertTrue(h.events.isEmpty, "An intentional foreground change is not an interruption")
+    }
+  }
+
+  func testIOSHfpSettingsPreflightRejectsEveryActiveAudioOwnerWithoutDrainingIt() throws {
+    for owner in ["MAIN", "prompt", "capture", "playback", "HFP"] {
+      try withBackgroundMixingHarness { h in
+        try h.arm()
+        IOSNativeWork.markApplicationActive()
+        switch owner {
+        case "MAIN":
+          _ = h.coordinator.beginMainTurn(source: "MAIN", forceNewTurn: true)
+        case "prompt":
+          try h.coordinator.preparePhoneSpeaker(caller: "prompt")
+        case "capture":
+          try h.coordinator.prepareCapture(target: .builtInMic, caller: "capture")
+        case "playback":
+          XCTAssertTrue(try h.coordinator.beginAudioPlayback(token: "playing", caller: "playback"))
+        default:
+          try h.coordinator.acquireHfpRoute(caller: "HFP")
+        }
+        XCTAssertThrowsError(try h.coordinator.prepareForHfpSettingsChange(caller: "Settings.\(owner)"))
+        XCTAssertEqual(h.disarmCount, 0, owner)
+        XCTAssertTrue(h.coordinator.isBackgroundCaptureEngineRunning, owner)
+        XCTAssertFalse(h.coordinator.isAudioInterruptionSuspended, owner)
+      }
+    }
+  }
+
+  func testIOSHfpSettingsPreflightCannotDrainTheGraphWhileBackgrounded() throws {
+    try withBackgroundMixingHarness { h in
+      try h.arm()
+      XCTAssertThrowsError(try h.coordinator.prepareForHfpSettingsChange(caller: "late.Settings"))
+      XCTAssertEqual(h.disarmCount, 0)
+      XCTAssertTrue(h.coordinator.isBackgroundCaptureEngineRunning)
+    }
+  }
+
+  func testIOSHfpSettingsPreflightDoesNotClearARealInterruption() throws {
+    try withBackgroundMixingHarness { h in
+      try h.arm()
+      h.coordinator.suspendForAudioInterruption()
+      IOSNativeWork.markApplicationActive()
+      let disarms = h.disarmCount
+      XCTAssertThrowsError(try h.coordinator.prepareForHfpSettingsChange(caller: "Settings.after.call"))
+      XCTAssertTrue(h.coordinator.isAudioInterruptionSuspended)
+      XCTAssertEqual(h.disarmCount, disarms)
+      XCTAssertEqual(h.interruptionCount, 1)
+      XCTAssertEqual(h.armCount, 0)
+    }
+  }
+
+  func testIOSHfpSettingsWaitsForActualIdleGraphDrainRatherThanDisarmAcknowledgement() throws {
+    try withBackgroundMixingHarness { h in
+      try h.arm()
+      IOSNativeWork.markApplicationActive()
+      h.suppressDisarm = true
+      XCTAssertThrowsError(try h.coordinator.prepareForHfpSettingsChange(caller: "Settings.pending.drain"))
+      XCTAssertTrue(h.coordinator.isBackgroundCaptureArmed)
+      XCTAssertTrue(h.coordinator.isBackgroundCaptureEngineRunning)
+      XCTAssertFalse(h.coordinator.isAudioInterruptionSuspended)
+      h.suppressDisarm = false
+      try h.coordinator.prepareForHfpSettingsChange(caller: "Settings.retry")
+      XCTAssertFalse(h.coordinator.isBackgroundCaptureArmed)
+      XCTAssertFalse(h.coordinator.isBackgroundCaptureEngineRunning)
+      XCTAssertEqual(h.disarmCount, 2)
+    }
+  }
+
+  func testIOSHfpInitializationPreservesAnAlreadyArmedIdleGraph() throws {
+    try withBackgroundMixingHarness { h in
+      try h.arm()
+      IOSNativeWork.markApplicationActive()
+      try h.coordinator.initializeHfpSession(caller: "HFP.delayed.init")
+      XCTAssertTrue(h.coordinator.isBackgroundCaptureEngineRunning)
+      XCTAssertTrue(h.coordinator.isBackgroundCaptureArmed)
+      XCTAssertTrue(h.coordinator.isBackgroundCaptureMixing)
+      XCTAssertEqual(h.disarmCount, 0)
+      XCTAssertEqual(h.preparedMixing, [true])
+      XCTAssertTrue(h.appliedMixing.isEmpty)
+      XCTAssertTrue(h.events.isEmpty)
+    }
+  }
+
   func testIOSMainPhoneTurnSelectsBuiltInPrearmBeforeAnyPrompt() {
     let target = IOSMainTurnAudioRoutePolicy.inputTarget(fromChannelValue: "builtInMic")
     XCTAssertEqual(target, .builtInMic)
@@ -204,9 +578,13 @@ class RunnerTests: XCTestCase {
       coordinator.prepareExplicitMainTurn(source: "visibleMAIN", audioInputTarget: .builtInMic) {
         preparation = $0
       }
-      let turnId = coordinator.activeTurnId!
       handoff.completeNext()
-      XCTAssertEqual(preparation, .success(turnId))
+      guard case .success(let turnId)? = preparation else {
+        XCTFail("Foreground MAIN should finish preparation successfully")
+        coordinator.dispose()
+        return
+      }
+      XCTAssertFalse(turnId.isEmpty)
       XCTAssertFalse(coordinator.isAudioInterruptionSuspended)
       coordinator.endMainTurn(reason: "testComplete", caller: "RunnerTests", expectedTurnId: turnId)
       coordinator.dispose()
@@ -242,12 +620,14 @@ class RunnerTests: XCTestCase {
       coordinator.prepareExplicitMainTurn(source: "firstMAIN", audioInputTarget: .hfp) {
         first = $0
       }
-      coordinator.prepareExplicitMainTurn(source: "secondMAIN", audioInputTarget: .builtInMic) { _ in }
-      let replacementId = coordinator.activeTurnId
+      var second: Result<String, IOSMainTurnPreparationError>?
+      coordinator.prepareExplicitMainTurn(source: "secondMAIN", audioInputTarget: .builtInMic) {
+        second = $0
+      }
       handoff.completeNext()
       XCTAssertEqual(first, .failure(.cancelled))
       XCTAssertTrue(coordinator.isMainTurnActive)
-      XCTAssertEqual(coordinator.activeTurnId, replacementId)
+      XCTAssertNil(second)
       XCTAssertEqual(coordinator.mainAudioInputTarget, .builtInMic)
       coordinator.suspendForAudioInterruption()
       coordinator.dispose()
@@ -2114,6 +2494,96 @@ class RunnerTests: XCTestCase {
     )
   }
 
+}
+
+private func withBackgroundMixingHarness(
+  _ body: (BackgroundMixingHarness) throws -> Void
+) rethrows {
+  let wasActive = IOSNativeWork.applicationIsActive
+  IOSNativeWork.markApplicationActive()
+  defer {
+    if wasActive { IOSNativeWork.markApplicationActive() }
+    else { IOSNativeWork.markApplicationInactive() }
+  }
+  try IOSNativeWork.sync {
+    let harness = BackgroundMixingHarness()
+    defer { harness.coordinator.dispose() }
+    try body(harness)
+  }
+}
+
+private final class BackgroundMixingHarness: IOSBackgroundCaptureHandoffDelegate {
+  var otherAudioPlaying = false
+  var ready = true
+  var failMixingChange = false
+  var suppressDisarm = false
+  var onApplyMixing: (() -> Void)?
+  var preparedMixing: [Bool] = []
+  var appliedMixing: [Bool] = []
+  var events: [String] = []
+  var passiveEventGenerations: [Int] = []
+  var traceStages: [String] = []
+  var armCount = 0
+  var disarmCount = 0
+  var interruptionCount = 0
+  var confirmationCancellationCount = 0
+  var sessionReleasedCount = 0
+
+  lazy var coordinator = IOSAudioSessionCoordinator(
+    backgroundCaptureSessionDriver: IOSBackgroundCaptureSessionDriver(
+      prepare: { [weak self] _, mixing, _ in self?.preparedMixing.append(mixing) },
+      applyMixing: { [weak self] mixing, _ in
+        guard let self else { return }
+        if self.failMixingChange { throw NSError(domain: "MixingTest", code: 1) }
+        self.appliedMixing.append(mixing)
+        self.onApplyMixing?()
+      },
+      isOtherAudioPlaying: { [weak self] in self?.otherAudioPlaying ?? false }
+    )
+  )
+
+  func arm() throws {
+    coordinator.backgroundCaptureHandoffDelegate = self
+    coordinator.attachTraceSink { [weak self] event in
+      if let stage = event["stage"] as? String { self?.traceStages.append(stage) }
+    }
+    coordinator.onBackgroundLearningEvent = { [weak self] event in
+      self?.events.append(event["type"] as? String ?? "unknown")
+      if let generation = event["passiveAudioGeneration"] as? Int {
+        self?.passiveEventGenerations.append(generation)
+      }
+    }
+    coordinator.onAudioSessionReleased = { [weak self] in self?.sessionReleasedCount += 1 }
+    coordinator.setBackgroundLearningEnabled(true)
+    try coordinator.prepareBackgroundCapture(target: .builtInMic, caller: "foreground.prearm")
+    coordinator.setBackgroundCaptureEngineRunning(true, caller: "foreground.prearm")
+    // Model the reported sequence: arm while visible, then switch to a video app.
+    IOSNativeWork.markApplicationInactive()
+  }
+
+  func armBackgroundAudioHandoff(caller: String, completion: @escaping () -> Void) {
+    armCount += 1
+    completion()
+  }
+
+  func disarmBackgroundAudioHandoff(caller: String) {
+    disarmCount += 1
+    if suppressDisarm { return }
+    coordinator.releaseBackgroundCapture(caller: caller)
+  }
+
+  func interruptBackgroundAudioHandoff(caller: String) {
+    interruptionCount += 1
+    disarmBackgroundAudioHandoff(caller: caller)
+  }
+
+  func cancelBackgroundAudioHandoffConfirmation() {
+    confirmationCancellationCount += 1
+  }
+
+  func isBackgroundAudioHandoffReady(for target: IOSAudioInputTarget?) -> Bool {
+    ready && (target == nil || target == .builtInMic)
+  }
 }
 
 private final class DeferredMainTurnHandoff: IOSBackgroundCaptureHandoffDelegate {

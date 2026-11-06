@@ -121,6 +121,27 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
         result(nil)
       case "isActive":
         result(self.audioSessionCoordinator.isBackgroundLearningEnabled)
+      case "beginAudioPlayback":
+        let arguments = call.arguments as? [String: Any]
+        guard let token = arguments?["token"] as? String, !token.isEmpty else {
+          result(FlutterError(code: "INVALID_PLAYBACK_TOKEN", message: "Missing playback token", details: nil))
+          return
+        }
+        do {
+          result(try self.audioSessionCoordinator.beginAudioPlayback(
+            token: token, caller: "BackgroundLearningBridge.beginAudioPlayback"
+          ))
+        } catch {
+          result(FlutterError(code: "AUDIO_PLAYBACK_PRIORITY_DENIED", message: error.localizedDescription, details: nil))
+        }
+      case "endAudioPlayback":
+        let arguments = call.arguments as? [String: Any]
+        if let token = arguments?["token"] as? String {
+          self.audioSessionCoordinator.endAudioPlayback(
+            token: token, caller: "BackgroundLearningBridge.endAudioPlayback"
+          )
+        }
+        result(nil)
       case "isAudioHandoffActive":
         // Flutter audio players share this process-wide AVAudioSession. While
         // native speech, a continuous HFP lease, or the prearmed background
@@ -148,9 +169,18 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
     withArguments arguments: Any?,
     eventSink events: @escaping FlutterEventSink
   ) -> FlutterError? {
-    let events = IOSNativeWork.mainSink(events)
     IOSNativeWork.queue.async { [weak self] in
-      self?.eventSink = events
+      self?.eventSink = { [weak self] payload in
+        DispatchQueue.main.async { [weak self] in
+          guard let self else { return }
+          if let event = payload as? [String: Any],
+            let generation = event["passiveAudioGeneration"] as? Int {
+            let current = self.audioSessionCoordinator.claimPassiveAudioEvent(generation: generation)
+            guard current else { return }
+          }
+          events(payload)
+        }
+      }
     }
     return nil
   }

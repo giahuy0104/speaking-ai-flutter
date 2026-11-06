@@ -323,6 +323,7 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
 
   private var eventSink: FlutterEventSink?
   private var routeChangeToken: NSObjectProtocol?
+  private var engineConfigurationToken: NSObjectProtocol?
   private var recognizer: SFSpeechRecognizer?
   private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
   private var recognitionTask: SFSpeechRecognitionTask?
@@ -330,9 +331,12 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
   private var inputTapInstalled = false
   private var inputTapFormat: AVAudioFormat?
   private var audioBufferGateOpen = false
+  private let inputHeartbeatLock = NSLock()
+  private var inputBufferSequence: UInt64 = 0
   private var backgroundHandoffPhase = IOSBackgroundAudioHandoffPhase.idle
   private var backgroundHandoffAudioSource: IOSNativeSpeechAudioSource?
   private var backgroundHandoffArmGeneration = 0
+  private var backgroundInputProbeGeneration = 0
   private var backgroundHandoffArmCompletions: [() -> Void] = []
   private var backgroundHandoffDisarmWhenIdle = false
   private var activeEngine: IOSNativeSpeechEngineKind?
@@ -385,7 +389,25 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       queue: IOSNativeWork.operationQueue
     ) { [weak self] _ in
       self?.stopCaptureIfSelectedHfpRouteWasLost()
+      self?.invalidateChangedBackgroundGraphIfNeeded()
     }
+    engineConfigurationToken = NotificationCenter.default.addObserver(
+      forName: .AVAudioEngineConfigurationChange,
+      object: nil,
+      queue: IOSNativeWork.operationQueue
+    ) { [weak self] notification in
+      guard let self, let engine = notification.object as? AVAudioEngine,
+        engine === self.audioEngine else { return }
+      self.invalidateChangedBackgroundGraphIfNeeded()
+    }
+  }
+
+  private func invalidateChangedBackgroundGraphIfNeeded() {
+    guard audioSessionCoordinator.isBackgroundCaptureEngineRunning,
+      !isBackgroundAudioHandoffReady(for: nil) else { return }
+    audioSessionCoordinator.suspendForAudioInterruption(
+      reason: "background_capture_graph_changed"
+    )
   }
 
   private func stopCaptureIfSelectedHfpRouteWasLost() {
@@ -850,7 +872,13 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     }
     inputTapFormat = format
     inputNode.installTap(onBus: 0, bufferSize: 1_024, format: format) { [weak self] buffer, _ in
-      guard let self, self.active, self.audioBufferGateOpen else { return }
+      guard let self else { return }
+      // Count input callbacks only; idle audio is neither retained nor submitted
+      // to recognition or the recording file while its buffer gate is closed.
+      self.inputHeartbeatLock.lock()
+      self.inputBufferSequence &+= 1
+      self.inputHeartbeatLock.unlock()
+      guard self.active, self.audioBufferGateOpen else { return }
       let activeGeneration = self.generation
       do {
         try self.writeRecordingBuffer(buffer)
@@ -987,12 +1015,24 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
       // A new background transition supersedes a foreground disarm deferred
       // until the current speech turn ends.
       backgroundHandoffDisarmWhenIdle = false
+      do {
+        try audioSessionCoordinator.reconcileBackgroundCaptureMixing(caller: caller)
+      } catch {
+        completion()
+        return
+      }
+      let previousBuffer = currentInputBufferSequence
       audioSessionCoordinator.trace(
         stage: "background_capture_engine_already_armed",
         caller: caller,
         values: ["phase": backgroundHandoffPhase.rawValue]
       )
-      completion()
+      beginBackgroundInputConfirmation(
+        after: previousBuffer,
+        armGeneration: backgroundHandoffArmGeneration,
+        caller: caller,
+        completion: completion
+      )
       return
     }
 
@@ -1024,13 +1064,92 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
     guard backgroundHandoffPhase == .armed || backgroundHandoffPhase == .capturing,
       audioEngine.isRunning,
       inputTapInstalled,
+      let installedFormat = inputTapFormat,
       let audioSource = backgroundHandoffAudioSource
     else { return false }
+    let liveFormat = audioEngine.inputNode.outputFormat(forBus: 0)
+    guard liveFormat.sampleRate > 0,
+      liveFormat.sampleRate == installedFormat.sampleRate,
+      liveFormat.channelCount == installedFormat.channelCount else { return false }
     if let target {
       let expectedSource: IOSNativeSpeechAudioSource = target == .hfp ? .hfp : .builtInMic
       guard audioSource == expectedSource else { return false }
     }
     return audioRouteMatches(audioSource)
+  }
+
+  private var currentInputBufferSequence: UInt64 {
+    inputHeartbeatLock.lock()
+    defer { inputHeartbeatLock.unlock() }
+    return inputBufferSequence
+  }
+
+  func cancelBackgroundAudioHandoffConfirmation() {
+    backgroundInputProbeGeneration += 1
+  }
+
+  private func beginBackgroundInputConfirmation(
+    after previousBuffer: UInt64,
+    armGeneration: Int,
+    caller: String,
+    completion: @escaping () -> Void
+  ) {
+    // Lifecycle arm requests may join the same MAIN. Only a superseding MAIN
+    // or cancellation invalidates its probes; another waiter is not readiness.
+    confirmBackgroundInput(
+      after: previousBuffer,
+      armGeneration: armGeneration,
+      probeGeneration: backgroundInputProbeGeneration,
+      caller: caller,
+      completion: completion
+    )
+  }
+
+  private func confirmBackgroundInput(
+    after previousBuffer: UInt64,
+    armGeneration: Int,
+    probeGeneration: Int,
+    attemptsRemaining: Int = 20,
+    caller: String,
+    completion: @escaping () -> Void
+  ) {
+    guard !disposed, armGeneration == backgroundHandoffArmGeneration,
+      probeGeneration == backgroundInputProbeGeneration else {
+      completion()
+      return
+    }
+    if isBackgroundAudioHandoffReady(for: nil), currentInputBufferSequence != previousBuffer {
+      audioSessionCoordinator.trace(
+        stage: "background_capture_input_confirmed",
+        caller: caller,
+        values: [
+          "engineId": String(describing: ObjectIdentifier(audioEngine)),
+          "bufferSequence": currentInputBufferSequence,
+          "bufferGateOpen": audioBufferGateOpen,
+          "mixing": audioSessionCoordinator.isBackgroundCaptureMixing,
+        ]
+      )
+      completion()
+      return
+    }
+    guard attemptsRemaining > 0, audioEngine.isRunning else {
+      audioSessionCoordinator.suspendForAudioInterruption(
+        reason: "background_capture_input_unavailable"
+      )
+      completion()
+      return
+    }
+    IOSNativeWork.queue.asyncAfter(deadline: .now() + .milliseconds(50)) { [weak self] in
+      guard let self else { completion(); return }
+      self.confirmBackgroundInput(
+        after: previousBuffer,
+        armGeneration: armGeneration,
+        probeGeneration: probeGeneration,
+        attemptsRemaining: attemptsRemaining - 1,
+        caller: caller,
+        completion: completion
+      )
+    }
   }
 
   private func attemptBackgroundAudioHandoffArm(
@@ -1062,12 +1181,20 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
           values: ["audioSource": audioSource.rawValue]
         )
         audioSessionCoordinator.backgroundAudioActivityDidStart(caller: caller)
-        finishBackgroundHandoffArmCompletions()
+        beginBackgroundInputConfirmation(
+          after: currentInputBufferSequence,
+          armGeneration: armGeneration,
+          caller: caller
+        ) { [weak self] in
+          guard let self, self.backgroundHandoffArmGeneration == armGeneration else { return }
+          self.finishBackgroundHandoffArmCompletions()
+        }
         return
       }
       rebuildAudioEngineForCurrentRoute()
       try installAudioTap()
       audioEngine.prepare()
+      let previousBuffer = currentInputBufferSequence
       try audioEngine.start()
       guard audioRouteMatches(audioSource) else {
         throw IOSSpeechBridgeError.audioRouteMismatch(
@@ -1090,7 +1217,14 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
         ]
       )
       audioSessionCoordinator.backgroundAudioActivityDidStart(caller: caller)
-      finishBackgroundHandoffArmCompletions()
+      beginBackgroundInputConfirmation(
+        after: previousBuffer,
+        armGeneration: armGeneration,
+        caller: caller
+      ) { [weak self] in
+        guard let self, self.backgroundHandoffArmGeneration == armGeneration else { return }
+        self.finishBackgroundHandoffArmCompletions()
+      }
     } catch {
       let nsError = error as NSError
       audioSessionCoordinator.trace(
@@ -1920,6 +2054,10 @@ final class IOSSpeechRecognizerBridge: NSObject, FlutterStreamHandler, IOSBackgr
 
   func dispose() {
     guard !disposed else { return }
+    if let engineConfigurationToken {
+      NotificationCenter.default.removeObserver(engineConfigurationToken)
+      self.engineConfigurationToken = nil
+    }
     if let routeChangeToken {
       NotificationCenter.default.removeObserver(routeChangeToken)
       self.routeChangeToken = nil

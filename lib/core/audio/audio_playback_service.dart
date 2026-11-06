@@ -155,6 +155,10 @@ class JustAudioPlaybackService
         PlaybackGainAwareAudioPlaybackService,
         FixedPlaybackGainAwareAudioPlaybackService {
   static Future<void>? _assetCacheRefresh;
+  static int _iosPlaybackSequence = 0;
+  final Set<String> _iosPlaybackTokens = <String>{};
+  Future<void> _iosPlayerStop = Future<void>.value();
+  bool _iosPauseFailed = false;
   static const MethodChannel _backgroundLearningChannel = MethodChannel(
     'ailingo_background_learning',
   );
@@ -513,6 +517,112 @@ class JustAudioPlaybackService
     }
   }
 
+  bool get _usesIosPlaybackLease =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+
+  Future<void> _acquireIosPlayback(_PlaybackRequest request) async {
+    if (!_usesIosPlaybackLease) return;
+    final token =
+        'media-${DateTime.now().microsecondsSinceEpoch}-'
+        '${++_iosPlaybackSequence}';
+    request.iosPlaybackToken = token;
+    _iosPlaybackTokens.add(token);
+    try {
+      final acquired = await _backgroundLearningChannel.invokeMethod<bool>(
+        'beginAudioPlayback',
+        <String, Object>{'token': token},
+      );
+      // Cancellation may have sent end before a delayed native begin replied.
+      // Close that exact token again; it can never end a replacement request.
+      if (_disposed ||
+          request.isCancelled ||
+          !identical(_playbackRequest, request)) {
+        await _releaseIosPlaybackToken(token);
+        _requireCurrentPlayback(request);
+      }
+      if (acquired != true) {
+        throw const PlaybackException('Không thể ưu tiên âm thanh HOMI.');
+      }
+    } on MissingPluginException {
+      // Older iOS builds have no mixing policy or playback lease API.
+      _iosPlaybackTokens.remove(token);
+      request.iosPlaybackToken = null;
+    } catch (_) {
+      await _releaseIosPlaybackToken(token);
+      request.iosPlaybackToken = null;
+      rethrow;
+    }
+  }
+
+  Future<void> _releaseIosPlaybackToken(String token) async {
+    try {
+      await _backgroundLearningChannel.invokeMethod<void>(
+        'endAudioPlayback',
+        <String, Object>{'token': token},
+      );
+      _iosPlaybackTokens.remove(token);
+    } on MissingPluginException {
+      _iosPlaybackTokens.remove(token);
+    } catch (error) {
+      // Retain failed releases for disposal instead of abandoning an owner.
+      AudioDiagnostics.event('media.ios.release.failed', {
+        'error': error.toString(),
+      });
+    }
+  }
+
+  Future<void> _releaseIosPlayback(_PlaybackRequest request) async {
+    final token = request.iosPlaybackToken;
+    request.iosPlaybackToken = null;
+    if (token != null) await _releaseIosPlaybackToken(token);
+  }
+
+  Future<void> _pauseIosPlayback(
+    _PlaybackRequest? request, {
+    bool forcePause = false,
+  }) {
+    // Serialize replacement/stop against each other. A late pause from the
+    // old clip must finish before the next request can start its player.
+    final operation = _iosPlayerStop.catchError((_) {}).then((_) async {
+      final recovering = _iosPauseFailed;
+      if (forcePause || request?.playbackInvoked == true || recovering) {
+        try {
+          await _player.pause();
+          _iosPauseFailed = false;
+        } catch (_) {
+          _iosPauseFailed = true;
+          rethrow;
+        }
+      }
+      if (recovering) {
+        // A failed stop retained priority because the player could still be
+        // audible. Only a confirmed pause can retire those previous tokens.
+        for (final token in _iosPlaybackTokens.toList()) {
+          await _releaseIosPlaybackToken(token);
+        }
+      }
+      if (request != null) await _releaseIosPlayback(request);
+    });
+    _iosPlayerStop = operation;
+    return operation;
+  }
+
+  void _handleIosPlaybackFailure(_PlaybackRequest request) {
+    if (!_usesIosPlaybackLease ||
+        _disposed ||
+        request.isCancelled ||
+        !identical(_playbackRequest, request)) {
+      return;
+    }
+    unawaited(
+      stop().catchError((Object error) {
+        AudioDiagnostics.event('media.ios.error_cleanup.failed', {
+          'error': error.toString(),
+        });
+      }),
+    );
+  }
+
   @override
   Future<void> prepare() {
     if (_browserPlayback != null) {
@@ -598,6 +708,8 @@ class JustAudioPlaybackService
         playback.catchError((Object error, StackTrace stackTrace) {
           if (!started.isCompleted) {
             started.completeError(error, stackTrace);
+          } else {
+            _handleIosPlaybackFailure(request);
           }
         }),
       );
@@ -880,23 +992,48 @@ class JustAudioPlaybackService
     final requestCompletion =
         !kIsWeb &&
             (_audioTurnCoordinator != null ||
-                defaultTargetPlatform == TargetPlatform.android)
+                defaultTargetPlatform == TargetPlatform.android ||
+                _usesIosPlaybackLease)
         ? completionStreamForNextPlay(uri)
         : null;
-    _playbackRequest?.cancel();
-    unawaited(_playbackRequest?.focusLease?.release());
+    final previousRequest = _playbackRequest;
+    final previousIosStop = _usesIosPlaybackLease
+        ? _pauseIosPlayback(previousRequest)
+        : null;
+    previousRequest?.cancel();
+    unawaited(previousRequest?.focusLease?.release());
     final request = _PlaybackRequest(_communicationRouteActive);
     _playbackRequest = request;
     _turnReleasableFor = null;
     try {
+      if (previousIosStop != null) await request.wait(previousIosStop);
+      _requireCurrentPlayback(request);
       await _acquireAudioTurn(request);
       if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
         final lease = await nativeAudioFocus.acquire('playback');
         request.focusLease = lease;
       }
+      if (_usesIosPlaybackLease) {
+        await request.wait(_acquireIosPlayback(request));
+      }
       _requireCurrentPlayback(request);
+      if (_usesIosPlaybackLease) {
+        // Use the synchronous source event, not a derived error stream that
+        // could deliver an old clip's queued error after its replacement.
+        request.errorSubscription = _player.playerEventStream.listen(
+          (event) {
+            if (request.playbackInvoked &&
+                event.playbackEvent.errorCode != null) {
+              _handleIosPlaybackFailure(request);
+            }
+          },
+          onError: (Object _, StackTrace _) =>
+              _handleIosPlaybackFailure(request),
+        );
+      }
       request.completionSubscription = requestCompletion?.listen((_) {
         unawaited(request.focusLease?.release());
+        unawaited(_releaseIosPlayback(request));
         if (identical(_playbackRequest, request) && !request.isCancelled) {
           unawaited(_releaseAudioTurn());
         }
@@ -913,8 +1050,14 @@ class JustAudioPlaybackService
       await request.focusLease?.release();
       // An older failed/cancelled start cannot release the next clip's lease.
       if (identical(_playbackRequest, request)) {
-        _playbackRequest = null;
-        await _releaseAudioTurn();
+        try {
+          if (_usesIosPlaybackLease) await _pauseIosPlayback(request);
+        } finally {
+          if (identical(_playbackRequest, request)) {
+            _playbackRequest = null;
+            await _releaseAudioTurn();
+          }
+        }
       }
       rethrow;
     }
@@ -1108,8 +1251,12 @@ class JustAudioPlaybackService
 
   @override
   Future<void> stop() async {
-    final focusLease = _playbackRequest?.focusLease;
-    _playbackRequest?.cancel();
+    final request = _playbackRequest;
+    final focusLease = request?.focusLease;
+    final iosStop = _usesIosPlaybackLease
+        ? _pauseIosPlayback(request, forcePause: true)
+        : null;
+    request?.cancel();
     _playbackRequest = null;
     ++_playbackPreparationGeneration;
     _playbackSessionPreparation = null;
@@ -1117,7 +1264,7 @@ class JustAudioPlaybackService
     final lease = _audioTurnLease;
     _audioTurnLease = null;
     try {
-      await (_browserPlayback?.pause() ?? _player.pause());
+      await (iosStop ?? _browserPlayback?.pause() ?? _player.pause());
     } finally {
       try {
         await lease?.release();
@@ -1177,7 +1324,11 @@ class JustAudioPlaybackService
     // just_audio attaches session listeners asynchronously during construction.
     // Let that initialization settle before closing its derived event streams.
     await _audioSession;
+    await _iosPlayerStop.catchError((_) {});
     await _player.dispose();
+    for (final token in _iosPlaybackTokens.toList()) {
+      await _releaseIosPlaybackToken(token);
+    }
     if (_ownsCache) {
       _cache.dispose();
     }
@@ -1194,7 +1345,9 @@ class _PlaybackRequest {
   final Completer<void> _cancelled = Completer<void>();
   bool playbackInvoked = false;
   NativeAudioFocusLease? focusLease;
+  String? iosPlaybackToken;
   StreamSubscription<void>? completionSubscription;
+  StreamSubscription<PlayerEvent>? errorSubscription;
 
   bool get isCancelled => _cancelled.isCompleted;
 
@@ -1202,6 +1355,8 @@ class _PlaybackRequest {
     if (isCancelled) return;
     unawaited(completionSubscription?.cancel());
     completionSubscription = null;
+    unawaited(errorSubscription?.cancel());
+    errorSubscription = null;
     turnCancellation.cancel();
     _cancelled.complete();
   }
