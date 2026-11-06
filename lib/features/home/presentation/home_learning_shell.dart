@@ -507,10 +507,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
           ),
           _runBackgroundStopStep(
             'MAIN interruption',
-            () => widget.voiceNavigationController?.pause(
-              preserveChoice: true,
-              stopPrompt: true,
-            ),
+            () => widget.voiceNavigationController?.pauseForAudioInterruption(),
           ),
           _runBackgroundStopStep(
             'conversation interruption',

@@ -386,6 +386,7 @@ class AndroidStreamingSpeechInput
   bool _commandSpeechEnded = false;
   bool _hasReceivedReady = false;
   int _recognitionTurn = 0;
+  StreamingSpeechInputException? _interruptionError;
   bool _disposed = false;
   bool? _availabilityCache;
   NativeSpeechAudioSource? _nextAudioSource;
@@ -893,6 +894,7 @@ class AndroidStreamingSpeechInput
     // cancellation during cold-start preparation cannot open a stale mic.
     final cleanup = _active || _readyCompleter != null ? cancel() : null;
     final turn = ++_recognitionTurn;
+    _interruptionError = null;
     if (cleanup != null) await cleanup;
     _requireCurrentRecognitionTurn(turn);
     return turn;
@@ -905,6 +907,8 @@ class AndroidStreamingSpeechInput
         code: 'SPEECH_START_CANCELLED',
       );
     }
+    final interruption = _interruptionError;
+    if (interruption != null) throw interruption;
   }
 
   void _observeReadyCompletion(Completer<void> completer) {
@@ -1016,6 +1020,7 @@ class AndroidStreamingSpeechInput
     if (eventTurn is num && eventTurn.toInt() != _recognitionTurn) return;
 
     final type = event['type'];
+    if (_interruptionError != null && type != 'speech.stage') return;
     if (type == 'speech.stage') {
       reportNativeSpeechStage(
         '${event['stage'] ?? 'unknown'}',
@@ -1159,6 +1164,22 @@ class AndroidStreamingSpeechInput
       _resultAt = DateTime.now();
       final message =
           event['message'] as String? ?? 'Không thể nhận diện giọng nói.';
+      if (event['code'] == 'AUDIO_FOCUS_LOST') {
+        // This event can reach speech consumers before the shared background
+        // interruption. Never dispatch a cached partial from a cancelled turn.
+        _interruptionError = StreamingSpeechInputException(
+          message,
+          code: '${_platformName.toUpperCase()}_SPEECH_AUDIO_FOCUS_LOST',
+        );
+        _latestText = '';
+        _latestAlternatives = const <String>[];
+        _latestTextUpdatedAt = null;
+        _confidence = null;
+        _recordedAudioPath = null;
+        _recordedAudioMimeType = null;
+        _recordedAudioByteLength = null;
+        _recordedAudioSampleRate = null;
+      }
       reportNativeSpeechStage(
         'error',
         audioSource: event['audioSource'] as String?,

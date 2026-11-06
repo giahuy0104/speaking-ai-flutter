@@ -10,6 +10,7 @@ import android.media.audiofx.LoudnessEnhancer
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import io.flutter.plugin.common.BinaryMessenger
@@ -82,6 +83,12 @@ class VoicePromptBridge(
     private var promptFocusOwner: String? = null
     private var promptFocusUtterance: String? = null
     private var cueFocusOwner: String? = null
+    private var pendingMediaValidation: MethodChannel.Result? = null
+    private val mainMediaQuietGate = MediaPlaybackQuietGate(
+        { audioManager.isMusicActive },
+        { SystemClock.elapsedRealtime() },
+        { delay, check -> mainHandler.postDelayed(check, delay) },
+    )
 
     init {
         AudioDiagnostics.event("diagnostics.native.ready", mapOf("build" to "audio-fix-v2"))
@@ -153,14 +160,61 @@ class VoicePromptBridge(
                 if (owner != null && !audioFocus.acquire(owner)) {
                     result.error("AUDIO_FOCUS_DENIED", "Chưa thể dùng âm thanh. Hãy dừng ứng dụng đang phát rồi thử lại.", null)
                 } else {
+                    cancelPendingMediaChecks()
                     mainTurnOwner?.let { audioFocus?.release(it) }
                     mainTurnOwner = owner
-                    result.success(owner)
+                    AudioDiagnostics.event("main.media_quiet.request", mapOf("stage" to "begin", "musicActive" to audioManager.isMusicActive))
+                    mainMediaQuietGate.awaitQuiet { quiet ->
+                        AudioDiagnostics.event("main.media_quiet.result", mapOf("stage" to "begin", "result" to quiet.name, "musicActive" to audioManager.isMusicActive))
+                        if (quiet == MediaPlaybackQuietGate.Result.QUIET) {
+                            result.success(owner)
+                        } else {
+                            if (mainTurnOwner == owner) mainTurnOwner = null
+                            owner?.let { audioFocus?.release(it) }
+                            if (quiet == MediaPlaybackQuietGate.Result.ACTIVE) {
+                                result.error("EXTERNAL_MEDIA_ACTIVE", "Vẫn có âm thanh đang phát. Tạm dừng video hoặc chờ âm thanh dừng rồi nhấn MAIN lại.", null)
+                            } else {
+                                result.error("MAIN_TURN_CANCELLED", "Lượt MAIN đã dừng.", null)
+                            }
+                        }
+                    }
+                }
+            }
+            "validateMainTurnAudio" -> {
+                val owner = call.argument<String>("turnId")
+                if (owner == null || owner != mainTurnOwner) {
+                    result.error("MAIN_TURN_CANCELLED", "Lượt MAIN đã dừng.", null)
+                    return
+                }
+                cancelPendingMediaChecks()
+                pendingMediaValidation = result
+                // Prompt completion may arrive before its off-thread release.
+                playerWorker.execute {
+                    mainHandler.post {
+                        if (pendingMediaValidation !== result) return@post
+                        AudioDiagnostics.event("main.media_quiet.request", mapOf("stage" to "prelisten", "musicActive" to audioManager.isMusicActive))
+                        mainMediaQuietGate.awaitQuiet { quiet ->
+                            if (pendingMediaValidation !== result) return@awaitQuiet
+                            pendingMediaValidation = null
+                            AudioDiagnostics.event("main.media_quiet.result", mapOf("stage" to "prelisten", "result" to quiet.name, "musicActive" to audioManager.isMusicActive))
+                            when (quiet) {
+                                MediaPlaybackQuietGate.Result.QUIET -> result.success(null)
+                                MediaPlaybackQuietGate.Result.ACTIVE -> result.error(
+                                    "EXTERNAL_MEDIA_ACTIVE",
+                                    "Vẫn có âm thanh đang phát. Tạm dừng video hoặc chờ âm thanh dừng rồi nhấn MAIN lại.", null,
+                                )
+                                MediaPlaybackQuietGate.Result.CANCELLED -> result.error(
+                                    "MAIN_TURN_CANCELLED", "Lượt MAIN đã dừng.", null,
+                                )
+                            }
+                        }
+                    }
                 }
             }
             "endMainTurn" -> {
                 val requestedOwner = call.argument<String>("turnId")
                 if (requestedOwner == null || requestedOwner == mainTurnOwner) {
+                    cancelPendingMediaChecks()
                     mainTurnOwner?.let { audioFocus?.release(it) }
                     mainTurnOwner = null
                 }
@@ -210,6 +264,7 @@ class VoicePromptBridge(
             }
             "playSpeechReadyCue" -> playSpeechReadyCue(result)
             "stop" -> {
+                cancelPendingMediaChecks()
                 completePendingPrompt()
                 completeActiveAwaited()
                 completeReadyCue()
@@ -875,6 +930,13 @@ class VoicePromptBridge(
         promptFocusUtterance = null
     }
 
+    private fun cancelPendingMediaChecks() {
+        val validation = pendingMediaValidation
+        pendingMediaValidation = null
+        mainMediaQuietGate.cancel()
+        validation?.error("MAIN_TURN_CANCELLED", "Lượt MAIN đã dừng.", null)
+    }
+
     fun stopForAudioFocusLoss() {
         mainTurnOwner = null
         stopForInterruption("AUDIO_FOCUS_LOST", "Âm thanh đã bị ứng dụng khác gián đoạn. Nhấn MAIN để tiếp tục.")
@@ -885,6 +947,7 @@ class VoicePromptBridge(
     )
 
     private fun stopForInterruption(code: String, message: String) {
+        cancelPendingMediaChecks()
         // Runs on the bridge's main thread before SCO is released. Complete
         // with an error so callers cannot interpret a cut-off prompt as heard.
         pendingPrompt?.completion?.error(code, message, null)
@@ -902,6 +965,7 @@ class VoicePromptBridge(
 
     fun stopForBackgroundSession() {
         mainHandler.post {
+            cancelPendingMediaChecks()
             mainTurnOwner?.let { audioFocus?.release(it) }
             mainTurnOwner = null
             completePendingPrompt()
@@ -914,6 +978,7 @@ class VoicePromptBridge(
     }
 
     fun dispose() {
+        cancelPendingMediaChecks()
         mainTurnOwner?.let { audioFocus?.release(it) }
         mainTurnOwner = null
         completePendingPrompt()

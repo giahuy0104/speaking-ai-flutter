@@ -1293,6 +1293,7 @@ void main() {
       expect(module.cleanup.isCompleted, isFalse);
       expect(voice.isListening, isFalse);
       expect(speechInput.cancelCount, 1);
+      expect(voice.canResumeLearningAfterFailedActivation, isFalse);
       expect(registry.controller, same(module));
 
       backgroundSession.resume();

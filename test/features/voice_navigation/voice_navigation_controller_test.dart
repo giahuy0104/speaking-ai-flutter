@@ -23,6 +23,120 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  for (final platform in ['ANDROID', 'IOS']) {
+    test(
+      '$platform speech focus error prevents lesson resume before global interruption',
+      () async {
+        final input = _FocusLostStartSpeechInput(
+          '${platform}_SPEECH_AUDIO_FOCUS_LOST',
+        );
+        final prompt = _FakeMainTurnVoicePromptService();
+        final controller = VoiceNavigationController(
+          speechInput: input,
+          voicePromptService: prompt,
+        );
+        expect(await controller.activateFromMainButton(), isFalse);
+        expect(controller.canResumeLearningAfterFailedActivation, isFalse);
+        expect(controller.isListening, isFalse);
+        expect(prompt.endedReasons, contains('microphone_start_failed'));
+        controller.dispose();
+        await input.dispose();
+      },
+    );
+  }
+
+  test(
+    'global focus interruption during prompt keeps failed activation paused',
+    () async {
+      final input = _FakeNavigationSpeechInput();
+      final prompt = _FirstPromptBlockedService();
+      final controller = VoiceNavigationController(
+        speechInput: input,
+        voicePromptService: prompt,
+      );
+      final activation = controller.activateFromMainButton();
+      await prompt.firstPromptStarted.future;
+      final interrupted = controller.pauseForAudioInterruption();
+      prompt.firstPrompt.complete();
+      await interrupted;
+      expect(await activation, isFalse);
+      expect(controller.canResumeLearningAfterFailedActivation, isFalse);
+      expect(input.events, isNot(contains('start')));
+      controller.dispose();
+      await input.dispose();
+    },
+  );
+
+  test(
+    'MAIN active media gives one instruction and never starts recognition',
+    () async {
+      final speechInput = _FakeNavigationSpeechInput();
+      final prompt = _RejectedMainTurnVoicePromptService(
+        'EXTERNAL_MEDIA_ACTIVE',
+      );
+      final controller = VoiceNavigationController(
+        speechInput: speechInput,
+        voicePromptService: prompt,
+      );
+      expect(await controller.activateFromMainButton(), isFalse);
+      expect(speechInput.events, isNot(contains('start')));
+      expect(prompt.spokenTexts, hasLength(1));
+      expect(prompt.spokenTexts.single, contains('Tạm dừng video'));
+      expect(controller.canResumeLearningAfterFailedActivation, isFalse);
+      expect(controller.lastErrorMessage, prompt.spokenTexts.single);
+      controller.dispose();
+      await speechInput.dispose();
+    },
+  );
+
+  test(
+    'media appearing during prompt blocks the microphone and later MAIN can recover',
+    () async {
+      final speechInput = _FakeNavigationSpeechInput();
+      final prompt = _ValidatingMainTurnVoicePromptService()..reject = true;
+      final controller = VoiceNavigationController(
+        speechInput: speechInput,
+        voicePromptService: prompt,
+      );
+      expect(await controller.activateFromMainButton(), isFalse);
+      expect(speechInput.events, isNot(contains('start')));
+      expect(controller.canResumeLearningAfterFailedActivation, isFalse);
+      expect(prompt.endedReasons, contains('microphone_start_failed'));
+      expect(
+        prompt.spokenTexts.where((text) => text.contains('Tạm dừng video')),
+        hasLength(1),
+      );
+      prompt.reject = false;
+      expect(await controller.activateFromMainButton(), isTrue);
+      expect(speechInput.events, contains('start'));
+      expect(controller.canResumeLearningAfterFailedActivation, isTrue);
+      controller.dispose();
+      await speechInput.dispose();
+    },
+  );
+
+  test(
+    'cancellation during audio validation never opens a late microphone',
+    () async {
+      final speechInput = _FakeNavigationSpeechInput();
+      final prompt = _ValidatingMainTurnVoicePromptService()
+        ..pending = Completer<void>();
+      final controller = VoiceNavigationController(
+        speechInput: speechInput,
+        voicePromptService: prompt,
+      );
+      final activation = controller.activateFromMainButton();
+      await prompt.validationRequested.future;
+      final pause = controller.pause(stopPrompt: true);
+      prompt.pending!.complete();
+      await pause;
+      expect(await activation, isFalse);
+      expect(speechInput.events, isNot(contains('start')));
+      controller.dispose();
+      await speechInput.dispose();
+    },
+  );
   test('iOS waits for a quiet unfinished MAIN answer', () async {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
@@ -355,9 +469,7 @@ void main() {
         isTrue,
       );
       speech.emitCompleted();
-      await _waitUntil(
-        () => voice.endedReasons.contains('main_assistant_completed'),
-      );
+      await voice.mainEndRequested.future;
       expect(commands, isEmpty);
       // STOP cancels the accepted command while native HFP cleanup is pending.
       await controller.pause();
@@ -3525,14 +3637,32 @@ class _RejectedMainTurnVoicePromptService
   }
 }
 
+class _ValidatingMainTurnVoicePromptService
+    extends _FakeMainTurnVoicePromptService
+    implements MainTurnAudioValidation {
+  bool reject = false;
+  Completer<void>? pending;
+  final validationRequested = Completer<void>();
+  @override
+  Future<void> validateMainTurnAudio({String? turnId}) async {
+    if (!validationRequested.isCompleted) validationRequested.complete();
+    if (pending != null) await pending!.future;
+    if (reject) throw PlatformException(code: 'EXTERNAL_MEDIA_ACTIVE');
+  }
+}
+
 class _DeferredEndMainTurnVoicePromptService
     extends _FakeMainTurnVoicePromptService {
   final pendingEnd = Completer<void>();
+  final mainEndRequested = Completer<void>();
 
   @override
   Future<void> endMainTurn(String reason, {String? turnId}) async {
     await super.endMainTurn(reason, turnId: turnId);
-    if (reason == 'main_assistant_completed') await pendingEnd.future;
+    if (reason == 'main_assistant_completed') {
+      if (!mainEndRequested.isCompleted) mainEndRequested.complete();
+      await pendingEnd.future;
+    }
   }
 }
 
@@ -3549,11 +3679,15 @@ class _LateBeginMainTurnVoicePromptService
 
 class _FirstPromptBlockedService extends _FakeMainTurnVoicePromptService {
   final firstPrompt = Completer<void>();
+  final firstPromptStarted = Completer<void>();
 
   @override
   Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
     await super.speakAndWait(text, locale: locale);
-    if (spokenTexts.length == 1) await firstPrompt.future;
+    if (spokenTexts.length == 1) {
+      firstPromptStarted.complete();
+      await firstPrompt.future;
+    }
   }
 }
 
@@ -3724,6 +3858,15 @@ class _DelayedNavigationSpeechInput implements StreamingSpeechInput {
     await _amplitudeController.close();
     await _completedController.close();
     await _partialTextController.close();
+  }
+}
+
+class _FocusLostStartSpeechInput extends _FakeNavigationSpeechInput {
+  _FocusLostStartSpeechInput(this.code);
+  final String code;
+  @override
+  Future<void> start() async {
+    throw StreamingSpeechInputException('Âm thanh bị gián đoạn.', code: code);
   }
 }
 

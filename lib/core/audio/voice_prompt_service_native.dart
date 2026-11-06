@@ -16,12 +16,24 @@ class MethodChannelVoicePromptService
         PhoneSpeakerVoicePromptService,
         SelectedMediaOutputVoicePromptService,
         StyledMediaOutputVoicePromptService,
-        RoutedMainTurnVoicePromptService {
+        RoutedMainTurnVoicePromptService,
+        MainTurnAudioValidation {
   const MethodChannelVoicePromptService({
     MethodChannel channel = const MethodChannel('ailingo_voice_prompt'),
   }) : _channel = channel;
 
   final MethodChannel _channel;
+
+  @override
+  Future<void> validateMainTurnAudio({String? turnId}) async {
+    try {
+      await _channel.invokeMethod<void>('validateMainTurnAudio', {
+        'turnId': turnId,
+      });
+    } on MissingPluginException {
+      // Optional on iOS and older native implementations.
+    }
+  }
 
   @override
   Future<void> playAuthoredAudioAndWait(

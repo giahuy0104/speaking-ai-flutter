@@ -186,6 +186,7 @@ class VoiceNavigationController extends ChangeNotifier {
   int _mainPrematureCompletionRecoveryCount = 0;
   String? _mainNoSpeechRetryPromptOverride;
   Object? _lastError;
+  bool _mainActivationInterrupted = false;
   String? _activeInputLabelOverride;
   String? _nativeMainTurnId;
   int? _nativeMainTurnGeneration;
@@ -208,6 +209,8 @@ class VoiceNavigationController extends ChangeNotifier {
       _translationStoppedAwaitingMain;
   MainVoiceAssistantStage get mainAssistantStage => _mainAssistantFlow.stage;
   Object? get lastError => _lastError;
+  bool get canResumeLearningAfterFailedActivation =>
+      !_mainActivationInterrupted;
   String get activeInputLabel =>
       _activeInputLabelOverride ?? _speechInput.label;
   String? get lastErrorMessage {
@@ -372,6 +375,7 @@ class VoiceNavigationController extends ChangeNotifier {
     if (_disposed) {
       return false;
     }
+    _mainActivationInterrupted = false;
     final pendingPause = pause(preserveChoice: true);
     final activationGeneration = _generation;
     _mainButtonActivationInProgress = true;
@@ -436,7 +440,12 @@ class VoiceNavigationController extends ChangeNotifier {
     }
   }
 
-  /// Releases the recognizer so the conversation microphone can use it.
+  /// An interruption must not trigger the failed-activation lesson resume.
+  Future<void> pauseForAudioInterruption() {
+    _mainActivationInterrupted = true;
+    return pause(preserveChoice: true, stopPrompt: true);
+  }
+
   Future<void> pause({bool preserveChoice = false, bool stopPrompt = false}) {
     if (_disposed) {
       return Future<void>.value();
@@ -1223,6 +1232,23 @@ class VoiceNavigationController extends ChangeNotifier {
     _pendingStartPartialText = null;
     notifyListeners();
     try {
+      final promptService = _voicePromptService;
+      if (_buttonCommandSession && promptService is MainTurnAudioValidation) {
+        await (promptService as MainTurnAudioValidation)
+            .validateMainTurnAudio(turnId: _nativeMainTurnId)
+            .timeout(
+              _pauseDrainTimeout,
+              onTimeout: () {
+                throw const StreamingSpeechInputException(
+                  'Chưa xác nhận được âm thanh đã dừng. Bạn nhấn MAIN để thử lại.',
+                  code: 'MAIN_AUDIO_CHECK_TIMEOUT',
+                );
+              },
+            );
+        if (_disposed || generation != _generation || !_continuousRequested) {
+          return;
+        }
+      }
       final commandInput = _speechInput is CommandStreamingSpeechInput
           ? _speechInput as CommandStreamingSpeechInput
           : null;
@@ -1334,6 +1360,20 @@ class VoiceNavigationController extends ChangeNotifier {
         message: error.toString(),
       );
       _lastError = error;
+      final errorCode = error is PlatformException
+          ? error.code
+          : error is StreamingSpeechInputException
+          ? error.code
+          : null;
+      if (errorCode == 'EXTERNAL_MEDIA_ACTIVE' ||
+          errorCode == 'MAIN_AUDIO_CHECK_TIMEOUT' ||
+          errorCode == 'AUDIO_FOCUS_DENIED' ||
+          errorCode == 'AUDIO_FOCUS_LOST' ||
+          errorCode == 'ANDROID_SPEECH_AUDIO_FOCUS_LOST' ||
+          errorCode == 'IOS_SPEECH_AUDIO_FOCUS_LOST' ||
+          errorCode == 'MAIN_TURN_CANCELLED') {
+        _mainActivationInterrupted = true;
+      }
       _reportIosTopicRecognitionFailure();
       _starting = false;
       _listening = false;
@@ -1352,6 +1392,11 @@ class VoiceNavigationController extends ChangeNotifier {
           'microphone_start_failed',
           generation: generation,
         );
+      }
+      if (errorCode == 'EXTERNAL_MEDIA_ACTIVE' &&
+          !_disposed &&
+          generation == _generation) {
+        await _explainCompetingMedia(generation);
       }
       if (!_disposed) {
         notifyListeners();
@@ -1407,9 +1452,18 @@ class VoiceNavigationController extends ChangeNotifier {
       );
       return true;
     } on PlatformException catch (error) {
-      if (error.code == 'MAIN_TURN_CANCELLED') return false;
+      if (_disposed || generation != _generation) return false;
+      if (error.code == 'MAIN_TURN_CANCELLED') {
+        _mainActivationInterrupted = true;
+        return false;
+      }
+      if (error.code == 'EXTERNAL_MEDIA_ACTIVE') {
+        await _explainCompetingMedia(generation);
+        return false;
+      }
       if (error.code == 'AUDIO_FOCUS_LOST' ||
           error.code == 'AUDIO_FOCUS_DENIED') {
+        _mainActivationInterrupted = true;
         _lastError = StreamingSpeechInputException(
           'Âm thanh đang bị gián đoạn. Bạn nhấn MAIN để thử lại.',
           code: error.code,
@@ -1431,6 +1485,31 @@ class VoiceNavigationController extends ChangeNotifier {
     } catch (_) {
       // The visible prompt remains usable on platforms without this bridge.
       return true;
+    }
+  }
+
+  Future<void> _explainCompetingMedia(int generation) async {
+    if (_disposed || generation != _generation) return;
+    _mainActivationInterrupted = true;
+    const message =
+        'Vẫn có âm thanh đang phát. Tạm dừng video hoặc chờ âm thanh dừng rồi nhấn MAIN lại.';
+    _lastError = const StreamingSpeechInputException(
+      message,
+      code: 'EXTERNAL_MEDIA_ACTIVE',
+    );
+    try {
+      await _voicePromptService
+          ?.speakAndWait(message)
+          .timeout(
+            _voicePromptTimeout,
+            onTimeout: () async {
+              if (!_disposed && generation == _generation) {
+                await _voicePromptService.stop();
+              }
+            },
+          );
+    } catch (_) {
+      // Keep the specific visible instruction if audio is interrupted again.
     }
   }
 

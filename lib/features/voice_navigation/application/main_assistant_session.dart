@@ -53,6 +53,7 @@ class MainAssistantSession {
     required bool Function() canContinue,
     required MainAssistantActivation activateVoice,
     Future<bool> Function()? prepareActivation,
+    bool Function()? canResumeAfterFailedActivation,
   }) async {
     if (!startupReady ||
         !voiceAccessEnabled ||
@@ -95,7 +96,9 @@ class MainAssistantSession {
         activeLearningKind: pause.activeKind,
       );
       if (generation != _generation) return false;
-      if (!activated && pause.paused) {
+      if (!activated &&
+          pause.paused &&
+          (canResumeAfterFailedActivation?.call() ?? true)) {
         await _appFlowCoordinator.resumeAfterMainAssistant();
       }
       return activated;

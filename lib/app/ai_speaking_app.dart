@@ -2905,6 +2905,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       ignoreActiveLearning:
           voiceController.isWaitingForMainAfterTranslationStop,
       canContinue: () => mounted,
+      canResumeAfterFailedActivation: () =>
+          voiceController.canResumeLearningAfterFailedActivation,
       prepareActivation: () async {
         final ready = await _prepareAndroidMainHfpRoute();
         if (!ready && mounted && _mainAssistantSession.isActivationPending) {

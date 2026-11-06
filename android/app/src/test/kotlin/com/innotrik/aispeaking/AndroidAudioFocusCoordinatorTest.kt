@@ -84,6 +84,27 @@ class AndroidAudioFocusCoordinatorTest {
     }
 
     @Test
+    fun microphoneRouteFailureInvalidatesMainAndCaptureBeforeNotifying() {
+        focus.acquire("main")
+        focus.acquire("capture")
+        val oldListener = shadowOf(manager).lastAudioFocusRequest.listener
+        var interruptions = 0
+        focus.onInterrupted = {
+            assertEquals("microphone_route_loss", it)
+            assertFalse(focus.isHeld)
+            interruptions++
+        }
+        focus.interrupt("microphone_route_loss")
+        assertEquals(1, interruptions)
+        assertTrue(focus.acquire("replacement"))
+        oldListener.onAudioFocusChange(AudioManager.AUDIOFOCUS_LOSS)
+        focus.release("capture")
+        focus.release("main")
+        assertTrue(focus.isHeld)
+        assertEquals(1, interruptions)
+    }
+
+    @Test
     fun lessonOwnerRequestsSustainedFocusAndNormalReleaseDoesNotInterrupt() {
         var interruptions = 0
         focus.onInterrupted = { interruptions++ }
@@ -110,6 +131,38 @@ class AndroidAudioFocusCoordinatorTest {
     }
 
     @Test
+    fun persistentMediaRejectsMainAndReleasesItsFocus() {
+        shadowOf(manager).setIsMusicActive(true)
+        val bridge = VoicePromptBridge(RuntimeEnvironment.getApplication(), NoopMessenger, focus)
+        try {
+            val begin = call(bridge, "beginMainTurn")
+            assertEquals(0, begin.completions)
+            shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(650))
+            assertEquals("EXTERNAL_MEDIA_ACTIVE", begin.errorCode)
+            assertEquals(1, begin.completions)
+            assertFalse(focus.isHeld)
+        } finally { bridge.dispose() }
+    }
+
+    @Test
+    fun stoppedPendingMediaCheckCannotReleaseANewerMain() {
+        shadowOf(manager).setIsMusicActive(true)
+        val bridge = VoicePromptBridge(RuntimeEnvironment.getApplication(), NoopMessenger, focus)
+        try {
+            val old = call(bridge, "beginMainTurn")
+            call(bridge, "stop")
+            assertEquals("MAIN_TURN_CANCELLED", old.errorCode)
+            shadowOf(manager).setIsMusicActive(false)
+            val current = call(bridge, "beginMainTurn")
+            assertNotNull(current.value)
+            shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(1))
+            assertEquals(1, old.completions)
+            assertEquals(1, current.completions)
+            assertTrue(focus.isHeld)
+        } finally { bridge.dispose() }
+    }
+
+    @Test
     fun deniedMainFailsWithPlatformErrorAndInterruptedPendingPromptCannotContinue() {
         val bridge = VoicePromptBridge(RuntimeEnvironment.getApplication(), NoopMessenger, focus)
         try {
@@ -127,7 +180,12 @@ class AndroidAudioFocusCoordinatorTest {
     }
 
     private fun call(bridge: VoicePromptBridge, method: String, args: Map<String, Any?>? = null): Reply =
-        Reply().also { bridge.onMethodCall(MethodCall(method, args), it) }
+        Reply().also {
+            bridge.onMethodCall(MethodCall(method, args), it)
+            if (method == "beginMainTurn") {
+                shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(100))
+            }
+        }
 
     private class Reply : MethodChannel.Result {
         var value: Any? = null

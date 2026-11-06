@@ -7,6 +7,27 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test(
+    'media interruption keeps the checkpoint paused after rejected MAIN',
+    () async {
+      final module = _FakeActiveModule();
+      final harness = _SessionHarness(module: module);
+      addTearDown(harness.dispose);
+      final activated = await harness.session.activate(
+        startupReady: true,
+        voiceAccessEnabled: true,
+        conversationBusy: false,
+        assistantFlowBusy: false,
+        canContinue: () => true,
+        canResumeAfterFailedActivation: () => false,
+        activateVoice: ({required activeLearning, activeLearningKind}) async =>
+            false,
+      );
+      expect(activated, isFalse);
+      expect(module.isPausedForMain, isTrue);
+      expect(module.commands, isNot(contains(ActiveLearningCommand.resume)));
+    },
+  );
+  test(
     'stopped translation opens global MAIN despite a stale lesson',
     () async {
       final module = _FakeActiveModule()..paused = true;

@@ -108,6 +108,11 @@ abstract interface class MainTurnVoicePromptService {
   Future<void> endMainTurn(String reason, {String? turnId});
 }
 
+/// Optional check after the prompt has stopped and before MAIN opens its mic.
+abstract interface class MainTurnAudioValidation {
+  Future<void> validateMainTurnAudio({String? turnId});
+}
+
 /// Optional source selection before iOS prearms capture for a MAIN turn.
 /// Existing delegates may keep [MainTurnVoicePromptService] without this API.
 abstract interface class RoutedMainTurnVoicePromptService

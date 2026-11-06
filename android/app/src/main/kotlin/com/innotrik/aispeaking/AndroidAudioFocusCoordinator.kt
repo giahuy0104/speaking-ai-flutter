@@ -32,8 +32,7 @@ class AndroidAudioFocusCoordinator(private val audioManager: AudioManager) {
             if (expectedGeneration != generation || change >= 0) return@OnAudioFocusChangeListener
             // Invalidate before notifying consumers: a late GAIN or callback from
             // this request must never restart a paused lesson or retire a new turn.
-            releaseAll()
-            onInterrupted("audio_focus_loss")
+            interrupt("audio_focus_loss")
         }
         listener = focusListener
         val gain = if (transientExclusive) AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE
@@ -64,6 +63,11 @@ class AndroidAudioFocusCoordinator(private val audioManager: AudioManager) {
 
     fun release(ownerId: String) {
         if (owners.remove(ownerId) && owners.isEmpty()) releaseAll()
+    }
+
+    fun interrupt(reason: String) {
+        releaseAll()
+        onInterrupted(reason)
     }
 
     fun releaseAll() {
