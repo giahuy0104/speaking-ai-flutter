@@ -48,6 +48,7 @@ class VoiceNavigationController extends ChangeNotifier {
     Duration microphoneStartTimeout = const Duration(seconds: 15),
     Duration microphoneStartRetryDelay = const Duration(seconds: 2),
     Duration pauseDrainTimeout = const Duration(seconds: 2),
+    Duration iosMainPreparationTimeout = const Duration(seconds: 5),
     Duration commandSilenceEndpoint = const Duration(milliseconds: 700),
     Duration commandPhraseSilenceEndpoint = const Duration(milliseconds: 1200),
     ActiveLearningCommandHandler? activeLearningCommandHandler,
@@ -68,6 +69,7 @@ class VoiceNavigationController extends ChangeNotifier {
        _microphoneStartTimeout = microphoneStartTimeout,
        _microphoneStartRetryDelay = microphoneStartRetryDelay,
        _pauseDrainTimeout = pauseDrainTimeout,
+       _iosMainPreparationTimeout = iosMainPreparationTimeout,
        _commandSilenceEndpoint = commandSilenceEndpoint,
        _commandPhraseSilenceEndpoint = commandPhraseSilenceEndpoint,
        _activeLearningCommandHandler = activeLearningCommandHandler,
@@ -128,6 +130,7 @@ class VoiceNavigationController extends ChangeNotifier {
   final Duration _microphoneStartTimeout;
   final Duration _microphoneStartRetryDelay;
   final Duration _pauseDrainTimeout;
+  final Duration _iosMainPreparationTimeout;
   final Duration _commandSilenceEndpoint;
   final Duration _commandPhraseSilenceEndpoint;
   final ActiveLearningCommandHandler? _activeLearningCommandHandler;
@@ -1415,6 +1418,8 @@ class VoiceNavigationController extends ChangeNotifier {
       return true;
     }
     final mainTurnService = service as MainTurnVoicePromptService;
+    final requiresPreparedInput =
+        !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
     final audioSource = _mainSpeechAudioSource?.call();
     final beginOperation =
         audioSource != null && service is RoutedMainTurnVoicePromptService
@@ -1422,34 +1427,49 @@ class VoiceNavigationController extends ChangeNotifier {
               .beginMainTurnWithAudioSource(audioSource.channelValue)
         : mainTurnService.beginMainTurn();
     try {
-      final turnId = await beginOperation.timeout(_pauseDrainTimeout);
+      // Preparing an iOS input graph can outlast the bounded cleanup of the
+      // previous turn. Its own deadline never substitutes for native readiness.
+      final turnId = await beginOperation.timeout(
+        requiresPreparedInput ? _iosMainPreparationTimeout : _pauseDrainTimeout,
+      );
       if (_disposed || generation != _generation) {
         await _adoptOrCloseLateNativeMainTurn(
           mainTurnService,
           generation: generation,
           turnId: turnId,
+          allowAdoption: !requiresPreparedInput,
         );
-        return true;
+        return false;
+      }
+      if (requiresPreparedInput && turnId == null) {
+        return _failMainTurnPreparation('MAIN_TURN_NOT_READY');
       }
       _nativeMainTurnId = turnId;
       _nativeMainTurnGeneration = generation;
       return true;
     } on TimeoutException {
-      // iOS arms a background-capable Apple Speech engine before replying to
-      // beginMainTurn. That native preparation can occasionally finish late
-      // while a lesson is releasing its capture. Do not leave MAIN activation
-      // blocked (and every later physical press rejected) behind that reply.
-      // Adopt the exact turn if it is still current, otherwise close it by ID.
+      // A timed-out iOS preparation must never authorize prompt/capture. Close
+      // its eventual exact turn without adopting it into this or a newer MAIN.
+      // Other platforms retain their optional native-turn bridge behavior.
       unawaited(
         beginOperation.then(
           (turnId) => _adoptOrCloseLateNativeMainTurn(
             mainTurnService,
             generation: generation,
             turnId: turnId,
+            allowAdoption: !requiresPreparedInput,
           ),
           onError: (_) {},
         ),
       );
+      if (_disposed || generation != _generation) return false;
+      if (requiresPreparedInput) {
+        await _explainMainInputUnavailable(
+          generation,
+          code: 'MAIN_TURN_PREPARATION_TIMEOUT',
+        );
+        return false;
+      }
       return true;
     } on PlatformException catch (error) {
       if (_disposed || generation != _generation) return false;
@@ -1470,21 +1490,53 @@ class VoiceNavigationController extends ChangeNotifier {
         );
         return false;
       }
-      if (error.code != 'BACKGROUND_MIC_NOT_READY') return true;
-      const message = 'Mở lại ứng dụng HOMI rồi nhấn MAIN để dùng micro.';
-      _lastError = const StreamingSpeechInputException(
-        message,
-        code: 'BACKGROUND_MIC_NOT_READY',
-      );
-      try {
-        await service?.speakAndWait(message);
-      } catch (_) {
-        // The visible error remains available if background playback fails.
+      if (error.code != 'BACKGROUND_MIC_NOT_READY') {
+        return requiresPreparedInput
+            ? _failMainTurnPreparation(error.code)
+            : true;
       }
+      await _explainMainInputUnavailable(generation, code: error.code);
       return false;
     } catch (_) {
+      if (_disposed || generation != _generation) return false;
+      if (requiresPreparedInput) {
+        return _failMainTurnPreparation('MAIN_TURN_NOT_READY');
+      }
       // The visible prompt remains usable on platforms without this bridge.
       return true;
+    }
+  }
+
+  bool _failMainTurnPreparation(String code) {
+    _mainActivationInterrupted = true;
+    _lastError = StreamingSpeechInputException(
+      'Chưa mở được micro. Mở lại ứng dụng HOMI rồi nhấn MAIN để thử lại.',
+      code: code,
+    );
+    return false;
+  }
+
+  Future<void> _explainMainInputUnavailable(
+    int generation, {
+    required String code,
+  }) async {
+    if (_disposed || generation != _generation) return;
+    _mainActivationInterrupted = true;
+    const message = 'Mở lại ứng dụng HOMI rồi nhấn MAIN để dùng micro.';
+    _lastError = StreamingSpeechInputException(message, code: code);
+    try {
+      await _voicePromptService
+          ?.speakAndWait(message)
+          .timeout(
+            _voicePromptTimeout,
+            onTimeout: () async {
+              if (!_disposed && generation == _generation) {
+                await _boundedCleanup(_voicePromptService.stop());
+              }
+            },
+          );
+    } catch (_) {
+      // The visible error remains available if background playback fails.
     }
   }
 
@@ -1517,8 +1569,10 @@ class VoiceNavigationController extends ChangeNotifier {
     MainTurnVoicePromptService service, {
     required int generation,
     required String? turnId,
+    bool allowAdoption = true,
   }) async {
-    if (!_disposed &&
+    if (allowAdoption &&
+        !_disposed &&
         generation == _generation &&
         (_mainButtonActivationInProgress ||
             _buttonCommandSession ||
@@ -1527,6 +1581,8 @@ class VoiceNavigationController extends ChangeNotifier {
       _nativeMainTurnGeneration = generation;
       return;
     }
+    // A missing ID cannot identify an obsolete iOS turn safely.
+    if (!allowAdoption && turnId == null) return;
     try {
       await service
           .endMainTurn('late_begin_completed', turnId: turnId)
