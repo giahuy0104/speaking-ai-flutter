@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 class AndroidSpeechRecognizerBridge(
     private val host: HomiAndroidHost,
     messenger: BinaryMessenger,
+    private val audioFocus: AndroidAudioFocusCoordinator? = null,
 ) : MethodChannel.MethodCallHandler,
     EventChannel.StreamHandler,
     RecognitionListener {
@@ -49,6 +50,7 @@ class AndroidSpeechRecognizerBridge(
     private var recognizerMode: RecognizerMode? = null
     private var events: EventChannel.EventSink? = null
     private var listening = false
+    private var captureFocusOwner: String? = null
     private var pendingPermissionResult: MethodChannel.Result? = null
     private var pendingPermissionCommandMode = false
     private var pendingPermissionPreferOnDevice = false
@@ -56,7 +58,7 @@ class AndroidSpeechRecognizerBridge(
     private var pendingPermissionLocale = defaultLocale
     private var pendingFileResult: MethodChannel.Result? = null
     private var activeRequireOnDevice = false
-    private var recognitionGeneration = 0
+    @Volatile private var recognitionGeneration = 0
     private var clientTurnId: Int? = null
     private var recognitionStartedAtMs = 0L
     private var capturedPcm = ByteArrayOutputStream()
@@ -289,6 +291,19 @@ class AndroidSpeechRecognizerBridge(
         }
     }
 
+    fun onAudioFocusLost() {
+        // The focus listener runs on the platform thread. Retire the recognizer
+        // before Dart handles the interruption so no late final can be scored.
+        retireRecognizer()
+        completePendingFileError("AUDIO_FOCUS_LOST", "Lượt nghe đã bị âm thanh khác gián đoạn.")
+        events?.success(mapOf(
+            "type" to "speech.error",
+            "code" to "AUDIO_FOCUS_LOST",
+            "message" to "Lượt nghe đã bị âm thanh khác gián đoạn.",
+            "turnId" to clientTurnId,
+        ))
+    }
+
     private fun requestOnDeviceModelDownload(
         call: MethodCall,
         result: MethodChannel.Result,
@@ -411,41 +426,91 @@ class AndroidSpeechRecognizerBridge(
         closeInjectedAudio()
         resetCapturedAudio()
 
+        val owner = audioFocus?.newOwner("capture")
+        if (owner != null && !audioFocus.acquire(owner)) {
+            result.error("AUDIO_FOCUS_DENIED", "Chưa thể dùng micro. Hãy dừng ứng dụng đang phát rồi thử lại.", null)
+            return
+        }
+        captureFocusOwner = owner
+
         val intent =
             createRecognizerIntent(
                 commandMode = commandMode,
                 locale = locale,
                 preferOnDevice = preferOnDevice || requireOnDevice,
             )
-        attachAppMicrophone(intent)
-        listening = true
-        activeRequireOnDevice = requireOnDevice
-        bindTurnListener()
-        recognizer?.startListening(intent)
-        result.success(true)
+        try {
+            attachAppMicrophone(intent)
+            listening = true
+            activeRequireOnDevice = requireOnDevice
+            bindTurnListener()
+            recognizer?.startListening(intent)
+            result.success(true)
+        } catch (error: RuntimeException) {
+            retireRecognizer()
+            audioFocus?.interrupt("speech_capture_failed")
+            result.error("SPEECH_START_FAILED", error.message, null)
+        }
     }
 
     /**
-     * Supplies the phone microphone to the recognizer from the app (Android
-     * 13+). Google's recognition service plays start/stop earcons on the
-     * notification stream only when it opens the microphone itself, so with
-     * app-supplied audio a MAIN listening window no longer jumps about 17 dB
-     * above the prompts around it. An active HM-D001 call route keeps the
-     * recognizer's own capture, which follows that route today. Below Android
-     * 13 the service ignores app-supplied audio, so the notification stream is
-     * turned down for the window instead.
+     * Android 13+ receives app-owned PCM on both phone and HM-D001 routes.
+     * Delegating SCO capture to the provider lets it request a second audio
+     * focus lease, interrupting the MAIN turn at the prompt/listen boundary.
+     * Older Android retains provider capture; actual focus loss still cancels.
      */
     private fun attachAppMicrophone(intent: Intent) {
-        if (isScoRouteActive()) return
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            duckNotificationStream()
+            if (!isScoRouteActive()) duckNotificationStream()
             return
         }
-        val source = AppMicrophoneAudioSource(capturedAudioSampleRate, ::onAppMicrophoneFrame)
+        val scoActive = isScoRouteActive()
+        val preferredInput = if (scoActive) {
+            val selected = audioManager?.communicationDevice
+            val inputs = audioManager?.getDevices(AudioManager.GET_DEVICES_INPUTS)
+                ?.filter { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO }.orEmpty()
+            val address = selected?.address.orEmpty()
+            inputs.singleOrNull { address.isNotBlank() && it.address.equals(address, ignoreCase = true) }
+                ?: inputs.singleOrNull()?.takeIf {
+                    address.isBlank() || it.address.isBlank() || it.address.equals(address, ignoreCase = true)
+                }
+                ?: throw IllegalStateException("HM-D001 microphone route is unavailable")
+        } else null
+        val generation = recognitionGeneration
+        val turnId = clientTurnId
+        val captured = capturedPcm
+        lateinit var source: AppMicrophoneAudioSource
+        source = AppMicrophoneAudioSource(
+            capturedAudioSampleRate,
+            onFrame = { buffer, count ->
+                if (generation == recognitionGeneration) {
+                    onAppMicrophoneFrame(buffer, count, generation, turnId, captured)
+                }
+            },
+            preferredInput = preferredInput,
+            onRouteReady = { id, type ->
+                AudioDiagnostics.event("speech.app_microphone_route", mapOf(
+                    "generation" to generation, "turnId" to turnId,
+                    "inputDeviceId" to id, "inputDeviceType" to type,
+                ))
+            },
+            onFailure = {
+                mainHandler.post {
+                    if (generation == recognitionGeneration && listening && appMicrophone === source) {
+                        AudioDiagnostics.event("speech.app_microphone_failed", mapOf(
+                            "generation" to generation, "turnId" to turnId,
+                        ))
+                        // Invalidate the whole turn before a speech error can
+                        // cause Dart to consume a partial recognition result.
+                        audioFocus?.interrupt("microphone_route_loss")
+                        if (generation == recognitionGeneration) onAudioFocusLost()
+                    }
+                }
+            },
+        )
         val readSide = source.start()
         if (readSide == null) {
-            Log.w(logTag, "App microphone unavailable; the recognizer opens its own microphone")
-            return
+            throw IllegalStateException("App microphone unavailable")
         }
         appMicrophone = source
         injectedAudioRead = readSide
@@ -455,20 +520,26 @@ class AndroidSpeechRecognizerBridge(
         intent.putExtra(RecognizerIntent.EXTRA_AUDIO_SOURCE_SAMPLING_RATE, capturedAudioSampleRate)
         AudioDiagnostics.event(
             "speech.app_microphone",
-            mapOf("generation" to recognitionGeneration, "turnId" to clientTurnId),
+            mapOf("generation" to generation, "turnId" to turnId, "sco" to scoActive,
+                "preferredInputId" to preferredInput?.id),
         )
     }
 
     /** Runs on the capture thread; AudioRecord already delivers little-endian PCM16. */
-    private fun onAppMicrophoneFrame(buffer: ByteArray, count: Int) {
-        capturedPcm.write(buffer, 0, count)
+    private fun onAppMicrophoneFrame(
+        buffer: ByteArray,
+        count: Int,
+        generation: Int,
+        turnId: Int?,
+        captured: ByteArrayOutputStream,
+    ) {
+        captured.write(buffer, 0, count)
         val now = SystemClock.elapsedRealtime()
         if (now - lastAppMicrophoneRmsAtMs < appMicrophoneRmsIntervalMs) return
         lastAppMicrophoneRmsAtMs = now
         val rmsDb = PcmLevel.recognizerRmsDb(PcmLevel.dbfs(buffer, count))
-        val turnId = clientTurnId
         mainHandler.post {
-            if (appMicrophone == null) return@post
+            if (generation != recognitionGeneration || appMicrophone == null) return@post
             events?.success(
                 mapOf(
                     "type" to "speech.rms",
@@ -1306,7 +1377,7 @@ class AndroidSpeechRecognizerBridge(
         )
 
     private fun resetCapturedAudio() {
-        capturedPcm.reset()
+        capturedPcm = ByteArrayOutputStream()
         // Keep the previous cache file alive while Dart uploads it in the
         // background. Android manages cache eviction; deleting it at the next
         // recording start would race a slow Cloudinary request.
@@ -1314,6 +1385,8 @@ class AndroidSpeechRecognizerBridge(
     }
 
     private fun closeInjectedAudio() {
+        captureFocusOwner?.let { audioFocus?.release(it) }
+        captureFocusOwner = null
         scheduleNotificationStreamRestore()
         appMicrophone?.stop()
         appMicrophone = null

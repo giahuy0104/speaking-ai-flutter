@@ -14,6 +14,7 @@ import '../../../core/audio/catalog/media_audio_keys.dart';
 import '../../../core/audio/hfp_audio_control.dart';
 import '../../../core/audio/learning_audio_dependencies.dart';
 import '../../../core/audio/main_assistant_audio_state.dart';
+import '../../../core/audio/native_audio_focus.dart';
 import '../../../core/audio/offline_intent_recognizer.dart';
 import '../../../core/audio/realtime_fallback_buffer.dart';
 import '../../../core/audio/streaming_speech_input.dart';
@@ -72,6 +73,7 @@ class ConversationController extends ChangeNotifier
     HfpAudioControl? hfpAudioControl,
     HfpAudioControl Function()? learningAudioRouteControlFactory,
     AudioTurnCoordinator? audioTurnCoordinator,
+    NativeAudioFocus? audioFocus,
     Aiv0BleControl? aiv0BleControl,
     DeviceConnectionHistoryStore? deviceConnectionHistoryStore,
     Future<SharedPreferences> Function()? deviceConnectionPreferences,
@@ -107,6 +109,7 @@ class ConversationController extends ChangeNotifier
        _hfpAudioControl = hfpAudioControl,
        _learningAudioRouteControlFactory = learningAudioRouteControlFactory,
        _audioTurnCoordinator = audioTurnCoordinator,
+       _audioFocus = audioFocus ?? nativeAudioFocus,
        _aiv0BleControl = aiv0BleControl,
        _deviceHistory =
            deviceConnectionHistoryStore ??
@@ -151,6 +154,13 @@ class ConversationController extends ChangeNotifier
                  (streamingSpeechInput == null
                      ? AsrMode.batchChunks
                      : AsrMode.androidStreaming) {
+    if (!_isWebRuntime) {
+      _focusInterruptionSubscription = _audioFocus.interruptions.listen((_) {
+        if (!_disposed && _focusTurnGeneration != null) {
+          unawaited(cancelCurrentMainAction());
+        }
+      });
+    }
     _continuousTranslationSession = ContinuousTranslationSession(
       runtime: _ConversationContinuousTranslationRuntime(this),
     );
@@ -333,6 +343,21 @@ class ConversationController extends ChangeNotifier
   String? _confirmedMicrophoneId;
   String? _confirmedMicrophoneBleId;
   final AudioPlaybackService _playbackService;
+  final NativeAudioFocus _audioFocus;
+  NativeAudioFocusLease? _conversationFocusLease;
+  int? _focusTurnGeneration;
+  StreamSubscription<void>? _focusInterruptionSubscription;
+
+  Future<void> _releaseConversationFocus({int? generation}) {
+    if (generation != null && generation != _focusTurnGeneration) {
+      return Future<void>.value();
+    }
+    _focusTurnGeneration = null;
+    final lease = _conversationFocusLease;
+    _conversationFocusLease = null;
+    return lease?.release() ?? Future<void>.value();
+  }
+
   final VoicePromptService? _voicePromptService;
   final ConversationRepository _repository;
   final OfflineIntentRecognizer? _offlineIntentRecognizer;
@@ -1251,6 +1276,11 @@ class ConversationController extends ChangeNotifier
   Future<void> onPrimaryAction() =>
       _continuousTranslationSession.onPrimaryAction();
 
+  bool Function() capturePrimaryActionGuard() {
+    final generation = _conversationTurnGeneration;
+    return () => !_disposed && generation == _conversationTurnGeneration;
+  }
+
   /// Starts a single-sentence turn immediately when the child presses down.
   /// Silence cannot finish the turn while the button is still held; the
   /// existing maximum recording timer remains the safety limit.
@@ -1839,6 +1869,7 @@ class ConversationController extends ChangeNotifier
         _stopInProgress;
 
     _conversationTurnGeneration += 1;
+    final focusRelease = _releaseConversationFocus();
     _cancelSentenceQueue();
     _streamingSpeechTurnGeneration = null;
     _nativeSpeechCompletedGeneration = null;
@@ -1886,6 +1917,7 @@ class ConversationController extends ChangeNotifier
     await _playbackService.stop().catchError((Object _) {});
     await _stopHfpRoute();
 
+    await focusRelease;
     final cancellationBarriers = await Future.wait<bool>([
       _waitForCancellationBarrier(pendingRecordingStart),
       _waitForCancellationBarrier(pendingHfpStart),
@@ -2182,7 +2214,9 @@ class ConversationController extends ChangeNotifier
           : AsrMode.batchChunks;
       await _rememberMicrophone(device);
       _ensureDeviceOperationCurrent(generation);
-      transientMessage = isHomiReady ? connectionReadyMessage : 'Đã chọn micro.';
+      transientMessage = isHomiReady
+          ? connectionReadyMessage
+          : 'Đã chọn micro.';
       return const DeviceConnectionResult(DeviceConnectionOutcome.success);
     } catch (error) {
       return _deviceOperationFailure(error, generation);
@@ -2551,7 +2585,17 @@ class ConversationController extends ChangeNotifier
 
     try {
       _preparingMicrophone = true;
+      if (!_isWebRuntime) _focusTurnGeneration = turnGeneration;
       notifyListeners();
+      if (recordingStartCancelled()) return;
+      if (!_isWebRuntime) {
+        final focusLease = await _audioFocus.acquire('conversation');
+        if (recordingStartCancelled()) {
+          await focusLease.release();
+          return;
+        }
+        _conversationFocusLease = focusLease;
+      }
       await _beforeRecordingStart?.call();
       if (await abandonCancelledRecordingStart()) return;
       final userGesturePlayback = _playbackService;
@@ -2827,6 +2871,8 @@ class ConversationController extends ChangeNotifier
       _nativeSpeechCompletedGeneration = null;
       _pendingStreamingPartialText = null;
       _preparingMicrophone = false;
+      await _releaseConversationFocus(generation: turnGeneration);
+      if (recordingStartCancelled()) return;
       _setError(_friendlyError(error));
     }
   }
@@ -3410,6 +3456,7 @@ class ConversationController extends ChangeNotifier
     _offlineFallbackTimer?.cancel();
     _offlineFallbackTimer = null;
     await _amplitudeSubscription?.cancel();
+    if (turnGeneration != _conversationTurnGeneration) return;
     final nativeSpeechCompleted =
         _usingStreamingSpeech &&
         _nativeSpeechCompletedGeneration == turnGeneration;
@@ -3435,6 +3482,7 @@ class ConversationController extends ChangeNotifier
         } else {
           await _audioInput.cancel();
         }
+        if (turnGeneration != _conversationTurnGeneration) return;
         await _batchChunkSubscription?.cancel();
         _batchChunkSubscription = null;
         final adaptiveWebUpload = _adaptiveWebUpload;
@@ -3462,6 +3510,7 @@ class ConversationController extends ChangeNotifier
               .discard(reason: 'recording_too_short')
               .catchError((Object _) {});
         }
+        if (turnGeneration != _conversationTurnGeneration) return;
         phase = ConversationPhase.idle;
         _lastTurnEndReason = ConversationTurnEndReason.tooShort;
         unawaited(_syncAiv0AppState());
@@ -3480,7 +3529,10 @@ class ConversationController extends ChangeNotifier
       if (!_speechDetected &&
           !nativeSpeechCompleted &&
           (!(_usingStreamingSpeech || _usingRecordedAudioSpeech) || !manual)) {
-        await _finishNoSpeechTurn(inputAlreadyStopped: false);
+        await _finishNoSpeechTurn(
+          inputAlreadyStopped: false,
+          expectedGeneration: turnGeneration,
+        );
         return;
       }
 
@@ -3492,8 +3544,10 @@ class ConversationController extends ChangeNotifier
       if (_usingStreamingSpeech) {
         try {
           streamingCapture = await _streamingSpeechInput!.stop();
+          if (turnGeneration != _conversationTurnGeneration) return;
           audioCapture = streamingCapture.recordedAudio;
         } catch (error) {
+          if (turnGeneration != _conversationTurnGeneration) return;
           if (_isNoSpeechRecognitionError(error)) {
             recognizerReportedNoSpeech = true;
           } else {
@@ -3565,8 +3619,10 @@ class ConversationController extends ChangeNotifier
         final promotionReady = adaptiveUpload?.waitUntilPromoted();
         final audioStop = _audioInput.stop();
         audioCapture = await audioStop;
+        if (turnGeneration != _conversationTurnGeneration) return;
         if (promotionReady != null) {
           await promotionReady;
+          if (turnGeneration != _conversationTurnGeneration) return;
         }
         // PhoneMicrophoneInput.stop() has now emitted its final PCM frame.
         // Snapshot it before sealing the adaptive upload so prefetch covers the
@@ -3604,7 +3660,9 @@ class ConversationController extends ChangeNotifier
             streamingCapture = await recognizer.recognizeRecordedAudio(
               audioCapture,
             );
+            if (turnGeneration != _conversationTurnGeneration) return;
           } catch (error) {
+            if (turnGeneration != _conversationTurnGeneration) return;
             if (_isNoSpeechRecognitionError(error)) {
               recognizerReportedNoSpeech = true;
             } else {
@@ -3620,12 +3678,17 @@ class ConversationController extends ChangeNotifier
           }
         }
       }
+      if (turnGeneration != _conversationTurnGeneration) return;
       if (recognizerReportedNoSpeech) {
-        await _finishNoSpeechTurn(inputAlreadyStopped: true);
+        await _finishNoSpeechTurn(
+          inputAlreadyStopped: true,
+          expectedGeneration: turnGeneration,
+        );
         return;
       }
       if (_usingOfflineIntent) {
         final finalHypothesis = await _offlineIntentRecognizer?.stop();
+        if (turnGeneration != _conversationTurnGeneration) return;
         if (finalHypothesis != null) {
           _onOfflineIntentHypothesis(finalHypothesis);
         }
@@ -3647,6 +3710,7 @@ class ConversationController extends ChangeNotifier
         _offlineIntentHypothesisSubscription = null;
       }
       await _waitForRealtimeConnectionAtStop();
+      if (turnGeneration != _conversationTurnGeneration) return;
       _realtimeConnectionGeneration += 1;
       _realtimeConnectionFuture = null;
       await _realtimeChunkSubscription?.cancel();
@@ -3658,7 +3722,9 @@ class ConversationController extends ChangeNotifier
       if (realtimeSession != null) {
         try {
           streamingCapture = await realtimeSession.finalize();
+          if (turnGeneration != _conversationTurnGeneration) return;
         } catch (error) {
+          if (turnGeneration != _conversationTurnGeneration) return;
           debugPrint(
             'Legacy Realtime finalize failed; preparing Batch Chunks fallback: $error',
           );
@@ -3767,6 +3833,7 @@ class ConversationController extends ChangeNotifier
       final androidNetworkTransport = useAndroidOfflineAudio
           ? await _hasNetworkTransport()
           : null;
+      if (turnGeneration != _conversationTurnGeneration) return;
       Future<PlaybackStartMetrics>? earlyRulePlayback;
       Future<void>? earlyRulePlaybackCompletion;
       DateTime? earlyRulePlaybackRequestedAt;
@@ -3796,6 +3863,7 @@ class ConversationController extends ChangeNotifier
 
       final hasNetworkTransport =
           androidNetworkTransport ?? await _hasNetworkTransport();
+      if (turnGeneration != _conversationTurnGeneration) return;
       final offlineFirstResult = hasNetworkTransport
           ? null
           : await _tryOfflineConversationResult(
@@ -3804,6 +3872,7 @@ class ConversationController extends ChangeNotifier
               reason: 'network_transport_unavailable',
               useDeviceTtsForExact: useAndroidOfflineAudio,
             );
+      if (turnGeneration != _conversationTurnGeneration) return;
       if (!hasNetworkTransport &&
           useAndroidOfflineAudio &&
           offlineFirstResult == null) {
@@ -3955,6 +4024,7 @@ class ConversationController extends ChangeNotifier
         // future again after a timeout.
         await _playbackService.stop().catchError((Object _) {});
       }
+      if (turnGeneration != _conversationTurnGeneration) return;
       if (!reusedEarlyRulePlayback &&
           (nextResult.audioUri != null || _preferredPlaybackUri != null)) {
         await playResult(reportLatency: true, propagateFailure: true);
@@ -3987,6 +4057,7 @@ class ConversationController extends ChangeNotifier
       _lastTurnEndReason = ConversationTurnEndReason.failed;
       await _handleConversationError(error);
     } finally {
+      await _releaseConversationFocus(generation: turnGeneration);
       await stoppedAdaptiveWebUpload?.finishPreviewForwarding();
       if (!_disposed && turnGeneration == _conversationTurnGeneration) {
         await _batchPreviewSubscription?.cancel();
@@ -4309,7 +4380,12 @@ class ConversationController extends ChangeNotifier
         message.contains('speech timeout');
   }
 
-  Future<void> _finishNoSpeechTurn({required bool inputAlreadyStopped}) async {
+  Future<void> _finishNoSpeechTurn({
+    required bool inputAlreadyStopped,
+    int? expectedGeneration,
+  }) async {
+    final generation = expectedGeneration ?? _conversationTurnGeneration;
+    if (_disposed || generation != _conversationTurnGeneration) return;
     _realtimeConnectionGeneration += 1;
     _realtimeConnectionFuture = null;
     if (!inputAlreadyStopped) {
@@ -4319,6 +4395,7 @@ class ConversationController extends ChangeNotifier
         await _audioInput.cancel();
       }
     }
+    if (_disposed || generation != _conversationTurnGeneration) return;
     await _batchChunkSubscription?.cancel();
     _batchChunkSubscription = null;
     final adaptiveWebUpload = _adaptiveWebUpload;
@@ -4344,6 +4421,7 @@ class ConversationController extends ChangeNotifier
     if (batchUpload != null) {
       await batchUpload.discard(reason: 'no_speech').catchError((Object _) {});
     }
+    if (_disposed || generation != _conversationTurnGeneration) return;
     phase = ConversationPhase.idle;
     _lastTurnEndReason = ConversationTurnEndReason.noSpeech;
     unawaited(_syncAiv0AppState());
@@ -4354,6 +4432,7 @@ class ConversationController extends ChangeNotifier
     if (_speakNoSpeechPrompt) {
       await _speakUnclearSpeechPrompt();
     }
+    if (_disposed || generation != _conversationTurnGeneration) return;
     _stopInProgress = false;
   }
 
@@ -5278,6 +5357,8 @@ class ConversationController extends ChangeNotifier
 
   @override
   void dispose() {
+    unawaited(_focusInterruptionSubscription?.cancel());
+    unawaited(_releaseConversationFocus());
     _disposed = true;
     _cancelSentenceQueue();
     _deviceOperationGeneration += 1;

@@ -22,6 +22,8 @@ class ConversationScreen extends StatefulWidget {
     this.isOffline = false,
     this.offlineLanguageReady,
     this.ensureDeviceConnected,
+    this.resumeForegroundAudio,
+    this.audioInterruptionGeneration,
     this.isDeviceConnectionReady,
     this.sessionActive = false,
     this.isStoppingSession = false,
@@ -39,6 +41,8 @@ class ConversationScreen extends StatefulWidget {
   final VoidCallback onOpenHistory;
   final VoidCallback onOpenSettings;
   final Future<bool> Function()? ensureDeviceConnected;
+  final Future<bool> Function()? resumeForegroundAudio;
+  final int Function()? audioInterruptionGeneration;
   final bool Function()? isDeviceConnectionReady;
   final bool sessionActive;
   final bool isStoppingSession;
@@ -310,6 +314,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
   int _actionGeneration = 0;
 
   Future<void> _openOtherScreen(VoidCallback open) async {
+    if (widget.resumeForegroundAudio != null) _actionGeneration++;
     if (widget.controller.sentenceQueueActive) {
       await widget.controller.cancelCurrentMainAction();
     }
@@ -345,12 +350,43 @@ class _ConversationScreenState extends State<ConversationScreen> {
     }
     if (_waitingForDevice) return;
     final generation = _actionGeneration;
+    final canContinue = widget.resumeForegroundAudio != null
+        ? controller.capturePrimaryActionGuard()
+        : () => true;
+    final audioGeneration = widget.audioInterruptionGeneration?.call();
+    bool audioActionIsCurrent() =>
+        canContinue() &&
+        (widget.resumeForegroundAudio == null ||
+            ModalRoute.of(context)?.isCurrent != false) &&
+        audioGeneration == widget.audioInterruptionGeneration?.call();
     _waitingForDevice = true;
     try {
+      final resumeAudio = widget.resumeForegroundAudio;
+      if (resumeAudio != null && !await resumeAudio()) {
+        if (mounted &&
+            generation == _actionGeneration &&
+            audioActionIsCurrent() &&
+            identical(controller, widget.controller)) {
+          controller.showHomiConnectionMessage(
+            context.tr(
+              'Âm thanh đang bị gián đoạn. Chờ tác vụ âm thanh kết thúc rồi thử lại.',
+              '音频仍被中断。请等待当前音频任务结束后重试。',
+            ),
+          );
+        }
+        return;
+      }
+      if (!mounted ||
+          generation != _actionGeneration ||
+          !audioActionIsCurrent() ||
+          !identical(controller, widget.controller)) {
+        return;
+      }
       final ensureConnected = widget.ensureDeviceConnected;
       if (ensureConnected != null && !await ensureConnected()) return;
       if (!mounted ||
           generation != _actionGeneration ||
+          !audioActionIsCurrent() ||
           !identical(controller, widget.controller) ||
           controller.phase == ConversationPhase.recording ||
           controller.phase == ConversationPhase.processing) {

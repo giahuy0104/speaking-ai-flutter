@@ -10,11 +10,32 @@ import 'package:ai_speaking_flutter_app/features/conversation/domain/conversatio
 import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_repository.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  setUp(() => SharedPreferences.setMockInitialValues({}));
+  TestWidgetsFlutterBinding.ensureInitialized();
+  const focusChannel = MethodChannel('ailingo_background_learning');
+  const focusEventsChannel = MethodChannel(
+    'ailingo_background_learning/events',
+  );
+  final messenger =
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+    // Capture and playback are fakes here; answer their OS focus boundary too
+    // so widget fake-async does not wait on an absent native channel reply.
+    messenger.setMockMethodCallHandler(focusChannel, (call) async {
+      if (call.method == 'acquireAudioFocus') return true;
+      return null;
+    });
+    messenger.setMockMethodCallHandler(focusEventsChannel, (_) async => null);
+  });
+  tearDown(() {
+    messenger.setMockMethodCallHandler(focusChannel, null);
+    messenger.setMockMethodCallHandler(focusEventsChannel, null);
+  });
   test(
     'cancelled HFP discovery cannot select a late device; next round works',
     () async {
@@ -107,7 +128,10 @@ void main() {
         controller.homiHardwareTestResult?.inputDeviceName,
         'HM-D001 Microphone',
       );
-      expect(controller.homiHardwareTestResult?.outputDeviceName, 'HM-D001 Speaker');
+      expect(
+        controller.homiHardwareTestResult?.outputDeviceName,
+        'HM-D001 Speaker',
+      );
       expect(playback.communicationRouteActive, isFalse);
 
       controller.confirmHomiPlaybackAudible(true);
@@ -221,26 +245,32 @@ void main() {
     controller.dispose();
   });
 
-  test('automatically selects the HM-D001 HFP input after BLE connects', () async {
-    final hfp = _FakeHfpAudioControl(
-      devices: const <HfpAudioDevice>[
-        HfpAudioDevice(id: 'airpods', name: 'AirPods Pro', isConnected: true),
-        HfpAudioDevice(id: 'hm-d001', name: 'HM-D001', isConnected: false),
-      ],
-    );
-    final controller = ConversationController(
-      audioInput: _FakeAudioInput(),
-      hfpAudioControl: hfp,
-      playbackService: _FakePlaybackService(),
-      repository: _NoNetworkRepository(),
-      childAge: 6,
-    );
+  test(
+    'automatically selects the HM-D001 HFP input after BLE connects',
+    () async {
+      final hfp = _FakeHfpAudioControl(
+        devices: const <HfpAudioDevice>[
+          HfpAudioDevice(id: 'airpods', name: 'AirPods Pro', isConnected: true),
+          HfpAudioDevice(id: 'hm-d001', name: 'HM-D001', isConnected: false),
+        ],
+      );
+      final controller = ConversationController(
+        audioInput: _FakeAudioInput(),
+        hfpAudioControl: hfp,
+        playbackService: _FakePlaybackService(),
+        repository: _NoNetworkRepository(),
+        childAge: 6,
+      );
 
-    expect(await controller.autoConnectHomiHfp(bleDeviceName: 'HM-D001'), isTrue);
-    expect(hfp.connectedDevice?.id, 'hm-d001');
-    expect(controller.usesHfpInput, isTrue);
-    controller.dispose();
-  });
+      expect(
+        await controller.autoConnectHomiHfp(bleDeviceName: 'HM-D001'),
+        isTrue,
+      );
+      expect(hfp.connectedDevice?.id, 'hm-d001');
+      expect(controller.usesHfpInput, isTrue);
+      controller.dispose();
+    },
+  );
 
   test(
     'background auto-selection waits for an actually connected HFP',
@@ -575,7 +605,11 @@ void main() {
       await _flushAsyncEvents();
       expect(controller.isRecording, isFalse);
       expect(controller.isRecordingStartBlocked, isTrue);
-      const device = HfpAudioDevice(id: 'hm-d001', name: 'HM-D001', isConnected: true);
+      const device = HfpAudioDevice(
+        id: 'hm-d001',
+        name: 'HM-D001',
+        isConnected: true,
+      );
       expect(
         (await controller.connectHfpDevice(device)).outcome,
         DeviceConnectionOutcome.busy,

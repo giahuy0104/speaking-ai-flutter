@@ -330,36 +330,26 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
       let audioInputTarget = IOSMainTurnAudioRoutePolicy.inputTarget(
         fromChannelValue: arguments?["audioSource"]
       )
-      if !IOSNativeWork.applicationIsActive,
-        !audioSessionCoordinator.hasBackgroundCaptureReady(for: audioInputTarget)
-      {
-        audioSessionCoordinator.trace(
-          stage: "background_main_microphone_unavailable",
-          caller: "VoicePromptBridge.beginMainTurn",
-          code: "BACKGROUND_MIC_NOT_READY"
-        )
-        result(FlutterError(
-          code: "BACKGROUND_MIC_NOT_READY",
-          message: "Mở khóa iPhone rồi nhấn MAIN lại để dùng micro.",
-          details: nil
-        ))
-        return
-      }
-      let turnId = audioSessionCoordinator.beginMainTurn(
+      audioSessionCoordinator.prepareExplicitMainTurn(
         source: "VoicePromptBridge.beginMainTurn",
-        audioInputTarget: audioInputTarget,
-        // A cancelled begin can return after the next virtual MAIN activation.
-        // Its exact-ID cleanup must never close that newer activation.
-        forceNewTurn: true
-      )
-      // Arm the record-capable engine before Flutter starts the assistant
-      // prompt. If the app moves to background while that prompt is speaking,
-      // Apple Speech can reuse this running engine instead of trying to create
-      // a new input graph after iOS has suspended foreground-only startup.
-      audioSessionCoordinator.requestBackgroundCaptureArm(
-        caller: "VoicePromptBridge.beginMainTurn"
-      ) {
-        result(turnId)
+        audioInputTarget: audioInputTarget
+      ) { [weak self] preparation in
+        switch preparation {
+        case .success(let turnId):
+          result(turnId)
+        case .failure(let error):
+          let code = error == .cancelled ? "MAIN_TURN_CANCELLED" : "BACKGROUND_MIC_NOT_READY"
+          self?.audioSessionCoordinator.trace(
+            stage: "background_main_microphone_unavailable",
+            caller: "VoicePromptBridge.beginMainTurn",
+            code: code
+          )
+          result(FlutterError(
+            code: code,
+            message: "Mở lại ứng dụng HOMI rồi nhấn MAIN để dùng micro.",
+            details: nil
+          ))
+        }
       }
     case "endMainTurn":
       let arguments = call.arguments as? [String: Any]
@@ -1033,12 +1023,14 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
     releasePromptAudioSession(token: token)
     let result = waitingResult
     waitingResult = nil
-    if success {
+    if success && !audioSessionCoordinator.isAudioInterruptionSuspended {
       audioSessionCoordinator.trace(stage: "prompt_finished", caller: "VoicePromptBridge.finishAuthoredPrompt")
       audioSessionCoordinator.trace(stage: "prompt_done", caller: "VoicePromptBridge.finishAuthoredPrompt")
       result?(nil)
     } else {
-      result?(FlutterError(code: errorCode, message: "Unable to play authored prompt.", details: nil))
+      let resolvedCode = audioSessionCoordinator.isAudioInterruptionSuspended
+        ? "AUDIO_SESSION_INTERRUPTED" : errorCode
+      result?(FlutterError(code: resolvedCode, message: "Unable to play authored prompt.", details: nil))
     }
   }
 
@@ -1066,7 +1058,11 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
   private func completeWaitingResult(error: FlutterError? = nil) {
     let result = waitingResult
     waitingResult = nil
-    result?(error)
+    let resolvedError = error ?? (audioSessionCoordinator.isAudioInterruptionSuspended
+      ? FlutterError(
+        code: "AUDIO_SESSION_INTERRUPTED", message: "Prompt playback was interrupted.", details: nil
+      ) : nil)
+    result?(resolvedError)
   }
 
   /// A live HM-D001 prompt must never continue on the handset after iOS drops its
@@ -1378,8 +1374,10 @@ final class VoicePromptBridge: NSObject, AVSpeechSynthesizerDelegate, AVAudioPla
     }
     let hadActiveCue = readyCueToken != nil || !readyCueResults.isEmpty || readyCuePlayer != nil
     let resolvedErrorCode = errorCode ?? (
-      readyCueExpectsHfp && !audioSessionCoordinator.hasSelectedTwoWayHfpRoute()
-        ? "HFP_ROUTE_LOST" : nil
+      audioSessionCoordinator.isAudioInterruptionSuspended
+        ? "AUDIO_SESSION_INTERRUPTED"
+        : (readyCueExpectsHfp && !audioSessionCoordinator.hasSelectedTwoWayHfpRoute()
+          ? "HFP_ROUTE_LOST" : nil)
     )
     readyCueFallback?.cancel()
     readyCueFallback = nil

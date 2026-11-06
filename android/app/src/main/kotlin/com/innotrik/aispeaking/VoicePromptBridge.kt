@@ -10,6 +10,7 @@ import android.media.audiofx.LoudnessEnhancer
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import io.flutter.plugin.common.BinaryMessenger
@@ -24,6 +25,7 @@ import kotlin.math.roundToInt
 class VoicePromptBridge(
     context: Context,
     messenger: BinaryMessenger,
+    private val audioFocus: AndroidAudioFocusCoordinator? = null,
 ) : MethodChannel.MethodCallHandler,
     TextToSpeech.OnInitListener {
     private data class PendingPrompt(
@@ -77,6 +79,16 @@ class VoicePromptBridge(
     private var promptLoudnessEnhancer: LoudnessEnhancer? = null
     private var utteranceSequence = 0L
     private var diagnosticCueSequence = 0L
+    private var mainTurnOwner: String? = null
+    private var promptFocusOwner: String? = null
+    private var promptFocusUtterance: String? = null
+    private var cueFocusOwner: String? = null
+    private var pendingMediaValidation: MethodChannel.Result? = null
+    private val mainMediaQuietGate = MediaPlaybackQuietGate(
+        { audioManager.isMusicActive },
+        { SystemClock.elapsedRealtime() },
+        { delay, check -> mainHandler.postDelayed(check, delay) },
+    )
 
     init {
         AudioDiagnostics.event("diagnostics.native.ready", mapOf("build" to "audio-fix-v2"))
@@ -143,6 +155,71 @@ class VoicePromptBridge(
         result: MethodChannel.Result,
     ) {
         when (call.method) {
+            "beginMainTurn" -> {
+                val owner = audioFocus?.newOwner("main")
+                if (owner != null && !audioFocus.acquire(owner)) {
+                    result.error("AUDIO_FOCUS_DENIED", "Chưa thể dùng âm thanh. Hãy dừng ứng dụng đang phát rồi thử lại.", null)
+                } else {
+                    cancelPendingMediaChecks()
+                    mainTurnOwner?.let { audioFocus?.release(it) }
+                    mainTurnOwner = owner
+                    AudioDiagnostics.event("main.media_quiet.request", mapOf("stage" to "begin", "musicActive" to audioManager.isMusicActive))
+                    mainMediaQuietGate.awaitQuiet { quiet ->
+                        AudioDiagnostics.event("main.media_quiet.result", mapOf("stage" to "begin", "result" to quiet.name, "musicActive" to audioManager.isMusicActive))
+                        if (quiet == MediaPlaybackQuietGate.Result.QUIET) {
+                            result.success(owner)
+                        } else {
+                            if (mainTurnOwner == owner) mainTurnOwner = null
+                            owner?.let { audioFocus?.release(it) }
+                            if (quiet == MediaPlaybackQuietGate.Result.ACTIVE) {
+                                result.error("EXTERNAL_MEDIA_ACTIVE", "Vẫn có âm thanh đang phát. Tạm dừng video hoặc chờ âm thanh dừng rồi nhấn MAIN lại.", null)
+                            } else {
+                                result.error("MAIN_TURN_CANCELLED", "Lượt MAIN đã dừng.", null)
+                            }
+                        }
+                    }
+                }
+            }
+            "validateMainTurnAudio" -> {
+                val owner = call.argument<String>("turnId")
+                if (owner == null || owner != mainTurnOwner) {
+                    result.error("MAIN_TURN_CANCELLED", "Lượt MAIN đã dừng.", null)
+                    return
+                }
+                cancelPendingMediaChecks()
+                pendingMediaValidation = result
+                // Prompt completion may arrive before its off-thread release.
+                playerWorker.execute {
+                    mainHandler.post {
+                        if (pendingMediaValidation !== result) return@post
+                        AudioDiagnostics.event("main.media_quiet.request", mapOf("stage" to "prelisten", "musicActive" to audioManager.isMusicActive))
+                        mainMediaQuietGate.awaitQuiet { quiet ->
+                            if (pendingMediaValidation !== result) return@awaitQuiet
+                            pendingMediaValidation = null
+                            AudioDiagnostics.event("main.media_quiet.result", mapOf("stage" to "prelisten", "result" to quiet.name, "musicActive" to audioManager.isMusicActive))
+                            when (quiet) {
+                                MediaPlaybackQuietGate.Result.QUIET -> result.success(null)
+                                MediaPlaybackQuietGate.Result.ACTIVE -> result.error(
+                                    "EXTERNAL_MEDIA_ACTIVE",
+                                    "Vẫn có âm thanh đang phát. Tạm dừng video hoặc chờ âm thanh dừng rồi nhấn MAIN lại.", null,
+                                )
+                                MediaPlaybackQuietGate.Result.CANCELLED -> result.error(
+                                    "MAIN_TURN_CANCELLED", "Lượt MAIN đã dừng.", null,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            "endMainTurn" -> {
+                val requestedOwner = call.argument<String>("turnId")
+                if (requestedOwner == null || requestedOwner == mainTurnOwner) {
+                    cancelPendingMediaChecks()
+                    mainTurnOwner?.let { audioFocus?.release(it) }
+                    mainTurnOwner = null
+                }
+                result.success(null)
+            }
             "analyzePlaybackLevel" -> analyzePlaybackLevel(call, result)
             "playAuthoredAudioAndWait" -> playAuthoredAudio(call, result)
             "speak" -> {
@@ -187,12 +264,14 @@ class VoicePromptBridge(
             }
             "playSpeechReadyCue" -> playSpeechReadyCue(result)
             "stop" -> {
+                cancelPendingMediaChecks()
                 completePendingPrompt()
                 completeActiveAwaited()
                 completeReadyCue()
                 textToSpeech?.stop()
                 clearSynthesizedPrompt()
                 releasePromptPlayback()
+                releasePromptFocus()
                 result.success(null)
             }
             else -> result.notImplemented()
@@ -253,6 +332,7 @@ class VoicePromptBridge(
         }
         utteranceSequence += 1
         val utteranceId = "voice-prompt-$utteranceSequence"
+        if (!acquirePromptFocus(utteranceId, completion)) return
         AudioDiagnostics.output("tts.synthesis.request", audioManager, mapOf("id" to utteranceId, "gainDb" to gainDb, "characters" to text.length))
         if (completion != null) {
             awaitedUtteranceId = utteranceId
@@ -365,6 +445,7 @@ class VoicePromptBridge(
         releasePromptPlayback()
         utteranceSequence += 1
         val utteranceId = "authored-prompt-$utteranceSequence"
+        if (!acquirePromptFocus(utteranceId, result)) return
         awaitedUtteranceId = utteranceId
         awaitedResult = result
         val file = File(appContext.cacheDir, "$utteranceId.mp3")
@@ -670,6 +751,9 @@ class VoicePromptBridge(
         error: String? = null,
     ) {
         mainHandler.post {
+            if (utteranceId != null && utteranceId == promptFocusUtterance) {
+                releasePromptFocus()
+            }
             if (utteranceId == null || utteranceId != awaitedUtteranceId) {
                 return@post
             }
@@ -690,6 +774,7 @@ class VoicePromptBridge(
     }
 
     private fun completeActiveAwaited() {
+        releasePromptFocus()
         val completion = awaitedResult
         awaitedUtteranceId = null
         awaitedResult = null
@@ -704,8 +789,16 @@ class VoicePromptBridge(
             return
         }
         diagnosticCueSequence += 1
+        val focusOwner = audioFocus?.newOwner("cue")
+        if (focusOwner != null && !audioFocus.acquire(focusOwner)) {
+            result.error("AUDIO_FOCUS_DENIED", "Chưa thể dùng âm thanh. Hãy thử lại.", null)
+            return
+        }
+        cueFocusOwner = focusOwner
         val cueId = diagnosticCueSequence
         val player = try { MediaPlayer() } catch (error: RuntimeException) {
+            cueFocusOwner?.let { audioFocus?.release(it) }
+            cueFocusOwner = null
             result.error("READY_CUE_UNAVAILABLE", error.message, null)
             return
         }
@@ -801,6 +894,8 @@ class VoicePromptBridge(
     }
 
     private fun completeReadyCue(errorCode: String? = null) {
+        cueFocusOwner?.let { audioFocus?.release(it) }
+        cueFocusOwner = null
         if (readyCuePlayer != null || readyCueResults.isNotEmpty()) {
             AudioDiagnostics.event("cue.native.complete", mapOf("cueId" to diagnosticCueSequence, "errorCode" to errorCode))
         }
@@ -817,23 +912,62 @@ class VoicePromptBridge(
         }
     }
 
-    fun stopForRouteLoss() {
+    private fun acquirePromptFocus(utteranceId: String, result: MethodChannel.Result?): Boolean {
+        releasePromptFocus()
+        val owner = audioFocus?.newOwner("prompt") ?: return true
+        if (!audioFocus.acquire(owner)) {
+            result?.error("AUDIO_FOCUS_DENIED", "Chưa thể dùng âm thanh. Hãy thử lại.", null)
+            return false
+        }
+        promptFocusOwner = owner
+        promptFocusUtterance = utteranceId
+        return true
+    }
+
+    private fun releasePromptFocus() {
+        promptFocusOwner?.let { audioFocus?.release(it) }
+        promptFocusOwner = null
+        promptFocusUtterance = null
+    }
+
+    private fun cancelPendingMediaChecks() {
+        val validation = pendingMediaValidation
+        pendingMediaValidation = null
+        mainMediaQuietGate.cancel()
+        validation?.error("MAIN_TURN_CANCELLED", "Lượt MAIN đã dừng.", null)
+    }
+
+    fun stopForAudioFocusLoss() {
+        mainTurnOwner = null
+        stopForInterruption("AUDIO_FOCUS_LOST", "Âm thanh đã bị ứng dụng khác gián đoạn. Nhấn MAIN để tiếp tục.")
+    }
+
+    fun stopForRouteLoss() = stopForInterruption(
+        "HFP_ROUTE_LOST", "Kết nối âm thanh HM-D001 bị gián đoạn. Hãy thử lại.",
+    )
+
+    private fun stopForInterruption(code: String, message: String) {
+        cancelPendingMediaChecks()
         // Runs on the bridge's main thread before SCO is released. Complete
         // with an error so callers cannot interpret a cut-off prompt as heard.
-        pendingPrompt?.completion?.error("HFP_ROUTE_LOST", "Kết nối âm thanh HM-D001 bị gián đoạn. Hãy thử lại.", null)
+        pendingPrompt?.completion?.error(code, message, null)
         pendingPrompt = null
         val completion = awaitedResult
         awaitedResult = null
         awaitedUtteranceId = null
-        completion?.error("HFP_ROUTE_LOST", "Kết nối âm thanh HM-D001 bị gián đoạn. Hãy thử lại.", null)
-        completeReadyCue("HFP_ROUTE_LOST")
+        completion?.error(code, message, null)
+        completeReadyCue(code)
         textToSpeech?.stop()
         clearSynthesizedPrompt()
         releasePromptPlayback()
+        releasePromptFocus()
     }
 
     fun stopForBackgroundSession() {
         mainHandler.post {
+            cancelPendingMediaChecks()
+            mainTurnOwner?.let { audioFocus?.release(it) }
+            mainTurnOwner = null
             completePendingPrompt()
             completeActiveAwaited()
             completeReadyCue()
@@ -844,6 +978,9 @@ class VoicePromptBridge(
     }
 
     fun dispose() {
+        cancelPendingMediaChecks()
+        mainTurnOwner?.let { audioFocus?.release(it) }
+        mainTurnOwner = null
         completePendingPrompt()
         completeActiveAwaited()
         completeReadyCue()

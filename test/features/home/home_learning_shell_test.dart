@@ -44,6 +44,178 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  const focusChannel = MethodChannel('ailingo_background_learning');
+  const focusEventsChannel = MethodChannel(
+    'ailingo_background_learning/events',
+  );
+  final messenger =
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+  setUp(() {
+    // These widget tests already fake playback and capture. Supply the OS
+    // focus boundary too, so their real controllers can reach those fakes.
+    messenger.setMockMethodCallHandler(focusChannel, (call) async {
+      if (call.method == 'acquireAudioFocus') return true;
+      return null;
+    });
+    messenger.setMockMethodCallHandler(focusEventsChannel, (_) async => null);
+  });
+  tearDown(() {
+    messenger.setMockMethodCallHandler(focusChannel, null);
+    messenger.setMockMethodCallHandler(focusEventsChannel, null);
+  });
+
+  testWidgets(
+    'iOS explicit conversation resumes audio before device gate only',
+    (tester) async {
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final speech = _FakeStreamingSpeechInput();
+      final controller = _ObservedPrimaryActionController(speech);
+      final session = _ForegroundResumeSession();
+      addTearDown(controller.dispose);
+      addTearDown(session.dispose);
+      var connections = 0;
+      await tester.pumpWidget(
+        _app(
+          controller,
+          backgroundLearningSession: session,
+          ensureDeviceConnected: () async {
+            connections++;
+            return true;
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(session.resumes, 0);
+      await tester.tap(find.text('Kết nối HOMI'));
+      await tester.pumpAndSettle();
+      expect(session.resumes, 1);
+      expect(connections, 0);
+      expect(controller.primaryActionPhases, isEmpty);
+      expect(speech.startCount, 0);
+      expect(
+        find.text(
+          'Âm thanh đang bị gián đoạn. Chờ tác vụ âm thanh kết thúc rồi thử lại.',
+        ),
+        findsOneWidget,
+      );
+      session.allowed = true;
+      await tester.tap(find.text('Kết nối HOMI'));
+      await tester.pump(const Duration(seconds: 1));
+      expect(session.resumes, 2);
+      expect(connections, 1);
+      expect(controller.primaryActionPhases, [ConversationPhase.idle]);
+      expect(speech.startCount, 1);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 3));
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  testWidgets(
+    'disposed iOS conversation cannot start after late audio resume',
+    (tester) async {
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final speech = _FakeStreamingSpeechInput();
+      final controller = _ObservedPrimaryActionController(speech);
+      final session = _ForegroundResumeSession()..pending = Completer<bool>();
+      addTearDown(controller.dispose);
+      addTearDown(session.dispose);
+      var connections = 0;
+      await tester.pumpWidget(
+        _app(
+          controller,
+          backgroundLearningSession: session,
+          ensureDeviceConnected: () async {
+            connections++;
+            return true;
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Kết nối HOMI'));
+      await tester.pump();
+      expect(session.resumes, 1);
+      await tester.pumpWidget(const SizedBox.shrink());
+      session.pending!.complete(true);
+      await tester.pump(const Duration(seconds: 3));
+      expect(connections, 0);
+      expect(speech.startCount, 0);
+      expect(controller.primaryActionPhases, isEmpty);
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  for (final pendingStep in ['resume', 'device']) {
+    for (final cancellation in [
+      'lifecycle',
+      'interruption',
+      'history',
+      'vocabulary',
+      'topic',
+      'stop',
+    ]) {
+      testWidgets(
+        'iOS pending $pendingStep is cancelled by $cancellation',
+        (tester) async {
+          tester.binding.handleAppLifecycleStateChanged(
+            AppLifecycleState.resumed,
+          );
+          SharedPreferences.setMockInitialValues(<String, Object>{});
+          final speech = _FakeStreamingSpeechInput();
+          final controller = _ObservedPrimaryActionController(speech);
+          final gate = Completer<bool>();
+          final session = _ForegroundResumeSession()..allowed = true;
+          if (pendingStep == 'resume') session.pending = gate;
+          addTearDown(controller.dispose);
+          addTearDown(session.dispose);
+          await tester.pumpWidget(
+            _app(
+              controller,
+              backgroundLearningSession: session,
+              ensureDeviceConnected: () async =>
+                  pendingStep == 'device' ? gate.future : true,
+            ),
+          );
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('Kết nối HOMI'));
+          await tester.pump();
+          if (cancellation == 'lifecycle') {
+            tester.binding.handleAppLifecycleStateChanged(
+              AppLifecycleState.inactive,
+            );
+            tester.binding.handleAppLifecycleStateChanged(
+              AppLifecycleState.resumed,
+            );
+          } else if (cancellation == 'interruption') {
+            session.interrupt('audio_session_interruption');
+          } else if (cancellation == 'history') {
+            await tester.tap(find.byTooltip('Lịch sử gần đây'));
+            await tester.pumpAndSettle();
+          } else if (cancellation == 'vocabulary') {
+            await tester.tap(find.text('Từ vựng').last);
+            await tester.pumpAndSettle();
+          } else if (cancellation == 'topic') {
+            await tester.tap(find.text('Chủ đề').last);
+            await tester.pumpAndSettle();
+          } else {
+            await controller.cancelCurrentMainAction();
+          }
+          await tester.pump();
+          gate.complete(true);
+          await tester.pump(const Duration(seconds: 1));
+          expect(controller.primaryActionPhases, isEmpty);
+          expect(speech.startCount, 0);
+          await tester.pumpWidget(const SizedBox.shrink());
+          await tester.pump(const Duration(seconds: 3));
+        },
+        variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+      );
+    }
+  }
+
   testWidgets(
     'Home starts background preparation after rendering and not on rebuild',
     (tester) async {
@@ -1183,7 +1355,154 @@ void main() {
   });
 
   testWidgets(
-    'rearms an Android background session without opening a busy microphone',
+    'stops an explicit Android MAIN mic when another app covers the display',
+    (tester) async {
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final backgroundSession = _FakeScreenAwareBackgroundLearningSession(
+        screenInteractive: true,
+      );
+      final speechInput = _FakeStreamingSpeechInput();
+      final voice = VoiceNavigationController(
+        speechInput: speechInput,
+        voicePromptService: _SilentVoicePromptService(),
+      );
+      final controller = _controller();
+      addTearDown(backgroundSession.dispose);
+      addTearDown(voice.dispose);
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        _app(
+          controller,
+          voiceNavigationController: voice,
+          backgroundLearningSession: backgroundSession,
+          parentMediaSettingsStore: const _FakeParentMediaSettingsStore(true),
+        ),
+      );
+      await tester.pump();
+      expect(backgroundSession.startCount, 1);
+      expect(await voice.activateFromMainButton(), isTrue);
+      expect(voice.isListening, isTrue);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(backgroundSession.screenStateReadCount, 1);
+      expect(voice.isListening, isFalse);
+      expect(speechInput.cancelCount, greaterThan(0));
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 3));
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  for (final scenario
+      in const <
+        ({
+          bool? screenInteractive,
+          bool backgroundStarted,
+          bool endMainBeforeScreenResult,
+        })
+      >[
+        (
+          screenInteractive: false,
+          backgroundStarted: true,
+          endMainBeforeScreenResult: false,
+        ),
+        (
+          screenInteractive: true,
+          backgroundStarted: true,
+          endMainBeforeScreenResult: false,
+        ),
+        (
+          screenInteractive: null,
+          backgroundStarted: true,
+          endMainBeforeScreenResult: false,
+        ),
+        (
+          screenInteractive: false,
+          backgroundStarted: false,
+          endMainBeforeScreenResult: false,
+        ),
+        (
+          screenInteractive: false,
+          backgroundStarted: true,
+          endMainBeforeScreenResult: true,
+        ),
+      ]) {
+    testWidgets(
+      'Android screen query rechecks a MAIN started while it was pending '
+      '(screenInteractive=${scenario.screenInteractive}, '
+      'backgroundStarted=${scenario.backgroundStarted}, '
+      'endMainBeforeScreenResult=${scenario.endMainBeforeScreenResult})',
+      (tester) async {
+        tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        );
+        SharedPreferences.setMockInitialValues(<String, Object>{});
+        final screenState = Completer<bool?>();
+        final backgroundSession =
+            _FakeScreenAwareBackgroundLearningSession(
+                screenInteractive: scenario.screenInteractive,
+              )
+              ..startResult = scenario.backgroundStarted
+              ..pendingScreenState = screenState;
+        final speechInput = _FakeStreamingSpeechInput();
+        final voice = VoiceNavigationController(
+          speechInput: speechInput,
+          voicePromptService: _SilentVoicePromptService(),
+        );
+        final controller = _controller();
+        addTearDown(backgroundSession.dispose);
+        addTearDown(voice.dispose);
+        addTearDown(controller.dispose);
+        await tester.pumpWidget(
+          _app(
+            controller,
+            voiceNavigationController: voice,
+            backgroundLearningSession: backgroundSession,
+            parentMediaSettingsStore: const _FakeParentMediaSettingsStore(true),
+          ),
+        );
+        await tester.pump();
+        expect(backgroundSession.startCount, 1);
+        expect(voice.isMainButtonSessionActive, isFalse);
+
+        tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+        await tester.idle();
+        expect(backgroundSession.screenStateReadCount, 1);
+        expect(screenState.isCompleted, isFalse);
+        expect(await voice.activateFromMainButton(), isTrue);
+        expect(voice.isListening, isTrue);
+        if (scenario.endMainBeforeScreenResult) {
+          await voice.pause();
+          expect(voice.isMainButtonSessionActive, isFalse);
+        }
+
+        screenState.complete(scenario.screenInteractive);
+        await tester.pump(const Duration(milliseconds: 400));
+
+        final keepsMain =
+            scenario.screenInteractive == false &&
+            scenario.backgroundStarted &&
+            !scenario.endMainBeforeScreenResult;
+        expect(voice.isListening, keepsMain);
+        expect(voice.isMainButtonSessionActive, keepsMain);
+        expect(speechInput.startCount, 1);
+        expect(speechInput.cancelCount, keepsMain ? equals(0) : greaterThan(0));
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump(const Duration(seconds: 3));
+        tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        );
+      },
+      variant: TargetPlatformVariant.only(TargetPlatform.android),
+    );
+  }
+
+  testWidgets(
+    'Android native resume keeps wake listening paused until explicit MAIN',
     (tester) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
@@ -1221,11 +1540,82 @@ void main() {
 
       backgroundSession.resume();
       await tester.pump(const Duration(milliseconds: 400));
+      expect(voiceNavigationController.isListening, isFalse);
+
+      expect(await voiceNavigationController.activateFromMainButton(), isTrue);
       expect(voiceNavigationController.isListening, isTrue);
 
       await tester.pumpWidget(const SizedBox.shrink());
       debugDefaultTargetPlatformOverride = null;
     },
+  );
+
+  testWidgets(
+    'native interruption pauses the learning owner before cleanup and does not resume it',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final registry = ActiveLearningModuleRegistry();
+      final module = _InterruptedLearningModule();
+      registry.register(module);
+      final backgroundSession = _FakeBackgroundLearningSession();
+      final speechInput = _FakeStreamingSpeechInput();
+      final voice = VoiceNavigationController(speechInput: speechInput);
+      final controller = _controller();
+      addTearDown(registry.dispose);
+      addTearDown(module.finishCleanup);
+      addTearDown(backgroundSession.dispose);
+      addTearDown(voice.dispose);
+      addTearDown(controller.dispose);
+
+      await tester.pumpWidget(
+        ActiveLearningModuleScope(
+          registry: registry,
+          child: _app(
+            controller,
+            voiceNavigationController: voice,
+            backgroundLearningSession: backgroundSession,
+            parentMediaSettingsStore: const _FakeParentMediaSettingsStore(
+              false,
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(await voice.activateFromMainButton(), isTrue);
+      expect(voice.isListening, isTrue);
+
+      backgroundSession.interrupt('audio_focus_loss');
+      await tester.pump();
+
+      expect(module.isPausedForMain, isTrue);
+      expect(module.cleanup.isCompleted, isFalse);
+      expect(voice.isListening, isFalse);
+      expect(speechInput.cancelCount, 1);
+      expect(voice.canResumeLearningAfterFailedActivation, isFalse);
+      expect(registry.controller, same(module));
+
+      backgroundSession.resume();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(voice.isListening, isFalse);
+      expect(module.isPausedForMain, isTrue);
+      expect(module.commands, isEmpty);
+
+      module.finishCleanup();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(backgroundSession.activeLearningValues, contains(false));
+      expect(registry.controller, same(module));
+      expect(module.commands, isEmpty);
+      expect(await voice.activateFromMainButton(), isTrue);
+      expect(voice.isListening, isTrue);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
   );
 
   testWidgets(
@@ -2217,6 +2607,9 @@ void main() {
         VocabularyTranslation(englishText: 'Apple', vietnameseText: 'Táo'),
       ]);
       final registry = ActiveLearningModuleRegistry();
+      final backgroundSession = _FakeScreenAwareBackgroundLearningSession(
+        screenInteractive: false,
+      );
       final voice = VoiceNavigationController(
         speechInput: _FakeStreamingSpeechInput(),
         ownsSpeechInput: true,
@@ -2224,6 +2617,7 @@ void main() {
       );
       final controller = _controller();
       addTearDown(registry.dispose);
+      addTearDown(backgroundSession.dispose);
       addTearDown(voice.dispose);
       addTearDown(controller.dispose);
       var translationStarted = false;
@@ -2238,6 +2632,7 @@ void main() {
           child: _app(
             controller,
             voiceNavigationController: voice,
+            backgroundLearningSession: backgroundSession,
             vocabularyMediaService: _ImmediateVocabularyMediaService(),
             vocabularyVoicePromptService: vocabularyVoice,
             vocabularyAudioService: vocabularyAudio,
@@ -2253,6 +2648,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      expect(backgroundSession.startCount, 1);
       pageController = tester
           .widget<PageView>(find.byKey(const Key('home-learning-page-view')))
           .controller!;
@@ -2292,6 +2688,8 @@ void main() {
       expect(pageWhenStarted, closeTo(0, 0.001));
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
       expect(await voice.activateFromMainButton(), isTrue);
+      expect(voice.isListening, isTrue);
+      expect(backgroundSession.screenStateReadCount, greaterThan(0));
       vocabularyAudio.spoken.clear();
       final returning = voice.dispatchRecognizedText('Bộ từ vựng');
       await tester.idle();
@@ -3866,11 +4264,20 @@ class _HomeListeningProgressStore extends ListeningProgressStore {
 }
 
 class _FakeBackgroundLearningSession
-    implements BackgroundLearningSessionControl {
+    implements
+        BackgroundLearningSessionControl,
+        ActiveLearningBackgroundSessionControl {
   final StreamController<BackgroundLearningEvent> _events =
       StreamController<BackgroundLearningEvent>.broadcast();
   int startCount = 0;
+  bool startResult = true;
   int stopCount = 0;
+  final List<bool> activeLearningValues = <bool>[];
+
+  @override
+  Future<void> setActiveLearning(bool active) async {
+    activeLearningValues.add(active);
+  }
 
   @override
   Stream<BackgroundLearningEvent> get events => _events.stream;
@@ -3878,7 +4285,7 @@ class _FakeBackgroundLearningSession
   @override
   Future<bool> start() async {
     startCount += 1;
-    return true;
+    return startResult;
   }
 
   @override
@@ -3907,18 +4314,32 @@ class _FakeBackgroundLearningSession
   Future<void> dispose() => _events.close();
 }
 
+class _ForegroundResumeSession extends _FakeBackgroundLearningSession
+    implements ForegroundAudioResumeSessionControl {
+  bool allowed = false;
+  int resumes = 0;
+  Completer<bool>? pending;
+
+  @override
+  Future<bool> resumeForegroundAudio() async {
+    resumes++;
+    return pending?.future ?? allowed;
+  }
+}
+
 class _FakeScreenAwareBackgroundLearningSession
     extends _FakeBackgroundLearningSession
     implements DeviceScreenStateBackgroundSessionControl {
   _FakeScreenAwareBackgroundLearningSession({required this.screenInteractive});
 
-  final bool screenInteractive;
+  final bool? screenInteractive;
+  Completer<bool?>? pendingScreenState;
   int screenStateReadCount = 0;
 
   @override
   Future<bool?> isScreenInteractive() async {
     screenStateReadCount += 1;
-    return screenInteractive;
+    return pendingScreenState?.future ?? screenInteractive;
   }
 }
 
@@ -4071,6 +4492,29 @@ class _ChallengeVoiceModule
   Future<ActiveLearningCommandResult> handleMainCommand(
     ActiveLearningCommand command,
   ) async => const ActiveLearningCommandResult.handled();
+}
+
+class _InterruptedLearningModule extends _ChallengeVoiceModule {
+  final cleanup = Completer<void>();
+  final List<ActiveLearningCommand> commands = <ActiveLearningCommand>[];
+
+  @override
+  Future<void> pauseForMainAssistant() async {
+    paused = true;
+    await cleanup.future;
+  }
+
+  void finishCleanup() {
+    if (!cleanup.isCompleted) cleanup.complete();
+  }
+
+  @override
+  Future<ActiveLearningCommandResult> handleMainCommand(
+    ActiveLearningCommand command,
+  ) async {
+    commands.add(command);
+    return const ActiveLearningCommandResult.handled();
+  }
 }
 
 class _FakeStreamingSpeechInput implements StreamingSpeechInput {

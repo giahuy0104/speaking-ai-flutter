@@ -199,8 +199,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         );
     _vocabularyDictionaryProvider = MinhqndDictionaryProvider();
     _backgroundLearningSession =
-        widget.backgroundLearningSession ??
-        MethodChannelBackgroundLearningSession();
+        widget.backgroundLearningSession ?? sharedBackgroundLearningSession;
     _backgroundLearningCoordinator = BackgroundLearningCoordinator(
       session: _backgroundLearningSession,
       initialLifecycleState:
@@ -381,7 +380,20 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         // Locking the phone is an intended HM-D001 learning mode. Keep the active
         // lesson/translation and its SCO route; only the always-on foreground
         // wake loop follows the coordinator's normal Android policy.
-        _applyBackgroundLearningDirective(directive);
+        // MAIN may start or end while the native screen query is pending. Use
+        // its current ownership instead of cancelling a newer explicit turn.
+        final keepMainListening = _backgroundLearningCoordinator
+            .canKeepMainListeningInBackground(
+              voiceAccessEnabled: widget.voiceAccessEnabled,
+              explicitMainSessionActive:
+                  widget.voiceNavigationController?.isMainButtonSessionActive ??
+                  false,
+            );
+        _applyBackgroundLearningDirective(
+          keepMainListening
+              ? BackgroundLearningDirective.keepVoiceNavigation
+              : BackgroundLearningDirective.pauseVoiceNavigation,
+        );
         return;
       }
       _applyBackgroundLearningDirective(
@@ -495,6 +507,37 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     BackgroundLearningDirective directive,
   ) {
     if (!mounted) return;
+    if (directive == BackgroundLearningDirective.pauseAllAudio) {
+      _voiceNavigationRestartTimer?.cancel();
+      // Invoke each owner before awaiting cleanup: their generation guards
+      // must invalidate pending capture/scoring in the same event turn.
+      final registry = ActiveLearningModuleScope.read(context);
+      unawaited(
+        Future.wait<void>([
+          _runBackgroundStopStep(
+            'active learning interruption',
+            () => registry?.pauseForMainAssistant(),
+          ),
+          _runBackgroundStopStep(
+            'MAIN interruption',
+            () => widget.voiceNavigationController?.pauseForAudioInterruption(),
+          ),
+          _runBackgroundStopStep(
+            'conversation interruption',
+            widget.controller.cancelCurrentMainAction,
+          ),
+          _runBackgroundStopStep(
+            'speaking interruption',
+            () async => widget.speakingSessionController?.exit(),
+          ),
+          _runBackgroundStopStep(
+            'background interruption',
+            () => _backgroundLearningCoordinator.setActiveLearning(false),
+          ),
+        ]),
+      );
+      return;
+    }
     if (directive == BackgroundLearningDirective.keepVoiceNavigation) {
       _scheduleVoiceNavigationListening();
       return;
@@ -550,6 +593,15 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                       isOffline: _hasNetworkTransport == false,
                       offlineLanguageReady: _offlineLanguageReady,
                       ensureDeviceConnected: widget.ensureDeviceConnected,
+                      resumeForegroundAudio:
+                          !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
+                          ? _backgroundLearningCoordinator.resumeForegroundAudio
+                          : null,
+                      audioInterruptionGeneration:
+                          !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
+                          ? () => _backgroundLearningCoordinator
+                                .foregroundResumeGeneration
+                          : null,
                       isDeviceConnectionReady: widget.isDeviceConnectionReady,
                       sessionActive: widget.sessionActive,
                       isStoppingSession: widget.isStoppingSession,
@@ -691,6 +743,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
 
   bool get _canStartVoiceNavigationListening =>
       mounted &&
+      _backgroundLearningCoordinator.automaticVoiceNavigationAllowed &&
       _continuousVoiceNavigationEnabled &&
       (_backgroundLearningCoordinator.isForeground ||
           _backgroundLearningCoordinator.canKeepMainListeningInBackground(
@@ -1380,6 +1433,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   }
 
   Future<void> _showVocabularyAndWait({bool autoStartToday = true}) async {
+    _backgroundLearningCoordinator.invalidateForegroundResume();
     AudioDiagnostics.event('screen.vocabulary.activate');
     if (AudioDiagnostics.enabled) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1561,6 +1615,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   }
 
   void _handlePageChanged(int page) {
+    if (page != 0) _backgroundLearningCoordinator.invalidateForegroundResume();
     if (page == 1) {
       _vocabularyActivationController.activate();
     } else {
@@ -1578,6 +1633,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     Completer<bool>? routePushed,
     void Function(Route<void> route)? onRouteCreated,
   }) async {
+    _backgroundLearningCoordinator.invalidateForegroundResume();
     if (_openingTopics) {
       if (routePushed != null && !routePushed.isCompleted) {
         routePushed.complete(false);

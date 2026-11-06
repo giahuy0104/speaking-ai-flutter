@@ -19,7 +19,8 @@ class CoordinatedVoicePromptService
         PhoneSpeakerVoicePromptService,
         SelectedMediaOutputVoicePromptService,
         StyledMediaOutputVoicePromptService,
-        RoutedMainTurnVoicePromptService {
+        RoutedMainTurnVoicePromptService,
+        MainTurnAudioValidation {
   CoordinatedVoicePromptService({
     required VoicePromptService delegate,
     required AudioTurnCoordinator coordinator,
@@ -304,6 +305,16 @@ class CoordinatedVoicePromptService
     return delegate is MainTurnVoicePromptService
         ? (delegate as MainTurnVoicePromptService).beginMainTurn()
         : null;
+  }
+
+  @override
+  Future<void> validateMainTurnAudio({String? turnId}) async {
+    final delegate = _delegate;
+    if (delegate is MainTurnAudioValidation) {
+      await (delegate as MainTurnAudioValidation).validateMainTurnAudio(
+        turnId: turnId,
+      );
+    }
   }
 
   @override

@@ -15,6 +15,7 @@ import io.flutter.plugin.common.MethodChannel
 class AndroidBackgroundLearningBridge(
     private val host: HomiAndroidHost,
     messenger: BinaryMessenger,
+    private val audioFocus: AndroidAudioFocusCoordinator? = null,
 ) : MethodChannel.MethodCallHandler, EventChannel.StreamHandler {
     companion object {
         private const val NOTIFICATION_PERMISSION_REQUEST_CODE = 7412
@@ -39,6 +40,15 @@ class AndroidBackgroundLearningBridge(
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
+            "acquireAudioFocus" -> result.success(audioFocus?.acquire(
+                call.argument<String>("ownerId").orEmpty(),
+                call.argument<Boolean>("transientExclusive") ?: true,
+            ) ?: false)
+            "releaseAudioFocus" -> {
+                audioFocus?.release(call.argument<String>("ownerId").orEmpty())
+                result.success(null)
+            }
+            "isAudioFocusManaged" -> result.success(audioFocus != null)
             "start" -> result.success(
                 BackgroundLearningService.start(
                     appContext,
@@ -123,6 +133,10 @@ class AndroidBackgroundLearningBridge(
 
     override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
         eventSink = events
+    }
+
+    fun notifyAudioInterruption(reason: String) {
+        eventSink?.success(mapOf("type" to "background.interrupted", "reason" to reason))
     }
 
     override fun onCancel(arguments: Any?) {

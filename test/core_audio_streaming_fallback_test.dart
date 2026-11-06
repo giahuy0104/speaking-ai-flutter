@@ -2,6 +2,9 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
+import 'package:ai_speaking_flutter_app/core/audio/native_audio_focus.dart';
+import 'package:ai_speaking_flutter_app/core/platform/background_learning_session.dart';
+import 'package:flutter/services.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
 import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_control.dart';
 import 'package:ai_speaking_flutter_app/core/audio/offline_intent_recognizer.dart';
@@ -21,7 +24,327 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   setUp(() => SharedPreferences.setMockInitialValues({}));
+  for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
+    group('${platform.name} conversation focus', () {
+      late NativeAudioFocus focus;
+      late _FocusTestBackgroundSession session;
+      late List<String> calls;
+      const channel = MethodChannel('test_conversation_focus');
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      setUp(() {
+        debugDefaultTargetPlatformOverride = platform;
+        session = _FocusTestBackgroundSession();
+        calls = [];
+        messenger.setMockMethodCallHandler(channel, (call) async {
+          calls.add(call.method);
+          return call.method == 'acquireAudioFocus' ? true : null;
+        });
+        focus = NativeAudioFocus(
+          channel: channel,
+          session: session,
+          isAndroid: true,
+        );
+      });
+      tearDown(() async {
+        await focus.dispose();
+        await session.close();
+        messenger.setMockMethodCallHandler(channel, null);
+        debugDefaultTargetPlatformOverride = null;
+      });
+
+      test(
+        'cancel during network probe never submits or plays the old turn',
+        () async {
+          final network = Completer<bool>();
+          final probing = Completer<void>();
+          final repository = _FallbackRepository();
+          final playback = _RecordingPlaybackService();
+          final controller = ConversationController(
+            audioInput: _FakeChunkedInput(
+              available: true,
+              bluetooth: false,
+              label: 'Phone',
+            ),
+            streamingSpeechInput: _FakeStreamingSpeechInput(
+              sourceText: 'Con muốn đi công viên',
+            ),
+            playbackService: playback,
+            repository: repository,
+            childAge: 6,
+            audioFocus: focus,
+            networkTransportAvailable: () {
+              probing.complete();
+              return network.future;
+            },
+          );
+          addTearDown(controller.dispose);
+          await controller.startRecording();
+          await Future<void>.delayed(const Duration(milliseconds: 500));
+          final stopping = controller.stopRecording(manual: true);
+          await probing.future;
+          session.interrupt();
+          await Future<void>.delayed(Duration.zero);
+          network.complete(true);
+          await stopping;
+          expect(repository.streamingTextRequests, 0);
+          expect(repository.fullFileUploads, 0);
+          expect(playback.playCount, 0);
+          expect(controller.phase, ConversationPhase.idle);
+          expect(calls, ['acquireAudioFocus', 'releaseAudioFocus']);
+        },
+      );
+
+      test(
+        'capture focus stays owned through translation and response playback',
+        () async {
+          final backend = Completer<ConversationResult>();
+          final repository = _FallbackRepository(
+            streamingResultCompleter: backend,
+          );
+          final playback = _CompletionControlledPlaybackService();
+          final controller = ConversationController(
+            audioInput: _FakeChunkedInput(
+              available: true,
+              bluetooth: false,
+              label: 'Phone',
+            ),
+            streamingSpeechInput: _FakeStreamingSpeechInput(
+              sourceText: 'Con muốn đi công viên',
+            ),
+            playbackService: playback,
+            repository: repository,
+            childAge: 6,
+            audioFocus: focus,
+          );
+          addTearDown(controller.dispose);
+          await controller.startRecording();
+          await Future<void>.delayed(const Duration(milliseconds: 500));
+          final stopping = controller.stopRecording(manual: true);
+          while (repository.streamingTextRequests == 0) {
+            await Future<void>.delayed(Duration.zero);
+          }
+          expect(calls, ['acquireAudioFocus']);
+          backend.complete(
+            _result(
+              'focus-response',
+              audioUri: Uri.parse('asset:///response.mp3'),
+            ),
+          );
+          await playback.started.future;
+          expect(calls, ['acquireAudioFocus']);
+          playback.complete();
+          await stopping;
+          expect(controller.phase, ConversationPhase.ready);
+          expect(calls, ['acquireAudioFocus', 'releaseAudioFocus']);
+        },
+      );
+
+      test('interrupted phone capture never uploads or advances', () async {
+        final input = _FakeChunkedInput(
+          available: true,
+          bluetooth: false,
+          label: 'Phone',
+        );
+        final repository = _FallbackRepository();
+        final controller = ConversationController(
+          audioInput: input,
+          playbackService: const _FakePlaybackService(),
+          repository: repository,
+          childAge: 6,
+          audioFocus: focus,
+          initialAsrMode: AsrMode.batchChunks,
+        );
+        addTearDown(controller.dispose);
+        await controller.startRecording();
+        expect(controller.phase, ConversationPhase.recording);
+        session.interrupt();
+        await Future<void>.delayed(Duration.zero);
+        await controller.stopRecording(manual: true);
+        expect(controller.phase, ConversationPhase.idle);
+        expect(repository.streamingTextRequests, 0);
+        expect(repository.fullFileUploads, 0);
+        expect(controller.result, isNull);
+        expect(calls, ['acquireAudioFocus', 'releaseAudioFocus']);
+      });
+
+      test(
+        'too-short capture releases focus without a backend request',
+        () async {
+          final repository = _FallbackRepository();
+          final controller = ConversationController(
+            audioInput: _FakeChunkedInput(
+              available: true,
+              bluetooth: false,
+              label: 'Phone',
+            ),
+            streamingSpeechInput: _FakeStreamingSpeechInput(),
+            playbackService: const _FakePlaybackService(),
+            repository: repository,
+            childAge: 6,
+            audioFocus: focus,
+          );
+          addTearDown(controller.dispose);
+          await controller.startRecording();
+          await controller.stopRecording(manual: true);
+          expect(
+            controller.lastTurnEndReason,
+            ConversationTurnEndReason.tooShort,
+          );
+          expect(repository.streamingTextRequests, 0);
+          expect(calls, ['acquireAudioFocus', 'releaseAudioFocus']);
+        },
+      );
+
+      for (final nativeCapture in [true, false]) {
+        test(
+          'failed ${nativeCapture ? "native" : "phone"} capture releases focus',
+          () async {
+            final controller = ConversationController(
+              audioInput: _FakeChunkedInput(
+                available: true,
+                bluetooth: false,
+                label: 'Phone',
+                failOnStart: true,
+              ),
+              streamingSpeechInput: nativeCapture
+                  ? _FakeStreamingSpeechInput(failOnStart: true)
+                  : null,
+              playbackService: const _FakePlaybackService(),
+              repository: _FallbackRepository(),
+              childAge: 6,
+              audioFocus: focus,
+            );
+            addTearDown(controller.dispose);
+            await controller.startRecording();
+            expect(controller.phase, ConversationPhase.error);
+            expect(calls, ['acquireAudioFocus', 'releaseAudioFocus']);
+          },
+        );
+      }
+
+      test(
+        'old native stop failure cannot change a newer streaming capture',
+        () async {
+          final speech = _DelayedFocusStopSpeechInput();
+          final repository = _FallbackRepository();
+          final controller = ConversationController(
+            audioInput: _FakeChunkedInput(
+              available: true,
+              bluetooth: false,
+              label: 'Phone',
+            ),
+            streamingSpeechInput: speech,
+            playbackService: const _FakePlaybackService(),
+            repository: repository,
+            childAge: 6,
+            audioFocus: focus,
+          );
+          addTearDown(controller.dispose);
+          await controller.startRecording();
+          await Future<void>.delayed(const Duration(milliseconds: 500));
+          final oldStop = controller.stopRecording(manual: true);
+          await speech.stopEntered.future;
+          await controller.cancelCurrentMainAction();
+          await controller.startRecording();
+          speech.stopGate.complete();
+          await oldStop;
+          expect(controller.phase, ConversationPhase.recording);
+          expect(controller.asrMode, AsrMode.androidStreaming);
+          expect(repository.streamingTextRequests, 0);
+          expect(repository.fullFileUploads, 0);
+          expect(calls, [
+            'acquireAudioFocus',
+            'releaseAudioFocus',
+            'acquireAudioFocus',
+          ]);
+          await Future<void>.delayed(const Duration(milliseconds: 500));
+          await controller.stopRecording(manual: true);
+          expect(repository.streamingTextRequests, 1);
+        },
+      );
+
+      test(
+        'interruption during no-speech cleanup never restarts coaching speech',
+        () async {
+          final speech = _DelayedFocusCancelSpeechInput();
+          final prompts = _RecordingVoicePromptService();
+          final controller = ConversationController(
+            audioInput: _FakeChunkedInput(
+              available: true,
+              bluetooth: false,
+              label: 'Phone',
+            ),
+            streamingSpeechInput: speech,
+            playbackService: const _FakePlaybackService(),
+            repository: _FallbackRepository(),
+            childAge: 6,
+            audioFocus: focus,
+            voicePromptService: prompts,
+          );
+          addTearDown(controller.dispose);
+          await controller.startRecording();
+          await Future<void>.delayed(const Duration(milliseconds: 500));
+          final stopping = controller.stopRecording(manual: false);
+          await speech.cancelEntered.future;
+          session.interrupt();
+          await Future<void>.delayed(Duration.zero);
+          speech.cancelGate.complete();
+          await stopping;
+          expect(controller.phase, ConversationPhase.idle);
+          expect(prompts.spoken, isEmpty);
+          expect(calls, ['acquireAudioFocus', 'releaseAudioFocus']);
+        },
+      );
+
+      test(
+        'old backend cleanup cannot release a newer capture focus',
+        () async {
+          final backend = Completer<ConversationResult>();
+          final repository = _FallbackRepository(
+            streamingResultCompleter: backend,
+          );
+          final controller = ConversationController(
+            audioInput: _FakeChunkedInput(
+              available: true,
+              bluetooth: false,
+              label: 'Phone',
+            ),
+            streamingSpeechInput: _FakeStreamingSpeechInput(
+              sourceText: 'Con muốn đi công viên',
+            ),
+            playbackService: const _FakePlaybackService(),
+            repository: repository,
+            childAge: 6,
+            audioFocus: focus,
+          );
+          addTearDown(controller.dispose);
+          await controller.startRecording();
+          await Future<void>.delayed(const Duration(milliseconds: 500));
+          final stopping = controller.stopRecording(manual: true);
+          while (repository.streamingTextRequests == 0) {
+            await Future<void>.delayed(Duration.zero);
+          }
+          await controller.cancelCurrentMainAction();
+          await controller.startRecording();
+          backend.complete(_result('obsolete'));
+          await stopping;
+          expect(controller.phase, ConversationPhase.recording);
+          expect(controller.result, isNull);
+          expect(calls, [
+            'acquireAudioFocus',
+            'releaseAudioFocus',
+            'acquireAudioFocus',
+          ]);
+          await controller.cancelCurrentMainAction();
+          expect(calls.last, 'releaseAudioFocus');
+        },
+      );
+    });
+  }
+
   for (final count in [1, 2, 3]) {
     test(
       'final $count sentence turn preserves API count and audio order',
@@ -1026,7 +1349,10 @@ void main() {
       );
 
       final starting = controller.startRecording();
-      await Future<void>.delayed(Duration.zero);
+      // Native focus must be granted before capture. The upload remains blocked.
+      while (input.startCount == 0) {
+        await Future<void>.delayed(Duration.zero);
+      }
 
       expect(input.startCount, 1);
       expect(controller.phase, ConversationPhase.idle);
@@ -2015,51 +2341,54 @@ void main() {
     controller.dispose();
   });
 
-  test('Android HFP revalidates after ASR before translated playback', () async {
-    final input = _FakeChunkedInput(
-      available: true,
-      bluetooth: false,
-      label: 'Phone',
-    );
-    final hfp = _FakeHfpAudioControl();
-    final playback = _RecordingPlaybackService()
-      ..onPlay = () => expect(hfp.startRouteCount, 2);
-    final repository = _FallbackRepository(
-      streamingOutcomes: [
-        _result(
-          'stream-result',
-          audioUri: Uri.parse('https://api.example.com/english.mp3'),
+  test(
+    'Android HFP revalidates after ASR before translated playback',
+    () async {
+      final input = _FakeChunkedInput(
+        available: true,
+        bluetooth: false,
+        label: 'Phone',
+      );
+      final hfp = _FakeHfpAudioControl();
+      final playback = _RecordingPlaybackService()
+        ..onPlay = () => expect(hfp.startRouteCount, 2);
+      final repository = _FallbackRepository(
+        streamingOutcomes: [
+          _result(
+            'stream-result',
+            audioUri: Uri.parse('https://api.example.com/english.mp3'),
+          ),
+        ],
+      );
+      final controller = ConversationController(
+        audioInput: input,
+        streamingSpeechInput: _FakeStreamingSpeechInput(
+          sourceText: 'Hôm nay con muốn xem những ngôi sao thật sáng',
         ),
-      ],
-    );
-    final controller = ConversationController(
-      audioInput: input,
-      streamingSpeechInput: _FakeStreamingSpeechInput(
-        sourceText: 'Hôm nay con muốn xem những ngôi sao thật sáng',
-      ),
-      hfpAudioControl: hfp,
-      playbackService: playback,
-      repository: repository,
-      childAge: 6,
-      initialAsrMode: AsrMode.hfpStreaming,
-    );
+        hfpAudioControl: hfp,
+        playbackService: playback,
+        repository: repository,
+        childAge: 6,
+        initialAsrMode: AsrMode.hfpStreaming,
+      );
 
-    await controller.startRecording();
-    expect(hfp.startRouteCount, 1);
-    expect(controller.phase, ConversationPhase.recording);
+      await controller.startRecording();
+      expect(hfp.startRouteCount, 1);
+      expect(controller.phase, ConversationPhase.recording);
 
-    await Future<void>.delayed(const Duration(milliseconds: 500));
-    await controller.stopRecording(manual: true);
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      await controller.stopRecording(manual: true);
 
-    expect(hfp.startRouteCount, 2);
-    expect(playback.playCount, 1);
-    expect(hfp.stopRouteCount, 1);
-    expect(controller.asrMode, AsrMode.androidStreaming);
-    expect(repository.streamingCapture?.asrMode, 'android_streaming');
-    expect(repository.streamingCapture?.isBluetoothInput, isTrue);
-    expect(repository.streamingCapture?.inputLabel, contains('Tai nghe HFP'));
-    controller.dispose();
-  });
+      expect(hfp.startRouteCount, 2);
+      expect(playback.playCount, 1);
+      expect(hfp.stopRouteCount, 1);
+      expect(controller.asrMode, AsrMode.androidStreaming);
+      expect(repository.streamingCapture?.asrMode, 'android_streaming');
+      expect(repository.streamingCapture?.isBluetoothInput, isTrue);
+      expect(repository.streamingCapture?.inputLabel, contains('Tai nghe HFP'));
+      controller.dispose();
+    },
+  );
 
   test('native iOS HFP prefers Apple Speech and reports Bluetooth', () async {
     final input = _FakeChunkedInput(
@@ -4074,3 +4403,47 @@ ConversationResult _result(
     timeToFirstAudioMs: 3,
   ),
 );
+
+class _FocusTestBackgroundSession implements BackgroundLearningSessionControl {
+  final _events = StreamController<BackgroundLearningEvent>.broadcast(
+    sync: true,
+  );
+  @override
+  Stream<BackgroundLearningEvent> get events => _events.stream;
+  void interrupt() => _events.add(
+    const BackgroundLearningEvent(
+      type: BackgroundLearningEventType.interrupted,
+    ),
+  );
+  @override
+  Future<bool> start() async => true;
+  @override
+  Future<void> stop() async {}
+  Future<void> close() => _events.close();
+}
+
+class _DelayedFocusStopSpeechInput extends _FakeStreamingSpeechInput {
+  _DelayedFocusStopSpeechInput() : super(sourceText: 'Con muốn đi công viên');
+  final stopEntered = Completer<void>();
+  final stopGate = Completer<void>();
+  int stops = 0;
+  @override
+  Future<StreamingSpeechCapture> stop() async {
+    if (++stops == 1) {
+      stopEntered.complete();
+      await stopGate.future;
+      throw const StreamingSpeechInputException('Old capture interrupted');
+    }
+    return super.stop();
+  }
+}
+
+class _DelayedFocusCancelSpeechInput extends _FakeStreamingSpeechInput {
+  final cancelEntered = Completer<void>();
+  final cancelGate = Completer<void>();
+  @override
+  Future<void> cancel() async {
+    if (!cancelEntered.isCompleted) cancelEntered.complete();
+    await cancelGate.future;
+  }
+}

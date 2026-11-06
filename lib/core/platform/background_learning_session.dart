@@ -5,6 +5,10 @@ import 'package:flutter/services.dart';
 
 enum BackgroundLearningEventType { stopped, interrupted, resumable }
 
+// All consumers share one subscription to the native EventChannel.
+final sharedBackgroundLearningSession =
+    MethodChannelBackgroundLearningSession();
+
 class BackgroundLearningEvent {
   const BackgroundLearningEvent({required this.type, this.reason});
 
@@ -35,6 +39,12 @@ abstract interface class BackgroundLearningSessionControl {
   Future<void> stop();
 }
 
+/// Used only by an explicit foreground recording action after interruption.
+/// This clears an eligible native suspension; it never starts audio or input.
+abstract interface class ForegroundAudioResumeSessionControl {
+  Future<bool> resumeForegroundAudio();
+}
+
 /// Optional extension used while a lesson route is actively progressing.
 ///
 /// Android keeps a bounded CPU wake lease for this interval so audio gaps and
@@ -62,6 +72,7 @@ abstract interface class DeviceScreenStateBackgroundSessionControl {
 class MethodChannelBackgroundLearningSession
     implements
         BackgroundLearningSessionControl,
+        ForegroundAudioResumeSessionControl,
         ActiveLearningBackgroundSessionControl,
         DeviceScreenStateBackgroundSessionControl {
   MethodChannelBackgroundLearningSession({
@@ -77,6 +88,23 @@ class MethodChannelBackgroundLearningSession
   final MethodChannel _methodChannel;
   final EventChannel _eventChannel;
   Stream<BackgroundLearningEvent>? _events;
+
+  @override
+  Future<bool> resumeForegroundAudio() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) return true;
+    try {
+      return await _methodChannel
+              .invokeMethod<bool>('resumeForegroundAudio')
+              .timeout(const Duration(seconds: 3)) ??
+          false;
+    } on MissingPluginException {
+      return true;
+    } on PlatformException {
+      return false;
+    } on TimeoutException {
+      return false;
+    }
+  }
 
   bool get _supportsNativeBackgroundSession =>
       !kIsWeb &&

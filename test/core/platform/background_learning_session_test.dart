@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:ai_speaking_flutter_app/core/platform/background_learning_session.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -5,6 +7,60 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  test('iOS explicit foreground resume requires native confirmation', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    const channel = MethodChannel('test_foreground_audio_resume');
+    final calls = <String>[];
+    bool? allowed = true;
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      calls.add(call.method);
+      return allowed;
+    });
+    addTearDown(() {
+      debugDefaultTargetPlatformOverride = null;
+      messenger.setMockMethodCallHandler(channel, null);
+    });
+    final session = MethodChannelBackgroundLearningSession(
+      methodChannel: channel,
+    );
+    expect(await session.resumeForegroundAudio(), isTrue);
+    allowed = null;
+    expect(await session.resumeForegroundAudio(), isFalse);
+    messenger.setMockMethodCallHandler(channel, (_) async {
+      throw PlatformException(code: 'FOREGROUND_AUDIO_RESUME_DENIED');
+    });
+    expect(await session.resumeForegroundAudio(), isFalse);
+    expect(calls, ['resumeForegroundAudio', 'resumeForegroundAudio']);
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    expect(await session.resumeForegroundAudio(), isTrue);
+    expect(calls, hasLength(2));
+  });
+
+  testWidgets(
+    'hung iOS explicit resume times out without starting audio',
+    (tester) async {
+      const channel = MethodChannel('test_foreground_audio_resume_timeout');
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      final pending = Completer<bool>();
+      messenger.setMockMethodCallHandler(channel, (_) => pending.future);
+      addTearDown(() {
+        messenger.setMockMethodCallHandler(channel, null);
+      });
+      final session = MethodChannelBackgroundLearningSession(
+        methodChannel: channel,
+      );
+      final resumed = session.resumeForegroundAudio();
+      await tester.pump(const Duration(seconds: 3));
+      expect(await resumed, isFalse);
+      pending.complete(true);
+      await tester.pump();
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
 
   group('BackgroundLearningEvent.fromRaw', () {
     test('maps a native interruption without losing its reason', () {
