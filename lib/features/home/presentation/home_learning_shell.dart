@@ -380,7 +380,20 @@ class _HomeLearningShellState extends State<HomeLearningShell>
         // Locking the phone is an intended HM-D001 learning mode. Keep the active
         // lesson/translation and its SCO route; only the always-on foreground
         // wake loop follows the coordinator's normal Android policy.
-        _applyBackgroundLearningDirective(directive);
+        // MAIN may start or end while the native screen query is pending. Use
+        // its current ownership instead of cancelling a newer explicit turn.
+        final keepMainListening = _backgroundLearningCoordinator
+            .canKeepMainListeningInBackground(
+              voiceAccessEnabled: widget.voiceAccessEnabled,
+              explicitMainSessionActive:
+                  widget.voiceNavigationController?.isMainButtonSessionActive ??
+                  false,
+            );
+        _applyBackgroundLearningDirective(
+          keepMainListening
+              ? BackgroundLearningDirective.keepVoiceNavigation
+              : BackgroundLearningDirective.pauseVoiceNavigation,
+        );
         return;
       }
       _applyBackgroundLearningDirective(

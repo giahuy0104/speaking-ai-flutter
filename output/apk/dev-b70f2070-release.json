@@ -1,0 +1,9 @@
+{
+  "Commit": "b70f20703ba385726f8ef576b132afc2e7ade745",
+  "SHA256": "3AB5421A1CD6C4612AF8737F522F072143A1D96E538C94684B3ECA6D224A31C1",
+  "SizeBytes": 192138124,
+  "Package": "com.innotrik.aispeaking",
+  "Version": "1.0.12+20",
+  "Device": "vivo 1919",
+  "Install": "adb install -r: Success"
+}

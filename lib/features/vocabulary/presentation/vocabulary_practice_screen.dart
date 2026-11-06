@@ -270,11 +270,14 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     });
     _followCurrentReviewEntry();
     if (widget.autoStart) {
-      // A locked mobile screen may not deliver another frame after loading.
+      // Today may resume while the display is switching off, before Flutter
+      // reports the lifecycle change. Its audio must not wait for another frame.
       if (!kIsWeb &&
           (defaultTargetPlatform == TargetPlatform.android ||
               defaultTargetPlatform == TargetPlatform.iOS) &&
-          WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
+          (_isToday ||
+              WidgetsBinding.instance.lifecycleState !=
+                  AppLifecycleState.resumed)) {
         unawaited(_startCurrent(includeIntro: widget.announceIntro));
       } else {
         WidgetsBinding.instance.addPostFrameCallback((_) {
