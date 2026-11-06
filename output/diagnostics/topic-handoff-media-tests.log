@@ -1,0 +1,135 @@
+
+00:00 +0: loading D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart                                                                   
+00:01 +0: loading D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart                                                                   
+00:02 +0: loading D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart                                                                   
+00:02 +0: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS prepares normalized audio without history; registration saves it     
+00:02 +1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS prepares normalized audio without history; registration saves it     
+00:02 +1: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: ... route pins HM-D001 input and keeps its output through feedback       
+00:02 +2: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: concurrent preparation and returned path normalize only once          
+00:02 +3: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: concurrent preparation and returned path normalize only once          
+00:02 +4: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: concurrent preparation and returned path normalize only once          
+00:02 +5: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: concurrent preparation and returned path normalize only once          
+00:02 +6: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: concurrent preparation and returned path normalize only once          
+00:02 +7: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: concurrent preparation and returned path normalize only once          
+00:02 +8: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: ... lost mic blocks phone fallback and reconnect allows a new recording  
+00:02 +8: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: transient normalization failure retries once                          
+Lesson recording preparation attempt 1: PlatformException(TEMPORARY, null, null, null)
+
+00:02 +9: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: transient normalization failure retries once                          
+00:02 +10: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: ... route delayed loss from an old capture cannot cancel a newer one    
+00:02 +11: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: platform never falls back to unnormalized audio                      
+00:02 +11: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: platform never falls back to unnormalized audio                      
+Lesson recording preparation attempt 1: PlatformException(FAILED, null, null, null)
+Lesson recording preparation attempt 2: PlatformException(FAILED, null, null, null)
+
+00:02 +12: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS HM-D001 capture keeps the selected output through feedback          
+00:02 +12: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: missingPlugin never falls back to unnormalized audio                 
+Lesson recording preparation attempt 1: MissingPluginException(No implementation found for method normalizeLessonRecording on channel ailingo_voice_prompt)
+
+00:02 +13: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: missingPlugin never falls back to unnormalized audio                 
+00:02 +13: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: missingPlugin never falls back to unnormalized audio                 
+Lesson recording preparation attempt 2: MissingPluginException(No implementation found for method normalizeLessonRecording on channel ailingo_voice_prompt)
+
+00:02 +14: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: stop during playback preparation prevents a late clip on default output 
+00:02 +15: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: null never falls back to unnormalized audio                          
+00:02 +15: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: null never falls back to unnormalized audio                          
+Lesson recording preparation attempt 1: Bad state: Native normalization returned no usable recording.
+Lesson recording preparation attempt 2: Bad state: Native normalization returned no usable recording.
+
+00:02 +16: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: ... route loss stops the clip and fails its completion gate             
+00:02 +16: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: missingFile never falls back to unnormalized audio                   
+Lesson recording preparation attempt 1: Bad state: Native normalization returned no usable recording.
+
+00:02 +17: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: missingFile never falls back to unnormalized audio                   
+00:02 +17: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: missingFile never falls back to unnormalized audio                   
+Lesson recording preparation attempt 2: Bad state: Native normalization returned no usable recording.
+
+00:02 +18: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: ... route loss stops the clip and fails its completion gate             
+00:02 +19: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: already level native recording can keep its original path            
+00:02 +20: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: already level native recording can keep its original path            
+00:02 +21: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: already level native recording can keep its original path            
+00:02 +21: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback ignores a temporary playing false state       
+00:02 +22: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_recording_replay_test.dart: shared replay fixes gain, output and duration and propagates failure 
+00:02 +23: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback resumes once when a pause is never lifted     
+00:02 +24: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback resumes once when a pause is never lifted     
+00:02 +25: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback resumes once when a pause is never lifted     
+00:02 +26: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback resumes once when a pause is never lifted     
+00:03 +26: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback resumes once when a pause is never lifted     
+00:04 +26: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback resumes once when a pause is never lifted     
+00:05 +26: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback resumes once when a pause is never lifted     
+00:05 +27: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback resumes once when a pause is never lifted     
+00:05 +27: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback does not resume after the clip is stopped     
+00:06 +27: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback does not resume after the clip is stopped     
+00:06 +28: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback does not resume after the clip is stopped     
+00:06 +28: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback leaves a pause near the clip end alone        
+00:07 +28: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback leaves a pause near the clip end alone        
+00:07 +29: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback leaves a pause near the clip end alone        
+00:07 +29: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback does not resume during an audio interruption  
+00:08 +29: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback does not resume during an audio interruption  
+00:08 +30: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback does not resume during an audio interruption  
+00:08 +30: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback ignores a completed state from the old source 
+00:08 +31: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: completion-aware playback ignores a completed state from the old source 
+00:08 +31: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: prearmed playback catches a clip that ends before play returns          
+00:08 +32: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: prearmed playback catches a clip that ends before play returns          
+00:08 +32: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS accepts a stopped source at end without a native end event          
+00:09 +32: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS accepts a stopped source at end without a native end event          
+00:09 +32: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS accepts a stopped source at end without a native end event          
+HOMI lesson playback completion inferred at source end: position=0:00:02.000000 duration=0:00:02.000000
+
+00:09 +33: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS accepts a stopped source at end without a native end event          
+00:09 +33: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: Android recorded take accepts a stable source end                       
+00:10 +33: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: Android recorded take accepts a stable source end                       
+00:10 +33: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: Android recorded take accepts a stable source end                       
+HOMI lesson playback completion inferred at source end: position=0:00:02.000000 duration=0:00:02.000000
+
+00:10 +34: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: Android recorded take accepts a stable source end                       
+00:10 +34: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: Android recorded take waits through an interruption at end              
+00:11 +34: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: Android recorded take waits through an interruption at end              
+00:11 +34: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: Android recorded take waits through an interruption at end              
+HOMI lesson playback completion inferred at source end: position=0:00:02.000000 duration=0:00:02.000000
+
+00:11 +35: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: Android recorded take waits through an interruption at end              
+00:11 +35: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: Android accepts a stopped HM-D001 clip at end without a native end event
+00:12 +35: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: Android accepts a stopped HM-D001 clip at end without a native end event
+00:12 +35: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: Android accepts a stopped HM-D001 clip at end without a native end event
+HOMI lesson playback completion inferred at source end: position=0:00:02.000000 duration=0:00:02.000000
+
+00:12 +36: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: Android accepts a stopped HM-D001 clip at end without a native end event
+00:12 +36: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS end-position fallback waits through an interruption                 
+00:13 +36: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS end-position fallback waits through an interruption                 
+00:13 +36: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS end-position fallback waits through an interruption                 
+HOMI lesson playback completion inferred at source end: position=0:00:02.000000 duration=0:00:02.000000
+
+00:13 +37: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS end-position fallback waits through an interruption                 
+00:13 +37: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: Android selected HM-D001 route is prepared before lesson playback starts
+00:13 +38: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: Android selected HM-D001 route is prepared before lesson playback starts
+00:13 +38: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: take replay retries the HFP route once before giving up                 
+00:13 +39: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: take replay retries the HFP route once before giving up                 
+00:13 +39: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: waits briefly for a lost HM-D001 route to come back                     
+00:13 +40: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: waits briefly for a lost HM-D001 route to come back                     
+00:13 +40: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: take replay route retry is bounded and stops with the clip              
+00:14 +40: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: take replay route retry is bounded and stops with the clip              
+00:14 +41: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: take replay route retry is bounded and stops with the clip              
+00:14 +41: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS selected HM-D001 lesson playback holds HFP for output               
+00:14 +42: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS selected HM-D001 lesson playback holds HFP for output               
+00:14 +42: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS revalidates HFP before another lesson clip                          
+00:14 +43: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS revalidates HFP before another lesson clip                          
+00:14 +43: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: phone playback does not activate an unselected HFP route                
+00:14 +44: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: phone playback does not activate an unselected HFP route                
+00:14 +44: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: navigation prompt never falls back to the phone when HFP setup fails    
+00:14 +45: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: navigation prompt never falls back to the phone when HFP setup fails    
+00:14 +45: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: coach prompt leaves HM-D001 and plays on the phone speaker              
+00:14 +46: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: coach prompt leaves HM-D001 and plays on the phone speaker              
+00:14 +46: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: consecutive HM-D001 clips revalidate a dropped SCO route                
+00:14 +47: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: consecutive HM-D001 clips revalidate a dropped SCO route                
+00:14 +47: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: per-play gain is applied after HM-D001 preparation and then reset       
+00:14 +48: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: per-play gain is applied after HM-D001 preparation and then reset       
+00:14 +48: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: child recording can request a fixed gain without source metering        
+00:14 +49: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: child recording can request a fixed gain without source metering        
+00:14 +49: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS lesson recording configuration is input-capable                     
+00:14 +50: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS lesson recording configuration is input-capable                     
+00:14 +50: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: Android capture leaves routing owned by HFP bridge and phone flow       
+00:14 +51: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: Android capture leaves routing owned by HFP bridge and phone flow       
+00:14 +51: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS recording input selects exact HM-D001 UID and built-in phone mic    
+00:14 +52: D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/listening/lesson_media_service_test.dart: iOS recording input selects exact HM-D001 UID and built-in phone mic    
+00:14 +52: All tests passed!                                                                                                                                                                           

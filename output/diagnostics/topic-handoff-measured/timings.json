@@ -1,0 +1,262 @@
+[
+  {
+    "operation": 14,
+    "at": 1793870133088,
+    "stop": 167,
+    "normalization": 66,
+    "history": 21,
+    "routeAt": 1793870133353,
+    "routeMs": 1202,
+    "totalMs": 1817
+  },
+  {
+    "operation": 18,
+    "at": 1793870148064,
+    "stop": 181,
+    "normalization": 54,
+    "history": 20,
+    "routeAt": 1793870148327,
+    "routeMs": 1335,
+    "totalMs": 1818
+  },
+  {
+    "operation": 25,
+    "at": 1793870220713,
+    "stop": 174,
+    "normalization": 75,
+    "history": 16,
+    "routeAt": 1793870220986,
+    "routeMs": 929,
+    "totalMs": 1371
+  },
+  {
+    "operation": 29,
+    "at": 1793870233398,
+    "stop": 176,
+    "normalization": 68,
+    "history": 21,
+    "routeAt": 1793870233670,
+    "routeMs": 1457,
+    "totalMs": 1853
+  },
+  {
+    "operation": 36,
+    "at": 1793870269053,
+    "stop": 193,
+    "normalization": 77,
+    "history": 31,
+    "routeAt": 1793870269365,
+    "routeMs": 1148,
+    "totalMs": 1585
+  },
+  {
+    "operation": 44,
+    "at": 1793870308177,
+    "stop": 167,
+    "normalization": 62,
+    "history": 19,
+    "routeAt": 1793870308435,
+    "routeMs": 1180,
+    "totalMs": 1532
+  },
+  {
+    "operation": 48,
+    "at": 1793870319513,
+    "stop": 203,
+    "normalization": 71,
+    "history": 21,
+    "routeAt": 1793870319816,
+    "routeMs": 1442,
+    "totalMs": 1895
+  },
+  {
+    "operation": 55,
+    "at": 1793870344920,
+    "stop": 240,
+    "normalization": 110,
+    "history": 18,
+    "routeAt": 1793870345295,
+    "routeMs": 1152,
+    "totalMs": 1779
+  },
+  {
+    "operation": 59,
+    "at": 1793870360238,
+    "stop": 182,
+    "normalization": 93,
+    "history": 37,
+    "routeAt": 1793870360561,
+    "routeMs": 1113,
+    "totalMs": 1529
+  },
+  {
+    "operation": 66,
+    "at": 1793870379640,
+    "stop": 225,
+    "normalization": 53,
+    "history": 27,
+    "routeAt": 1793870379952,
+    "routeMs": 1206,
+    "totalMs": 1716
+  },
+  {
+    "operation": 72,
+    "at": 1793870395666,
+    "stop": 166,
+    "normalization": 21,
+    "history": 11,
+    "routeAt": 1793870395897,
+    "routeMs": 1057,
+    "totalMs": 1501
+  },
+  {
+    "operation": 78,
+    "at": 1793870418224,
+    "stop": 151,
+    "normalization": 33,
+    "history": 0,
+    "routeAt": 1793870418408,
+    "routeMs": 1126,
+    "totalMs": 1412
+  },
+  {
+    "operation": 89,
+    "at": 1793870456624,
+    "stop": 159,
+    "normalization": 43,
+    "history": 9,
+    "routeAt": 1793870456840,
+    "routeMs": 1397,
+    "totalMs": 1662
+  },
+  {
+    "operation": 93,
+    "at": 1793870472236,
+    "stop": 223,
+    "normalization": 28,
+    "history": 4,
+    "routeAt": 1793870472494,
+    "routeMs": 1124,
+    "totalMs": 1464
+  },
+  {
+    "operation": 100,
+    "at": 1793870493124,
+    "stop": 124,
+    "normalization": 36,
+    "history": 9,
+    "routeAt": 1793870493296,
+    "routeMs": 1321,
+    "totalMs": 1524
+  },
+  {
+    "operation": 104,
+    "at": 1793870506360,
+    "stop": 182,
+    "normalization": 24,
+    "history": 47,
+    "routeAt": 1793870506634,
+    "routeMs": 1172,
+    "totalMs": 1506
+  },
+  {
+    "operation": 111,
+    "at": 1793870527446,
+    "stop": 146,
+    "normalization": 112,
+    "history": 22,
+    "routeAt": 1793870527734,
+    "routeMs": 1148,
+    "totalMs": 1525
+  },
+  {
+    "operation": 118,
+    "at": 1793870551504,
+    "stop": 230,
+    "normalization": 75,
+    "history": 27,
+    "routeAt": 1793870551854,
+    "routeMs": 1470,
+    "totalMs": 2139
+  },
+  {
+    "operation": 122,
+    "at": 1793870569240,
+    "stop": 194,
+    "normalization": 83,
+    "history": 22,
+    "routeAt": 1793870569547,
+    "routeMs": 1219,
+    "totalMs": 1635
+  },
+  {
+    "operation": 129,
+    "at": 1793870593051,
+    "stop": 186,
+    "normalization": 84,
+    "history": 29,
+    "routeAt": 1793870593361,
+    "routeMs": 1159,
+    "totalMs": 1558
+  },
+  {
+    "operation": 133,
+    "at": 1793870610985,
+    "stop": 234,
+    "normalization": 81,
+    "history": 18,
+    "routeAt": 1793870611328,
+    "routeMs": 1163,
+    "totalMs": 1594
+  },
+  {
+    "operation": 139,
+    "at": 1793870636172,
+    "stop": 183,
+    "normalization": 91,
+    "history": 0,
+    "routeAt": 1793870636447,
+    "routeMs": 1319,
+    "totalMs": 1782
+  },
+  {
+    "operation": 158,
+    "at": 1793870749449,
+    "stop": 239,
+    "normalization": 69,
+    "history": 23,
+    "routeAt": 1793870749788,
+    "routeMs": 1159,
+    "totalMs": 1653
+  },
+  {
+    "operation": 162,
+    "at": 1793870766454,
+    "stop": 177,
+    "normalization": 77,
+    "history": 24,
+    "routeAt": 1793870766742,
+    "routeMs": 1168,
+    "totalMs": 1563
+  },
+  {
+    "operation": 169,
+    "at": 1793870793363,
+    "stop": 180,
+    "normalization": 75,
+    "history": 28,
+    "routeAt": 1793870793658,
+    "routeMs": 1155,
+    "totalMs": 1543
+  },
+  {
+    "operation": 172,
+    "at": 1793870802900,
+    "stop": 190,
+    "normalization": 19,
+    "history": 25,
+    "routeAt": 1793870803144,
+    "routeMs": 1246,
+    "totalMs": 1722
+  }
+]

@@ -644,6 +644,28 @@ void main() {
       saveToHistory: false,
     );
 
+    test(
+      'topic recording uses communication source and retains HFP on stop',
+      () async {
+        await media.dispose();
+        media = _RecordingTestMediaService(
+          '${temporary.path}/topic.wav',
+          recorder: recorder,
+          playbackService: _ControlledPlaybackService(),
+          hfpAudioControl: hfp,
+        );
+        await start();
+        expect(recorder.lastConfig?.device, _FakeLessonRecorder.homi);
+        expect(
+          recorder.lastConfig?.androidConfig.audioSource,
+          AndroidAudioSource.voiceCommunication,
+        );
+        final stopsBefore = hfp.stopCalls;
+        await media.stopRecording();
+        expect(hfp.stopCalls, stopsBefore);
+      },
+    );
+
     test('pins HM-D001 input and keeps its output through feedback', () async {
       await start();
       expect(recorder.lastConfig?.device, _FakeLessonRecorder.homi);
@@ -1764,6 +1786,30 @@ void main() {
     expect(hfpRecord.encoder, AudioEncoder.aacLc);
     expect(hfpRecord.autoGain, isTrue);
   });
+
+  test(
+    'topic capture keeps communication source for HFP and mic for phone',
+    () {
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
+        debugDefaultTargetPlatformOverride = platform;
+        for (final selectedHfp in [false, true]) {
+          final config = LessonMediaService.lessonRecordConfig(
+            useSelectedHfp: selectedHfp,
+            inputDevice: selectedHfp ? _FakeLessonRecorder.homi : null,
+          );
+          expect(
+            config.androidConfig.audioSource,
+            selectedHfp
+                ? AndroidAudioSource.voiceCommunication
+                : AndroidAudioSource.mic,
+          );
+          expect(config.androidConfig.manageBluetooth, isFalse);
+          expect(config.device, selectedHfp ? _FakeLessonRecorder.homi : null);
+        }
+      }
+    },
+  );
 
   test('Android capture leaves routing owned by HFP bridge and phone flow', () {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;

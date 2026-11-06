@@ -919,6 +919,399 @@ void main() {
     );
   });
 
+  group('bounded topic scoring coordination', () {
+    for (final negative in [
+      LessonAttemptOutcome.retry,
+      LessonAttemptOutcome.needsPractice,
+      LessonAttemptOutcome.noResponse,
+      LessonAttemptOutcome.unclear,
+    ]) {
+      testWidgets('backend $negative waits for eligible local good', (
+        tester,
+      ) async {
+        final file = Completer<LessonRecordedSpeechRecognition>();
+        final backend = _FakeAttemptEvaluator.outcome(negative);
+        final evaluator = AndroidOnDeviceFirstLessonAttemptEvaluator(
+          backendEvaluator: backend,
+          recognizer: _ControlledLessonRecognizer(file: file.future),
+          backendHedgeDelay: Duration.zero,
+        );
+        LessonAttemptOutcome? delivered;
+        var deliveries = 0;
+        final grading = _evaluateBackendFirst(evaluator).then((outcome) {
+          delivered = outcome;
+          deliveries++;
+          return outcome;
+        });
+        await tester.pump(const Duration(milliseconds: 1));
+        expect(backend.calls, 1);
+        expect(delivered, isNull);
+        file.complete(
+          const LessonRecordedSpeechRecognition(transcript: 'I am ready'),
+        );
+        await tester.pump(const Duration(milliseconds: 1));
+        expect(await grading, LessonAttemptOutcome.good);
+        await tester.pump(const Duration(seconds: 4));
+        expect(deliveries, 1);
+        evaluator.dispose();
+      });
+    }
+
+    testWidgets('local failure releases cached backend negative immediately', (
+      tester,
+    ) async {
+      final file = Completer<LessonRecordedSpeechRecognition>();
+      final evaluator = AndroidOnDeviceFirstLessonAttemptEvaluator(
+        backendEvaluator: _FakeAttemptEvaluator.outcome(
+          LessonAttemptOutcome.retry,
+        ),
+        recognizer: _ControlledLessonRecognizer(file: file.future),
+        backendHedgeDelay: Duration.zero,
+      );
+      LessonAttemptOutcome? delivered;
+      final grading = _evaluateBackendFirst(
+        evaluator,
+      ).then((outcome) => delivered = outcome);
+      await tester.pump(const Duration(milliseconds: 1));
+      expect(delivered, isNull);
+      file.completeError(
+        const LessonRecordedSpeechRecognitionException(
+          'MODEL_UNAVAILABLE',
+          'unavailable',
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 1));
+      expect(await grading, LessonAttemptOutcome.retry);
+      evaluator.dispose();
+    });
+
+    testWidgets(
+      'shared three-second deadline releases cached backend negative once',
+      (tester) async {
+        final file = Completer<LessonRecordedSpeechRecognition>();
+        final evaluator = AndroidOnDeviceFirstLessonAttemptEvaluator(
+          backendEvaluator: _FakeAttemptEvaluator.outcome(
+            LessonAttemptOutcome.needsPractice,
+          ),
+          recognizer: _ControlledLessonRecognizer(file: file.future),
+          backendHedgeDelay: Duration.zero,
+        );
+        LessonAttemptOutcome? delivered;
+        var deliveries = 0;
+        final grading = _evaluateBackendFirst(evaluator).then((outcome) {
+          deliveries++;
+          return delivered = outcome;
+        });
+        await tester.pump(const Duration(milliseconds: 1));
+        await tester.pump(const Duration(milliseconds: 2998));
+        expect(delivered, isNull);
+        await tester.pump(const Duration(milliseconds: 1));
+        expect(await grading, LessonAttemptOutcome.needsPractice);
+        file.complete(
+          const LessonRecordedSpeechRecognition(transcript: 'I am ready'),
+        );
+        await tester.pump(const Duration(milliseconds: 1));
+        expect(deliveries, 1);
+        expect(delivered, LessonAttemptOutcome.needsPractice);
+        evaluator.dispose();
+      },
+    );
+
+    testWidgets('cancellation ignores cached negative and late local result', (
+      tester,
+    ) async {
+      final file = Completer<LessonRecordedSpeechRecognition>();
+      final evaluator = AndroidOnDeviceFirstLessonAttemptEvaluator(
+        backendEvaluator: _FakeAttemptEvaluator.outcome(
+          LessonAttemptOutcome.retry,
+        ),
+        recognizer: _ControlledLessonRecognizer(file: file.future),
+        backendHedgeDelay: Duration.zero,
+      );
+      final grading = expectLater(
+        _evaluateBackendFirst(evaluator),
+        throwsA(isA<LessonAttemptEvaluationException>()),
+      );
+      await tester.pump(const Duration(milliseconds: 1));
+      await evaluator.cancelLiveRecognition();
+      await grading;
+      file.complete(
+        const LessonRecordedSpeechRecognition(transcript: 'I am ready'),
+      );
+      await tester.pump(const Duration(milliseconds: 1));
+      await tester.pump(const Duration(seconds: 4));
+      evaluator.dispose();
+    });
+
+    test('fast local result avoids a speculative API request', () async {
+      final backend = _FakeAttemptEvaluator.outcome(LessonAttemptOutcome.retry);
+      final evaluator = AndroidOnDeviceFirstLessonAttemptEvaluator(
+        backendEvaluator: backend,
+        recognizer: _FakeLessonRecordedSpeechRecognizer(
+          const LessonRecordedSpeechRecognition(transcript: 'I am ready'),
+        ),
+        backendHedgeDelay: const Duration(milliseconds: 20),
+      );
+      expect(await _evaluateBackendFirst(evaluator), LessonAttemptOutcome.good);
+      await Future<void>.delayed(const Duration(milliseconds: 30));
+      expect(backend.calls, 0);
+      evaluator.dispose();
+    });
+
+    test('live and file fallback share one local deadline', () async {
+      final file = Completer<LessonRecordedSpeechRecognition>();
+      final recognizer = _ControlledLessonRecognizer(
+        file: file.future,
+        stop: Future<LessonRecordedSpeechRecognition>.delayed(
+          const Duration(milliseconds: 30),
+          () => throw const LessonRecordedSpeechRecognitionException(
+            'STREAM_FAILED',
+            'failed',
+          ),
+        ),
+      );
+      final backend = _FakeAttemptEvaluator.outcome(LessonAttemptOutcome.good);
+      final evaluator = AndroidOnDeviceFirstLessonAttemptEvaluator(
+        backendEvaluator: backend,
+        recognizer: recognizer,
+        localBudget: const Duration(milliseconds: 60),
+        backendHedgeDelay: const Duration(seconds: 1),
+        networkTransportAvailable: () async => false,
+      );
+      evaluator.beginLiveRecognition('attempt.wav');
+      var finished = false;
+      final grading = expectLater(
+        _evaluateBackendFirst(evaluator),
+        throwsA(isA<LessonAttemptEvaluationException>()),
+      ).then((_) => finished = true);
+      await Future<void>.delayed(const Duration(milliseconds: 90));
+      expect(finished, isTrue);
+      expect(recognizer.calls, 1);
+      expect(backend.calls, 0);
+      file.complete(
+        const LessonRecordedSpeechRecognition(transcript: 'I am ready'),
+      );
+      await grading;
+      evaluator.dispose();
+    });
+
+    test(
+      'hedged backend can win once and losing live work never starts file fallback',
+      () async {
+        final stop = Completer<LessonRecordedSpeechRecognition>();
+        final recognizer = _ControlledLessonRecognizer(stop: stop.future);
+        final backend = _FakeAttemptEvaluator.outcome(
+          LessonAttemptOutcome.good,
+        );
+        final evaluator = AndroidOnDeviceFirstLessonAttemptEvaluator(
+          backendEvaluator: backend,
+          recognizer: recognizer,
+          backendHedgeDelay: const Duration(milliseconds: 5),
+          networkTransportAvailable: () async => true,
+        );
+        evaluator.beginLiveRecognition('attempt.wav');
+        var deliveries = 0;
+        expect(
+          await _evaluateBackendFirst(evaluator).then((outcome) {
+            deliveries++;
+            return outcome;
+          }),
+          LessonAttemptOutcome.good,
+        );
+        stop.completeError(
+          const LessonRecordedSpeechRecognitionException(
+            'STREAM_FAILED',
+            'failed',
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
+        expect(recognizer.calls, 0);
+        expect(deliveries, 1);
+        expect(backend.calls, 1);
+        evaluator.dispose();
+      },
+    );
+
+    test('backend error does not beat a pending valid local result', () async {
+      final file = Completer<LessonRecordedSpeechRecognition>();
+      final backend = _FakeAttemptEvaluator.error(
+        const LessonAttemptEvaluationException(
+          'network failed',
+          backendUnavailable: true,
+        ),
+      );
+      final evaluator = AndroidOnDeviceFirstLessonAttemptEvaluator(
+        backendEvaluator: backend,
+        recognizer: _ControlledLessonRecognizer(file: file.future),
+        backendHedgeDelay: Duration.zero,
+        networkTransportAvailable: () async => true,
+      );
+      final grading = _evaluateBackendFirst(evaluator);
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      expect(backend.calls, 1);
+      file.complete(
+        const LessonRecordedSpeechRecognition(transcript: 'I am ready'),
+      );
+      expect(await grading, LessonAttemptOutcome.good);
+      evaluator.dispose();
+    });
+
+    test('dispose rejects pending scoring and ignores late routes', () async {
+      final file = Completer<LessonRecordedSpeechRecognition>();
+      final backendResult = Completer<LessonAttemptOutcome>();
+      final backend = _ControlledAttemptEvaluator(backendResult.future);
+      final evaluator = AndroidOnDeviceFirstLessonAttemptEvaluator(
+        backendEvaluator: backend,
+        recognizer: _ControlledLessonRecognizer(file: file.future),
+        backendHedgeDelay: Duration.zero,
+      );
+      final grading = expectLater(
+        _evaluateBackendFirst(evaluator),
+        throwsA(isA<LessonAttemptEvaluationException>()),
+      );
+      await Future<void>.delayed(Duration.zero);
+      evaluator.dispose();
+      await grading;
+      file.complete(
+        const LessonRecordedSpeechRecognition(transcript: 'I am ready'),
+      );
+      backendResult.completeError(StateError('late backend failure'));
+      await Future<void>.delayed(Duration.zero);
+      await expectLater(
+        _evaluateBackendFirst(evaluator),
+        throwsA(isA<LessonAttemptEvaluationException>()),
+      );
+    });
+
+    test(
+      'new evaluation supersedes old result and waits for old native operation',
+      () async {
+        final oldFile = Completer<LessonRecordedSpeechRecognition>();
+        final recognizer = _ControlledLessonRecognizer(file: oldFile.future);
+        final evaluator = AndroidOnDeviceFirstLessonAttemptEvaluator(
+          backendEvaluator: _FakeAttemptEvaluator.outcome(
+            LessonAttemptOutcome.retry,
+          ),
+          recognizer: recognizer,
+          backendHedgeDelay: const Duration(seconds: 1),
+        );
+        final old = expectLater(
+          _evaluateBackendFirst(evaluator),
+          throwsA(isA<LessonAttemptEvaluationException>()),
+        );
+        await Future<void>.delayed(Duration.zero);
+        evaluator.beginLiveRecognition('new.wav');
+        final next = _evaluateBackendFirst(evaluator);
+        await old;
+        expect(recognizer.liveStarts, 0);
+        oldFile.complete(
+          const LessonRecordedSpeechRecognition(transcript: 'wrong old answer'),
+        );
+        expect(await next, LessonAttemptOutcome.good);
+        expect(recognizer.liveStarts, 1);
+        evaluator.dispose();
+      },
+    );
+
+    test(
+      'backend winner retires a live start that finishes after settlement',
+      () async {
+        final start = Completer<bool>();
+        final recognizer = _ControlledLessonRecognizer(start: start.future);
+        final evaluator = AndroidOnDeviceFirstLessonAttemptEvaluator(
+          backendEvaluator: _FakeAttemptEvaluator.outcome(
+            LessonAttemptOutcome.good,
+          ),
+          recognizer: recognizer,
+          backendHedgeDelay: const Duration(milliseconds: 5),
+        );
+        evaluator.beginLiveRecognition('old.wav');
+        expect(
+          await _evaluateBackendFirst(evaluator),
+          LessonAttemptOutcome.good,
+        );
+        expect(recognizer.cancelledTurns, isEmpty);
+        expect(recognizer.calls, 0);
+        final oldTurn = recognizer.startedTurns.single;
+        start.complete(true);
+        await Future<void>.delayed(Duration.zero);
+        expect(recognizer.cancelledTurns, [oldTurn]);
+        evaluator.beginLiveRecognition('new.wav');
+        expect(
+          await _evaluateBackendFirst(evaluator),
+          LessonAttemptOutcome.good,
+        );
+        expect(recognizer.startedTurns.last, isNot(oldTurn));
+        expect(recognizer.cancelledTurns.first, oldTurn);
+        expect(recognizer.calls, 0);
+        evaluator.dispose();
+      },
+    );
+
+    test(
+      'topic file timeout never globally cancels a newer adapter request; defaults retain cleanup',
+      () async {
+        for (final topicPolicy in [false, true]) {
+          final channel = MethodChannel(
+            'test.topic.scoring.cancel.$topicPolicy',
+          );
+          final oldFile = Completer<Object?>();
+          final newFile = Completer<Object?>();
+          final methods = <String>[];
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+              .setMockMethodCallHandler(channel, (call) async {
+                methods.add(call.method);
+                if (call.method == 'recognizeFile') {
+                  if (methods
+                          .where((method) => method == 'recognizeFile')
+                          .length ==
+                      1) {
+                    return oldFile.future;
+                  }
+                  return newFile.future;
+                }
+                return null;
+              });
+          final oldRecognizer = MethodChannelLessonRecordedSpeechRecognizer(
+            channel: channel,
+            timeout: const Duration(milliseconds: 15),
+            cancelFileOnTimeout: !topicPolicy,
+          );
+          final oldTimeout = expectLater(
+            oldRecognizer.recognizeFile(path: 'old.wav'),
+            throwsA(isA<LessonRecordedSpeechRecognitionException>()),
+          );
+          await Future<void>.delayed(Duration.zero);
+          final replacement = MethodChannelLessonRecordedSpeechRecognizer(
+            channel: channel,
+          );
+          final replacementResult = replacement.recognizeFile(path: 'new.wav');
+          await Future<void>.delayed(Duration.zero);
+          expect(
+            methods.where((method) => method == 'recognizeFile'),
+            hasLength(2),
+          );
+          await oldTimeout;
+          // The replacement is still pending when the OLD timeout fires.
+          expect(
+            methods.where((method) => method == 'cancel').length,
+            topicPolicy ? 0 : 1,
+          );
+          oldFile.complete(<String, Object?>{'text': 'late old answer'});
+          newFile.complete(<String, Object?>{'text': 'I am ready'});
+          expect((await replacementResult).transcript, 'I am ready');
+          await Future<void>.delayed(Duration.zero);
+          expect(
+            methods.where((method) => method == 'cancel').length,
+            topicPolicy ? 0 : 1,
+          );
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+              .setMockMethodCallHandler(channel, null);
+        }
+      },
+    );
+  });
+
   group('Android backend-first offline fallback', () {
     test(
       'keeps the normal backend result without calling on-device ASR',
@@ -1341,5 +1734,63 @@ class _FakeAttemptEvaluator implements LessonAttemptEvaluator {
     final failure = error;
     if (failure != null) throw failure;
     return result!;
+  }
+}
+
+class _ControlledLessonRecognizer extends _FakeLessonRecordedSpeechRecognizer {
+  _ControlledLessonRecognizer({this.file, this.stop, this.start})
+    : super(const LessonRecordedSpeechRecognition(transcript: 'I am ready'));
+  final Future<LessonRecordedSpeechRecognition>? file;
+  final Future<LessonRecordedSpeechRecognition>? stop;
+  final Future<bool>? start;
+  final List<int> startedTurns = [];
+  final List<int> cancelledTurns = [];
+  @override
+  Future<bool> startStream(String path, int turnId) {
+    liveStarts++;
+    startedTurns.add(turnId);
+    return start ?? Future.value(true);
+  }
+
+  @override
+  Future<void> cancelStream(int turnId) async {
+    cancelledTurns.add(turnId);
+  }
+
+  @override
+  Future<LessonRecordedSpeechRecognition> recognizeFile({
+    required String path,
+    String locale = 'vi-VN',
+    bool preferOnDevice = false,
+    bool requireOnDevice = false,
+  }) {
+    calls++;
+    return file ?? Future.value(result!);
+  }
+
+  @override
+  Future<LessonRecordedSpeechRecognition> stopStream(int turnId) {
+    liveStops++;
+    return stop ?? Future.value(result!);
+  }
+}
+
+class _ControlledAttemptEvaluator extends _FakeAttemptEvaluator {
+  _ControlledAttemptEvaluator(this.response) : super.outcome(null);
+  final Future<LessonAttemptOutcome> response;
+  @override
+  Future<LessonAttemptOutcome> evaluate({
+    required String lessonCode,
+    required String sentenceId,
+    required String expectedEnglish,
+    required String recordingPath,
+    required Duration recordingDuration,
+    required int attemptNumber,
+    required int childAge,
+    Iterable<String> acceptedVariants = const <String>[],
+    bool requireAllExpectedTokens = false,
+  }) {
+    calls++;
+    return response;
   }
 }
