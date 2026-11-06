@@ -1048,6 +1048,13 @@ final class IOSAudioSessionCoordinator: NSObject {
     }
   }
 
+  /// Rejected Settings work may clean up its temporary discovery session, but
+  /// must not reconcile or validate a graph which still belongs to any owner.
+  func releaseUnownedAudioSession(caller: String) {
+    guard ownership.canDeactivate else { return }
+    releaseAudioSessionIfIdle(caller: caller)
+  }
+
   /// Releases a record-capable route when no MAIN turn owns it.
   ///
   /// The selected HFP UID is kept by `HfpAudioBridge`; the live SCO/audio

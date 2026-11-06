@@ -259,7 +259,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       return true
     } catch {
       // Rejected Settings work must not invalidate an active verified device.
-      audioSessionCoordinator.releaseAudioSessionIfIdle(caller: "\(caller).rejected")
+      audioSessionCoordinator.releaseUnownedAudioSession(caller: "\(caller).rejected")
       result(FlutterError(code: code, message: error.localizedDescription, details: nil))
       return false
     }

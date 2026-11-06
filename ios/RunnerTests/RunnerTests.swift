@@ -382,6 +382,53 @@ class RunnerTests: XCTestCase {
     }
   }
 
+  func testIOSRejectedSettingsCleanupCannotInterruptAnUnreadyMainGraph() throws {
+    try withBackgroundMixingHarness { h in
+      try h.arm()
+      IOSNativeWork.markApplicationActive()
+      let turn = h.coordinator.beginMainTurn(source: "MAIN.preparing", forceNewTurn: true)
+      h.ready = false
+      XCTAssertThrowsError(try h.coordinator.prepareForHfpSettingsChange(caller: "Settings.rejected"))
+      h.coordinator.releaseUnownedAudioSession(caller: "Settings.rejected.cleanup")
+      XCTAssertTrue(h.coordinator.isMainTurnActive)
+      XCTAssertTrue(h.coordinator.isBackgroundCaptureEngineRunning)
+      XCTAssertFalse(h.coordinator.isAudioInterruptionSuspended)
+      XCTAssertEqual(h.disarmCount, 0)
+      XCTAssertEqual(h.interruptionCount, 0)
+      XCTAssertTrue(h.appliedMixing.isEmpty)
+      XCTAssertTrue(h.events.isEmpty)
+      h.ready = true
+      h.coordinator.endMainTurn(reason: "done", caller: "MAIN", expectedTurnId: turn)
+    }
+  }
+
+  func testIOSRejectedBackgroundSettingsCleanupDoesNotReconcileAnIdleOwnedGraph() throws {
+    try withBackgroundMixingHarness { h in
+      try h.arm()
+      h.ready = false
+      XCTAssertThrowsError(try h.coordinator.prepareForHfpSettingsChange(caller: "late.Settings"))
+      h.coordinator.releaseUnownedAudioSession(caller: "late.Settings.cleanup")
+      XCTAssertTrue(h.coordinator.isBackgroundCaptureArmed)
+      XCTAssertTrue(h.coordinator.isBackgroundCaptureEngineRunning)
+      XCTAssertFalse(h.coordinator.isAudioInterruptionSuspended)
+      XCTAssertEqual(h.disarmCount, 0)
+      XCTAssertEqual(h.interruptionCount, 0)
+      XCTAssertTrue(h.appliedMixing.isEmpty)
+      XCTAssertTrue(h.events.isEmpty)
+    }
+  }
+
+  func testIOSRejectedSettingsCleanupStillReleasesATrulyUnownedTemporarySession() throws {
+    try withBackgroundMixingHarness { h in
+      try h.arm()
+      h.coordinator.releaseBackgroundCapture(caller: "Settings.idle.drained")
+      h.traceStages.removeAll()
+      h.coordinator.releaseUnownedAudioSession(caller: "Settings.temporary.cleanup")
+      XCTAssertTrue(h.traceStages.contains("audio_session_release_requested"))
+      XCTAssertEqual(h.interruptionCount, 0)
+    }
+  }
+
   func testIOSMainPhoneTurnSelectsBuiltInPrearmBeforeAnyPrompt() {
     let target = IOSMainTurnAudioRoutePolicy.inputTarget(fromChannelValue: "builtInMic")
     XCTAssertEqual(target, .builtInMic)
