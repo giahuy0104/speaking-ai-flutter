@@ -466,6 +466,7 @@ final class IOSAudioSessionCoordinator: NSObject {
   /// owner never mistakes a stale route for a usable audio session.
   private(set) var isAudioSessionActive = false
   private(set) var isAudioInterruptionSuspended = false
+  private var isSystemAudioInterruptionActive = false
   private(set) var isMainTurnActive = false
   private(set) var mainAudioInputTarget: IOSAudioInputTarget?
   private(set) var isBackgroundLearningEnabled = false
@@ -562,6 +563,19 @@ final class IOSAudioSessionCoordinator: NSObject {
     endBackgroundTurnExecution(
       caller: "BackgroundLearningBridge.willEnterForeground"
     )
+  }
+
+  /// Called only for a foreground user gesture, never from an automatic lesson
+  /// or recorder restart. Eligibility does not activate audio or start capture.
+  func resumeForegroundAudio(caller: String) throws {
+    guard IOSNativeWork.applicationIsActive, !isSystemAudioInterruptionActive else {
+      throw IOSAudioSessionCoordinatorError.foregroundAudioResumeUnavailable
+    }
+    guard isAudioInterruptionSuspended else { return }
+    isAudioInterruptionSuspended = false
+    cancelMainInterruptionNotice()
+    cancelPassiveAudioEvent()
+    trace(stage: "foreground_audio_resume_authorized", caller: caller)
   }
 
   /// Requests a real, record-capable AVAudioEngine while iOS still permits it.
@@ -1895,6 +1909,7 @@ final class IOSAudioSessionCoordinator: NSObject {
 
     switch type {
     case .began:
+      isSystemAudioInterruptionActive = true
       let interruptedBackgroundMain = isMainTurnActive && !IOSNativeWork.applicationIsActive
       // Locking the screen does not emit an AVAudioSession interruption while
       // the background audio mode remains active. Calls, Siri, alarms and
@@ -1902,6 +1917,7 @@ final class IOSAudioSessionCoordinator: NSObject {
       suspendForAudioInterruption(reason: "audio_session_interruption_\(reason)")
       if interruptedBackgroundMain { requestMainInterruptionNotice() }
     case .ended:
+      isSystemAudioInterruptionActive = false
       guard isBackgroundLearningEnabled else { return }
       let options = AVAudioSession.InterruptionOptions(rawValue: rawOptions ?? 0)
       guard options.contains(.shouldResume) else { return }
@@ -1964,6 +1980,7 @@ final class IOSAudioSessionCoordinator: NSObject {
 
 private enum IOSAudioSessionCoordinatorError: LocalizedError {
   case audioSessionInterrupted
+  case foregroundAudioResumeUnavailable
   case builtInMicUnavailable
   case hfpInputUnavailable
   case mainAudioSourceConflict
@@ -1973,6 +1990,8 @@ private enum IOSAudioSessionCoordinatorError: LocalizedError {
 
   var errorDescription: String? {
     switch self {
+    case .foregroundAudioResumeUnavailable:
+      return "Âm thanh vẫn đang bị gián đoạn. Hãy mở HOMI, chờ âm thanh kết thúc rồi thử lại."
     case .audioSessionInterrupted:
       return "Âm thanh HOMI đã tạm dừng vì ứng dụng khác đang sử dụng âm thanh."
     case .builtInMicUnavailable:

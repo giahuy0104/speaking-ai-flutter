@@ -3112,6 +3112,99 @@ void main() {
     });
   }
 
+  testWidgets(
+    'competing-media warning and stalled stop release MAIN for a retry',
+    (tester) async {
+      final speech = _FakeNavigationSpeechInput();
+      final prompt = _BlockedCompetingMediaPromptService();
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: prompt,
+        commandWindowDuration: const Duration(seconds: 30),
+        pauseDrainTimeout: const Duration(milliseconds: 10),
+      );
+      try {
+        bool? result;
+        final activation = controller.activateFromMainButton().then((value) {
+          result = value;
+          return value;
+        });
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 8));
+        expect(prompt.stopCalls, 1);
+        await tester.pump(const Duration(milliseconds: 11));
+        expect(result, isFalse);
+        expect(await activation, isFalse);
+        expect(controller.isMainButtonSessionActive, isFalse);
+        expect(controller.canResumeLearningAfterFailedActivation, isFalse);
+        expect(speech.events, isNot(contains('start')));
+        expect(prompt.spokenTexts, hasLength(1));
+        expect(prompt.spokenTexts.single, contains('Tạm dừng video'));
+
+        prompt.rejection = null;
+        final retry = controller.activateFromMainButton();
+        await tester.pump();
+        expect(await retry, isTrue);
+        expect(controller.isListening, isTrue);
+        prompt.pendingWarning.complete();
+        prompt.pendingStop.complete();
+        await tester.pump();
+        expect(controller.isListening, isTrue);
+        expect(prompt.stopCalls, 1);
+        expect(speech.events.where((event) => event == 'start'), hasLength(1));
+      } finally {
+        prompt.completePending();
+        await tester.pump();
+        controller.dispose();
+        await speech.dispose();
+      }
+    },
+    variant: TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}),
+  );
+
+  testWidgets(
+    'cancelled competing-media warning cannot stop a newer MAIN',
+    (tester) async {
+      final speech = _FakeNavigationSpeechInput();
+      final prompt = _BlockedCompetingMediaPromptService();
+      final controller = VoiceNavigationController(
+        speechInput: speech,
+        voicePromptService: prompt,
+        commandWindowDuration: const Duration(seconds: 30),
+        pauseDrainTimeout: const Duration(milliseconds: 10),
+      );
+      try {
+        final oldActivation = controller.activateFromMainButton();
+        await tester.pump();
+        final paused = controller.pause(stopPrompt: true);
+        await tester.pump(const Duration(milliseconds: 11));
+        await paused;
+        prompt.rejection = null;
+        final retry = controller.activateFromMainButton();
+        await tester.pump();
+        expect(await retry, isTrue);
+        await tester.pump(const Duration(seconds: 8));
+        expect(await oldActivation, isFalse);
+        expect(prompt.stopCalls, 1);
+        prompt.pendingWarning.completeError(
+          PlatformException(code: 'LATE_WARNING_FAILURE'),
+        );
+        prompt.pendingStop.complete();
+        await tester.pump();
+        expect(controller.isListening, isTrue);
+        expect(controller.lastError, isNull);
+        expect(prompt.stopCalls, 1);
+        expect(speech.events.where((event) => event == 'start'), hasLength(1));
+      } finally {
+        prompt.completePending();
+        await tester.pump();
+        controller.dispose();
+        await speech.dispose();
+      }
+    },
+    variant: TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}),
+  );
+
   testWidgets('iOS unavailable-input warning and stop are both bounded', (
     tester,
   ) async {
@@ -4067,6 +4160,33 @@ class _RejectedMainTurnVoicePromptService
   @override
   Future<String?> beginMainTurn() async {
     throw PlatformException(code: code);
+  }
+}
+
+class _BlockedCompetingMediaPromptService
+    extends _RetryableMainTurnVoicePromptService {
+  _BlockedCompetingMediaPromptService() {
+    rejection = 'EXTERNAL_MEDIA_ACTIVE';
+  }
+
+  final pendingWarning = Completer<void>();
+  final pendingStop = Completer<void>();
+
+  @override
+  Future<void> speakAndWait(String text, {String locale = 'vi-VN'}) async {
+    await super.speakAndWait(text, locale: locale);
+    if (spokenTexts.length == 1) await pendingWarning.future;
+  }
+
+  @override
+  Future<void> stop() async {
+    await super.stop();
+    if (stopCalls == 1) await pendingStop.future;
+  }
+
+  void completePending() {
+    if (!pendingWarning.isCompleted) pendingWarning.complete();
+    if (!pendingStop.isCompleted) pendingStop.complete();
   }
 }
 

@@ -580,6 +580,15 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                       isOffline: _hasNetworkTransport == false,
                       offlineLanguageReady: _offlineLanguageReady,
                       ensureDeviceConnected: widget.ensureDeviceConnected,
+                      resumeForegroundAudio:
+                          !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
+                          ? _backgroundLearningCoordinator.resumeForegroundAudio
+                          : null,
+                      audioInterruptionGeneration:
+                          !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
+                          ? () => _backgroundLearningCoordinator
+                                .foregroundResumeGeneration
+                          : null,
                       isDeviceConnectionReady: widget.isDeviceConnectionReady,
                       sessionActive: widget.sessionActive,
                       isStoppingSession: widget.isStoppingSession,
@@ -1411,6 +1420,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   }
 
   Future<void> _showVocabularyAndWait({bool autoStartToday = true}) async {
+    _backgroundLearningCoordinator.invalidateForegroundResume();
     AudioDiagnostics.event('screen.vocabulary.activate');
     if (AudioDiagnostics.enabled) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1592,6 +1602,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   }
 
   void _handlePageChanged(int page) {
+    if (page != 0) _backgroundLearningCoordinator.invalidateForegroundResume();
     if (page == 1) {
       _vocabularyActivationController.activate();
     } else {
@@ -1609,6 +1620,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     Completer<bool>? routePushed,
     void Function(Route<void> route)? onRouteCreated,
   }) async {
+    _backgroundLearningCoordinator.invalidateForegroundResume();
     if (_openingTopics) {
       if (routePushed != null && !routePushed.isCompleted) {
         routePushed.complete(false);

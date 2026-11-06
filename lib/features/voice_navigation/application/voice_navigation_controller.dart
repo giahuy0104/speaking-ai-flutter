@@ -1604,7 +1604,7 @@ class VoiceNavigationController extends ChangeNotifier {
             _voicePromptTimeout,
             onTimeout: () async {
               if (!_disposed && generation == _generation) {
-                await _voicePromptService.stop();
+                await _boundedCleanup(_voicePromptService.stop());
               }
             },
           );

@@ -52,11 +52,14 @@ class BackgroundLearningCoordinator {
   bool _voiceAccessEnabled = false;
   bool _interrupted = false;
   int _sessionGeneration = 0;
+  int _foregroundResumeGeneration = 0;
   Future<void>? _sessionStopOperation;
 
   bool get isActive => _active;
   bool get automaticVoiceNavigationAllowed => !_interrupted;
   bool get isForeground => _lifecycleState == AppLifecycleState.resumed;
+  int get foregroundResumeGeneration => _foregroundResumeGeneration;
+  void invalidateForegroundResume() => _foregroundResumeGeneration++;
 
   Future<void> initialize({required bool voiceAccessEnabled}) async {
     await ensureStarted(voiceAccessEnabled: voiceAccessEnabled);
@@ -70,6 +73,7 @@ class BackgroundLearningCoordinator {
       return;
     }
     _sessionGeneration += 1;
+    _foregroundResumeGeneration += 1;
     _active = false;
     _microphoneRequiresVisibleResume = false;
     await _stopNativeSession();
@@ -81,6 +85,7 @@ class BackgroundLearningCoordinator {
     required bool explicitMainSessionActive,
   }) {
     _lifecycleState = state;
+    if (state != AppLifecycleState.resumed) _foregroundResumeGeneration += 1;
     if (state == AppLifecycleState.resumed) {
       if (_microphoneRequiresVisibleResume) {
         _microphoneRequiresVisibleResume = false;
@@ -209,6 +214,23 @@ class BackgroundLearningCoordinator {
     }
   }
 
+  Future<bool> resumeForegroundAudio() async {
+    if (_disposed) return false;
+    if (_isWeb || _targetPlatform != TargetPlatform.iOS) return true;
+    if (!isForeground) return false;
+    final session = _session;
+    if (session is ForegroundAudioResumeSessionControl) {
+      final generation = _foregroundResumeGeneration;
+      final resumed = await (session as ForegroundAudioResumeSessionControl)
+          .resumeForegroundAudio();
+      return resumed &&
+          !_disposed &&
+          isForeground &&
+          generation == _foregroundResumeGeneration;
+    }
+    return true;
+  }
+
   void _handleEvent(BackgroundLearningEvent event) {
     if (_disposed ||
         !_voiceAccessEnabled ||
@@ -227,6 +249,7 @@ class BackgroundLearningCoordinator {
       return;
     }
     if (event.type == BackgroundLearningEventType.stopped) _active = false;
+    _foregroundResumeGeneration += 1;
     _interrupted = true;
     _microphoneRequiresVisibleResume = false;
     _onDirective(BackgroundLearningDirective.pauseAllAudio);
@@ -235,6 +258,7 @@ class BackgroundLearningCoordinator {
   void dispose() {
     if (_disposed) return;
     _disposed = true;
+    _foregroundResumeGeneration += 1;
     _sessionGeneration += 1;
     unawaited(_subscription?.cancel());
     if (_isWeb || _targetPlatform != TargetPlatform.android) {

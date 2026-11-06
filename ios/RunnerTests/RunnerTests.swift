@@ -9,6 +9,105 @@ import XCTest
 
 class RunnerTests: XCTestCase {
 
+  func testIOSForegroundManualResumeWaitsForRealInterruptionEndWithoutActivatingAudio() throws {
+    for backgroundEnabled in [true, false] {
+      try withBackgroundMixingHarness { h in
+        try h.arm()
+        IOSNativeWork.markApplicationActive()
+        h.coordinator.recordInterruption(mainInterruptionNotification())
+        h.coordinator.setBackgroundLearningEnabled(backgroundEnabled)
+        XCTAssertThrowsError(try h.coordinator.resumeForegroundAudio(caller: "manual.start"))
+        // Missing type or reason cannot establish that a call/Siri has ended.
+        h.coordinator.recordInterruption(Notification(name: AVAudioSession.interruptionNotification))
+        XCTAssertThrowsError(try h.coordinator.resumeForegroundAudio(caller: "manual.retry"))
+        h.coordinator.recordInterruption(mainInterruptionNotification(type: .ended))
+        XCTAssertTrue(h.coordinator.isAudioInterruptionSuspended,
+                      "An ended notification alone must not resume audio")
+        XCTAssertThrowsError(try h.coordinator.preparePhoneSpeaker(caller: "automatic.prompt"))
+        h.coordinator.requestBackgroundCaptureArm(caller: "automatic.arm")
+        XCTAssertEqual(h.armCount, 0)
+        try h.coordinator.resumeForegroundAudio(caller: "manual.retry.after.end")
+        XCTAssertFalse(h.coordinator.isAudioInterruptionSuspended)
+        XCTAssertFalse(h.coordinator.isMainTurnActive)
+        XCTAssertFalse(h.coordinator.isPromptActive)
+        XCTAssertFalse(h.coordinator.isSpeechCaptureActive)
+        XCTAssertFalse(h.coordinator.isBackgroundCaptureEngineRunning)
+        XCTAssertEqual(h.armCount, 0)
+        XCTAssertEqual(h.preparedMixing, [true])
+        XCTAssertTrue(h.appliedMixing.isEmpty)
+        // The subsequent explicit caller can now acquire ordinary playback.
+        XCTAssertTrue(try h.coordinator.beginAudioPlayback(token: "manual", caller: "manual.play"))
+        h.coordinator.endAudioPlayback(token: "manual", caller: "manual.done")
+      }
+    }
+  }
+
+  func testIOSBackgroundManualResumeCannotClearEvenAnEndedInterruption() throws {
+    try withBackgroundMixingHarness { h in
+      try h.arm()
+      h.coordinator.recordInterruption(mainInterruptionNotification())
+      h.coordinator.recordInterruption(mainInterruptionNotification(type: .ended))
+      XCTAssertThrowsError(try h.coordinator.resumeForegroundAudio(caller: "late.manual.start"))
+      XCTAssertTrue(h.coordinator.isAudioInterruptionSuspended)
+      XCTAssertFalse(h.coordinator.isMainTurnActive)
+      XCTAssertEqual(h.armCount, 0)
+    }
+  }
+
+  func testIOSNewInterruptionAfterManualResumeBlocksDelayedPreparationAgain() throws {
+    try withBackgroundMixingHarness { h in
+      try h.arm()
+      IOSNativeWork.markApplicationActive()
+      h.coordinator.recordInterruption(mainInterruptionNotification())
+      h.coordinator.recordInterruption(mainInterruptionNotification(type: .ended))
+      try h.coordinator.resumeForegroundAudio(caller: "manual.start")
+      h.coordinator.recordInterruption(mainInterruptionNotification())
+      XCTAssertThrowsError(try h.coordinator.beginAudioPlayback(token: "late", caller: "manual.late"))
+      XCTAssertThrowsError(try h.coordinator.prepareCapture(target: .builtInMic, caller: "manual.late"))
+      XCTAssertThrowsError(try h.coordinator.resumeForegroundAudio(caller: "manual.retry"))
+      h.coordinator.requestBackgroundCaptureArm(caller: "late.automatic.arm")
+      XCTAssertTrue(h.coordinator.isAudioInterruptionSuspended)
+      XCTAssertFalse(h.coordinator.isSpeechCaptureActive)
+      XCTAssertFalse(h.coordinator.isPromptActive)
+      XCTAssertEqual(h.armCount, 0)
+      XCTAssertTrue(h.appliedMixing.isEmpty)
+    }
+  }
+
+  func testIOSManualResumePreservesAnExistingMainAndItsInputPriority() throws {
+    try withBackgroundMixingHarness { h in
+      try h.arm()
+      IOSNativeWork.markApplicationActive()
+      let turn = h.coordinator.beginMainTurn(source: "MAIN", forceNewTurn: true)
+      try h.coordinator.reconcileBackgroundCaptureMixing(caller: "MAIN.ready")
+      let cancellations = h.confirmationCancellationCount
+      try h.coordinator.resumeForegroundAudio(caller: "manual.start")
+      XCTAssertTrue(h.coordinator.isMainTurnActive)
+      XCTAssertTrue(h.coordinator.isBackgroundCaptureEngineRunning)
+      XCTAssertFalse(h.coordinator.isBackgroundCaptureMixing)
+      XCTAssertEqual(h.appliedMixing, [false])
+      XCTAssertEqual(h.confirmationCancellationCount, cancellations)
+      XCTAssertEqual(h.armCount, 0)
+      h.coordinator.endMainTurn(reason: "done", caller: "MAIN", expectedTurnId: turn)
+    }
+  }
+
+  func testIOSManualResumeAtStartupAndAfterGraphLossOnlyChangesEligibility() throws {
+    try withBackgroundMixingHarness { h in
+      try h.coordinator.resumeForegroundAudio(caller: "startup.manual")
+      XCTAssertFalse(h.coordinator.isAudioInterruptionSuspended)
+      try h.arm()
+      IOSNativeWork.markApplicationActive()
+      h.coordinator.suspendForAudioInterruption(reason: "background_capture_graph_changed")
+      try h.coordinator.resumeForegroundAudio(caller: "manual.after.graph.loss")
+      XCTAssertFalse(h.coordinator.isAudioInterruptionSuspended)
+      XCTAssertFalse(h.coordinator.isBackgroundCaptureEngineRunning)
+      XCTAssertEqual(h.armCount, 0)
+      XCTAssertEqual(h.preparedMixing, [true])
+      XCTAssertTrue(h.appliedMixing.isEmpty)
+    }
+  }
+
   func testIOSInterruptedBackgroundMainPostsOnlySilentAuthorizedGuidance() throws {
     for status in [UNAuthorizationStatus.authorized, .provisional] {
       try withBackgroundMixingHarness { h in
@@ -2788,11 +2887,13 @@ private final class BackgroundMixingHarness: IOSBackgroundCaptureHandoffDelegate
   }
 }
 
-private func mainInterruptionNotification() -> Notification {
+private func mainInterruptionNotification(
+  type: AVAudioSession.InterruptionType = .began
+) -> Notification {
   Notification(
     name: AVAudioSession.interruptionNotification,
     userInfo: [
-      AVAudioSessionInterruptionTypeKey: NSNumber(value: AVAudioSession.InterruptionType.began.rawValue),
+      AVAudioSessionInterruptionTypeKey: NSNumber(value: type.rawValue),
     ]
   )
 }

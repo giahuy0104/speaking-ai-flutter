@@ -1276,6 +1276,11 @@ class ConversationController extends ChangeNotifier
   Future<void> onPrimaryAction() =>
       _continuousTranslationSession.onPrimaryAction();
 
+  bool Function() capturePrimaryActionGuard() {
+    final generation = _conversationTurnGeneration;
+    return () => !_disposed && generation == _conversationTurnGeneration;
+  }
+
   /// Starts a single-sentence turn immediately when the child presses down.
   /// Silence cannot finish the turn while the button is still held; the
   /// existing maximum recording timer remains the safety limit.

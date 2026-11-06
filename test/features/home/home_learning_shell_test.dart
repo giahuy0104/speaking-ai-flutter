@@ -66,6 +66,157 @@ void main() {
   });
 
   testWidgets(
+    'iOS explicit conversation resumes audio before device gate only',
+    (tester) async {
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final speech = _FakeStreamingSpeechInput();
+      final controller = _ObservedPrimaryActionController(speech);
+      final session = _ForegroundResumeSession();
+      addTearDown(controller.dispose);
+      addTearDown(session.dispose);
+      var connections = 0;
+      await tester.pumpWidget(
+        _app(
+          controller,
+          backgroundLearningSession: session,
+          ensureDeviceConnected: () async {
+            connections++;
+            return true;
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(session.resumes, 0);
+      await tester.tap(find.text('Kết nối HOMI'));
+      await tester.pumpAndSettle();
+      expect(session.resumes, 1);
+      expect(connections, 0);
+      expect(controller.primaryActionPhases, isEmpty);
+      expect(speech.startCount, 0);
+      expect(
+        find.text(
+          'Âm thanh đang bị gián đoạn. Chờ tác vụ âm thanh kết thúc rồi thử lại.',
+        ),
+        findsOneWidget,
+      );
+      session.allowed = true;
+      await tester.tap(find.text('Kết nối HOMI'));
+      await tester.pump(const Duration(seconds: 1));
+      expect(session.resumes, 2);
+      expect(connections, 1);
+      expect(controller.primaryActionPhases, [ConversationPhase.idle]);
+      expect(speech.startCount, 1);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 3));
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  testWidgets(
+    'disposed iOS conversation cannot start after late audio resume',
+    (tester) async {
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final speech = _FakeStreamingSpeechInput();
+      final controller = _ObservedPrimaryActionController(speech);
+      final session = _ForegroundResumeSession()..pending = Completer<bool>();
+      addTearDown(controller.dispose);
+      addTearDown(session.dispose);
+      var connections = 0;
+      await tester.pumpWidget(
+        _app(
+          controller,
+          backgroundLearningSession: session,
+          ensureDeviceConnected: () async {
+            connections++;
+            return true;
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Kết nối HOMI'));
+      await tester.pump();
+      expect(session.resumes, 1);
+      await tester.pumpWidget(const SizedBox.shrink());
+      session.pending!.complete(true);
+      await tester.pump(const Duration(seconds: 3));
+      expect(connections, 0);
+      expect(speech.startCount, 0);
+      expect(controller.primaryActionPhases, isEmpty);
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  for (final pendingStep in ['resume', 'device']) {
+    for (final cancellation in [
+      'lifecycle',
+      'interruption',
+      'history',
+      'vocabulary',
+      'topic',
+      'stop',
+    ]) {
+      testWidgets(
+        'iOS pending $pendingStep is cancelled by $cancellation',
+        (tester) async {
+          tester.binding.handleAppLifecycleStateChanged(
+            AppLifecycleState.resumed,
+          );
+          SharedPreferences.setMockInitialValues(<String, Object>{});
+          final speech = _FakeStreamingSpeechInput();
+          final controller = _ObservedPrimaryActionController(speech);
+          final gate = Completer<bool>();
+          final session = _ForegroundResumeSession()..allowed = true;
+          if (pendingStep == 'resume') session.pending = gate;
+          addTearDown(controller.dispose);
+          addTearDown(session.dispose);
+          await tester.pumpWidget(
+            _app(
+              controller,
+              backgroundLearningSession: session,
+              ensureDeviceConnected: () async =>
+                  pendingStep == 'device' ? gate.future : true,
+            ),
+          );
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('Kết nối HOMI'));
+          await tester.pump();
+          if (cancellation == 'lifecycle') {
+            tester.binding.handleAppLifecycleStateChanged(
+              AppLifecycleState.inactive,
+            );
+            tester.binding.handleAppLifecycleStateChanged(
+              AppLifecycleState.resumed,
+            );
+          } else if (cancellation == 'interruption') {
+            session.interrupt('audio_session_interruption');
+          } else if (cancellation == 'history') {
+            await tester.tap(find.byTooltip('Lịch sử gần đây'));
+            await tester.pumpAndSettle();
+          } else if (cancellation == 'vocabulary') {
+            await tester.tap(find.text('Từ vựng').last);
+            await tester.pumpAndSettle();
+          } else if (cancellation == 'topic') {
+            await tester.tap(find.text('Chủ đề').last);
+            await tester.pumpAndSettle();
+          } else {
+            await controller.cancelCurrentMainAction();
+          }
+          await tester.pump();
+          gate.complete(true);
+          await tester.pump(const Duration(seconds: 1));
+          expect(controller.primaryActionPhases, isEmpty);
+          expect(speech.startCount, 0);
+          await tester.pumpWidget(const SizedBox.shrink());
+          await tester.pump(const Duration(seconds: 3));
+        },
+        variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+      );
+    }
+  }
+
+  testWidgets(
     'Home starts background preparation after rendering and not on rebuild',
     (tester) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
@@ -3972,6 +4123,19 @@ class _FakeBackgroundLearningSession
   }
 
   Future<void> dispose() => _events.close();
+}
+
+class _ForegroundResumeSession extends _FakeBackgroundLearningSession
+    implements ForegroundAudioResumeSessionControl {
+  bool allowed = false;
+  int resumes = 0;
+  Completer<bool>? pending;
+
+  @override
+  Future<bool> resumeForegroundAudio() async {
+    resumes++;
+    return pending?.future ?? allowed;
+  }
 }
 
 class _FakeScreenAwareBackgroundLearningSession

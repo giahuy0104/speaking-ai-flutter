@@ -121,6 +121,19 @@ final class BackgroundLearningBridge: NSObject, FlutterStreamHandler {
         result(nil)
       case "isActive":
         result(self.audioSessionCoordinator.isBackgroundLearningEnabled)
+      case "resumeForegroundAudio":
+        do {
+          try self.audioSessionCoordinator.resumeForegroundAudio(
+            caller: "BackgroundLearningBridge.resumeForegroundAudio"
+          )
+          result(true)
+        } catch {
+          result(FlutterError(
+            code: "FOREGROUND_AUDIO_RESUME_DENIED",
+            message: error.localizedDescription,
+            details: nil
+          ))
+        }
       case "beginAudioPlayback":
         let arguments = call.arguments as? [String: Any]
         guard let token = arguments?["token"] as? String, !token.isEmpty else {
