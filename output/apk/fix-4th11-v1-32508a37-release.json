@@ -1,0 +1,10 @@
+{
+  "Branch": "fix-4th11-v1",
+  "Commit": "32508a371433a9605783f613ab7865b29cc226d3",
+  "SHA256": "5CA573DD76C9343642819E75ABA62042D718B28E4A4DA80780DDCB9574098CA4",
+  "SizeBytes": 192121740,
+  "Package": "com.innotrik.aispeaking",
+  "Version": "1.0.12+20",
+  "Device": "vivo 1919",
+  "Install": "adb install -r: Success"
+}

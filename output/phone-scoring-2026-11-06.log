@@ -1,0 +1,14 @@
+11-06 10:32:29.404 24189 24189 E SpeechRecognizer: not connected to the recognition service
+11-06 10:39:04.118 24189 24189 E SpeechRecognizer: not connected to the recognition service
+11-06 10:39:22.414 24189 24189 E SpeechRecognizer: not connected to the recognition service
+11-06 10:39:54.671 24189 24189 E SpeechRecognizer: not connected to the recognition service
+11-06 10:40:06.200 24189 24189 E SpeechRecognizer: not connected to the recognition service
+11-06 10:40:55.159 24189 24189 E SpeechRecognizer: not connected to the recognition service
+11-06 10:41:57.980 24189 24189 E SpeechRecognizer: not connected to the recognition service
+11-06 10:42:56.938 24189 24189 E SpeechRecognizer: not connected to the recognition service
+11-06 10:43:38.520 24189 24189 E SpeechRecognizer: not connected to the recognition service
+11-06 10:45:03.723 24189 24189 E SpeechRecognizer: not connected to the recognition service
+11-06 10:45:37.061 24189 24234 W HfpAudioBridge: Selected HM-D001 SCO audio disconnected; re-asserting the connected HM-D001 route
+11-06 10:45:38.191 24189 24234 I HfpAudioBridge: HM-D001 communication route recovered generation=120
+11-06 10:45:41.189 24189 24189 I flutter : {"event":"lesson_scoring_response","endpoint":"/api/listening/evaluate-attempt","status":504,"retryIndex":0,"requestId":"f1a0bee0-b026-4797-8a47-18410f0ca792"}
+11-06 10:45:41.189 24189 24189 I flutter : {"event":"lesson_scoring_retry","endpoint":"/api/listening/evaluate-attempt","status":504,"nextRetryIndex":1,"delayMs":400,"requestId":"f1a0bee0-b026-4797-8a47-18410f0ca792"}
