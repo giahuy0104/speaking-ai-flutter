@@ -115,7 +115,7 @@ void main() {
     );
 
     test(
-      'topic source reaches the pinned recorder and retains HFP on stop',
+      'topic recording uses communication source and retains HFP on stop',
       () async {
         await media.dispose();
         media = _RecordingTestMediaService(
@@ -123,13 +123,12 @@ void main() {
           recorder: recorder,
           playbackService: _ControlledPlaybackService(),
           hfpAudioControl: hfp,
-          useAndroidVoiceRecognitionSource: true,
         );
         await start();
         expect(recorder.lastConfig?.device, _FakeLessonRecorder.homi);
         expect(
           recorder.lastConfig?.androidConfig.audioSource,
-          AndroidAudioSource.voiceRecognition,
+          AndroidAudioSource.voiceCommunication,
         );
         final stopsBefore = hfp.stopCalls;
         await media.stopRecording();
@@ -1247,31 +1246,29 @@ void main() {
     expect(hfpRecord.autoGain, isTrue);
   });
 
-  test('topic HFP source opt-in preserves default and phone capture', () {
-    addTearDown(() => debugDefaultTargetPlatformOverride = null);
-    for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
-      debugDefaultTargetPlatformOverride = platform;
-      for (final selectedHfp in [false, true]) {
-        for (final enabled in [false, true]) {
+  test(
+    'topic capture keeps communication source for HFP and mic for phone',
+    () {
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
+        debugDefaultTargetPlatformOverride = platform;
+        for (final selectedHfp in [false, true]) {
           final config = LessonMediaService.lessonRecordConfig(
             useSelectedHfp: selectedHfp,
             inputDevice: selectedHfp ? _FakeLessonRecorder.homi : null,
-            useAndroidVoiceRecognitionSource: enabled,
           );
           expect(
             config.androidConfig.audioSource,
-            !selectedHfp
-                ? AndroidAudioSource.mic
-                : platform == TargetPlatform.android && enabled
-                ? AndroidAudioSource.voiceRecognition
-                : AndroidAudioSource.voiceCommunication,
+            selectedHfp
+                ? AndroidAudioSource.voiceCommunication
+                : AndroidAudioSource.mic,
           );
           expect(config.androidConfig.manageBluetooth, isFalse);
           expect(config.device, selectedHfp ? _FakeLessonRecorder.homi : null);
         }
       }
-    }
-  });
+    },
+  );
 
   test('Android capture leaves routing owned by HFP bridge and phone flow', () {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
@@ -1388,7 +1385,6 @@ class _RecordingTestMediaService extends LessonMediaService {
     super.recorder,
     super.playbackService,
     super.hfpAudioControl,
-    super.useAndroidVoiceRecognitionSource,
   });
 
   final String path;

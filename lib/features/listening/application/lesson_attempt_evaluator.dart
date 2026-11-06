@@ -479,6 +479,7 @@ class AndroidOnDeviceFirstLessonAttemptEvaluator
     var backendDone = false;
     Object? localError;
     Object? backendError;
+    LessonAttemptOutcome? backendOutcome;
 
     void completeOutcome(LessonAttemptOutcome outcome, String source) {
       if (!current()) return;
@@ -492,8 +493,13 @@ class AndroidOnDeviceFirstLessonAttemptEvaluator
       result.complete(outcome);
     }
 
-    void finishFailure() {
+    void finishFallback() {
       if (current() && localDone && backendDone) {
+        final fallback = backendOutcome;
+        if (fallback != null) {
+          completeOutcome(fallback, 'backend');
+          return;
+        }
         result.completeError(
           backendError ??
               localError ??
@@ -536,12 +542,18 @@ class AndroidOnDeviceFirstLessonAttemptEvaluator
           acceptedVariants: variants,
           requireAllExpectedTokens: requireAllExpectedTokens,
         );
-        completeOutcome(outcome, 'backend');
+        // A hedged negative result must not discard a correct local answer
+        // still eligible inside its bounded primary recognition window.
+        if (outcome == LessonAttemptOutcome.good) {
+          completeOutcome(outcome, 'backend');
+        } else {
+          backendOutcome = outcome;
+        }
       } catch (error) {
         backendError = error;
       } finally {
         backendDone = true;
-        finishFailure();
+        finishFallback();
       }
     }
 
@@ -559,7 +571,7 @@ class AndroidOnDeviceFirstLessonAttemptEvaluator
         localBudget,
       );
       unawaited(startBackend());
-      finishFailure();
+      finishFallback();
     });
     final hedge = Timer(backendHedgeDelay, () => unawaited(startBackend()));
 
@@ -637,7 +649,7 @@ class AndroidOnDeviceFirstLessonAttemptEvaluator
             }),
           );
           unawaited(startBackend());
-          finishFailure();
+          finishFallback();
         },
       ),
     );

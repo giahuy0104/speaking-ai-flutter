@@ -47,14 +47,12 @@ class LessonMediaService {
     AudioTurnOwner audioTurnOwner = AudioTurnOwner.listeningLesson,
     LessonRecordingHistoryStore? historyStore,
     Stream<AudioInterruptionEvent>? audioInterruptionEvents,
-    bool useAndroidVoiceRecognitionSource = false,
   }) : _recorder = recorder,
        _playbackService = playbackService,
        _hfpAudioControl = hfpAudioControl,
        _audioTurnCoordinator = audioTurnCoordinator,
        _audioTurnOwner = audioTurnOwner,
        _audioInterruptionEvents = audioInterruptionEvents,
-       _useAndroidVoiceRecognitionSource = useAndroidVoiceRecognitionSource,
        historyStore = historyStore ?? const LessonRecordingHistoryStore() {
     if (!kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.android ||
@@ -100,7 +98,6 @@ class LessonMediaService {
   final AudioTurnCoordinator? _audioTurnCoordinator;
   final AudioTurnOwner _audioTurnOwner;
   final Stream<AudioInterruptionEvent>? _audioInterruptionEvents;
-  final bool _useAndroidVoiceRecognitionSource;
   DateTime? _recordingStartedAt;
   String? _activePath;
   _ActiveLessonRecording? _activeContext;
@@ -650,7 +647,6 @@ class LessonMediaService {
         lessonRecordConfig(
           useSelectedHfp: useSelectedHfp,
           inputDevice: recordingInput,
-          useAndroidVoiceRecognitionSource: _useAndroidVoiceRecognitionSource,
         ),
         path: path,
       );
@@ -795,7 +791,6 @@ class LessonMediaService {
   static RecordConfig lessonRecordConfig({
     required bool useSelectedHfp,
     InputDevice? inputDevice,
-    bool useAndroidVoiceRecognitionSource = false,
   }) => RecordConfig(
     encoder: !kIsWeb && defaultTargetPlatform == TargetPlatform.android
         ? AudioEncoder.wav
@@ -824,11 +819,7 @@ class LessonMediaService {
     androidConfig: AndroidRecordConfig(
       manageBluetooth: false,
       audioSource: useSelectedHfp
-          ? useAndroidVoiceRecognitionSource &&
-                    !kIsWeb &&
-                    defaultTargetPlatform == TargetPlatform.android
-                ? AndroidAudioSource.voiceRecognition
-                : AndroidAudioSource.voiceCommunication
+          ? AndroidAudioSource.voiceCommunication
           : AndroidAudioSource.mic,
       // record_android treats modeNormal as "do not manage AudioManager mode".
       // Its recorder remembers the mode from its first capture and would restore
