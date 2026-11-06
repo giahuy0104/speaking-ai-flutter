@@ -231,7 +231,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   bool _pausedForMainAssistant = false;
   bool _openingPractice = false;
   Route<VocabularyPracticeResult>? _practiceRoute;
-  final GlobalKey<VocabularyPracticeScreenState> _practiceScreenKey =
+  GlobalKey<VocabularyPracticeScreenState> _practiceScreenKey =
       GlobalKey<VocabularyPracticeScreenState>();
   bool _startingToday = false;
   bool _restartTodayAfterCurrent = false;
@@ -1683,9 +1683,15 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       _loading = false;
     });
     if (_isEffectivelyActive && widget.autoStartToday && !_todayOffered) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) unawaited(_maybeStartToday());
-      });
+      if (!kIsWeb &&
+          (defaultTargetPlatform == TargetPlatform.android ||
+              defaultTargetPlatform == TargetPlatform.iOS)) {
+        unawaited(_maybeStartToday());
+      } else {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) unawaited(_maybeStartToday());
+        });
+      }
     }
   }
 
@@ -1960,6 +1966,10 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       while (true) {
         if (!mounted) return;
         final language = DisplayLanguageScope.of(context);
+        // A removed route can keep its widget until the next frame. A new
+        // session must not reparent that exited state while the display is off.
+        final practiceScreenKey = GlobalKey<VocabularyPracticeScreenState>();
+        _practiceScreenKey = practiceScreenKey;
         final routeResult = AppNavigator.of(context)
             .push<VocabularyPracticeResult>(
               context,
@@ -1973,7 +1983,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                   announceResume: announceResume,
                 ),
                 bindings: () => VocabularyPracticeBindings(
-                  key: _practiceScreenKey,
+                  key: practiceScreenKey,
                   store: widget.store,
                   sessionStore: widget.sessionStore,
                   mediaService: _mediaService,

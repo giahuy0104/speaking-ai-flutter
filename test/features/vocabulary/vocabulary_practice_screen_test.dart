@@ -28,6 +28,7 @@ void main() {
   testWidgets('Today starts its intro without another frame after loading', (
     tester,
   ) async {
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     SharedPreferences.setMockInitialValues(<String, Object>{});
     final store = _PendingReviewStore();
     final voice = _FakeVoicePromptService();

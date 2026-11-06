@@ -30,6 +30,34 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  testWidgets('mobile Today entry starts after loading without another frame', (
+    tester,
+  ) async {
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final store = _PendingTodayLoadStore();
+    final prompts = _RecordingVoicePromptService();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: VocabularyHomeScreen(
+          isReady: true,
+          autoStartToday: true,
+          store: store,
+          voicePromptService: prompts,
+          mediaService: _ImmediateLessonMediaService(),
+          fixedPromptAudioService: const _UnavailableFixedPromptAudioService(),
+          onReturnToConversation: () {},
+          onHistory: () {},
+          onSettings: () {},
+        ),
+      ),
+    );
+    store.loaded.complete();
+    await tester.idle();
+    expect(prompts.spokenTexts, contains(VocabularyFlowV3.menu));
+    await tester.pumpWidget(const SizedBox.shrink());
+  }, variant: TargetPlatformVariant.only(TargetPlatform.android));
+
   for (final journey in <String>['family', 'stars', 'review']) {
     testWidgets('vocabulary $journey touch waits for device before entering', (
       tester,
@@ -2770,6 +2798,17 @@ class _DelayedEntrySessionStore extends VocabularySessionStore {
 
   @override
   Future<bool> markAndCheckFirstEntryToday(DateTime now) => entry.future;
+}
+
+class _PendingTodayLoadStore extends _MemoryVocabularyStore {
+  _PendingTodayLoadStore() : super([]);
+  final loaded = Completer<void>();
+
+  @override
+  Future<List<VocabularyEntry>> read() async {
+    await loaded.future;
+    return super.read();
+  }
 }
 
 class _MemoryVocabularyStore extends VocabularyStore {

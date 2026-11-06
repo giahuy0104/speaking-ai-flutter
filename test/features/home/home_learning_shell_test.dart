@@ -2203,9 +2203,9 @@ void main() {
     variant: TargetPlatformVariant({TargetPlatform.android}),
   );
 
-  testWidgets(
-    'Android Today closes before English translation starts',
-    (tester) async {
+  for (final exitWhileLocked in <bool>[false, true]) {
+    testWidgets('Android Today closes before English translation starts '
+        '(exitWhileLocked=$exitWhileLocked)', (tester) async {
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
       SharedPreferences.setMockInitialValues(<String, Object>{});
       tester.view.physicalSize = const Size(390, 844);
@@ -2229,6 +2229,8 @@ void main() {
       var translationStarted = false;
       var practiceVisibleWhenStarted = true;
       double? pageWhenStarted;
+      final vocabularyVoice = _RecordingVoicePromptService();
+      final vocabularyAudio = _DelayedVocabularyAudioService();
       late PageController pageController;
       await tester.pumpWidget(
         ActiveLearningModuleScope(
@@ -2237,12 +2239,13 @@ void main() {
             controller,
             voiceNavigationController: voice,
             vocabularyMediaService: _ImmediateVocabularyMediaService(),
-            vocabularyVoicePromptService: _SilentVoicePromptService(),
+            vocabularyVoicePromptService: vocabularyVoice,
+            vocabularyAudioService: vocabularyAudio,
             onMainSpeakingModeStarted: () async {
               practiceVisibleWhenStarted = find
                   .byType(VocabularyPracticeScreen)
                   .evaluate()
-                  .isNotEmpty;
+                  .any((element) => ModalRoute.of(element)?.isActive == true);
               pageWhenStarted = pageController.page;
               translationStarted = true;
             },
@@ -2256,10 +2259,11 @@ void main() {
       await tester.tap(find.byKey(const Key('vocabulary-edge-tab')));
       await tester.pumpAndSettle();
       expect(find.byType(VocabularyPracticeScreen), findsOneWidget);
-      expect(
-        (await const VocabularySessionStore().readActive())?.mode,
-        VocabularyPracticeMode.today,
+      final previousPractice = tester.state<VocabularyPracticeScreenState>(
+        find.byType(VocabularyPracticeScreen),
       );
+      final previousSession = await const VocabularySessionStore().readActive();
+      expect(previousSession?.mode, VocabularyPracticeMode.today);
       expect(await registry.pauseForMainAssistant(), isTrue);
       expect(
         await voice.activateFromMainButton(
@@ -2269,21 +2273,46 @@ void main() {
         ),
         isTrue,
       );
+      if (exitWhileLocked) {
+        tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      }
       final dispatch = voice.dispatchRecognizedText('Dịch sang tiếng Anh');
-      for (var index = 0; index < 20 && !translationStarted; index++) {
-        await tester.pump(const Duration(milliseconds: 100));
+      if (exitWhileLocked) {
+        await tester.idle();
+      } else {
+        for (var index = 0; index < 20 && !translationStarted; index++) {
+          await tester.pump(const Duration(milliseconds: 100));
+        }
       }
       expect(await dispatch, isTrue);
       expect(translationStarted, isTrue);
+      // The old widget may remain in the unpainted overlay while locked;
+      // its route must already be inactive before translation starts.
       expect(practiceVisibleWhenStarted, isFalse);
       expect(pageWhenStarted, closeTo(0, 0.001));
-      expect(find.byType(ConversationScreen).hitTestable(), findsOneWidget);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      expect(await voice.activateFromMainButton(), isTrue);
+      vocabularyAudio.spoken.clear();
+      final returning = voice.dispatchRecognizedText('Bộ từ vựng');
+      await tester.idle();
+      expect(await returning, isTrue);
+      await tester.idle();
+      expect(vocabularyVoice.spoken, contains(VocabularyFlowV3.todayResume));
+      expect(vocabularyAudio.spoken, contains('Apple'));
+      expect(registry.controller, isNot(same(previousPractice)));
+      expect(registry.controller, isA<VocabularyPracticeScreenState>());
+      final resumedPractice = registry.controller;
+      final restoredSession = await const VocabularySessionStore().readActive();
+      expect(restoredSession?.id, previousSession?.id);
+      expect(restoredSession?.currentIndex, previousSession?.currentIndex);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      expect(registry.controller, same(resumedPractice));
       await tester.pump(const Duration(seconds: 3));
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump(const Duration(seconds: 3));
-    },
-    variant: TargetPlatformVariant.only(TargetPlatform.android),
-  );
+    }, variant: TargetPlatformVariant.only(TargetPlatform.android));
+  }
 
   testWidgets(
     'Android Today MAIN other content closes Today before voice Review',
@@ -3739,6 +3768,7 @@ class _FakeParentMediaSettingsStore implements ParentMediaSettingsStore {
 
 class _DelayedVocabularyAudioService implements VocabularyContentAudioService {
   final Completer<void> _stopGate = Completer<void>();
+  final List<String> spoken = <String>[];
   bool blockStops = false;
   int stopCount = 0;
 
@@ -3753,7 +3783,10 @@ class _DelayedVocabularyAudioService implements VocabularyContentAudioService {
   Future<VocabularyAudioSource> speakAndWait(
     String text, {
     required String locale,
-  }) async => VocabularyAudioSource.nativeTts;
+  }) async {
+    spoken.add(text);
+    return VocabularyAudioSource.nativeTts;
+  }
 
   @override
   Future<void> stop() async {
