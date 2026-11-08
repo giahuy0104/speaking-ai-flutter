@@ -16,6 +16,7 @@ import '../../listening/application/lesson_attempt_evaluator.dart';
 import '../../listening/application/lesson_media_service.dart';
 import '../../listening/application/lesson_recording_endpoint_detector.dart';
 import '../../listening/domain/lesson_guide_flow.dart';
+import '../../voice_navigation/domain/main_assistant_audio_keys.dart';
 import '../../voice_navigation/domain/master_navigation_contract.dart';
 import '../application/vocabulary_audio_service.dart';
 import '../application/vocabulary_fixed_prompt_audio_service.dart';
@@ -1014,6 +1015,15 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
         if (!_isCurrent(generation, entryId)) return;
       } else if (offset > 0) {
         await _speakAndWait(MasterNavigationContract.nextItemPrompt);
+        if (!_isCurrent(generation, entryId)) return;
+      } else if (offset < 0) {
+        await _playLessonPrompt(
+          const LessonGuidePrompt(
+            audioCode: 'CORE_PREVIOUS',
+            text: 'Mình nghe lại câu trước nhé',
+            audioKey: MainAssistantAudioKeys.previousItem,
+          ),
+        );
         if (!_isCurrent(generation, entryId)) return;
       }
       setState(() => _busy = false);

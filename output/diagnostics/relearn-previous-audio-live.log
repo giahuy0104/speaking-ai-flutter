@@ -1,0 +1,1858 @@
+--------- beginning of main
+11-08 16:57:12.282  2651  2651 W SoLoader: Loading mobileconfig-jni on the main thread
+11-08 16:57:12.306  2651  3332 W OneFabricEventHandler: Event mobile_config_general_cases has no session descriptor; using the current session (0 further occurrences suppressed in the last 60000 ms)
+11-08 16:57:12.357  2651  4150 W IgMetaConfig: Could not obtain MC: not_user_session session=X.06d8@84d78e1
+11-08 16:57:12.357  2651  4150 W IgMetaConfig: java.lang.RuntimeException: Could not obtain MC, call-site will receive default values
+11-08 16:57:12.357  2651  4150 W IgMetaConfig: 	at X.01xj.A06(:22)
+11-08 16:57:12.357  2651  4150 W IgMetaConfig: 	at X.01xj.A04(:7)
+11-08 16:57:12.357  2651  4150 W IgMetaConfig: 	at X.01xj.A02(:2)
+11-08 16:57:12.357  2651  4150 W IgMetaConfig: 	at X.02lA.A01(:9)
+11-08 16:57:12.357  2651  4150 W IgMetaConfig: 	at X.02lA.A04(:4)
+11-08 16:57:12.357  2651  4150 W IgMetaConfig: 	at X.06Vc.A05(:2038)
+11-08 16:57:12.357  2651  4150 W IgMetaConfig: 	at X.06Vb.A0P(:0)
+11-08 16:57:12.357  2651  4150 W IgMetaConfig: 	at X.05tY.call(:9)
+11-08 16:57:12.357  2651  4150 W IgMetaConfig: 	at X.03md.run(:2)
+11-08 16:57:12.357  2651  4150 W IgMetaConfig: 	at X.04Gz.run(:22)
+11-08 16:57:12.357  2651  4150 W IgMetaConfig: 	at X.09w1.A02(:5)
+11-08 16:57:12.357  2651  4150 W IgMetaConfig: 	at X.06e5.run(:30)
+11-08 16:57:12.357  2651  4150 W IgMetaConfig: 	at X.04av.run(:39)
+11-08 16:57:12.357  2651  4150 W IgMetaConfig: 	at X.02jm.run(:27)
+11-08 16:57:12.357  2651  4150 W IgMetaConfig: 	at X.02jm.run(:27)
+11-08 16:57:12.357  2651  4150 W IgMetaConfig: 	at X.01ry.A00(:122)
+11-08 16:57:12.357  2651  4150 W IgMetaConfig: 	at X.01ry.run(:150)
+11-08 16:57:12.368  2651  4150 W IgMetaConfig: Could not obtain MC: not_user_session session=X.06d8@84d78e1
+11-08 16:57:12.368  2651  4150 W IgMetaConfig: java.lang.RuntimeException: Could not obtain MC, call-site will receive default values
+11-08 16:57:12.368  2651  4150 W IgMetaConfig: 	at X.01xj.A06(:22)
+11-08 16:57:12.368  2651  4150 W IgMetaConfig: 	at X.01xj.A04(:7)
+11-08 16:57:12.368  2651  4150 W IgMetaConfig: 	at X.01xj.A02(:2)
+11-08 16:57:12.368  2651  4150 W IgMetaConfig: 	at X.06Vc.A05(:2757)
+11-08 16:57:12.368  2651  4150 W IgMetaConfig: 	at X.06Vb.A0P(:0)
+11-08 16:57:12.368  2651  4150 W IgMetaConfig: 	at X.05tY.call(:9)
+11-08 16:57:12.368  2651  4150 W IgMetaConfig: 	at X.03md.run(:2)
+11-08 16:57:12.368  2651  4150 W IgMetaConfig: 	at X.04Gz.run(:22)
+11-08 16:57:12.368  2651  4150 W IgMetaConfig: 	at X.09w1.A02(:5)
+11-08 16:57:12.368  2651  4150 W IgMetaConfig: 	at X.06e5.run(:30)
+11-08 16:57:12.368  2651  4150 W IgMetaConfig: 	at X.04av.run(:39)
+11-08 16:57:12.368  2651  4150 W IgMetaConfig: 	at X.02jm.run(:27)
+11-08 16:57:12.368  2651  4150 W IgMetaConfig: 	at X.02jm.run(:27)
+11-08 16:57:12.368  2651  4150 W IgMetaConfig: 	at X.01ry.A00(:122)
+11-08 16:57:12.368  2651  4150 W IgMetaConfig: 	at X.01ry.run(:150)
+11-08 16:57:12.555  2651  2669 W stagram.androi: Profile data size exceeds 500000 bytes. It has 899490 bytes.
+11-08 16:57:12.576  2651  2915 E msys    : E[N mns:TigonMNS]onResolverSuccess(417)=>Cache refresh succeeded with system DNS resolver. IP count: 1
+11-08 16:57:12.577  2651  2915 E msys    : E[N mns:TigonMNS]onResolverSuccess(417)=>Cache refresh succeeded with system DNS resolver. IP count: 1
+11-08 16:57:12.577  2651  2915 E msys    : E[N mns:TigonMNS]onResolverSuccess(417)=>Cache refresh succeeded with system DNS resolver. IP count: 1
+11-08 16:57:12.580  2651  2915 E msys    : E[N mns:TigonMNS]onResolverSuccess(417)=>Cache refresh succeeded with system DNS resolver. IP count: 1
+11-08 16:57:12.622  2651  2915 E msys    : E[N mns:TigonMNS]onResolverSuccess(417)=>Cache refresh succeeded with system DNS resolver. IP count: 1
+11-08 16:57:12.671  2651  2915 E msys    : E[N mns:TigonMNS]onResolverSuccess(417)=>Cache refresh succeeded with system DNS resolver. IP count: 1
+11-08 16:57:19.824  3630  3964 E msgr.msys: E[C MEMConnectionManager]__DisconnectIfNeededOnNetworkContextAsyncImpl(1378)=>[Critical] Call WCCConnectionMEMDisconnectImmediately with event id: 3
+11-08 16:57:19.826  3630  3964 E msgr.msys: E[N WCCConnectionMEM]_WCCConnectionMEMDoDisconnect(1991)=>[INFO] connection/disconnect/[internalState=5]
+11-08 16:57:19.827  3630  3964 E msgr.msys: E[N WA]WCCXMPPStreamDisconnectImmediately(925)=>[WARNING] xmpp/disconnect/immediate in state=2 reason={stateChangeSource: 0, stateChangeReason: 0}
+11-08 16:57:19.829  3630  3964 E msgr.msys: E[N WA]_WCCXMPPStreamDisconnectHandler(347)=>xmpp/disconnect - WCIStreamStateErrorCode: 1, domain: WCIStreamState, subdomain: happyeyeballs: Error Domain=WCIStreamState Code=1 UserInfo=0x168abb10c0 {MCFErrorDirectUnderlyingErrorKey=0xb400007725dd0390 "Error Domain=happyeyeballs Code=1"}
+11-08 16:57:19.829  3630  3964 E msgr.msys: E[N WCCConnectionMEM]_WCCConnectionMEMLifecycleEventHandler(2273)=>[INFO] connection/xmpp/lifecycle_event/not-connected, [600.0468s]
+11-08 16:57:19.830  3630  3964 E msgr.msys: E[N WA]_WCCXMPPStreamDoDisconnect(1343)=>xmpp/disconnect - flags: 0
+11-08 16:57:19.830  3630  3964 E msgr.msys: E[N WCCConnectionMEM]_WCCConnectionMEMEmitStateChange(3331)=>[INFO] connection/new_state/not-connected [connection_id=131965044, wcc_source=1, wcc_reason=0]
+11-08 16:57:19.834  3630  3964 E msgr.msys: E[C MEMConnectionManager]_MEMConnectionManagerStateChangeHandler(642)=>[Critical] MEMConnectionState updated to ID: 0 with connectionId: 131965044
+11-08 16:57:26.382  1489  6455 I NearbyDiscovery: (REDACTED) loadFastPairModule: checkFeaturesAreAvailable:%d
+11-08 16:57:26.383  1489  6455 I NearbyDiscovery: loadFastPairModule: FastPair module is downloaded. [CONTEXT service_id=265 ]
+11-08 16:57:28.946  3630  3721 W m.facebook.orc: Profile data size exceeds 500000 bytes. It has 577016 bytes.
+11-08 16:57:29.153  3630  3659 W System  : A resource failed to call close. 
+11-08 16:57:29.153  3630  3659 W System  : A resource failed to call close. 
+11-08 16:57:29.154  3630  3659 W System  : A resource failed to call close. 
+11-08 16:57:29.154  3630  3659 W System  : A resource failed to call close. 
+11-08 16:57:36.314 27015 27015 I Aiv0BleControl: Button Event device=***************** len=12 duplicate=false raw=01 01 01 00 03 00 4B 00 8F 1D 03 00
+11-08 16:57:36.333 27015 27064 I HfpAudioBridge: Starting HFP route generation=111
+11-08 16:57:36.533 27015 27064 I HfpAudioBridge: HM-D001 HFP/SCO route confirmed: id=22654, name=vivo 1919, generation=111
+11-08 16:57:36.549 27015 27015 I HomiDiag: {"event":"main.media_quiet.request","utcMs":1794131856549,"elapsedMs":1277159077,"stage":"begin","musicActive":false}
+11-08 16:57:36.815 27015 27015 I HomiDiag: {"event":"main.media_quiet.result","utcMs":1794131856815,"elapsedMs":1277159343,"stage":"begin","result":"QUIET","musicActive":false}
+11-08 16:57:36.858 27015 27015 I HomiDiag: {"event":"prompt.native.prepare","utcMs":1794131856857,"elapsedMs":1277159385,"id":"authored-prompt-135"}
+11-08 16:57:36.858 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:36.859 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:36.861 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:36.862 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:36.865 27015 27260 V MediaPlayerNative: constructor
+11-08 16:57:36.866 27015 27260 V MediaPlayerNative: setListener
+11-08 16:57:36.870 27015 27260 V MediaPlayerNative: MediaPlayer::setParameter(1400)
+11-08 16:57:36.870 27015 27260 V MediaPlayerNative: setOutputDevice: player not init
+11-08 16:57:36.877  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:36.878  5481 18972 W MediaProvider: Failed to fetch original file descriptor
+11-08 16:57:36.878  5481 18972 W MediaProvider: java.io.IOException: stat failed: ENOENT (No such file or directory)
+11-08 16:57:36.878  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5865)
+11-08 16:57:36.878  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getOriginalMediaFormatFileDescriptor(MediaProvider.java:5782)
+11-08 16:57:36.878  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFileCommon(MediaProvider.java:7205)
+11-08 16:57:36.878  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFile(MediaProvider.java:7186)
+11-08 16:57:36.878  5481 18972 W MediaProvider: 	at android.content.ContentProvider$Transport.openTypedAssetFile(ContentProvider.java:600)
+11-08 16:57:36.878  5481 18972 W MediaProvider: 	at android.content.ContentProviderNative.onTransact(ContentProviderNative.java:327)
+11-08 16:57:36.878  5481 18972 W MediaProvider: 	at android.os.Binder.execTransactInternal(Binder.java:1179)
+11-08 16:57:36.878  5481 18972 W MediaProvider: 	at android.os.Binder.execTransact(Binder.java:1143)
+11-08 16:57:36.878  5481 18972 W MediaProvider: Caused by: android.system.ErrnoException: stat failed: ENOENT (No such file or directory)
+11-08 16:57:36.878  5481 18972 W MediaProvider: 	at libcore.io.Linux.stat(Native Method)
+11-08 16:57:36.878  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:57:36.878  5481 18972 W MediaProvider: 	at libcore.io.BlockGuardOs.stat(BlockGuardOs.java:420)
+11-08 16:57:36.878  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:57:36.878  5481 18972 W MediaProvider: 	at android.app.ActivityThread$AndroidOs.stat(ActivityThread.java:8286)
+11-08 16:57:36.878  5481 18972 W MediaProvider: 	at android.system.Os.stat(Os.java:919)
+11-08 16:57:36.878  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5859)
+11-08 16:57:36.878  5481 18972 W MediaProvider: 	... 7 more
+11-08 16:57:36.879 27015 27260 V MediaPlayerNative: setDataSource(119, 0, 576460752303423487)
+11-08 16:57:36.912 27015 27260 V MediaPlayerNative: MediaPlayer::setVolume(1.000000, 1.000000)
+11-08 16:57:36.914 27015 27015 V MediaPlayerNative: setVideoSurfaceTexture
+11-08 16:57:36.914 27015 27015 V MediaPlayerNative: prepareAsync
+11-08 16:57:36.933 27015 27029 V MediaPlayerNative: message received msg=1, ext1=0, ext2=0
+11-08 16:57:36.933 27015 27029 V MediaPlayerNative: MediaPlayer::notify() prepared
+11-08 16:57:36.933 27015 27029 V MediaPlayerNative: callback application
+11-08 16:57:36.933 27015 27029 V MediaPlayerNative: back from callback
+11-08 16:57:36.937 27015 27015 V MediaPlayerNative: invoke 76
+11-08 16:57:36.943 27015 27015 V MediaPlayerNative: MediaPlayer::setVolume(0.260016, 0.260016)
+11-08 16:57:36.962 27015 27015 I HomiDiag: {"event":"prompt.level.applied","utcMs":1794131856962,"elapsedMs":1277159489,"id":"authored-prompt-135","gainDb":-11.7,"measured":false,"manifest":true}
+11-08 16:57:36.962 27015 27015 D MediaPlayer: MediaPlayer start called
+11-08 16:57:36.962 27015 27015 V MediaPlayerNative: getDuration_l
+11-08 16:57:36.965 27015 27015 V PlayerBase: baseStart() piid=130383 deviceId=0
+11-08 16:57:36.966 27015 27015 V MediaPlayerNative: start
+11-08 16:57:36.971 27015 27015 D MediaPlayer: MediaPlayer start end
+11-08 16:57:36.971 27015 27015 V MediaPlayerNative: getDuration_l
+11-08 16:57:36.971 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:36.973 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:36.973  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:36.979 27015 27015 I HomiDiag: {"event":"prompt.native.started","utcMs":1794131856979,"elapsedMs":1277159507,"id":"authored-prompt-135","gainDb":-11.7,"durationMs":2926,"sessionId":120529,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":22654,"mediaVolume":11,"mediaMax":15,"callVolume":4,"callMax":6}
+11-08 16:57:37.151 27015 27029 V MediaPlayerNative: message received msg=10000, ext1=61, ext2=22654
+11-08 16:57:37.153 27015 27029 V MediaPlayerNative: unrecognized message: (10000, 61, 22654)
+11-08 16:57:37.153 27015 27029 V MediaPlayerNative: callback application
+11-08 16:57:37.153 27015 27029 V MediaPlayerNative: back from callback
+11-08 16:57:37.153 27015 27029 V MediaPlayerNative: message received msg=6, ext1=0, ext2=0
+11-08 16:57:37.153 27015 27029 V MediaPlayerNative: unrecognized message: (6, 0, 0)
+11-08 16:57:37.153 27015 27029 V MediaPlayerNative: callback application
+11-08 16:57:37.153 27015 27029 V MediaPlayerNative: back from callback
+11-08 16:57:37.173 27015 27015 D MTP     : onPaused: false
+11-08 16:57:37.174 27015 27015 V MediaPlayerNative: isPlaying: 1
+11-08 16:57:37.174 27015 27015 D MTP     : onSeekComplete at 0
+11-08 16:57:37.179  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:37.444 27015 28510 V MediaPlayerNative: message received msg=211, ext1=0, ext2=0
+11-08 16:57:37.445 27015 28510 V MediaPlayerNative: unrecognized message: (211, 0, 0)
+11-08 16:57:37.445 27015 28510 V MediaPlayerNative: callback application
+11-08 16:57:37.445 27015 28510 V MediaPlayerNative: back from callback
+11-08 16:57:39.624  1489  1896 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloom filter but too far away, ignoring. %sm, %s
+11-08 16:57:40.150 27015 28510 V MediaPlayerNative: message received msg=2, ext1=0, ext2=0
+11-08 16:57:40.150 27015 28510 V MediaPlayerNative: playback complete
+11-08 16:57:40.150 27015 28510 V MediaPlayerNative: callback application
+11-08 16:57:40.150 27015 28510 V MediaPlayerNative: back from callback
+11-08 16:57:40.151 27015 27015 V PlayerBase: baseStop() piid=130383
+11-08 16:57:40.152 27015 28510 V MediaPlayerNative: message received msg=211, ext1=0, ext2=0
+11-08 16:57:40.152 27015 28510 V MediaPlayerNative: unrecognized message: (211, 0, 0)
+11-08 16:57:40.153 27015 28510 V MediaPlayerNative: callback application
+11-08 16:57:40.153 27015 28510 V MediaPlayerNative: back from callback
+11-08 16:57:40.157 27015 27015 I HomiDiag: {"event":"prompt.native.audio_completed","utcMs":1794131860157,"elapsedMs":1277162685,"id":"authored-prompt-135"}
+11-08 16:57:40.165 27015 27260 V PlayerBase: baseRelease() piid=130383 state=4
+11-08 16:57:40.175  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:40.177 27015 27260 V MediaPlayer: resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+11-08 16:57:40.177 27015 27260 V MediaPlayer: cleanDrmObj: mDrmObj=null mDrmSessionId=null
+11-08 16:57:40.177 27015 27260 D MediaPlayer: _release native called
+11-08 16:57:40.177 27015 27260 V MediaPlayerNative: setListener
+11-08 16:57:40.177 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:57:40.180  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:40.180 27015 27015 D AudioManager: abandonAudioFocus  by com.innotrik.aispeaking
+11-08 16:57:40.181 27015 27015 I HomiDiag: {"event":"speech.provider_focus_handoff","utcMs":1794131860180,"elapsedMs":1277162708,"generation":23}
+11-08 16:57:40.181 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:40.185 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:40.191 27015 27015 I HomiSpeech: Starting native recognition generation=23 mode=STANDARD
+11-08 16:57:40.194 27015 27260 V MediaPlayerNative: destructor
+11-08 16:57:40.195 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:57:40.195 27015 27260 D MediaPlayer: _release native finished
+11-08 16:57:40.229 30175 30175 I RecognitionServiceImpl: RecognitionService#onStartListening
+11-08 16:57:40.231 30175 30175 I RecognitionServiceInten: Trigger application overridden to com.innotrik.aispeaking
+11-08 16:57:40.231 30175 30175 I IntentParsingUtil: Using language specified in RecognizerIntent: vi-VN
+11-08 16:57:40.235 30175 30175 I RecognitionServiceInten: Trigger application overridden to com.innotrik.aispeaking
+11-08 16:57:40.235 30175 30175 I IntentParsingUtil: Using language specified in RecognizerIntent: vi-VN
+11-08 16:57:40.237 30175 30175 W Bundle  : Key android.speech.extras.SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS expected Integer but value was a java.lang.Long.  The default value 0 was returned.
+11-08 16:57:40.237 30175 30175 W Bundle  : Attempt to cast generated internal exception:
+11-08 16:57:40.237 30175 30175 W Bundle  : java.lang.ClassCastException: java.lang.Long cannot be cast to java.lang.Integer
+11-08 16:57:40.237 30175 30175 W Bundle  : 	at android.os.BaseBundle.getInt(BaseBundle.java:1092)
+11-08 16:57:40.237 30175 30175 W Bundle  : 	at android.content.Intent.getIntExtra(Intent.java:8502)
+11-08 16:57:40.237 30175 30175 W Bundle  : 	at com.google.android.apps.speech.tts.googletts.service.GoogleTTSRecognitionService.onStartListening(PG:82)
+11-08 16:57:40.237 30175 30175 W Bundle  : 	at android.speech.RecognitionService.dispatchStartListening(RecognitionService.java:126)
+11-08 16:57:40.237 30175 30175 W Bundle  : 	at android.speech.RecognitionService.access$000(RecognitionService.java:51)
+11-08 16:57:40.237 30175 30175 W Bundle  : 	at android.speech.RecognitionService$1.handleMessage(RecognitionService.java:99)
+11-08 16:57:40.237 30175 30175 W Bundle  : 	at android.os.Handler.dispatchMessage(Handler.java:106)
+11-08 16:57:40.237 30175 30175 W Bundle  : 	at android.os.Looper.loopOnce(Looper.java:233)
+11-08 16:57:40.237 30175 30175 W Bundle  : 	at android.os.Looper.loop(Looper.java:334)
+11-08 16:57:40.237 30175 30175 W Bundle  : 	at android.app.ActivityThread.main(ActivityThread.java:8399)
+11-08 16:57:40.237 30175 30175 W Bundle  : 	at java.lang.reflect.Method.invoke(Native Method)
+11-08 16:57:40.237 30175 30175 W Bundle  : 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:582)
+11-08 16:57:40.237 30175 30175 W Bundle  : 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1068)
+11-08 16:57:40.258 30175 30175 I NetworkSpeechRecognizer: Online recognizer - start listening
+11-08 16:57:40.266 30175 30175 I SodaSpeechRecognizer: Offline recognizer - start listening
+11-08 16:57:40.267 30175 30175 I DefaultLPManager: #getInstalledPackages
+11-08 16:57:40.273 30175 30175 I evo     : #getInstalledPackages
+11-08 16:57:40.283 30175 31912 I AudioLibraryAudioContro: Audio focus acquiring status: ACQUIRED
+11-08 16:57:40.285 30175  6596 W OggOpusInputStream: Beginning load of ogg_opus_encoder...
+11-08 16:57:40.285 30175 30440 I SystemLPSourceImpl: Parsed system partition LanguagePack metadata file: /product/usr/srec/en-US/metadata
+11-08 16:57:40.289 30175  6596 W OggOpusInputStream: ogg_opus_encoder (null) was loaded normally!
+11-08 16:57:40.289 30175  6598 I AudioRecordAudioSource: #createAudioRecordWithAttribution
+11-08 16:57:40.290 30175 31913 W SodaLPDirGenerator: Looking for fallback LP, as MDD appeared to have no matching LanguagePack
+11-08 16:57:40.292 30175  6595 I BaseS3HeaderProducer: S3Request:
+11-08 16:57:40.292 30175  6595 I BaseS3HeaderProducer: # hsg@29f4dc67
+11-08 16:57:40.292 30175  6595 I BaseS3HeaderProducer: [293000] {
+11-08 16:57:40.292 30175  6595 I BaseS3HeaderProducer: }
+11-08 16:57:40.292 30175  6595 I BaseS3HeaderProducer: [293100] {
+11-08 16:57:40.292 30175  6595 I BaseS3HeaderProducer: }
+11-08 16:57:40.292 30175  6595 I BaseS3HeaderProducer: [294000] {
+11-08 16:57:40.292 30175  6595 I BaseS3HeaderProducer: }
+11-08 16:57:40.292 30175  6595 I BaseS3HeaderProducer: [294500] {
+11-08 16:57:40.292 30175  6595 I BaseS3HeaderProducer: }
+11-08 16:57:40.292 30175  6595 I BaseS3HeaderProducer: [29735924] {
+11-08 16:57:40.292 30175  6595 I BaseS3HeaderProducer: }
+11-08 16:57:40.292 30175  6595 I BaseS3HeaderProducer: [77499489] {
+11-08 16:57:40.292 30175  6595 I BaseS3HeaderProducer: }
+11-08 16:57:40.292 30175 31913 D StrictMode: StrictMode policy violation: android.os.strictmode.DiskReadViolation
+11-08 16:57:40.292 30175 31913 D StrictMode: 	at android.os.StrictMode$AndroidBlockGuardPolicy.onReadFromDisk(StrictMode.java:1659)
+11-08 16:57:40.292 30175 31913 D StrictMode: 	at java.io.UnixFileSystem.list(UnixFileSystem.java:344)
+11-08 16:57:40.292 30175 31913 D StrictMode: 	at java.io.File.list(File.java:1561)
+11-08 16:57:40.292 30175 31913 D StrictMode: 	at ckk.a(PG:2)
+11-08 16:57:40.292 30175 31913 D StrictMode: 	at bil.b(PG:2)
+11-08 16:57:40.292 30175 31913 D StrictMode: 	at boo.apply(PG:59)
+11-08 16:57:40.292 30175 31913 D StrictMode: 	at gcj.apply(PG:2)
+11-08 16:57:40.292 30175 31913 D StrictMode: 	at gvz.c(PG:2)
+11-08 16:57:40.292 30175 31913 D StrictMode: 	at gwa.run(PG:9)
+11-08 16:57:40.292 30175 31913 D StrictMode: 	at cmc.run(PG:5)
+11-08 16:57:40.292 30175 31913 D StrictMode: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1167)
+11-08 16:57:40.292 30175 31913 D StrictMode: 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:641)
+11-08 16:57:40.292 30175 31913 D StrictMode: 	at clc.run(PG:2)
+11-08 16:57:40.292 30175 31913 D StrictMode: 	at clm.run(PG:4)
+11-08 16:57:40.292 30175 31913 D StrictMode: 	at java.lang.Thread.run(Thread.java:922)
+11-08 16:57:40.293 30175 31913 D StrictMode: StrictMode policy violation: android.os.strictmode.DiskReadViolation
+11-08 16:57:40.293 30175 31913 D StrictMode: 	at android.os.StrictMode$AndroidBlockGuardPolicy.onReadFromDisk(StrictMode.java:1659)
+11-08 16:57:40.293 30175 31913 D StrictMode: 	at java.io.UnixFileSystem.list(UnixFileSystem.java:344)
+11-08 16:57:40.293 30175 31913 D StrictMode: 	at java.io.File.list(File.java:1561)
+11-08 16:57:40.293 30175 31913 D StrictMode: 	at ckk.a(PG:2)
+11-08 16:57:40.293 30175 31913 D StrictMode: 	at bil.b(PG:5)
+11-08 16:57:40.293 30175 31913 D StrictMode: 	at boo.apply(PG:59)
+11-08 16:57:40.293 30175 31913 D StrictMode: 	at gcj.apply(PG:2)
+11-08 16:57:40.293 30175 31913 D StrictMode: 	at gvz.c(PG:2)
+11-08 16:57:40.293 30175 31913 D StrictMode: 	at gwa.run(PG:9)
+11-08 16:57:40.293 30175 31913 D StrictMode: 	at cmc.run(PG:5)
+11-08 16:57:40.293 30175 31913 D StrictMode: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1167)
+11-08 16:57:40.293 30175 31913 D StrictMode: 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:641)
+11-08 16:57:40.293 30175 31913 D StrictMode: 	at clc.run(PG:2)
+11-08 16:57:40.293 30175 31913 D StrictMode: 	at clm.run(PG:4)
+11-08 16:57:40.293 30175 31913 D StrictMode: 	at java.lang.Thread.run(Thread.java:922)
+11-08 16:57:40.295 30175 31913 W SodaLPDirGenerator: System fallback LP not found for locale vi-VN. Returning empty path.
+11-08 16:57:40.295 30175 31913 W SodaLPDirGenerator: java.io.FileNotFoundException: No language pack found!
+11-08 16:57:40.295 30175 31913 W SodaLPDirGenerator: 	at bil.b(PG:8)
+11-08 16:57:40.295 30175 31913 W SodaLPDirGenerator: 	at boo.apply(PG:59)
+11-08 16:57:40.295 30175 31913 W SodaLPDirGenerator: 	at gcj.apply(PG:2)
+11-08 16:57:40.295 30175 31913 W SodaLPDirGenerator: 	at gvz.c(PG:2)
+11-08 16:57:40.295 30175 31913 W SodaLPDirGenerator: 	at gwa.run(PG:9)
+11-08 16:57:40.295 30175 31913 W SodaLPDirGenerator: 	at cmc.run(PG:5)
+11-08 16:57:40.295 30175 31913 W SodaLPDirGenerator: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1167)
+11-08 16:57:40.295 30175 31913 W SodaLPDirGenerator: 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:641)
+11-08 16:57:40.295 30175 31913 W SodaLPDirGenerator: 	at clc.run(PG:2)
+11-08 16:57:40.295 30175 31913 W SodaLPDirGenerator: 	at clm.run(PG:4)
+11-08 16:57:40.295 30175 31913 W SodaLPDirGenerator: 	at java.lang.Thread.run(Thread.java:922)
+11-08 16:57:40.296 30175  6598 I AudioRecord: set(): inputSource 6, sampleRate 16000, format 0x1, channelMask 0x10, frameCount 128000, notificationFrames 0, sessionId 0, transferType 0, flags 0, attributionSource AttributionSourceState{pid: -1, uid: 10192, packageName: com.google.android.tts, attributionTag: (null), token: , renouncedPermissions: [], next: [AttributionSourceState{pid: -1, uid: 10427, packageName: com.innotrik.aispeaking, attributionTag: (null), token: , renouncedPermissions: [], next: []}]}uid -1, pid -1, latency 200
+11-08 16:57:40.296 30175 30318 W SodaDetectionHandler: SODA resources directory string is empty; skipping the check for the existence of LP
+11-08 16:57:40.298 30175  6598 D AudioSystem: getpackName client name com.google.android.tts(30175)
+11-08 16:57:40.299 30175  6598 I AudioRecord: set(): getPolicyInputSourceForVoip mAttributes input source= 6
+11-08 16:57:40.299 30175  6598 D AudioRecord: getpackName client name com.google.android.tts(30175)
+11-08 16:57:40.313 30175 30318 I SodaDetectionHandler: Initialized SODA with status: 0
+11-08 16:57:40.314 30175 30318 I SodaSpeechRecognizer: Offline recognizer - start detection
+11-08 16:57:40.315 30175 30318 I SodaAudioPusher: Starting to push audio to Soda
+11-08 16:57:40.341 30175  6598 D AudioRecord: start(22717): sync event 0 trigger session 0
+11-08 16:57:40.365 30175  6598 I AudioRecordAudioSource: #openAudioSourceInternal returning MicrophoneStream
+11-08 16:57:40.369 30175 31914 I emq     : AudioRequestListeningSession start listening status: OPENED
+11-08 16:57:40.369 30175 31910 I MicUpdateReporter: #reportMicUpdate
+11-08 16:57:40.371 27015 27015 I HomiSpeech: Speech ready generation=23 elapsedMs=181
+11-08 16:57:40.378 30175  6596 I AudioTrack: set(): streamType -1, sampleRate 16000, format 0x1, channelMask 0x1, frameCount 4313, flags #0, notificationFrames 0, sessionId 0, transferType 3, uid -1, pid -1
+11-08 16:57:40.378 30175  6596 D AudioTrack: client name com.google.android.tts(30175)
+11-08 16:57:40.378 30175  6596 D AudioTrack: getpackName client name com.google.android.tts(30175)
+11-08 16:57:40.378 30175  6596 D AudioTrack: getpackName client name com.google.android.tts(30175)
+11-08 16:57:40.378 30175  6596 D AudioTrack: getpackName client name com.google.android.tts(30175)
+11-08 16:57:40.379 30175  6596 D AudioTrack: getpackName client name com.google.android.tts(30175)
+11-08 16:57:40.379 30175  6596 W AudioSystem: setParameters: PlaybackCaptureProtectSupport=com.google.android.tts
+11-08 16:57:40.379 30175  6596 D AudioTrack: getpackName client name com.google.android.tts(30175)
+11-08 16:57:40.386 27015 27064 I HfpAudioBridge: Starting HFP route generation=112
+11-08 16:57:40.423 30175  6596 D AudioTrack: get APPSharePck , clientName com.google.android.tts  appSharePck NULL
+11-08 16:57:40.454 30175  6596 I AudioPlayer: Playing beep com.google.android.tts:raw/open (size 8626 bytes)
+11-08 16:57:40.455 30175  6596 V PlayerBase: baseStart() piid=130399 deviceId=0
+11-08 16:57:40.457 30175  6596 D AudioTrack: start(portId:22719, sessionId:120545): prior state:STATE_STOPPED
+11-08 16:57:40.461  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:40.668  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:40.676 27015 27064 I HfpAudioBridge: HM-D001 HFP/SCO route confirmed: id=22654, name=vivo 1919, generation=112
+11-08 16:57:40.690 27015 27015 V MediaPlayerNative: constructor
+11-08 16:57:40.691 27015 27015 V MediaPlayerNative: setListener
+11-08 16:57:40.694 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:40.696 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:40.698 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:40.699 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:40.702 27015 27015 V MediaPlayerNative: MediaPlayer::setParameter(1400)
+11-08 16:57:40.704 27015 27015 V MediaPlayerNative: setOutputDevice: player not init
+11-08 16:57:40.704  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:40.709  5481 18972 W MediaProvider: Failed to fetch original file descriptor
+11-08 16:57:40.709  5481 18972 W MediaProvider: java.io.IOException: stat failed: ENOENT (No such file or directory)
+11-08 16:57:40.709  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5865)
+11-08 16:57:40.709  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getOriginalMediaFormatFileDescriptor(MediaProvider.java:5782)
+11-08 16:57:40.709  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFileCommon(MediaProvider.java:7205)
+11-08 16:57:40.709  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFile(MediaProvider.java:7186)
+11-08 16:57:40.709  5481 18972 W MediaProvider: 	at android.content.ContentProvider$Transport.openTypedAssetFile(ContentProvider.java:600)
+11-08 16:57:40.709  5481 18972 W MediaProvider: 	at android.content.ContentProviderNative.onTransact(ContentProviderNative.java:327)
+11-08 16:57:40.709  5481 18972 W MediaProvider: 	at android.os.Binder.execTransactInternal(Binder.java:1179)
+11-08 16:57:40.709  5481 18972 W MediaProvider: 	at android.os.Binder.execTransact(Binder.java:1143)
+11-08 16:57:40.709  5481 18972 W MediaProvider: Caused by: android.system.ErrnoException: stat failed: ENOENT (No such file or directory)
+11-08 16:57:40.709  5481 18972 W MediaProvider: 	at libcore.io.Linux.stat(Native Method)
+11-08 16:57:40.709  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:57:40.709  5481 18972 W MediaProvider: 	at libcore.io.BlockGuardOs.stat(BlockGuardOs.java:420)
+11-08 16:57:40.709  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:57:40.709  5481 18972 W MediaProvider: 	at android.app.ActivityThread$AndroidOs.stat(ActivityThread.java:8286)
+11-08 16:57:40.709  5481 18972 W MediaProvider: 	at android.system.Os.stat(Os.java:919)
+11-08 16:57:40.709  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5859)
+11-08 16:57:40.709  5481 18972 W MediaProvider: 	... 7 more
+11-08 16:57:40.709 27015 27015 V MediaPlayerNative: setDataSource(119, 0, 576460752303423487)
+11-08 16:57:40.722 27015 27015 V MediaPlayerNative: MediaPlayer::setVolume(1.000000, 1.000000)
+11-08 16:57:40.723 27015 27015 V MediaPlayerNative: setVideoSurfaceTexture
+11-08 16:57:40.723 27015 27015 V MediaPlayerNative: prepareAsync
+11-08 16:57:40.734 27015 28510 V MediaPlayerNative: message received msg=1, ext1=0, ext2=0
+11-08 16:57:40.734 27015 28510 V MediaPlayerNative: MediaPlayer::notify() prepared
+11-08 16:57:40.734 27015 28510 V MediaPlayerNative: callback application
+11-08 16:57:40.734 27015 28510 V MediaPlayerNative: back from callback
+11-08 16:57:40.747 27015 27015 V MediaPlayerNative: invoke 76
+11-08 16:57:40.748 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:40.751 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:40.757 27015 27015 I HomiDiag: {"event":"cue.native.start","utcMs":1794131860757,"elapsedMs":1277163285,"cueId":46,"sessionId":120553,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":22654,"mediaVolume":11,"mediaMax":15,"callVolume":4,"callMax":6}
+11-08 16:57:40.757 27015 27015 D MediaPlayer: MediaPlayer start called
+11-08 16:57:40.757 27015 27015 V MediaPlayerNative: getDuration_l
+11-08 16:57:40.759 27015 27015 V PlayerBase: baseStart() piid=130407 deviceId=0
+11-08 16:57:40.760 27015 27015 V MediaPlayerNative: start
+11-08 16:57:40.761 27015 27015 D MediaPlayer: MediaPlayer start end
+11-08 16:57:40.763  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:40.803 27015 27015 I HomiDiag: {"event":"cue.native.routed","utcMs":1794131860802,"elapsedMs":1277163330,"cueId":46,"deviceType":null,"deviceId":null}
+11-08 16:57:40.894 27015 28510 V MediaPlayerNative: message received msg=6, ext1=0, ext2=0
+11-08 16:57:40.895 27015 28510 V MediaPlayerNative: unrecognized message: (6, 0, 0)
+11-08 16:57:40.895 27015 28510 V MediaPlayerNative: callback application
+11-08 16:57:40.895 27015 28510 V MediaPlayerNative: back from callback
+11-08 16:57:40.895 27015 27015 D MTP     : onPaused: false
+11-08 16:57:40.896 27015 28510 V MediaPlayerNative: message received msg=10000, ext1=61, ext2=22654
+11-08 16:57:40.896 27015 27015 V MediaPlayerNative: isPlaying: 1
+11-08 16:57:40.896 27015 27015 D MTP     : onSeekComplete at 0
+11-08 16:57:40.896 27015 28510 V MediaPlayerNative: unrecognized message: (10000, 61, 22654)
+11-08 16:57:40.896 27015 28510 V MediaPlayerNative: callback application
+11-08 16:57:40.896 27015 28510 V MediaPlayerNative: back from callback
+11-08 16:57:40.909  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:41.009 30175 30175 I AudioPlayer: Audio track end of file reached
+11-08 16:57:41.010 30175 30175 D AudioTrack: stop(portId:22719, sessionId:120545): prior state:STATE_ACTIVE
+11-08 16:57:41.010 30175 30175 D AudioTrack: stop(22719): called with 4313 frames delivered
+11-08 16:57:41.013 30175 30175 V PlayerBase: baseStop() piid=130399
+11-08 16:57:41.016 30175 30175 V PlayerBase: baseRelease() piid=130399 state=4
+11-08 16:57:41.021 30175 30175 D AudioTrack: stop(portId:22719, sessionId:120545): prior state:STATE_STOPPED
+11-08 16:57:41.031  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:41.036  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:41.281 27015 27015 I flutter : HM-D001 CONTROL: source=ble button=main gesture=shortPress protocol=observedHmD001 seq=3 actionable=true duplicate=false result=accepted diagnosticsActive=false executeTests=false
+11-08 16:57:41.281 27015 27015 I flutter : HM-D001 MAIN: main • accepted
+11-08 16:57:41.462 27015 27015 V MediaPlayerNative: isPlaying: 1
+11-08 16:57:41.463 27015 27015 I HomiDiag: {"event":"cue.native.drain_guard","utcMs":1794131861463,"elapsedMs":1277163990,"cueId":46,"isPlaying":true,"deviceType":7,"deviceId":22654}
+11-08 16:57:41.463 27015 27015 I HomiDiag: {"event":"cue.native.complete","utcMs":1794131861463,"elapsedMs":1277163991,"cueId":46,"errorCode":null}
+11-08 16:57:41.464 27015 27260 V PlayerBase: baseRelease() piid=130407 state=2
+11-08 16:57:41.473  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:41.478 27015 27260 V MediaPlayer: resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+11-08 16:57:41.478 27015 27260 V MediaPlayer: cleanDrmObj: mDrmObj=null mDrmSessionId=null
+11-08 16:57:41.478 27015 27260 D MediaPlayer: _release native called
+11-08 16:57:41.479 27015 27260 V MediaPlayerNative: setListener
+11-08 16:57:41.479 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:57:41.546 27015 27260 V MediaPlayerNative: destructor
+11-08 16:57:41.547 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:57:41.547 27015 27260 D MediaPlayer: _release native finished
+11-08 16:57:43.534 30175 30175 I RecognitionServiceImpl: RecognitionService#onCancel
+11-08 16:57:43.536 30175 31897 W AudioRequestListeningSe: #stopListening failed: listening session token inactive.
+11-08 16:57:43.537 30175 30175 I NetworkSpeechRecognizer: #cancel
+11-08 16:57:43.537 30175 30175 I NetworkSpeechRecognizer: #failWithException
+11-08 16:57:43.538 30175 30175 I cr_CronetUrlRequestContext: destroyNativeStreamLocked org.chromium.net.impl.CronetBidirectionalStream@dd46e10
+11-08 16:57:43.538 30175 30175 I SodaSpeechRecognizer: Offline recognizer - stop detection
+11-08 16:57:43.539 30175  6593 D AudioManager: abandonAudioFocus  by com.google.android.tts
+11-08 16:57:43.539 30175  6596 D AudioRecord: stop(22717): mActive:1
+11-08 16:57:43.545 30175 31913 I NetworkSpeechRecognizer: #cancel
+11-08 16:57:43.546 30175 31913 I NetworkSpeechRecognizer: #failWithException
+11-08 16:57:43.546 30175 31910 I AudioLibraryAudioContro: Audio focus releasing status: RELEASED
+11-08 16:57:43.546 30175 31913 I RecognitionClient: #onFallback
+11-08 16:57:43.547 30175 31914 W NetworkSpeechRecognizer: Recognizer network error
+11-08 16:57:43.547 30175 31914 W NetworkSpeechRecognizer: ijp: CANCELLED
+11-08 16:57:43.547 30175 31914 W NetworkSpeechRecognizer: 	at ijo.h(PG:1)
+11-08 16:57:43.547 30175 31914 W NetworkSpeechRecognizer: 	at bit.e(PG:1)
+11-08 16:57:43.547 30175 31914 W NetworkSpeechRecognizer: 	at bit.d(PG:3)
+11-08 16:57:43.547 30175 31914 W NetworkSpeechRecognizer: 	at bit.a(PG:2)
+11-08 16:57:43.547 30175 31914 W NetworkSpeechRecognizer: 	at big.a(PG:1)
+11-08 16:57:43.547 30175 31914 W NetworkSpeechRecognizer: 	at bja.a(PG:3)
+11-08 16:57:43.547 30175 31914 W NetworkSpeechRecognizer: 	at com.google.android.apps.speech.tts.googletts.service.GoogleTTSRecognitionService.onCancel(PG:6)
+11-08 16:57:43.547 30175 31914 W NetworkSpeechRecognizer: 	at android.speech.RecognitionService.dispatchCancel(RecognitionService.java:170)
+11-08 16:57:43.547 30175 31914 W NetworkSpeechRecognizer: 	at android.speech.RecognitionService.access$200(RecognitionService.java:51)
+11-08 16:57:43.547 30175 31914 W NetworkSpeechRecognizer: 	at android.speech.RecognitionService$1.handleMessage(RecognitionService.java:105)
+11-08 16:57:43.547 30175 31914 W NetworkSpeechRecognizer: 	at android.os.Handler.dispatchMessage(Handler.java:106)
+11-08 16:57:43.547 30175 31914 W NetworkSpeechRecognizer: 	at android.os.Looper.loopOnce(Looper.java:233)
+11-08 16:57:43.547 30175 31914 W NetworkSpeechRecognizer: 	at android.os.Looper.loop(Looper.java:334)
+11-08 16:57:43.547 30175 31914 W NetworkSpeechRecognizer: 	at android.app.ActivityThread.main(ActivityThread.java:8399)
+11-08 16:57:43.547 30175 31914 W NetworkSpeechRecognizer: 	at java.lang.reflect.Method.invoke(Native Method)
+11-08 16:57:43.547 30175 31914 W NetworkSpeechRecognizer: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:582)
+11-08 16:57:43.547 30175 31914 W NetworkSpeechRecognizer: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1068)
+11-08 16:57:43.547 30175 31913 W RecognitionClient: #onError space agsa_transcription_CANCELLED code -1!
+11-08 16:57:43.552 30175  6593 I AudioTrack: set(): streamType -1, sampleRate 16000, format 0x1, channelMask 0x1, frameCount 8000, flags #0, notificationFrames 0, sessionId 0, transferType 3, uid -1, pid -1
+11-08 16:57:43.553 30175  6593 D AudioTrack: client name com.google.android.tts(30175)
+11-08 16:57:43.553 30175  6593 D AudioTrack: getpackName client name com.google.android.tts(30175)
+11-08 16:57:43.553 30175  6593 D AudioTrack: getpackName client name com.google.android.tts(30175)
+11-08 16:57:43.553 30175  6593 D AudioTrack: getpackName client name com.google.android.tts(30175)
+11-08 16:57:43.554 30175  6593 D AudioTrack: getpackName client name com.google.android.tts(30175)
+11-08 16:57:43.554 30175  6593 W AudioSystem: setParameters: PlaybackCaptureProtectSupport=com.google.android.tts
+11-08 16:57:43.555 30175  6593 D AudioTrack: getpackName client name com.google.android.tts(30175)
+11-08 16:57:43.558 30175  6593 D AudioTrack: get APPSharePck , clientName com.google.android.tts  appSharePck NULL
+11-08 16:57:43.560 27015 27015 E SpeechRecognizer: not connected to the recognition service
+11-08 16:57:43.575 27015 27064 I HfpAudioBridge: Starting HFP route generation=113
+11-08 16:57:43.627 30175  6596 D AudioRecord: stop(22717): mActive:0
+11-08 16:57:43.627 30175  6596 D AudioRecord: stop(22717): mActive:0
+11-08 16:57:43.628 30175  6593 I AudioPlayer: Playing beep com.google.android.tts:raw/no_input (size 16000 bytes)
+11-08 16:57:43.629 30175 31915 I emq     : AudioRequestListeningSession stop listening status: CLOSED
+11-08 16:57:43.629 30175 31897 I MicUpdateReporter: #reportMicUpdate
+11-08 16:57:43.632 30175 31910 I AudioLibraryAudioContro: Mic closing result: # eev@7bca4
+11-08 16:57:43.634 30175  6598 D AudioRecord: stop(22717): mActive:0
+11-08 16:57:43.635 30175  6593 V PlayerBase: baseStart() piid=130415 deviceId=0
+11-08 16:57:43.636 30175  6593 D AudioTrack: start(portId:22721, sessionId:120561): prior state:STATE_STOPPED
+11-08 16:57:43.639  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:43.644 30175  6598 I AudioAccessorAudioBuffe: #markBufferClosed, read 99840 bytes
+11-08 16:57:43.645 30175  6594 W AudioInputStreamProduce: #read failed: read EOF from AudioAccessor.
+11-08 16:57:43.646 30175 30318 W AudioInputStreamProduce: #read failed: read EOF from AudioAccessor.
+11-08 16:57:43.646 30175 30318 I SodaAudioPusher: Sending end of audio to Soda.
+11-08 16:57:43.647 30175  6595 W S3ConnectionUtil: Calling onNext failed.
+11-08 16:57:43.647 30175  6595 W S3ConnectionUtil: java.lang.IllegalStateException: Stream was terminated by error, no further calls are allowed
+11-08 16:57:43.647 30175  6595 W S3ConnectionUtil: 	at dpv.ap(PG:1)
+11-08 16:57:43.647 30175  6595 W S3ConnectionUtil: 	at jag.c(PG:1)
+11-08 16:57:43.647 30175  6595 W S3ConnectionUtil: 	at bhi.c(PG:2)
+11-08 16:57:43.647 30175  6595 W S3ConnectionUtil: 	at bin.a(PG:101)
+11-08 16:57:43.647 30175  6595 W S3ConnectionUtil: 	at gck.a(PG:2)
+11-08 16:57:43.647 30175  6595 W S3ConnectionUtil: 	at gvy.c(PG:2)
+11-08 16:57:43.647 30175  6595 W S3ConnectionUtil: 	at gwa.run(PG:9)
+11-08 16:57:43.647 30175  6595 W S3ConnectionUtil: 	at cmc.run(PG:5)
+11-08 16:57:43.647 30175  6595 W S3ConnectionUtil: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1167)
+11-08 16:57:43.647 30175  6595 W S3ConnectionUtil: 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:641)
+11-08 16:57:43.647 30175  6595 W S3ConnectionUtil: 	at jsh.run(PG:5)
+11-08 16:57:43.647 30175  6595 W S3ConnectionUtil: 	at clm.run(PG:4)
+11-08 16:57:43.647 30175  6595 W S3ConnectionUtil: 	at java.lang.Thread.run(Thread.java:922)
+11-08 16:57:43.649 30175 31915 I SodaSpeechRecognizer: startDetection successful
+11-08 16:57:43.650 30175 31914 W RecognitionClient: #onRecognitionFinished no speech - erroring
+11-08 16:57:43.650 30175 31914 W RecognitionClient: #onError space agsa_transcription_NO_SPEECH_DETECTED code -1!
+11-08 16:57:43.650 30175 31914 W RecognitionClient: #onError already finished - ignoring
+11-08 16:57:43.650 30175 31914 I Soda    : TTL (0 seconds) reached - destroy SODA
+11-08 16:57:43.873  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:43.884 27015 27064 I HfpAudioBridge: HM-D001 HFP/SCO route confirmed: id=22654, name=vivo 1919, generation=113
+11-08 16:57:43.945 27015 27015 I HomiDiag: {"event":"prompt.native.prepare","utcMs":1794131863945,"elapsedMs":1277166473,"id":"authored-prompt-136"}
+11-08 16:57:43.945 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:43.949 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:43.952 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:43.955 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:43.962 27015 27260 V MediaPlayerNative: constructor
+11-08 16:57:43.963 27015 27260 V MediaPlayerNative: setListener
+11-08 16:57:43.966 27015 27260 V MediaPlayerNative: MediaPlayer::setParameter(1400)
+11-08 16:57:43.966 27015 27260 V MediaPlayerNative: setOutputDevice: player not init
+11-08 16:57:43.969  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:43.971  5481 18972 W MediaProvider: Failed to fetch original file descriptor
+11-08 16:57:43.971  5481 18972 W MediaProvider: java.io.IOException: stat failed: ENOENT (No such file or directory)
+11-08 16:57:43.971  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5865)
+11-08 16:57:43.971  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getOriginalMediaFormatFileDescriptor(MediaProvider.java:5782)
+11-08 16:57:43.971  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFileCommon(MediaProvider.java:7205)
+11-08 16:57:43.971  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFile(MediaProvider.java:7186)
+11-08 16:57:43.971  5481 18972 W MediaProvider: 	at android.content.ContentProvider$Transport.openTypedAssetFile(ContentProvider.java:600)
+11-08 16:57:43.971  5481 18972 W MediaProvider: 	at android.content.ContentProviderNative.onTransact(ContentProviderNative.java:327)
+11-08 16:57:43.971  5481 18972 W MediaProvider: 	at android.os.Binder.execTransactInternal(Binder.java:1179)
+11-08 16:57:43.971  5481 18972 W MediaProvider: 	at android.os.Binder.execTransact(Binder.java:1143)
+11-08 16:57:43.971  5481 18972 W MediaProvider: Caused by: android.system.ErrnoException: stat failed: ENOENT (No such file or directory)
+11-08 16:57:43.971  5481 18972 W MediaProvider: 	at libcore.io.Linux.stat(Native Method)
+11-08 16:57:43.971  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:57:43.971  5481 18972 W MediaProvider: 	at libcore.io.BlockGuardOs.stat(BlockGuardOs.java:420)
+11-08 16:57:43.971  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:57:43.971  5481 18972 W MediaProvider: 	at android.app.ActivityThread$AndroidOs.stat(ActivityThread.java:8286)
+11-08 16:57:43.971  5481 18972 W MediaProvider: 	at android.system.Os.stat(Os.java:919)
+11-08 16:57:43.971  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5859)
+11-08 16:57:43.971  5481 18972 W MediaProvider: 	... 7 more
+11-08 16:57:43.971 27015 27260 V MediaPlayerNative: setDataSource(116, 0, 576460752303423487)
+11-08 16:57:43.990 27015 27260 V MediaPlayerNative: MediaPlayer::setVolume(1.000000, 1.000000)
+11-08 16:57:43.991 27015 27015 V MediaPlayerNative: setVideoSurfaceTexture
+11-08 16:57:43.992 27015 27015 V MediaPlayerNative: prepareAsync
+11-08 16:57:44.110 27015 27132 V MediaPlayerNative: message received msg=1, ext1=0, ext2=0
+11-08 16:57:44.111 27015 27132 V MediaPlayerNative: MediaPlayer::notify() prepared
+11-08 16:57:44.111 27015 27132 V MediaPlayerNative: callback application
+11-08 16:57:44.111 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:57:44.113 27015 27015 V MediaPlayerNative: invoke 76
+11-08 16:57:44.117 27015 27015 V MediaPlayerNative: MediaPlayer::setVolume(0.332277, 0.332277)
+11-08 16:57:44.129 27015 27015 I HomiDiag: {"event":"prompt.level.applied","utcMs":1794131864129,"elapsedMs":1277166657,"id":"authored-prompt-136","gainDb":-9.57,"measured":false,"manifest":true}
+11-08 16:57:44.129 27015 27015 D MediaPlayer: MediaPlayer start called
+11-08 16:57:44.130 27015 27015 V MediaPlayerNative: getDuration_l
+11-08 16:57:44.132 27015 27015 V PlayerBase: baseStart() piid=130423 deviceId=0
+11-08 16:57:44.134 27015 27015 V MediaPlayerNative: start
+11-08 16:57:44.137 27015 27015 D MediaPlayer: MediaPlayer start end
+11-08 16:57:44.137  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:44.137 27015 27015 V MediaPlayerNative: getDuration_l
+11-08 16:57:44.137 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:44.140 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:44.277 27015 27132 V MediaPlayerNative: message received msg=6, ext1=0, ext2=0
+11-08 16:57:44.277 27015 27132 V MediaPlayerNative: unrecognized message: (6, 0, 0)
+11-08 16:57:44.277 27015 27132 V MediaPlayerNative: callback application
+11-08 16:57:44.277 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:57:44.279 27015 27132 V MediaPlayerNative: message received msg=10000, ext1=61, ext2=22654
+11-08 16:57:44.279 27015 27132 V MediaPlayerNative: unrecognized message: (10000, 61, 22654)
+11-08 16:57:44.279 27015 27132 V MediaPlayerNative: callback application
+11-08 16:57:44.279 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:57:44.340 27015 27015 I HomiDiag: {"event":"prompt.native.started","utcMs":1794131864340,"elapsedMs":1277166868,"id":"authored-prompt-136","gainDb":-9.57,"durationMs":1567,"sessionId":120569,"mode":0,"sco":true,"communicationDeviceType":7,"communicationDeviceId":22654,"mediaVolume":11,"mediaMax":15,"callVolume":4,"callMax":6}
+11-08 16:57:44.340 27015 27015 D MTP     : onPaused: false
+11-08 16:57:44.346 27015 27015 V MediaPlayerNative: isPlaying: 1
+11-08 16:57:44.347 27015 27015 D MTP     : onSeekComplete at 40000
+11-08 16:57:44.348  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:44.461 30175 30175 I AudioPlayer: Audio track end of file reached
+11-08 16:57:44.461 30175 30175 D AudioTrack: stop(portId:22721, sessionId:120561): prior state:STATE_ACTIVE
+11-08 16:57:44.462 30175 30175 D AudioTrack: stop(22721): called with 8000 frames delivered
+11-08 16:57:44.463 30175 30175 V PlayerBase: baseStop() piid=130415
+11-08 16:57:44.466 30175 30175 V PlayerBase: baseRelease() piid=130415 state=4
+11-08 16:57:44.472 30175 30175 D AudioTrack: stop(portId:22721, sessionId:120561): prior state:STATE_STOPPED
+11-08 16:57:44.483  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:44.491  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:44.575 27015 27132 V MediaPlayerNative: message received msg=211, ext1=0, ext2=0
+11-08 16:57:44.575 27015 27132 V MediaPlayerNative: unrecognized message: (211, 0, 0)
+11-08 16:57:44.575 27015 27132 V MediaPlayerNative: callback application
+11-08 16:57:44.576 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:57:45.627  2651  2823 E MQTTBypassDGWStreamGroupCallbacks.cpp: onStreamGroupError TransientError domain: MNSQUICConnection code: 1 detail: Local error: 0x40000015: 35 seconds timeout
+11-08 16:57:45.632  2651  2823 W MQTTBypassDGWStreamGroupConnection.cpp: Restarting due to reason: StreamError
+11-08 16:57:45.821  2651  3433 E msys    : E[N mns:DGWClient]onResolverSuccess(417)=>Cache refresh succeeded with system DNS resolver. IP count: 1
+11-08 16:57:45.887 27015 27132 V MediaPlayerNative: message received msg=2, ext1=0, ext2=0
+11-08 16:57:45.887 27015 27132 V MediaPlayerNative: playback complete
+11-08 16:57:45.887 27015 27132 V MediaPlayerNative: callback application
+11-08 16:57:45.887 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:57:45.888 27015 27132 V MediaPlayerNative: message received msg=211, ext1=0, ext2=0
+11-08 16:57:45.888 27015 27132 V MediaPlayerNative: unrecognized message: (211, 0, 0)
+11-08 16:57:45.888 27015 27132 V MediaPlayerNative: callback application
+11-08 16:57:45.888 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:57:45.889 27015 27015 V PlayerBase: baseStop() piid=130423
+11-08 16:57:45.894 27015 27015 I HomiDiag: {"event":"prompt.native.audio_completed","utcMs":1794131865893,"elapsedMs":1277168421,"id":"authored-prompt-136"}
+11-08 16:57:45.897 27015 27015 D AudioManager: abandonAudioFocus  by com.innotrik.aispeaking
+11-08 16:57:45.897 27015 27260 V PlayerBase: baseRelease() piid=130423 state=4
+11-08 16:57:45.900 27015 27260 V MediaPlayer: resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+11-08 16:57:45.900 27015 27260 V MediaPlayer: cleanDrmObj: mDrmObj=null mDrmSessionId=null
+11-08 16:57:45.900 27015 27260 D MediaPlayer: _release native called
+11-08 16:57:45.900 27015 27260 V MediaPlayerNative: setListener
+11-08 16:57:45.900 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:57:45.913 27015 27260 V MediaPlayerNative: destructor
+11-08 16:57:45.913 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:57:45.913 27015 27260 D MediaPlayer: _release native finished
+11-08 16:57:45.917  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:45.918  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:45.922 27015 27064 I HfpAudioBridge: Starting HFP route generation=114
+11-08 16:57:46.184 27015 27064 I HfpAudioBridge: HM-D001 HFP/SCO route confirmed: id=22654, name=vivo 1919, generation=114
+11-08 16:57:46.278 27015 27015 I HomiDiag: {"event":"prompt.native.prepare","utcMs":1794131866278,"elapsedMs":1277168806,"id":"authored-prompt-137"}
+11-08 16:57:46.278 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:46.279 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:46.281 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:46.282 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:46.285 27015 27260 V MediaPlayerNative: constructor
+11-08 16:57:46.285 27015 27260 V MediaPlayerNative: setListener
+11-08 16:57:46.287 27015 27260 V MediaPlayerNative: MediaPlayer::setParameter(1400)
+11-08 16:57:46.287 27015 27260 V MediaPlayerNative: setOutputDevice: player not init
+11-08 16:57:46.290  5481 18972 W MediaProvider: Failed to fetch original file descriptor
+11-08 16:57:46.290  5481 18972 W MediaProvider: java.io.IOException: stat failed: ENOENT (No such file or directory)
+11-08 16:57:46.290  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5865)
+11-08 16:57:46.290  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getOriginalMediaFormatFileDescriptor(MediaProvider.java:5782)
+11-08 16:57:46.290  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFileCommon(MediaProvider.java:7205)
+11-08 16:57:46.290  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFile(MediaProvider.java:7186)
+11-08 16:57:46.290  5481 18972 W MediaProvider: 	at android.content.ContentProvider$Transport.openTypedAssetFile(ContentProvider.java:600)
+11-08 16:57:46.290  5481 18972 W MediaProvider: 	at android.content.ContentProviderNative.onTransact(ContentProviderNative.java:327)
+11-08 16:57:46.290  5481 18972 W MediaProvider: 	at android.os.Binder.execTransactInternal(Binder.java:1179)
+11-08 16:57:46.290  5481 18972 W MediaProvider: 	at android.os.Binder.execTransact(Binder.java:1143)
+11-08 16:57:46.290  5481 18972 W MediaProvider: Caused by: android.system.ErrnoException: stat failed: ENOENT (No such file or directory)
+11-08 16:57:46.290  5481 18972 W MediaProvider: 	at libcore.io.Linux.stat(Native Method)
+11-08 16:57:46.290  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:57:46.290  5481 18972 W MediaProvider: 	at libcore.io.BlockGuardOs.stat(BlockGuardOs.java:420)
+11-08 16:57:46.290  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:57:46.290  5481 18972 W MediaProvider: 	at android.app.ActivityThread$AndroidOs.stat(ActivityThread.java:8286)
+11-08 16:57:46.290  5481 18972 W MediaProvider: 	at android.system.Os.stat(Os.java:919)
+11-08 16:57:46.290  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5859)
+11-08 16:57:46.290  5481 18972 W MediaProvider: 	... 7 more
+11-08 16:57:46.291 27015 27260 V MediaPlayerNative: setDataSource(116, 0, 576460752303423487)
+11-08 16:57:46.293  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:46.306 27015 27260 V MediaPlayerNative: MediaPlayer::setVolume(1.000000, 1.000000)
+11-08 16:57:46.306 27015 27015 V MediaPlayerNative: setVideoSurfaceTexture
+11-08 16:57:46.306 27015 27015 V MediaPlayerNative: prepareAsync
+11-08 16:57:46.318 27015 27030 V MediaPlayerNative: message received msg=1, ext1=0, ext2=0
+11-08 16:57:46.318 27015 27030 V MediaPlayerNative: MediaPlayer::notify() prepared
+11-08 16:57:46.318 27015 27030 V MediaPlayerNative: callback application
+11-08 16:57:46.318 27015 27030 V MediaPlayerNative: back from callback
+11-08 16:57:46.321 27015 27015 V MediaPlayerNative: invoke 76
+11-08 16:57:46.324 27015 27015 V MediaPlayerNative: MediaPlayer::setVolume(0.438531, 0.438531)
+11-08 16:57:46.335 27015 27015 I HomiDiag: {"event":"prompt.level.applied","utcMs":1794131866335,"elapsedMs":1277168862,"id":"authored-prompt-137","gainDb":-7.16,"measured":false,"manifest":true}
+11-08 16:57:46.335 27015 27015 D MediaPlayer: MediaPlayer start called
+11-08 16:57:46.335 27015 27015 V MediaPlayerNative: getDuration_l
+11-08 16:57:46.336 27015 27015 V PlayerBase: baseStart() piid=130431 deviceId=0
+11-08 16:57:46.337 27015 27015 V MediaPlayerNative: start
+11-08 16:57:46.339 27015 27015 D MediaPlayer: MediaPlayer start end
+11-08 16:57:46.340 27015 27015 V MediaPlayerNative: getDuration_l
+11-08 16:57:46.340 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:46.342 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:46.345  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:46.346 27015 27015 I HomiDiag: {"event":"prompt.native.started","utcMs":1794131866346,"elapsedMs":1277168873,"id":"authored-prompt-137","gainDb":-7.16,"durationMs":1149,"sessionId":120577,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":22654,"mediaVolume":11,"mediaMax":15,"callVolume":4,"callMax":6}
+11-08 16:57:46.515 27015 27030 V MediaPlayerNative: message received msg=6, ext1=0, ext2=0
+11-08 16:57:46.515 27015 27030 V MediaPlayerNative: unrecognized message: (6, 0, 0)
+11-08 16:57:46.515 27015 27030 V MediaPlayerNative: callback application
+11-08 16:57:46.515 27015 27030 V MediaPlayerNative: back from callback
+11-08 16:57:46.516 27015 27030 V MediaPlayerNative: message received msg=10000, ext1=61, ext2=22654
+11-08 16:57:46.516 27015 27030 V MediaPlayerNative: unrecognized message: (10000, 61, 22654)
+11-08 16:57:46.516 27015 27030 V MediaPlayerNative: callback application
+11-08 16:57:46.516 27015 27030 V MediaPlayerNative: back from callback
+11-08 16:57:46.516 27015 27015 D MTP     : onPaused: false
+11-08 16:57:46.535 27015 27015 V MediaPlayerNative: isPlaying: 1
+11-08 16:57:46.535 27015 27015 D MTP     : onSeekComplete at 14000
+11-08 16:57:46.540  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:46.807 27015 27132 V MediaPlayerNative: message received msg=211, ext1=0, ext2=0
+11-08 16:57:46.808 27015 27132 V MediaPlayerNative: unrecognized message: (211, 0, 0)
+11-08 16:57:46.808 27015 27132 V MediaPlayerNative: callback application
+11-08 16:57:46.809 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:57:47.709 27015 27132 V MediaPlayerNative: message received msg=2, ext1=0, ext2=0
+11-08 16:57:47.710 27015 27132 V MediaPlayerNative: playback complete
+11-08 16:57:47.710 27015 27132 V MediaPlayerNative: callback application
+11-08 16:57:47.710 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:57:47.710 27015 27132 V MediaPlayerNative: message received msg=211, ext1=0, ext2=0
+11-08 16:57:47.710 27015 27132 V MediaPlayerNative: unrecognized message: (211, 0, 0)
+11-08 16:57:47.710 27015 27132 V MediaPlayerNative: callback application
+11-08 16:57:47.710 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:57:47.711 27015 27015 V PlayerBase: baseStop() piid=130431
+11-08 16:57:47.714 27015 27015 I HomiDiag: {"event":"prompt.native.audio_completed","utcMs":1794131867714,"elapsedMs":1277170242,"id":"authored-prompt-137"}
+11-08 16:57:47.725 27015 27015 D AudioManager: abandonAudioFocus  by com.innotrik.aispeaking
+11-08 16:57:47.726 27015 27260 V PlayerBase: baseRelease() piid=130431 state=4
+11-08 16:57:47.729  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:47.732 27015 27260 V MediaPlayer: resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+11-08 16:57:47.732 27015 27260 V MediaPlayer: cleanDrmObj: mDrmObj=null mDrmSessionId=null
+11-08 16:57:47.732 27015 27260 D MediaPlayer: _release native called
+11-08 16:57:47.732 27015 27260 V MediaPlayerNative: setListener
+11-08 16:57:47.732 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:57:47.735  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:47.748 27015 27260 V MediaPlayerNative: destructor
+11-08 16:57:47.749 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:57:47.749 27015 27260 D MediaPlayer: _release native finished
+11-08 16:57:49.742 27015 27064 I HfpAudioBridge: Starting HFP route generation=115
+11-08 16:57:49.862 27015 27015 I Aiv0BleControl: Button Event device=***************** len=12 duplicate=false raw=01 01 01 00 04 00 4B 00 41 52 03 00
+11-08 16:57:49.877 27015 27015 I flutter : HM-D001 CONTROL: source=ble button=main gesture=shortPress protocol=observedHmD001 seq=4 actionable=true duplicate=false result=busy diagnosticsActive=false executeTests=false
+11-08 16:57:49.878 27015 27015 I flutter : HM-D001 MAIN: main • busy
+11-08 16:57:50.026 27015 27064 I HfpAudioBridge: HM-D001 HFP/SCO route confirmed: id=22654, name=vivo 1919, generation=115
+11-08 16:57:50.114 27015 27015 I HomiDiag: {"event":"prompt.native.prepare","utcMs":1794131870114,"elapsedMs":1277172642,"id":"authored-prompt-138"}
+11-08 16:57:50.114 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:50.117 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:50.121 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:50.124 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:50.130 27015 27260 V MediaPlayerNative: constructor
+11-08 16:57:50.131 27015 27260 V MediaPlayerNative: setListener
+11-08 16:57:50.137 27015 27260 V MediaPlayerNative: MediaPlayer::setParameter(1400)
+11-08 16:57:50.137 27015 27260 V MediaPlayerNative: setOutputDevice: player not init
+11-08 16:57:50.141  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:50.141  5481 18972 W MediaProvider: Failed to fetch original file descriptor
+11-08 16:57:50.141  5481 18972 W MediaProvider: java.io.IOException: stat failed: ENOENT (No such file or directory)
+11-08 16:57:50.141  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5865)
+11-08 16:57:50.141  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getOriginalMediaFormatFileDescriptor(MediaProvider.java:5782)
+11-08 16:57:50.141  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFileCommon(MediaProvider.java:7205)
+11-08 16:57:50.141  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFile(MediaProvider.java:7186)
+11-08 16:57:50.141  5481 18972 W MediaProvider: 	at android.content.ContentProvider$Transport.openTypedAssetFile(ContentProvider.java:600)
+11-08 16:57:50.141  5481 18972 W MediaProvider: 	at android.content.ContentProviderNative.onTransact(ContentProviderNative.java:327)
+11-08 16:57:50.141  5481 18972 W MediaProvider: 	at android.os.Binder.execTransactInternal(Binder.java:1179)
+11-08 16:57:50.141  5481 18972 W MediaProvider: 	at android.os.Binder.execTransact(Binder.java:1143)
+11-08 16:57:50.141  5481 18972 W MediaProvider: Caused by: android.system.ErrnoException: stat failed: ENOENT (No such file or directory)
+11-08 16:57:50.141  5481 18972 W MediaProvider: 	at libcore.io.Linux.stat(Native Method)
+11-08 16:57:50.141  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:57:50.141  5481 18972 W MediaProvider: 	at libcore.io.BlockGuardOs.stat(BlockGuardOs.java:420)
+11-08 16:57:50.141  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:57:50.141  5481 18972 W MediaProvider: 	at android.app.ActivityThread$AndroidOs.stat(ActivityThread.java:8286)
+11-08 16:57:50.141  5481 18972 W MediaProvider: 	at android.system.Os.stat(Os.java:919)
+11-08 16:57:50.141  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5859)
+11-08 16:57:50.141  5481 18972 W MediaProvider: 	... 7 more
+11-08 16:57:50.142 27015 27260 V MediaPlayerNative: setDataSource(172, 0, 576460752303423487)
+11-08 16:57:50.165 27015 27260 V MediaPlayerNative: MediaPlayer::setVolume(1.000000, 1.000000)
+11-08 16:57:50.165 27015 27015 V MediaPlayerNative: setVideoSurfaceTexture
+11-08 16:57:50.166 27015 27015 V MediaPlayerNative: prepareAsync
+11-08 16:57:50.180 27015 27132 V MediaPlayerNative: message received msg=1, ext1=0, ext2=0
+11-08 16:57:50.180 27015 27132 V MediaPlayerNative: MediaPlayer::notify() prepared
+11-08 16:57:50.180 27015 27132 V MediaPlayerNative: callback application
+11-08 16:57:50.180 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:57:50.183 27015 27015 V MediaPlayerNative: invoke 76
+11-08 16:57:50.187 27015 27015 V MediaPlayerNative: MediaPlayer::setVolume(0.274157, 0.274157)
+11-08 16:57:50.200 27015 27015 I HomiDiag: {"event":"prompt.level.applied","utcMs":1794131870200,"elapsedMs":1277172727,"id":"authored-prompt-138","gainDb":-11.24,"measured":false,"manifest":true}
+11-08 16:57:50.200 27015 27015 D MediaPlayer: MediaPlayer start called
+11-08 16:57:50.200 27015 27015 V MediaPlayerNative: getDuration_l
+11-08 16:57:50.201 27015 27015 V PlayerBase: baseStart() piid=130439 deviceId=0
+11-08 16:57:50.202 27015 27015 V MediaPlayerNative: start
+11-08 16:57:50.207 27015 27015 D MediaPlayer: MediaPlayer start end
+11-08 16:57:50.207 27015 27015 V MediaPlayerNative: getDuration_l
+11-08 16:57:50.207 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:50.208  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:50.209 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:50.213 27015 27015 I HomiDiag: {"event":"prompt.native.started","utcMs":1794131870213,"elapsedMs":1277172741,"id":"authored-prompt-138","gainDb":-11.24,"durationMs":1071,"sessionId":120585,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":22654,"mediaVolume":11,"mediaMax":15,"callVolume":4,"callMax":6}
+11-08 16:57:50.389 27015 27132 V MediaPlayerNative: message received msg=6, ext1=0, ext2=0
+11-08 16:57:50.389 27015 27132 V MediaPlayerNative: unrecognized message: (6, 0, 0)
+11-08 16:57:50.389 27015 27132 V MediaPlayerNative: callback application
+11-08 16:57:50.390 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:57:50.390 27015 27015 D MTP     : onPaused: false
+11-08 16:57:50.391 27015 27015 V MediaPlayerNative: isPlaying: 1
+11-08 16:57:50.391 27015 27015 D MTP     : onSeekComplete at 0
+11-08 16:57:50.395 27015 27132 V MediaPlayerNative: message received msg=10000, ext1=61, ext2=22654
+11-08 16:57:50.395 27015 27132 V MediaPlayerNative: unrecognized message: (10000, 61, 22654)
+11-08 16:57:50.395 27015 27132 V MediaPlayerNative: callback application
+11-08 16:57:50.395 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:57:50.407  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:50.689 27015 27132 V MediaPlayerNative: message received msg=211, ext1=0, ext2=0
+11-08 16:57:50.689 27015 27132 V MediaPlayerNative: unrecognized message: (211, 0, 0)
+11-08 16:57:50.689 27015 27132 V MediaPlayerNative: callback application
+11-08 16:57:50.689 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:57:51.536 27015 27132 V MediaPlayerNative: message received msg=2, ext1=0, ext2=0
+11-08 16:57:51.536 27015 27132 V MediaPlayerNative: playback complete
+11-08 16:57:51.536 27015 27132 V MediaPlayerNative: callback application
+11-08 16:57:51.537 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:57:51.538 27015 27015 V PlayerBase: baseStop() piid=130439
+11-08 16:57:51.538 27015 27132 V MediaPlayerNative: message received msg=211, ext1=0, ext2=0
+11-08 16:57:51.538 27015 27132 V MediaPlayerNative: unrecognized message: (211, 0, 0)
+11-08 16:57:51.538 27015 27132 V MediaPlayerNative: callback application
+11-08 16:57:51.539 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:57:51.543 27015 27015 I HomiDiag: {"event":"prompt.native.audio_completed","utcMs":1794131871543,"elapsedMs":1277174071,"id":"authored-prompt-138"}
+11-08 16:57:51.550 27015 27260 V PlayerBase: baseRelease() piid=130439 state=4
+11-08 16:57:51.550 27015 27015 D AudioManager: abandonAudioFocus  by com.innotrik.aispeaking
+11-08 16:57:51.554 27015 27260 V MediaPlayer: resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+11-08 16:57:51.554 27015 27260 V MediaPlayer: cleanDrmObj: mDrmObj=null mDrmSessionId=null
+11-08 16:57:51.554 27015 27260 D MediaPlayer: _release native called
+11-08 16:57:51.554 27015 27260 V MediaPlayerNative: setListener
+11-08 16:57:51.554 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:57:51.561  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:51.565  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:51.574 27015 27260 V MediaPlayerNative: destructor
+11-08 16:57:51.575 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:57:51.576 27015 27260 D MediaPlayer: _release native finished
+11-08 16:57:51.648 27015 27015 I HomiDiag: {"event":"prompt.native.prepare","utcMs":1794131871648,"elapsedMs":1277174176,"id":"authored-prompt-139"}
+11-08 16:57:51.648 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:51.653 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:51.657 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:51.660 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:51.668 27015 27260 V MediaPlayerNative: constructor
+11-08 16:57:51.669 27015 27260 V MediaPlayerNative: setListener
+11-08 16:57:51.672 27015 27260 V MediaPlayerNative: MediaPlayer::setParameter(1400)
+11-08 16:57:51.673 27015 27260 V MediaPlayerNative: setOutputDevice: player not init
+11-08 16:57:51.676  5481 18972 W MediaProvider: Failed to fetch original file descriptor
+11-08 16:57:51.676  5481 18972 W MediaProvider: java.io.IOException: stat failed: ENOENT (No such file or directory)
+11-08 16:57:51.676  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5865)
+11-08 16:57:51.676  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getOriginalMediaFormatFileDescriptor(MediaProvider.java:5782)
+11-08 16:57:51.676  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFileCommon(MediaProvider.java:7205)
+11-08 16:57:51.676  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFile(MediaProvider.java:7186)
+11-08 16:57:51.676  5481 18972 W MediaProvider: 	at android.content.ContentProvider$Transport.openTypedAssetFile(ContentProvider.java:600)
+11-08 16:57:51.676  5481 18972 W MediaProvider: 	at android.content.ContentProviderNative.onTransact(ContentProviderNative.java:327)
+11-08 16:57:51.676  5481 18972 W MediaProvider: 	at android.os.Binder.execTransactInternal(Binder.java:1179)
+11-08 16:57:51.676  5481 18972 W MediaProvider: 	at android.os.Binder.execTransact(Binder.java:1143)
+11-08 16:57:51.676  5481 18972 W MediaProvider: Caused by: android.system.ErrnoException: stat failed: ENOENT (No such file or directory)
+11-08 16:57:51.676  5481 18972 W MediaProvider: 	at libcore.io.Linux.stat(Native Method)
+11-08 16:57:51.676  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:57:51.676  5481 18972 W MediaProvider: 	at libcore.io.BlockGuardOs.stat(BlockGuardOs.java:420)
+11-08 16:57:51.676  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:57:51.676  5481 18972 W MediaProvider: 	at android.app.ActivityThread$AndroidOs.stat(ActivityThread.java:8286)
+11-08 16:57:51.676  5481 18972 W MediaProvider: 	at android.system.Os.stat(Os.java:919)
+11-08 16:57:51.676  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5859)
+11-08 16:57:51.676  5481 18972 W MediaProvider: 	... 7 more
+11-08 16:57:51.678 27015 27260 V MediaPlayerNative: setDataSource(116, 0, 576460752303423487)
+11-08 16:57:51.678  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:51.699 27015 27260 V MediaPlayerNative: MediaPlayer::setVolume(1.000000, 1.000000)
+11-08 16:57:51.700 27015 27015 V MediaPlayerNative: setVideoSurfaceTexture
+11-08 16:57:51.701 27015 27015 V MediaPlayerNative: prepareAsync
+11-08 16:57:51.716 27015 27132 V MediaPlayerNative: message received msg=1, ext1=0, ext2=0
+11-08 16:57:51.716 27015 27132 V MediaPlayerNative: MediaPlayer::notify() prepared
+11-08 16:57:51.716 27015 27132 V MediaPlayerNative: callback application
+11-08 16:57:51.716 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:57:51.719 27015 27015 V MediaPlayerNative: invoke 76
+11-08 16:57:51.722 27015 27015 V MediaPlayerNative: MediaPlayer::setVolume(0.250611, 0.250611)
+11-08 16:57:51.737 27015 27015 I HomiDiag: {"event":"prompt.level.applied","utcMs":1794131871736,"elapsedMs":1277174264,"id":"authored-prompt-139","gainDb":-12.02,"measured":false,"manifest":true}
+11-08 16:57:51.737 27015 27015 D MediaPlayer: MediaPlayer start called
+11-08 16:57:51.737 27015 27015 V MediaPlayerNative: getDuration_l
+11-08 16:57:51.738 27015 27015 V PlayerBase: baseStart() piid=130447 deviceId=0
+11-08 16:57:51.739 27015 27015 V MediaPlayerNative: start
+11-08 16:57:51.742 27015 27015 D MediaPlayer: MediaPlayer start end
+11-08 16:57:51.743 27015 27015 V MediaPlayerNative: getDuration_l
+11-08 16:57:51.743 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:51.746 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:51.748  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:51.753 27015 27015 I HomiDiag: {"event":"prompt.native.started","utcMs":1794131871753,"elapsedMs":1277174281,"id":"authored-prompt-139","gainDb":-12.02,"durationMs":1071,"sessionId":120593,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":22654,"mediaVolume":11,"mediaMax":15,"callVolume":4,"callMax":6}
+11-08 16:57:51.924 27015 27132 V MediaPlayerNative: message received msg=6, ext1=0, ext2=0
+11-08 16:57:51.924 27015 27132 V MediaPlayerNative: unrecognized message: (6, 0, 0)
+11-08 16:57:51.924 27015 27132 V MediaPlayerNative: callback application
+11-08 16:57:51.925 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:57:51.925 27015 27015 D MTP     : onPaused: false
+11-08 16:57:51.926 27015 27132 V MediaPlayerNative: message received msg=10000, ext1=61, ext2=22654
+11-08 16:57:51.927 27015 27015 V MediaPlayerNative: isPlaying: 1
+11-08 16:57:51.927 27015 27132 V MediaPlayerNative: unrecognized message: (10000, 61, 22654)
+11-08 16:57:51.927 27015 27132 V MediaPlayerNative: callback application
+11-08 16:57:51.927 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:57:51.927 27015 27015 D MTP     : onSeekComplete at 14000
+11-08 16:57:51.953  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:52.220 27015 27132 V MediaPlayerNative: message received msg=211, ext1=0, ext2=0
+11-08 16:57:52.220 27015 27132 V MediaPlayerNative: unrecognized message: (211, 0, 0)
+11-08 16:57:52.221 27015 27132 V MediaPlayerNative: callback application
+11-08 16:57:52.221 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:57:53.021 27015 27132 V MediaPlayerNative: message received msg=2, ext1=0, ext2=0
+11-08 16:57:53.021 27015 27132 V MediaPlayerNative: playback complete
+11-08 16:57:53.021 27015 27132 V MediaPlayerNative: callback application
+11-08 16:57:53.021 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:57:53.024 27015 27015 V PlayerBase: baseStop() piid=130447
+11-08 16:57:53.027 27015 27132 V MediaPlayerNative: message received msg=211, ext1=0, ext2=0
+11-08 16:57:53.027 27015 27132 V MediaPlayerNative: unrecognized message: (211, 0, 0)
+11-08 16:57:53.027 27015 27132 V MediaPlayerNative: callback application
+11-08 16:57:53.027 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:57:53.034 27015 27015 I HomiDiag: {"event":"prompt.native.audio_completed","utcMs":1794131873034,"elapsedMs":1277175561,"id":"authored-prompt-139"}
+11-08 16:57:53.041 27015 27260 V PlayerBase: baseRelease() piid=130447 state=4
+11-08 16:57:53.043 27015 27260 V MediaPlayer: resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+11-08 16:57:53.043 27015 27260 V MediaPlayer: cleanDrmObj: mDrmObj=null mDrmSessionId=null
+11-08 16:57:53.043 27015 27260 D MediaPlayer: _release native called
+11-08 16:57:53.043 27015 27260 V MediaPlayerNative: setListener
+11-08 16:57:53.043 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:57:53.047 27015 27015 D AudioManager: abandonAudioFocus  by com.innotrik.aispeaking
+11-08 16:57:53.055  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:53.062  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:53.067 27015 27260 V MediaPlayerNative: destructor
+11-08 16:57:53.069 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:57:53.069 27015 27260 D MediaPlayer: _release native finished
+11-08 16:57:53.074 27015 27064 I HfpAudioBridge: Starting HFP route generation=116
+11-08 16:57:53.346 27015 27064 I HfpAudioBridge: HM-D001 HFP/SCO route confirmed: id=22654, name=vivo 1919, generation=116
+11-08 16:57:53.439 27015 27015 V MediaPlayerNative: constructor
+11-08 16:57:53.440 27015 27015 V MediaPlayerNative: setListener
+11-08 16:57:53.443 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:53.446 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:53.448 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:53.451 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:53.454 27015 27015 V MediaPlayerNative: MediaPlayer::setParameter(1400)
+11-08 16:57:53.456  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:53.457 27015 27015 V MediaPlayerNative: setOutputDevice: player not init
+11-08 16:57:53.462  5481 18972 W MediaProvider: Failed to fetch original file descriptor
+11-08 16:57:53.462  5481 18972 W MediaProvider: java.io.IOException: stat failed: ENOENT (No such file or directory)
+11-08 16:57:53.462  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5865)
+11-08 16:57:53.462  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getOriginalMediaFormatFileDescriptor(MediaProvider.java:5782)
+11-08 16:57:53.462  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFileCommon(MediaProvider.java:7205)
+11-08 16:57:53.462  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFile(MediaProvider.java:7186)
+11-08 16:57:53.462  5481 18972 W MediaProvider: 	at android.content.ContentProvider$Transport.openTypedAssetFile(ContentProvider.java:600)
+11-08 16:57:53.462  5481 18972 W MediaProvider: 	at android.content.ContentProviderNative.onTransact(ContentProviderNative.java:327)
+11-08 16:57:53.462  5481 18972 W MediaProvider: 	at android.os.Binder.execTransactInternal(Binder.java:1179)
+11-08 16:57:53.462  5481 18972 W MediaProvider: 	at android.os.Binder.execTransact(Binder.java:1143)
+11-08 16:57:53.462  5481 18972 W MediaProvider: Caused by: android.system.ErrnoException: stat failed: ENOENT (No such file or directory)
+11-08 16:57:53.462  5481 18972 W MediaProvider: 	at libcore.io.Linux.stat(Native Method)
+11-08 16:57:53.462  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:57:53.462  5481 18972 W MediaProvider: 	at libcore.io.BlockGuardOs.stat(BlockGuardOs.java:420)
+11-08 16:57:53.462  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:57:53.462  5481 18972 W MediaProvider: 	at android.app.ActivityThread$AndroidOs.stat(ActivityThread.java:8286)
+11-08 16:57:53.462  5481 18972 W MediaProvider: 	at android.system.Os.stat(Os.java:919)
+11-08 16:57:53.462  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5859)
+11-08 16:57:53.462  5481 18972 W MediaProvider: 	... 7 more
+11-08 16:57:53.463 27015 27015 V MediaPlayerNative: setDataSource(116, 0, 576460752303423487)
+11-08 16:57:53.475 27015 27015 V MediaPlayerNative: MediaPlayer::setVolume(1.000000, 1.000000)
+11-08 16:57:53.475 27015 27015 V MediaPlayerNative: setVideoSurfaceTexture
+11-08 16:57:53.476 27015 27015 V MediaPlayerNative: prepareAsync
+11-08 16:57:53.489 27015 27132 V MediaPlayerNative: message received msg=1, ext1=0, ext2=0
+11-08 16:57:53.489 27015 27132 V MediaPlayerNative: MediaPlayer::notify() prepared
+11-08 16:57:53.489 27015 27132 V MediaPlayerNative: callback application
+11-08 16:57:53.489 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:57:53.492 27015 27015 V MediaPlayerNative: invoke 76
+11-08 16:57:53.494 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:53.497 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:53.504 27015 27015 I HomiDiag: {"event":"cue.native.start","utcMs":1794131873504,"elapsedMs":1277176032,"cueId":47,"sessionId":120601,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":22654,"mediaVolume":11,"mediaMax":15,"callVolume":4,"callMax":6}
+11-08 16:57:53.504 27015 27015 D MediaPlayer: MediaPlayer start called
+11-08 16:57:53.504 27015 27015 V MediaPlayerNative: getDuration_l
+11-08 16:57:53.506 27015 27015 V PlayerBase: baseStart() piid=130455 deviceId=0
+11-08 16:57:53.507 27015 27015 V MediaPlayerNative: start
+11-08 16:57:53.510 27015 27015 D MediaPlayer: MediaPlayer start end
+11-08 16:57:53.511  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:53.552 27015 27015 I HomiDiag: {"event":"cue.native.routed","utcMs":1794131873552,"elapsedMs":1277176080,"cueId":47,"deviceType":null,"deviceId":null}
+11-08 16:57:53.655 27015 27132 V MediaPlayerNative: message received msg=6, ext1=0, ext2=0
+11-08 16:57:53.655 27015 27132 V MediaPlayerNative: unrecognized message: (6, 0, 0)
+11-08 16:57:53.655 27015 27132 V MediaPlayerNative: callback application
+11-08 16:57:53.656 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:57:53.656 27015 27015 D MTP     : onPaused: false
+11-08 16:57:53.659 27015 27132 V MediaPlayerNative: message received msg=10000, ext1=61, ext2=22654
+11-08 16:57:53.662 27015 27015 V MediaPlayerNative: isPlaying: 1
+11-08 16:57:53.662 27015 27132 V MediaPlayerNative: unrecognized message: (10000, 61, 22654)
+11-08 16:57:53.662 27015 27132 V MediaPlayerNative: callback application
+11-08 16:57:53.662 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:57:53.662 27015 27015 D MTP     : onSeekComplete at 0
+11-08 16:57:53.674  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:53.684 27015 27015 I Aiv0BleControl: Button Event device=***************** len=12 duplicate=false raw=01 01 01 00 05 00 4B 00 5B 61 03 00
+11-08 16:57:53.741 27015 27015 D AudioManager: abandonAudioFocus  by com.innotrik.aispeaking
+11-08 16:57:53.741 27015 27015 I HomiDiag: {"event":"cue.native.complete","utcMs":1794131873741,"elapsedMs":1277176269,"cueId":47,"errorCode":null}
+11-08 16:57:53.743 27015 27260 V PlayerBase: baseRelease() piid=130455 state=2
+11-08 16:57:53.745 27015 27260 V MediaPlayer: resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+11-08 16:57:53.745 27015 27260 V MediaPlayer: cleanDrmObj: mDrmObj=null mDrmSessionId=null
+11-08 16:57:53.745 27015 27260 D MediaPlayer: _release native called
+11-08 16:57:53.745 27015 27260 V MediaPlayerNative: setListener
+11-08 16:57:53.745 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:57:53.748  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:53.765 27015 27015 I HomiDiag: {"event":"main.media_quiet.request","utcMs":1794131873765,"elapsedMs":1277176292,"stage":"begin","musicActive":false}
+11-08 16:57:53.768 27015 27260 V MediaPlayerNative: destructor
+11-08 16:57:53.768 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:57:53.768 27015 27260 D MediaPlayer: _release native finished
+11-08 16:57:53.874 27015 27015 I HomiDiag: {"event":"main.media_quiet.result","utcMs":1794131873874,"elapsedMs":1277176401,"stage":"begin","result":"QUIET","musicActive":false}
+11-08 16:57:53.928 27015 27015 I HomiDiag: {"event":"prompt.native.prepare","utcMs":1794131873928,"elapsedMs":1277176456,"id":"authored-prompt-140"}
+11-08 16:57:53.928 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:53.934 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:53.938 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:53.939 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:53.943 27015 27260 V MediaPlayerNative: constructor
+11-08 16:57:53.943 27015 27260 V MediaPlayerNative: setListener
+11-08 16:57:53.946 27015 27260 V MediaPlayerNative: MediaPlayer::setParameter(1400)
+11-08 16:57:53.946 27015 27260 V MediaPlayerNative: setOutputDevice: player not init
+11-08 16:57:53.949  5481 18972 W MediaProvider: Failed to fetch original file descriptor
+11-08 16:57:53.949  5481 18972 W MediaProvider: java.io.IOException: stat failed: ENOENT (No such file or directory)
+11-08 16:57:53.949  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5865)
+11-08 16:57:53.949  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getOriginalMediaFormatFileDescriptor(MediaProvider.java:5782)
+11-08 16:57:53.949  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFileCommon(MediaProvider.java:7205)
+11-08 16:57:53.949  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFile(MediaProvider.java:7186)
+11-08 16:57:53.949  5481 18972 W MediaProvider: 	at android.content.ContentProvider$Transport.openTypedAssetFile(ContentProvider.java:600)
+11-08 16:57:53.949  5481 18972 W MediaProvider: 	at android.content.ContentProviderNative.onTransact(ContentProviderNative.java:327)
+11-08 16:57:53.949  5481 18972 W MediaProvider: 	at android.os.Binder.execTransactInternal(Binder.java:1179)
+11-08 16:57:53.949  5481 18972 W MediaProvider: 	at android.os.Binder.execTransact(Binder.java:1143)
+11-08 16:57:53.949  5481 18972 W MediaProvider: Caused by: android.system.ErrnoException: stat failed: ENOENT (No such file or directory)
+11-08 16:57:53.949  5481 18972 W MediaProvider: 	at libcore.io.Linux.stat(Native Method)
+11-08 16:57:53.949  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:57:53.949  5481 18972 W MediaProvider: 	at libcore.io.BlockGuardOs.stat(BlockGuardOs.java:420)
+11-08 16:57:53.949  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:57:53.949  5481 18972 W MediaProvider: 	at android.app.ActivityThread$AndroidOs.stat(ActivityThread.java:8286)
+11-08 16:57:53.949  5481 18972 W MediaProvider: 	at android.system.Os.stat(Os.java:919)
+11-08 16:57:53.949  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5859)
+11-08 16:57:53.949  5481 18972 W MediaProvider: 	... 7 more
+11-08 16:57:53.949 27015 27260 V MediaPlayerNative: setDataSource(116, 0, 576460752303423487)
+11-08 16:57:53.953  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:53.966 27015 27260 V MediaPlayerNative: MediaPlayer::setVolume(1.000000, 1.000000)
+11-08 16:57:53.966 27015 27015 V MediaPlayerNative: setVideoSurfaceTexture
+11-08 16:57:53.967 27015 27015 V MediaPlayerNative: prepareAsync
+11-08 16:57:53.981 27015 27132 V MediaPlayerNative: message received msg=1, ext1=0, ext2=0
+11-08 16:57:53.981 27015 27132 V MediaPlayerNative: MediaPlayer::notify() prepared
+11-08 16:57:53.981 27015 27132 V MediaPlayerNative: callback application
+11-08 16:57:53.981 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:57:53.983 27015 27015 V MediaPlayerNative: invoke 76
+11-08 16:57:53.988 27015 27015 V MediaPlayerNative: MediaPlayer::setVolume(0.260016, 0.260016)
+11-08 16:57:54.000 27015 27015 I HomiDiag: {"event":"prompt.level.applied","utcMs":1794131874000,"elapsedMs":1277176527,"id":"authored-prompt-140","gainDb":-11.7,"measured":false,"manifest":true}
+11-08 16:57:54.000 27015 27015 D MediaPlayer: MediaPlayer start called
+11-08 16:57:54.000 27015 27015 V MediaPlayerNative: getDuration_l
+11-08 16:57:54.001 27015 27015 V PlayerBase: baseStart() piid=130463 deviceId=0
+11-08 16:57:54.002 27015 27015 V MediaPlayerNative: start
+11-08 16:57:54.005 27015 27015 D MediaPlayer: MediaPlayer start end
+11-08 16:57:54.005 27015 27015 V MediaPlayerNative: getDuration_l
+11-08 16:57:54.005 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:54.007 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:54.008  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:54.010 27015 27015 I HomiDiag: {"event":"prompt.native.started","utcMs":1794131874010,"elapsedMs":1277176537,"id":"authored-prompt-140","gainDb":-11.7,"durationMs":2926,"sessionId":120609,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":22654,"mediaVolume":11,"mediaMax":15,"callVolume":4,"callMax":6}
+11-08 16:57:54.165 27015 27132 V MediaPlayerNative: message received msg=6, ext1=0, ext2=0
+11-08 16:57:54.165 27015 27132 V MediaPlayerNative: unrecognized message: (6, 0, 0)
+11-08 16:57:54.165 27015 27132 V MediaPlayerNative: callback application
+11-08 16:57:54.166 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:57:54.166 27015 27132 V MediaPlayerNative: message received msg=10000, ext1=61, ext2=22654
+11-08 16:57:54.166 27015 27132 V MediaPlayerNative: unrecognized message: (10000, 61, 22654)
+11-08 16:57:54.166 27015 27132 V MediaPlayerNative: callback application
+11-08 16:57:54.166 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:57:54.166 27015 27015 D MTP     : onPaused: false
+11-08 16:57:54.176 27015 27015 V MediaPlayerNative: isPlaying: 1
+11-08 16:57:54.176 27015 27015 D MTP     : onSeekComplete at 40000
+11-08 16:57:54.179  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:54.450 27015 27030 V MediaPlayerNative: message received msg=211, ext1=0, ext2=0
+11-08 16:57:54.450 27015 27030 V MediaPlayerNative: unrecognized message: (211, 0, 0)
+11-08 16:57:54.450 27015 27030 V MediaPlayerNative: callback application
+11-08 16:57:54.450 27015 27030 V MediaPlayerNative: back from callback
+11-08 16:57:54.613 27015 27015 I Aiv0BleControl: Button Event device=***************** len=12 duplicate=false raw=01 01 01 00 06 00 4B 00 0B 65 03 00
+11-08 16:57:54.629 27015 27015 I flutter : HM-D001 CONTROL: source=ble button=main gesture=shortPress protocol=observedHmD001 seq=6 actionable=true duplicate=false result=busy diagnosticsActive=false executeTests=false
+11-08 16:57:54.630 27015 27015 I flutter : HM-D001 MAIN: main • busy
+11-08 16:57:57.125 27015 27030 V MediaPlayerNative: message received msg=2, ext1=0, ext2=0
+11-08 16:57:57.125 27015 27030 V MediaPlayerNative: playback complete
+11-08 16:57:57.125 27015 27030 V MediaPlayerNative: callback application
+11-08 16:57:57.125 27015 27030 V MediaPlayerNative: back from callback
+11-08 16:57:57.126 27015 27030 V MediaPlayerNative: message received msg=211, ext1=0, ext2=0
+11-08 16:57:57.126 27015 27015 V PlayerBase: baseStop() piid=130463
+11-08 16:57:57.127 27015 27030 V MediaPlayerNative: unrecognized message: (211, 0, 0)
+11-08 16:57:57.127 27015 27030 V MediaPlayerNative: callback application
+11-08 16:57:57.127 27015 27030 V MediaPlayerNative: back from callback
+11-08 16:57:57.130 27015 27015 I HomiDiag: {"event":"prompt.native.audio_completed","utcMs":1794131877130,"elapsedMs":1277179658,"id":"authored-prompt-140"}
+11-08 16:57:57.139 27015 27260 V PlayerBase: baseRelease() piid=130463 state=4
+11-08 16:57:57.141  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:57.142 27015 27260 V MediaPlayer: resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+11-08 16:57:57.142 27015 27260 V MediaPlayer: cleanDrmObj: mDrmObj=null mDrmSessionId=null
+11-08 16:57:57.142 27015 27260 D MediaPlayer: _release native called
+11-08 16:57:57.142 27015 27260 V MediaPlayerNative: setListener
+11-08 16:57:57.143 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:57:57.154 27015 27015 D AudioManager: abandonAudioFocus  by com.innotrik.aispeaking
+11-08 16:57:57.154 27015 27015 I HomiDiag: {"event":"speech.provider_focus_handoff","utcMs":1794131877154,"elapsedMs":1277179682,"generation":25}
+11-08 16:57:57.155 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:57.158 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:57.159  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:57.162 27015 27015 I HomiSpeech: Starting native recognition generation=25 mode=STANDARD
+11-08 16:57:57.165 27015 27260 V MediaPlayerNative: destructor
+11-08 16:57:57.166 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:57:57.166 27015 27260 D MediaPlayer: _release native finished
+11-08 16:57:57.191 30175 30175 I RecognitionServiceImpl: RecognitionService#onStartListening
+11-08 16:57:57.193 30175 30175 I RecognitionServiceInten: Trigger application overridden to com.innotrik.aispeaking
+11-08 16:57:57.193 30175 30175 I IntentParsingUtil: Using language specified in RecognizerIntent: vi-VN
+11-08 16:57:57.194 30175 30175 I RecognitionServiceInten: Trigger application overridden to com.innotrik.aispeaking
+11-08 16:57:57.194 30175 30175 I IntentParsingUtil: Using language specified in RecognizerIntent: vi-VN
+11-08 16:57:57.194 30175 30175 W Bundle  : Key android.speech.extras.SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS expected Integer but value was a java.lang.Long.  The default value 0 was returned.
+11-08 16:57:57.195 30175 30175 W Bundle  : Attempt to cast generated internal exception:
+11-08 16:57:57.195 30175 30175 W Bundle  : java.lang.ClassCastException: java.lang.Long cannot be cast to java.lang.Integer
+11-08 16:57:57.195 30175 30175 W Bundle  : 	at android.os.BaseBundle.getInt(BaseBundle.java:1092)
+11-08 16:57:57.195 30175 30175 W Bundle  : 	at android.content.Intent.getIntExtra(Intent.java:8502)
+11-08 16:57:57.195 30175 30175 W Bundle  : 	at com.google.android.apps.speech.tts.googletts.service.GoogleTTSRecognitionService.onStartListening(PG:82)
+11-08 16:57:57.195 30175 30175 W Bundle  : 	at android.speech.RecognitionService.dispatchStartListening(RecognitionService.java:126)
+11-08 16:57:57.195 30175 30175 W Bundle  : 	at android.speech.RecognitionService.access$000(RecognitionService.java:51)
+11-08 16:57:57.195 30175 30175 W Bundle  : 	at android.speech.RecognitionService$1.handleMessage(RecognitionService.java:99)
+11-08 16:57:57.195 30175 30175 W Bundle  : 	at android.os.Handler.dispatchMessage(Handler.java:106)
+11-08 16:57:57.195 30175 30175 W Bundle  : 	at android.os.Looper.loopOnce(Looper.java:233)
+11-08 16:57:57.195 30175 30175 W Bundle  : 	at android.os.Looper.loop(Looper.java:334)
+11-08 16:57:57.195 30175 30175 W Bundle  : 	at android.app.ActivityThread.main(ActivityThread.java:8399)
+11-08 16:57:57.195 30175 30175 W Bundle  : 	at java.lang.reflect.Method.invoke(Native Method)
+11-08 16:57:57.195 30175 30175 W Bundle  : 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:582)
+11-08 16:57:57.195 30175 30175 W Bundle  : 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1068)
+11-08 16:57:57.203 30175  6595 I AudioRecordAudioSource: #createAudioRecordWithAttribution
+11-08 16:57:57.204 30175 30175 I NetworkSpeechRecognizer: Online recognizer - start listening
+11-08 16:57:57.209 30175  6595 I AudioRecord: set(): inputSource 6, sampleRate 16000, format 0x1, channelMask 0x10, frameCount 128000, notificationFrames 0, sessionId 0, transferType 0, flags 0, attributionSource AttributionSourceState{pid: -1, uid: 10192, packageName: com.google.android.tts, attributionTag: (null), token: , renouncedPermissions: [], next: [AttributionSourceState{pid: -1, uid: 10427, packageName: com.innotrik.aispeaking, attributionTag: (null), token: , renouncedPermissions: [], next: []}]}uid -1, pid -1, latency 200
+11-08 16:57:57.210 30175 30175 I SodaSpeechRecognizer: Offline recognizer - start listening
+11-08 16:57:57.210 30175  6595 D AudioSystem: getpackName client name com.google.android.tts(30175)
+11-08 16:57:57.210 30175  6598 W OggOpusInputStream: Beginning load of ogg_opus_encoder...
+11-08 16:57:57.211 30175  6598 W OggOpusInputStream: ogg_opus_encoder (null) was loaded normally!
+11-08 16:57:57.212 30175 30175 I DefaultLPManager: #getInstalledPackages
+11-08 16:57:57.212 30175 31913 I AudioLibraryAudioContro: Audio focus acquiring status: ACQUIRED
+11-08 16:57:57.213 30175  6595 I AudioRecord: set(): getPolicyInputSourceForVoip mAttributes input source= 6
+11-08 16:57:57.213 30175  6595 D AudioRecord: getpackName client name com.google.android.tts(30175)
+11-08 16:57:57.213 30175 30175 I evo     : #getInstalledPackages
+11-08 16:57:57.214 30175  6596 I BaseS3HeaderProducer: S3Request:
+11-08 16:57:57.214 30175  6596 I BaseS3HeaderProducer: # hsg@29f4dc67
+11-08 16:57:57.214 30175  6596 I BaseS3HeaderProducer: [293000] {
+11-08 16:57:57.214 30175  6596 I BaseS3HeaderProducer: }
+11-08 16:57:57.214 30175  6596 I BaseS3HeaderProducer: [293100] {
+11-08 16:57:57.214 30175  6596 I BaseS3HeaderProducer: }
+11-08 16:57:57.214 30175  6596 I BaseS3HeaderProducer: [294000] {
+11-08 16:57:57.214 30175  6596 I BaseS3HeaderProducer: }
+11-08 16:57:57.214 30175  6596 I BaseS3HeaderProducer: [294500] {
+11-08 16:57:57.214 30175  6596 I BaseS3HeaderProducer: }
+11-08 16:57:57.214 30175  6596 I BaseS3HeaderProducer: [29735924] {
+11-08 16:57:57.214 30175  6596 I BaseS3HeaderProducer: }
+11-08 16:57:57.214 30175  6596 I BaseS3HeaderProducer: [77499489] {
+11-08 16:57:57.214 30175  6596 I BaseS3HeaderProducer: }
+11-08 16:57:57.215 30175 30440 I SystemLPSourceImpl: Parsed system partition LanguagePack metadata file: /product/usr/srec/en-US/metadata
+11-08 16:57:57.215 30175 31914 W SodaLPDirGenerator: Looking for fallback LP, as MDD appeared to have no matching LanguagePack
+11-08 16:57:57.216 30175 31914 D StrictMode: StrictMode policy violation: android.os.strictmode.DiskReadViolation
+11-08 16:57:57.216 30175 31914 D StrictMode: 	at android.os.StrictMode$AndroidBlockGuardPolicy.onReadFromDisk(StrictMode.java:1659)
+11-08 16:57:57.216 30175 31914 D StrictMode: 	at java.io.UnixFileSystem.list(UnixFileSystem.java:344)
+11-08 16:57:57.216 30175 31914 D StrictMode: 	at java.io.File.list(File.java:1561)
+11-08 16:57:57.216 30175 31914 D StrictMode: 	at ckk.a(PG:2)
+11-08 16:57:57.216 30175 31914 D StrictMode: 	at bil.b(PG:2)
+11-08 16:57:57.216 30175 31914 D StrictMode: 	at boo.apply(PG:59)
+11-08 16:57:57.216 30175 31914 D StrictMode: 	at gcj.apply(PG:2)
+11-08 16:57:57.216 30175 31914 D StrictMode: 	at gvz.c(PG:2)
+11-08 16:57:57.216 30175 31914 D StrictMode: 	at gwa.run(PG:9)
+11-08 16:57:57.216 30175 31914 D StrictMode: 	at cmc.run(PG:5)
+11-08 16:57:57.216 30175 31914 D StrictMode: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1167)
+11-08 16:57:57.216 30175 31914 D StrictMode: 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:641)
+11-08 16:57:57.216 30175 31914 D StrictMode: 	at clc.run(PG:2)
+11-08 16:57:57.216 30175 31914 D StrictMode: 	at clm.run(PG:4)
+11-08 16:57:57.216 30175 31914 D StrictMode: 	at java.lang.Thread.run(Thread.java:922)
+11-08 16:57:57.217 30175 31914 D StrictMode: StrictMode policy violation: android.os.strictmode.DiskReadViolation
+11-08 16:57:57.217 30175 31914 D StrictMode: 	at android.os.StrictMode$AndroidBlockGuardPolicy.onReadFromDisk(StrictMode.java:1659)
+11-08 16:57:57.217 30175 31914 D StrictMode: 	at java.io.UnixFileSystem.list(UnixFileSystem.java:344)
+11-08 16:57:57.217 30175 31914 D StrictMode: 	at java.io.File.list(File.java:1561)
+11-08 16:57:57.217 30175 31914 D StrictMode: 	at ckk.a(PG:2)
+11-08 16:57:57.217 30175 31914 D StrictMode: 	at bil.b(PG:5)
+11-08 16:57:57.217 30175 31914 D StrictMode: 	at boo.apply(PG:59)
+11-08 16:57:57.217 30175 31914 D StrictMode: 	at gcj.apply(PG:2)
+11-08 16:57:57.217 30175 31914 D StrictMode: 	at gvz.c(PG:2)
+11-08 16:57:57.217 30175 31914 D StrictMode: 	at gwa.run(PG:9)
+11-08 16:57:57.217 30175 31914 D StrictMode: 	at cmc.run(PG:5)
+11-08 16:57:57.217 30175 31914 D StrictMode: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1167)
+11-08 16:57:57.217 30175 31914 D StrictMode: 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:641)
+11-08 16:57:57.217 30175 31914 D StrictMode: 	at clc.run(PG:2)
+11-08 16:57:57.217 30175 31914 D StrictMode: 	at clm.run(PG:4)
+11-08 16:57:57.217 30175 31914 D StrictMode: 	at java.lang.Thread.run(Thread.java:922)
+11-08 16:57:57.218 30175 31914 W SodaLPDirGenerator: System fallback LP not found for locale vi-VN. Returning empty path.
+11-08 16:57:57.218 30175 31914 W SodaLPDirGenerator: java.io.FileNotFoundException: No language pack found!
+11-08 16:57:57.218 30175 31914 W SodaLPDirGenerator: 	at bil.b(PG:8)
+11-08 16:57:57.218 30175 31914 W SodaLPDirGenerator: 	at boo.apply(PG:59)
+11-08 16:57:57.218 30175 31914 W SodaLPDirGenerator: 	at gcj.apply(PG:2)
+11-08 16:57:57.218 30175 31914 W SodaLPDirGenerator: 	at gvz.c(PG:2)
+11-08 16:57:57.218 30175 31914 W SodaLPDirGenerator: 	at gwa.run(PG:9)
+11-08 16:57:57.218 30175 31914 W SodaLPDirGenerator: 	at cmc.run(PG:5)
+11-08 16:57:57.218 30175 31914 W SodaLPDirGenerator: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1167)
+11-08 16:57:57.218 30175 31914 W SodaLPDirGenerator: 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:641)
+11-08 16:57:57.218 30175 31914 W SodaLPDirGenerator: 	at clc.run(PG:2)
+11-08 16:57:57.218 30175 31914 W SodaLPDirGenerator: 	at clm.run(PG:4)
+11-08 16:57:57.218 30175 31914 W SodaLPDirGenerator: 	at java.lang.Thread.run(Thread.java:922)
+11-08 16:57:57.219 30175 30439 W SodaDetectionHandler: SODA resources directory string is empty; skipping the check for the existence of LP
+11-08 16:57:57.225 30175 30439 I SodaDetectionHandler: Initialized SODA with status: 0
+11-08 16:57:57.226 30175 30439 I SodaSpeechRecognizer: Offline recognizer - start detection
+11-08 16:57:57.227 30175 30439 I SodaAudioPusher: Starting to push audio to Soda
+11-08 16:57:57.244 30175  6595 D AudioRecord: start(22729): sync event 0 trigger session 0
+11-08 16:57:57.262 30175  6595 I AudioRecordAudioSource: #openAudioSourceInternal returning MicrophoneStream
+11-08 16:57:57.264 30175 31915 I emq     : AudioRequestListeningSession start listening status: OPENED
+11-08 16:57:57.265 30175 31915 I MicUpdateReporter: #reportMicUpdate
+11-08 16:57:57.266 30175  6593 I AudioTrack: set(): streamType -1, sampleRate 16000, format 0x1, channelMask 0x1, frameCount 4313, flags #0, notificationFrames 0, sessionId 0, transferType 3, uid -1, pid -1
+11-08 16:57:57.266 30175  6593 D AudioTrack: client name com.google.android.tts(30175)
+11-08 16:57:57.266 30175  6593 D AudioTrack: getpackName client name com.google.android.tts(30175)
+11-08 16:57:57.266 30175  6593 D AudioTrack: getpackName client name com.google.android.tts(30175)
+11-08 16:57:57.266 30175  6593 D AudioTrack: getpackName client name com.google.android.tts(30175)
+11-08 16:57:57.268 30175  6593 D AudioTrack: getpackName client name com.google.android.tts(30175)
+11-08 16:57:57.269 30175  6593 W AudioSystem: setParameters: PlaybackCaptureProtectSupport=com.google.android.tts
+11-08 16:57:57.273 30175  6593 D AudioTrack: getpackName client name com.google.android.tts(30175)
+11-08 16:57:57.275 27015 27015 I HomiSpeech: Speech ready generation=25 elapsedMs=113
+11-08 16:57:57.281 27015 27064 I HfpAudioBridge: Starting HFP route generation=117
+11-08 16:57:57.323 30175  6593 D AudioTrack: get APPSharePck , clientName com.google.android.tts  appSharePck NULL
+11-08 16:57:57.354 30175  6593 I AudioPlayer: Playing beep com.google.android.tts:raw/open (size 8626 bytes)
+11-08 16:57:57.354 30175  6593 V PlayerBase: baseStart() piid=130479 deviceId=0
+11-08 16:57:57.355 30175  6593 D AudioTrack: start(portId:22731, sessionId:120625): prior state:STATE_STOPPED
+11-08 16:57:57.365  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:57.574  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:57.582 27015 27064 I HfpAudioBridge: HM-D001 HFP/SCO route confirmed: id=22654, name=vivo 1919, generation=117
+11-08 16:57:57.598 27015 27015 V MediaPlayerNative: constructor
+11-08 16:57:57.599 27015 27015 V MediaPlayerNative: setListener
+11-08 16:57:57.602 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:57.605 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:57.607 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:57.610 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:57.612 27015 27015 V MediaPlayerNative: MediaPlayer::setParameter(1400)
+11-08 16:57:57.616  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:57.616 27015 27015 V MediaPlayerNative: setOutputDevice: player not init
+11-08 16:57:57.622  5481 18972 W MediaProvider: Failed to fetch original file descriptor
+11-08 16:57:57.622  5481 18972 W MediaProvider: java.io.IOException: stat failed: ENOENT (No such file or directory)
+11-08 16:57:57.622  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5865)
+11-08 16:57:57.622  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getOriginalMediaFormatFileDescriptor(MediaProvider.java:5782)
+11-08 16:57:57.622  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFileCommon(MediaProvider.java:7205)
+11-08 16:57:57.622  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFile(MediaProvider.java:7186)
+11-08 16:57:57.622  5481 18972 W MediaProvider: 	at android.content.ContentProvider$Transport.openTypedAssetFile(ContentProvider.java:600)
+11-08 16:57:57.622  5481 18972 W MediaProvider: 	at android.content.ContentProviderNative.onTransact(ContentProviderNative.java:327)
+11-08 16:57:57.622  5481 18972 W MediaProvider: 	at android.os.Binder.execTransactInternal(Binder.java:1179)
+11-08 16:57:57.622  5481 18972 W MediaProvider: 	at android.os.Binder.execTransact(Binder.java:1143)
+11-08 16:57:57.622  5481 18972 W MediaProvider: Caused by: android.system.ErrnoException: stat failed: ENOENT (No such file or directory)
+11-08 16:57:57.622  5481 18972 W MediaProvider: 	at libcore.io.Linux.stat(Native Method)
+11-08 16:57:57.622  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:57:57.622  5481 18972 W MediaProvider: 	at libcore.io.BlockGuardOs.stat(BlockGuardOs.java:420)
+11-08 16:57:57.622  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:57:57.622  5481 18972 W MediaProvider: 	at android.app.ActivityThread$AndroidOs.stat(ActivityThread.java:8286)
+11-08 16:57:57.622  5481 18972 W MediaProvider: 	at android.system.Os.stat(Os.java:919)
+11-08 16:57:57.622  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5859)
+11-08 16:57:57.622  5481 18972 W MediaProvider: 	... 7 more
+11-08 16:57:57.623 27015 27015 V MediaPlayerNative: setDataSource(116, 0, 576460752303423487)
+11-08 16:57:57.639 27015 27015 V MediaPlayerNative: MediaPlayer::setVolume(1.000000, 1.000000)
+11-08 16:57:57.640 27015 27015 V MediaPlayerNative: setVideoSurfaceTexture
+11-08 16:57:57.641 27015 27015 V MediaPlayerNative: prepareAsync
+11-08 16:57:57.654 27015 27029 V MediaPlayerNative: message received msg=1, ext1=0, ext2=0
+11-08 16:57:57.654 27015 27029 V MediaPlayerNative: MediaPlayer::notify() prepared
+11-08 16:57:57.654 27015 27029 V MediaPlayerNative: callback application
+11-08 16:57:57.654 27015 27029 V MediaPlayerNative: back from callback
+11-08 16:57:57.670 27015 27015 V MediaPlayerNative: invoke 76
+11-08 16:57:57.672 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:57:57.675 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:57:57.682 27015 27015 I HomiDiag: {"event":"cue.native.start","utcMs":1794131877681,"elapsedMs":1277180209,"cueId":48,"sessionId":120633,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":22654,"mediaVolume":11,"mediaMax":15,"callVolume":4,"callMax":6}
+11-08 16:57:57.682 27015 27015 D MediaPlayer: MediaPlayer start called
+11-08 16:57:57.682 27015 27015 V MediaPlayerNative: getDuration_l
+11-08 16:57:57.684 27015 27015 V PlayerBase: baseStart() piid=130487 deviceId=0
+11-08 16:57:57.685 27015 27015 V MediaPlayerNative: start
+11-08 16:57:57.687 27015 27015 D MediaPlayer: MediaPlayer start end
+11-08 16:57:57.691  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:57.729 27015 27015 I HomiDiag: {"event":"cue.native.routed","utcMs":1794131877729,"elapsedMs":1277180257,"cueId":48,"deviceType":null,"deviceId":null}
+11-08 16:57:57.806 27015 27029 V MediaPlayerNative: message received msg=10000, ext1=61, ext2=22654
+11-08 16:57:57.806 27015 27029 V MediaPlayerNative: unrecognized message: (10000, 61, 22654)
+11-08 16:57:57.806 27015 27029 V MediaPlayerNative: callback application
+11-08 16:57:57.806 27015 27029 V MediaPlayerNative: back from callback
+11-08 16:57:57.806 27015 27029 V MediaPlayerNative: message received msg=6, ext1=0, ext2=0
+11-08 16:57:57.806 27015 27029 V MediaPlayerNative: unrecognized message: (6, 0, 0)
+11-08 16:57:57.806 27015 27029 V MediaPlayerNative: callback application
+11-08 16:57:57.806 27015 27029 V MediaPlayerNative: back from callback
+11-08 16:57:57.826 27015 27015 D MTP     : onPaused: false
+11-08 16:57:57.827 27015 27015 V MediaPlayerNative: isPlaying: 1
+11-08 16:57:57.827 27015 27015 D MTP     : onSeekComplete at 0
+11-08 16:57:57.829  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:57.933 30175 30175 I AudioPlayer: Audio track end of file reached
+11-08 16:57:57.933 30175 30175 D AudioTrack: stop(portId:22731, sessionId:120625): prior state:STATE_ACTIVE
+11-08 16:57:57.933 30175 30175 D AudioTrack: stop(22731): called with 4313 frames delivered
+11-08 16:57:57.935 30175 30175 V PlayerBase: baseStop() piid=130479
+11-08 16:57:57.938 30175 30175 V PlayerBase: baseRelease() piid=130479 state=4
+11-08 16:57:57.945 30175 30175 D AudioTrack: stop(portId:22731, sessionId:120625): prior state:STATE_STOPPED
+11-08 16:57:57.953  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:57.956  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:58.180 27015 27015 I flutter : HM-D001 CONTROL: source=ble button=main gesture=shortPress protocol=observedHmD001 seq=5 actionable=true duplicate=false result=accepted diagnosticsActive=false executeTests=false
+11-08 16:57:58.181 27015 27015 I flutter : HM-D001 MAIN: main • accepted
+11-08 16:57:58.397 27015 27015 V MediaPlayerNative: isPlaying: 1
+11-08 16:57:58.399 27015 27015 I HomiDiag: {"event":"cue.native.drain_guard","utcMs":1794131878398,"elapsedMs":1277180926,"cueId":48,"isPlaying":true,"deviceType":7,"deviceId":22654}
+11-08 16:57:58.399 27015 27015 I HomiDiag: {"event":"cue.native.complete","utcMs":1794131878399,"elapsedMs":1277180927,"cueId":48,"errorCode":null}
+11-08 16:57:58.400 27015 27260 V PlayerBase: baseRelease() piid=130487 state=2
+11-08 16:57:58.402 27015 27260 V MediaPlayer: resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+11-08 16:57:58.402 27015 27260 V MediaPlayer: cleanDrmObj: mDrmObj=null mDrmSessionId=null
+11-08 16:57:58.402 27015 27260 D MediaPlayer: _release native called
+11-08 16:57:58.402 27015 27260 V MediaPlayerNative: setListener
+11-08 16:57:58.402 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:57:58.406  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:57:58.466 27015 27260 V MediaPlayerNative: destructor
+11-08 16:57:58.466 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:57:58.466 27015 27260 D MediaPlayer: _release native finished
+11-08 16:58:00.758 30175 30175 I RecognitionServiceImpl: RecognitionService#onCancel
+11-08 16:58:00.767 30175 31913 W AudioRequestListeningSe: #stopListening failed: listening session token inactive.
+11-08 16:58:00.767 30175 30175 I NetworkSpeechRecognizer: #cancel
+11-08 16:58:00.768 30175 30175 I NetworkSpeechRecognizer: #failWithException
+11-08 16:58:00.768 30175  6593 D AudioRecord: stop(22729): mActive:1
+11-08 16:58:00.769 30175 30175 I cr_CronetUrlRequestContext: destroyNativeStreamLocked org.chromium.net.impl.CronetBidirectionalStream@ca7aba8
+11-08 16:58:00.769 30175 30175 I SodaSpeechRecognizer: Offline recognizer - stop detection
+11-08 16:58:00.771 30175 31914 I NetworkSpeechRecognizer: #cancel
+11-08 16:58:00.771 30175 31914 I NetworkSpeechRecognizer: #failWithException
+11-08 16:58:00.771 30175 31914 I RecognitionClient: #onFallback
+11-08 16:58:00.773 30175 31910 W NetworkSpeechRecognizer: Recognizer network error
+11-08 16:58:00.773 30175 31910 W NetworkSpeechRecognizer: ijp: CANCELLED
+11-08 16:58:00.773 30175 31910 W NetworkSpeechRecognizer: 	at ijo.h(PG:1)
+11-08 16:58:00.773 30175 31910 W NetworkSpeechRecognizer: 	at bit.e(PG:1)
+11-08 16:58:00.773 30175 31910 W NetworkSpeechRecognizer: 	at bit.d(PG:3)
+11-08 16:58:00.773 30175 31910 W NetworkSpeechRecognizer: 	at bit.a(PG:2)
+11-08 16:58:00.773 30175 31910 W NetworkSpeechRecognizer: 	at big.a(PG:1)
+11-08 16:58:00.773 30175 31910 W NetworkSpeechRecognizer: 	at bja.a(PG:3)
+11-08 16:58:00.773 30175 31910 W NetworkSpeechRecognizer: 	at com.google.android.apps.speech.tts.googletts.service.GoogleTTSRecognitionService.onCancel(PG:6)
+11-08 16:58:00.773 30175 31910 W NetworkSpeechRecognizer: 	at android.speech.RecognitionService.dispatchCancel(RecognitionService.java:170)
+11-08 16:58:00.773 30175 31910 W NetworkSpeechRecognizer: 	at android.speech.RecognitionService.access$200(RecognitionService.java:51)
+11-08 16:58:00.773 30175 31910 W NetworkSpeechRecognizer: 	at android.speech.RecognitionService$1.handleMessage(RecognitionService.java:105)
+11-08 16:58:00.773 30175 31910 W NetworkSpeechRecognizer: 	at android.os.Handler.dispatchMessage(Handler.java:106)
+11-08 16:58:00.773 30175 31910 W NetworkSpeechRecognizer: 	at android.os.Looper.loopOnce(Looper.java:233)
+11-08 16:58:00.773 30175 31910 W NetworkSpeechRecognizer: 	at android.os.Looper.loop(Looper.java:334)
+11-08 16:58:00.773 30175 31910 W NetworkSpeechRecognizer: 	at android.app.ActivityThread.main(ActivityThread.java:8399)
+11-08 16:58:00.773 30175 31910 W NetworkSpeechRecognizer: 	at java.lang.reflect.Method.invoke(Native Method)
+11-08 16:58:00.773 30175 31910 W NetworkSpeechRecognizer: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:582)
+11-08 16:58:00.773 30175 31910 W NetworkSpeechRecognizer: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1068)
+11-08 16:58:00.773 30175  6598 D AudioManager: abandonAudioFocus  by com.google.android.tts
+11-08 16:58:00.773 30175 31914 W RecognitionClient: #onError space agsa_transcription_CANCELLED code -1!
+11-08 16:58:00.775 30175 31914 I AudioLibraryAudioContro: Audio focus releasing status: RELEASED
+11-08 16:58:00.782 30175  6598 I AudioTrack: set(): streamType -1, sampleRate 16000, format 0x1, channelMask 0x1, frameCount 8000, flags #0, notificationFrames 0, sessionId 0, transferType 3, uid -1, pid -1
+11-08 16:58:00.785 30175  6598 D AudioTrack: client name com.google.android.tts(30175)
+11-08 16:58:00.786 30175  6598 D AudioTrack: getpackName client name com.google.android.tts(30175)
+11-08 16:58:00.787 30175  6598 D AudioTrack: getpackName client name com.google.android.tts(30175)
+11-08 16:58:00.788 30175  6598 D AudioTrack: getpackName client name com.google.android.tts(30175)
+11-08 16:58:00.789 30175  6598 D AudioTrack: getpackName client name com.google.android.tts(30175)
+11-08 16:58:00.789 30175  6598 W AudioSystem: setParameters: PlaybackCaptureProtectSupport=com.google.android.tts
+11-08 16:58:00.790 30175  6595 I AudioAccessorAudioBuffe: #markBufferClosed, read 110080 bytes
+11-08 16:58:00.791 30175 30439 W AudioInputStreamProduce: #read failed: read EOF from AudioAccessor.
+11-08 16:58:00.791 30175 30439 I SodaAudioPusher: Sending end of audio to Soda.
+11-08 16:58:00.793 30175 31913 I SodaSpeechRecognizer: startDetection successful
+11-08 16:58:00.796 30175 31910 W RecognitionClient: #onRecognitionFinished no speech - erroring
+11-08 16:58:00.796 30175 31915 I Soda    : TTL (0 seconds) reached - destroy SODA
+11-08 16:58:00.797 30175  6598 D AudioTrack: getpackName client name com.google.android.tts(30175)
+11-08 16:58:00.797 30175 31910 W RecognitionClient: #onError space agsa_transcription_NO_SPEECH_DETECTED code -1!
+11-08 16:58:00.797 30175  6594 W AudioInputStreamProduce: #read failed: read EOF from AudioAccessor.
+11-08 16:58:00.797 30175 31910 W RecognitionClient: #onError already finished - ignoring
+11-08 16:58:00.798 30175  6596 W S3ConnectionUtil: Calling onNext failed.
+11-08 16:58:00.798 30175  6596 W S3ConnectionUtil: java.lang.IllegalStateException: Stream was terminated by error, no further calls are allowed
+11-08 16:58:00.798 30175  6596 W S3ConnectionUtil: 	at dpv.ap(PG:1)
+11-08 16:58:00.798 30175  6596 W S3ConnectionUtil: 	at jag.c(PG:1)
+11-08 16:58:00.798 30175  6596 W S3ConnectionUtil: 	at bhi.c(PG:2)
+11-08 16:58:00.798 30175  6596 W S3ConnectionUtil: 	at bin.a(PG:101)
+11-08 16:58:00.798 30175  6596 W S3ConnectionUtil: 	at gck.a(PG:2)
+11-08 16:58:00.798 30175  6596 W S3ConnectionUtil: 	at gvy.c(PG:2)
+11-08 16:58:00.798 30175  6596 W S3ConnectionUtil: 	at gwa.run(PG:9)
+11-08 16:58:00.798 30175  6596 W S3ConnectionUtil: 	at cmc.run(PG:5)
+11-08 16:58:00.798 30175  6596 W S3ConnectionUtil: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1167)
+11-08 16:58:00.798 30175  6596 W S3ConnectionUtil: 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:641)
+11-08 16:58:00.798 30175  6596 W S3ConnectionUtil: 	at jsh.run(PG:5)
+11-08 16:58:00.798 30175  6596 W S3ConnectionUtil: 	at clm.run(PG:4)
+11-08 16:58:00.798 30175  6596 W S3ConnectionUtil: 	at java.lang.Thread.run(Thread.java:922)
+11-08 16:58:00.800 27015 27015 E SpeechRecognizer: not connected to the recognition service
+11-08 16:58:00.818 27015 27064 I HfpAudioBridge: Starting HFP route generation=118
+11-08 16:58:00.824 30175  6598 D AudioTrack: get APPSharePck , clientName com.google.android.tts  appSharePck NULL
+11-08 16:58:00.986 30175  6598 I AudioPlayer: Playing beep com.google.android.tts:raw/no_input (size 16000 bytes)
+11-08 16:58:00.987 30175  6598 V PlayerBase: baseStart() piid=130495 deviceId=0
+11-08 16:58:00.989 30175  6598 D AudioTrack: start(portId:22733, sessionId:120641): prior state:STATE_STOPPED
+11-08 16:58:00.995 30175  6593 D AudioRecord: stop(22729): mActive:0
+11-08 16:58:00.995 30175  6593 D AudioRecord: stop(22729): mActive:0
+11-08 16:58:00.996 30175  6593 D AudioRecord: stop(22729): mActive:0
+11-08 16:58:00.997  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:01.003 30175 31913 I emq     : AudioRequestListeningSession stop listening status: CLOSED
+11-08 16:58:01.003 30175 31913 I MicUpdateReporter: #reportMicUpdate
+11-08 16:58:01.003 30175 31897 I AudioLibraryAudioContro: Mic closing result: # eev@7bca4
+11-08 16:58:01.154  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:01.172 27015 27064 I HfpAudioBridge: HM-D001 HFP/SCO route confirmed: id=22654, name=vivo 1919, generation=118
+11-08 16:58:01.237 27015 27015 I HomiDiag: {"event":"prompt.native.prepare","utcMs":1794131881237,"elapsedMs":1277183765,"id":"authored-prompt-141"}
+11-08 16:58:01.237 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:58:01.241 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:58:01.245 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:58:01.249 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:58:01.256 27015 27260 V MediaPlayerNative: constructor
+11-08 16:58:01.257 27015 27260 V MediaPlayerNative: setListener
+11-08 16:58:01.259 27015 27260 V MediaPlayerNative: MediaPlayer::setParameter(1400)
+11-08 16:58:01.259 27015 27260 V MediaPlayerNative: setOutputDevice: player not init
+11-08 16:58:01.262  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:01.263  5481 18972 W MediaProvider: Failed to fetch original file descriptor
+11-08 16:58:01.263  5481 18972 W MediaProvider: java.io.IOException: stat failed: ENOENT (No such file or directory)
+11-08 16:58:01.263  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5865)
+11-08 16:58:01.263  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getOriginalMediaFormatFileDescriptor(MediaProvider.java:5782)
+11-08 16:58:01.263  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFileCommon(MediaProvider.java:7205)
+11-08 16:58:01.263  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFile(MediaProvider.java:7186)
+11-08 16:58:01.263  5481 18972 W MediaProvider: 	at android.content.ContentProvider$Transport.openTypedAssetFile(ContentProvider.java:600)
+11-08 16:58:01.263  5481 18972 W MediaProvider: 	at android.content.ContentProviderNative.onTransact(ContentProviderNative.java:327)
+11-08 16:58:01.263  5481 18972 W MediaProvider: 	at android.os.Binder.execTransactInternal(Binder.java:1179)
+11-08 16:58:01.263  5481 18972 W MediaProvider: 	at android.os.Binder.execTransact(Binder.java:1143)
+11-08 16:58:01.263  5481 18972 W MediaProvider: Caused by: android.system.ErrnoException: stat failed: ENOENT (No such file or directory)
+11-08 16:58:01.263  5481 18972 W MediaProvider: 	at libcore.io.Linux.stat(Native Method)
+11-08 16:58:01.263  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:58:01.263  5481 18972 W MediaProvider: 	at libcore.io.BlockGuardOs.stat(BlockGuardOs.java:420)
+11-08 16:58:01.263  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:58:01.263  5481 18972 W MediaProvider: 	at android.app.ActivityThread$AndroidOs.stat(ActivityThread.java:8286)
+11-08 16:58:01.263  5481 18972 W MediaProvider: 	at android.system.Os.stat(Os.java:919)
+11-08 16:58:01.263  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5859)
+11-08 16:58:01.263  5481 18972 W MediaProvider: 	... 7 more
+11-08 16:58:01.264 27015 27260 V MediaPlayerNative: setDataSource(147, 0, 576460752303423487)
+11-08 16:58:01.282 27015 27260 V MediaPlayerNative: MediaPlayer::setVolume(1.000000, 1.000000)
+11-08 16:58:01.283 27015 27015 V MediaPlayerNative: setVideoSurfaceTexture
+11-08 16:58:01.283 27015 27015 V MediaPlayerNative: prepareAsync
+11-08 16:58:01.367 27015 27030 V MediaPlayerNative: message received msg=1, ext1=0, ext2=0
+11-08 16:58:01.367 27015 27030 V MediaPlayerNative: MediaPlayer::notify() prepared
+11-08 16:58:01.367 27015 27030 V MediaPlayerNative: callback application
+11-08 16:58:01.368 27015 27030 V MediaPlayerNative: back from callback
+11-08 16:58:01.370 27015 27015 V MediaPlayerNative: invoke 76
+11-08 16:58:01.375 27015 27015 V MediaPlayerNative: MediaPlayer::setVolume(0.406443, 0.406443)
+11-08 16:58:01.386 27015 27015 I HomiDiag: {"event":"prompt.level.applied","utcMs":1794131881386,"elapsedMs":1277183914,"id":"authored-prompt-141","gainDb":-7.82,"measured":false,"manifest":true}
+11-08 16:58:01.386 27015 27015 D MediaPlayer: MediaPlayer start called
+11-08 16:58:01.386 27015 27015 V MediaPlayerNative: getDuration_l
+11-08 16:58:01.388 27015 27015 V PlayerBase: baseStart() piid=130503 deviceId=0
+11-08 16:58:01.389 27015 27015 V MediaPlayerNative: start
+11-08 16:58:01.391 27015 27015 D MediaPlayer: MediaPlayer start end
+11-08 16:58:01.391 27015 27015 V MediaPlayerNative: getDuration_l
+11-08 16:58:01.391 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:58:01.394  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:01.394 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:58:01.472 27015 27015 I HomiDiag: {"event":"prompt.native.started","utcMs":1794131881471,"elapsedMs":1277183999,"id":"authored-prompt-141","gainDb":-7.82,"durationMs":1411,"sessionId":120649,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":22654,"mediaVolume":11,"mediaMax":15,"callVolume":4,"callMax":6}
+11-08 16:58:01.556 27015 27030 V MediaPlayerNative: message received msg=6, ext1=0, ext2=0
+11-08 16:58:01.556 27015 27030 V MediaPlayerNative: unrecognized message: (6, 0, 0)
+11-08 16:58:01.556 27015 27030 V MediaPlayerNative: callback application
+11-08 16:58:01.556 27015 27030 V MediaPlayerNative: back from callback
+11-08 16:58:01.556 27015 27030 V MediaPlayerNative: message received msg=10000, ext1=61, ext2=22654
+11-08 16:58:01.556 27015 27030 V MediaPlayerNative: unrecognized message: (10000, 61, 22654)
+11-08 16:58:01.556 27015 27030 V MediaPlayerNative: callback application
+11-08 16:58:01.556 27015 27030 V MediaPlayerNative: back from callback
+11-08 16:58:01.556 27015 27015 D MTP     : onPaused: false
+11-08 16:58:01.576 27015 27015 V MediaPlayerNative: isPlaying: 1
+11-08 16:58:01.576 27015 27015 D MTP     : onSeekComplete at 0
+11-08 16:58:01.579  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:01.628 30175 30175 I AudioPlayer: Audio track end of file reached
+11-08 16:58:01.628 30175 30175 D AudioTrack: stop(portId:22733, sessionId:120641): prior state:STATE_ACTIVE
+11-08 16:58:01.628 30175 30175 D AudioTrack: stop(22733): called with 8000 frames delivered
+11-08 16:58:01.629 30175 30175 V PlayerBase: baseStop() piid=130495
+11-08 16:58:01.630 30175 30175 V PlayerBase: baseRelease() piid=130495 state=4
+11-08 16:58:01.632 30175 30175 D AudioTrack: stop(portId:22733, sessionId:120641): prior state:STATE_STOPPED
+11-08 16:58:01.636  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:01.640  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:01.844 27015 27030 V MediaPlayerNative: message received msg=211, ext1=0, ext2=0
+11-08 16:58:01.844 27015 27030 V MediaPlayerNative: unrecognized message: (211, 0, 0)
+11-08 16:58:01.844 27015 27030 V MediaPlayerNative: callback application
+11-08 16:58:01.845 27015 27030 V MediaPlayerNative: back from callback
+11-08 16:58:02.992 27015 27030 V MediaPlayerNative: message received msg=2, ext1=0, ext2=0
+11-08 16:58:02.992 27015 27030 V MediaPlayerNative: playback complete
+11-08 16:58:02.992 27015 27030 V MediaPlayerNative: callback application
+11-08 16:58:02.992 27015 27030 V MediaPlayerNative: back from callback
+11-08 16:58:02.993 27015 27030 V MediaPlayerNative: message received msg=211, ext1=0, ext2=0
+11-08 16:58:02.998 27015 27030 V MediaPlayerNative: unrecognized message: (211, 0, 0)
+11-08 16:58:02.998 27015 27030 V MediaPlayerNative: callback application
+11-08 16:58:02.999 27015 27030 V MediaPlayerNative: back from callback
+11-08 16:58:02.999 27015 27015 V PlayerBase: baseStop() piid=130503
+11-08 16:58:03.002 27015 27015 I HomiDiag: {"event":"prompt.native.audio_completed","utcMs":1794131883002,"elapsedMs":1277185530,"id":"authored-prompt-141"}
+11-08 16:58:03.008 27015 27260 V PlayerBase: baseRelease() piid=130503 state=4
+11-08 16:58:03.011 27015 27015 D AudioManager: abandonAudioFocus  by com.innotrik.aispeaking
+11-08 16:58:03.012 27015 27260 V MediaPlayer: resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+11-08 16:58:03.012 27015 27260 V MediaPlayer: cleanDrmObj: mDrmObj=null mDrmSessionId=null
+11-08 16:58:03.012 27015 27260 D MediaPlayer: _release native called
+11-08 16:58:03.012 27015 27260 V MediaPlayerNative: setListener
+11-08 16:58:03.012 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:58:03.017  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:03.021  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:03.036 27015 27260 V MediaPlayerNative: destructor
+11-08 16:58:03.038 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:58:03.038 27015 27260 D MediaPlayer: _release native finished
+11-08 16:58:05.025 27015 27064 I HfpAudioBridge: Starting HFP route generation=119
+11-08 16:58:05.316 27015 27064 I HfpAudioBridge: HM-D001 HFP/SCO route confirmed: id=22654, name=vivo 1919, generation=119
+11-08 16:58:05.410 27015 27015 I HomiDiag: {"event":"prompt.native.prepare","utcMs":1794131885410,"elapsedMs":1277187937,"id":"authored-prompt-142"}
+11-08 16:58:05.410 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:58:05.415 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:58:05.417 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:58:05.418 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:58:05.422 27015 27260 V MediaPlayerNative: constructor
+11-08 16:58:05.423 27015 27260 V MediaPlayerNative: setListener
+11-08 16:58:05.426 27015 27260 V MediaPlayerNative: MediaPlayer::setParameter(1400)
+11-08 16:58:05.426 27015 27260 V MediaPlayerNative: setOutputDevice: player not init
+11-08 16:58:05.428  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:05.431  5481 18972 W MediaProvider: Failed to fetch original file descriptor
+11-08 16:58:05.431  5481 18972 W MediaProvider: java.io.IOException: stat failed: ENOENT (No such file or directory)
+11-08 16:58:05.431  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5865)
+11-08 16:58:05.431  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getOriginalMediaFormatFileDescriptor(MediaProvider.java:5782)
+11-08 16:58:05.431  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFileCommon(MediaProvider.java:7205)
+11-08 16:58:05.431  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFile(MediaProvider.java:7186)
+11-08 16:58:05.431  5481 18972 W MediaProvider: 	at android.content.ContentProvider$Transport.openTypedAssetFile(ContentProvider.java:600)
+11-08 16:58:05.431  5481 18972 W MediaProvider: 	at android.content.ContentProviderNative.onTransact(ContentProviderNative.java:327)
+11-08 16:58:05.431  5481 18972 W MediaProvider: 	at android.os.Binder.execTransactInternal(Binder.java:1179)
+11-08 16:58:05.431  5481 18972 W MediaProvider: 	at android.os.Binder.execTransact(Binder.java:1143)
+11-08 16:58:05.431  5481 18972 W MediaProvider: Caused by: android.system.ErrnoException: stat failed: ENOENT (No such file or directory)
+11-08 16:58:05.431  5481 18972 W MediaProvider: 	at libcore.io.Linux.stat(Native Method)
+11-08 16:58:05.431  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:58:05.431  5481 18972 W MediaProvider: 	at libcore.io.BlockGuardOs.stat(BlockGuardOs.java:420)
+11-08 16:58:05.431  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:58:05.431  5481 18972 W MediaProvider: 	at android.app.ActivityThread$AndroidOs.stat(ActivityThread.java:8286)
+11-08 16:58:05.431  5481 18972 W MediaProvider: 	at android.system.Os.stat(Os.java:919)
+11-08 16:58:05.431  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5859)
+11-08 16:58:05.431  5481 18972 W MediaProvider: 	... 7 more
+11-08 16:58:05.432 27015 27260 V MediaPlayerNative: setDataSource(168, 0, 576460752303423487)
+11-08 16:58:05.447 27015 27260 V MediaPlayerNative: MediaPlayer::setVolume(1.000000, 1.000000)
+11-08 16:58:05.447 27015 27015 V MediaPlayerNative: setVideoSurfaceTexture
+11-08 16:58:05.448 27015 27015 V MediaPlayerNative: prepareAsync
+11-08 16:58:05.458 27015 27029 V MediaPlayerNative: message received msg=1, ext1=0, ext2=0
+11-08 16:58:05.458 27015 27029 V MediaPlayerNative: MediaPlayer::notify() prepared
+11-08 16:58:05.458 27015 27029 V MediaPlayerNative: callback application
+11-08 16:58:05.458 27015 27029 V MediaPlayerNative: back from callback
+11-08 16:58:05.461 27015 27015 V MediaPlayerNative: invoke 76
+11-08 16:58:05.463 27015 27015 V MediaPlayerNative: MediaPlayer::setVolume(0.278933, 0.278933)
+11-08 16:58:05.475 27015 27015 I HomiDiag: {"event":"prompt.level.applied","utcMs":1794131885475,"elapsedMs":1277188002,"id":"authored-prompt-142","gainDb":-11.09,"measured":false,"manifest":true}
+11-08 16:58:05.475 27015 27015 D MediaPlayer: MediaPlayer start called
+11-08 16:58:05.475 27015 27015 V MediaPlayerNative: getDuration_l
+11-08 16:58:05.476 27015 27015 V PlayerBase: baseStart() piid=130511 deviceId=0
+11-08 16:58:05.477 27015 27015 V MediaPlayerNative: start
+11-08 16:58:05.480 27015 27015 D MediaPlayer: MediaPlayer start end
+11-08 16:58:05.481 27015 27015 V MediaPlayerNative: getDuration_l
+11-08 16:58:05.481 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:58:05.483  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:05.484 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:58:05.490 27015 27015 I HomiDiag: {"event":"prompt.native.started","utcMs":1794131885489,"elapsedMs":1277188017,"id":"authored-prompt-142","gainDb":-11.09,"durationMs":993,"sessionId":120657,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":22654,"mediaVolume":11,"mediaMax":15,"callVolume":4,"callMax":6}
+11-08 16:58:05.635 27015 27029 V MediaPlayerNative: message received msg=10000, ext1=61, ext2=22654
+11-08 16:58:05.635 27015 27029 V MediaPlayerNative: unrecognized message: (10000, 61, 22654)
+11-08 16:58:05.635 27015 27029 V MediaPlayerNative: callback application
+11-08 16:58:05.635 27015 27029 V MediaPlayerNative: back from callback
+11-08 16:58:05.637 27015 27132 V MediaPlayerNative: message received msg=6, ext1=0, ext2=0
+11-08 16:58:05.638 27015 27132 V MediaPlayerNative: unrecognized message: (6, 0, 0)
+11-08 16:58:05.638 27015 27132 V MediaPlayerNative: callback application
+11-08 16:58:05.638 27015 27132 V MediaPlayerNative: back from callback
+11-08 16:58:05.648 27015 27015 D MTP     : onPaused: false
+11-08 16:58:05.649 27015 27015 V MediaPlayerNative: isPlaying: 1
+11-08 16:58:05.649 27015 27015 D MTP     : onSeekComplete at 0
+11-08 16:58:05.654  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:05.920 27015 27029 V MediaPlayerNative: message received msg=211, ext1=0, ext2=0
+11-08 16:58:05.920 27015 27029 V MediaPlayerNative: unrecognized message: (211, 0, 0)
+11-08 16:58:05.920 27015 27029 V MediaPlayerNative: callback application
+11-08 16:58:05.920 27015 27029 V MediaPlayerNative: back from callback
+11-08 16:58:06.695 27015 27029 V MediaPlayerNative: message received msg=2, ext1=0, ext2=0
+11-08 16:58:06.695 27015 27029 V MediaPlayerNative: playback complete
+11-08 16:58:06.695 27015 27029 V MediaPlayerNative: callback application
+11-08 16:58:06.696 27015 27029 V MediaPlayerNative: back from callback
+11-08 16:58:06.697 27015 27030 V MediaPlayerNative: message received msg=211, ext1=0, ext2=0
+11-08 16:58:06.698 27015 27015 V PlayerBase: baseStop() piid=130511
+11-08 16:58:06.698 27015 27030 V MediaPlayerNative: unrecognized message: (211, 0, 0)
+11-08 16:58:06.698 27015 27030 V MediaPlayerNative: callback application
+11-08 16:58:06.698 27015 27030 V MediaPlayerNative: back from callback
+11-08 16:58:06.701 27015 27015 I HomiDiag: {"event":"prompt.native.audio_completed","utcMs":1794131886701,"elapsedMs":1277189229,"id":"authored-prompt-142"}
+11-08 16:58:06.706 27015 27015 D AudioManager: abandonAudioFocus  by com.innotrik.aispeaking
+11-08 16:58:06.707 27015 27260 V PlayerBase: baseRelease() piid=130511 state=4
+11-08 16:58:06.710  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:06.717 27015 27260 V MediaPlayer: resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+11-08 16:58:06.717 27015 27260 V MediaPlayer: cleanDrmObj: mDrmObj=null mDrmSessionId=null
+11-08 16:58:06.717 27015 27260 D MediaPlayer: _release native called
+11-08 16:58:06.717 27015 27260 V MediaPlayerNative: setListener
+11-08 16:58:06.717 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:58:06.718  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:06.733 27015 27260 V MediaPlayerNative: destructor
+11-08 16:58:06.734 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:58:06.734 27015 27260 D MediaPlayer: _release native finished
+11-08 16:58:06.799 27015 27015 I HomiDiag: {"event":"prompt.native.prepare","utcMs":1794131886798,"elapsedMs":1277189326,"id":"authored-prompt-143"}
+11-08 16:58:06.799 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:58:06.802 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:58:06.803 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:58:06.805 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:58:06.808 27015 27260 V MediaPlayerNative: constructor
+11-08 16:58:06.809 27015 27260 V MediaPlayerNative: setListener
+11-08 16:58:06.811 27015 27260 V MediaPlayerNative: MediaPlayer::setParameter(1400)
+11-08 16:58:06.811 27015 27260 V MediaPlayerNative: setOutputDevice: player not init
+11-08 16:58:06.815  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:06.815  5481 18972 W MediaProvider: Failed to fetch original file descriptor
+11-08 16:58:06.815  5481 18972 W MediaProvider: java.io.IOException: stat failed: ENOENT (No such file or directory)
+11-08 16:58:06.815  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5865)
+11-08 16:58:06.815  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getOriginalMediaFormatFileDescriptor(MediaProvider.java:5782)
+11-08 16:58:06.815  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFileCommon(MediaProvider.java:7205)
+11-08 16:58:06.815  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFile(MediaProvider.java:7186)
+11-08 16:58:06.815  5481 18972 W MediaProvider: 	at android.content.ContentProvider$Transport.openTypedAssetFile(ContentProvider.java:600)
+11-08 16:58:06.815  5481 18972 W MediaProvider: 	at android.content.ContentProviderNative.onTransact(ContentProviderNative.java:327)
+11-08 16:58:06.815  5481 18972 W MediaProvider: 	at android.os.Binder.execTransactInternal(Binder.java:1179)
+11-08 16:58:06.815  5481 18972 W MediaProvider: 	at android.os.Binder.execTransact(Binder.java:1143)
+11-08 16:58:06.815  5481 18972 W MediaProvider: Caused by: android.system.ErrnoException: stat failed: ENOENT (No such file or directory)
+11-08 16:58:06.815  5481 18972 W MediaProvider: 	at libcore.io.Linux.stat(Native Method)
+11-08 16:58:06.815  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:58:06.815  5481 18972 W MediaProvider: 	at libcore.io.BlockGuardOs.stat(BlockGuardOs.java:420)
+11-08 16:58:06.815  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:58:06.815  5481 18972 W MediaProvider: 	at android.app.ActivityThread$AndroidOs.stat(ActivityThread.java:8286)
+11-08 16:58:06.815  5481 18972 W MediaProvider: 	at android.system.Os.stat(Os.java:919)
+11-08 16:58:06.815  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5859)
+11-08 16:58:06.815  5481 18972 W MediaProvider: 	... 7 more
+11-08 16:58:06.816 27015 27260 V MediaPlayerNative: setDataSource(119, 0, 576460752303423487)
+11-08 16:58:06.833 27015 27260 V MediaPlayerNative: MediaPlayer::setVolume(1.000000, 1.000000)
+11-08 16:58:06.834 27015 27015 V MediaPlayerNative: setVideoSurfaceTexture
+11-08 16:58:06.834 27015 27015 V MediaPlayerNative: prepareAsync
+11-08 16:58:06.926 27015 27030 V MediaPlayerNative: message received msg=1, ext1=0, ext2=0
+11-08 16:58:06.926 27015 27030 V MediaPlayerNative: MediaPlayer::notify() prepared
+11-08 16:58:06.926 27015 27030 V MediaPlayerNative: callback application
+11-08 16:58:06.926 27015 27030 V MediaPlayerNative: back from callback
+11-08 16:58:06.928 27015 27015 V MediaPlayerNative: invoke 76
+11-08 16:58:06.935 27015 27015 V MediaPlayerNative: MediaPlayer::setVolume(0.375837, 0.375837)
+11-08 16:58:06.950 27015 27015 I HomiDiag: {"event":"prompt.level.applied","utcMs":1794131886950,"elapsedMs":1277189478,"id":"authored-prompt-143","gainDb":-8.5,"measured":false,"manifest":true}
+11-08 16:58:06.950 27015 27015 D MediaPlayer: MediaPlayer start called
+11-08 16:58:06.950 27015 27015 V MediaPlayerNative: getDuration_l
+11-08 16:58:06.954 27015 27015 V PlayerBase: baseStart() piid=130519 deviceId=0
+11-08 16:58:06.956 27015 27015 V MediaPlayerNative: start
+11-08 16:58:06.958 27015 27015 D MediaPlayer: MediaPlayer start end
+11-08 16:58:06.958 27015 27015 V MediaPlayerNative: getDuration_l
+11-08 16:58:06.958 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:58:06.966 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:58:06.970  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:07.101 27015 27030 V MediaPlayerNative: message received msg=10000, ext1=13, ext2=22654
+11-08 16:58:07.101 27015 27030 V MediaPlayerNative: unrecognized message: (10000, 13, 22654)
+11-08 16:58:07.101 27015 27030 V MediaPlayerNative: callback application
+11-08 16:58:07.101 27015 27030 V MediaPlayerNative: back from callback
+11-08 16:58:07.101 27015 27030 V MediaPlayerNative: message received msg=6, ext1=0, ext2=0
+11-08 16:58:07.101 27015 27030 V MediaPlayerNative: unrecognized message: (6, 0, 0)
+11-08 16:58:07.101 27015 27030 V MediaPlayerNative: callback application
+11-08 16:58:07.101 27015 27030 V MediaPlayerNative: back from callback
+11-08 16:58:07.130 27015 27015 I HomiDiag: {"event":"prompt.native.started","utcMs":1794131887130,"elapsedMs":1277189658,"id":"authored-prompt-143","gainDb":-8.5,"durationMs":914,"sessionId":120665,"mode":0,"sco":true,"communicationDeviceType":7,"communicationDeviceId":22654,"mediaVolume":11,"mediaMax":15,"callVolume":4,"callMax":6}
+11-08 16:58:07.139 27015 27015 D MTP     : onPaused: false
+11-08 16:58:07.140 27015 27015 V MediaPlayerNative: isPlaying: 1
+11-08 16:58:07.140 27015 27015 D MTP     : onSeekComplete at 0
+11-08 16:58:07.145  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:07.394 27015 27029 V MediaPlayerNative: message received msg=211, ext1=0, ext2=0
+11-08 16:58:07.394 27015 27029 V MediaPlayerNative: unrecognized message: (211, 0, 0)
+11-08 16:58:07.394 27015 27029 V MediaPlayerNative: callback application
+11-08 16:58:07.395 27015 27029 V MediaPlayerNative: back from callback
+11-08 16:58:08.149 27015 27029 V MediaPlayerNative: message received msg=2, ext1=0, ext2=0
+11-08 16:58:08.149 27015 27029 V MediaPlayerNative: playback complete
+11-08 16:58:08.151 27015 27029 V MediaPlayerNative: callback application
+11-08 16:58:08.151 27015 27029 V MediaPlayerNative: back from callback
+11-08 16:58:08.151 27015 27030 V MediaPlayerNative: message received msg=211, ext1=0, ext2=0
+11-08 16:58:08.151 27015 27030 V MediaPlayerNative: unrecognized message: (211, 0, 0)
+11-08 16:58:08.152 27015 27030 V MediaPlayerNative: callback application
+11-08 16:58:08.152 27015 27030 V MediaPlayerNative: back from callback
+11-08 16:58:08.154 27015 27015 V PlayerBase: baseStop() piid=130519
+11-08 16:58:08.158 27015 27015 I HomiDiag: {"event":"prompt.native.audio_completed","utcMs":1794131888158,"elapsedMs":1277190686,"id":"authored-prompt-143"}
+11-08 16:58:08.162 27015 27015 D AudioManager: abandonAudioFocus  by com.innotrik.aispeaking
+11-08 16:58:08.165 27015 27260 V PlayerBase: baseRelease() piid=130519 state=4
+11-08 16:58:08.173  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:08.173 27015 27260 V MediaPlayer: resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+11-08 16:58:08.173 27015 27260 V MediaPlayer: cleanDrmObj: mDrmObj=null mDrmSessionId=null
+11-08 16:58:08.173 27015 27260 D MediaPlayer: _release native called
+11-08 16:58:08.174 27015 27260 V MediaPlayerNative: setListener
+11-08 16:58:08.174 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:58:08.177 27015 27064 I HfpAudioBridge: Starting HFP route generation=120
+11-08 16:58:08.178  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:08.196 27015 27260 V MediaPlayerNative: destructor
+11-08 16:58:08.198 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:58:08.199 27015 27260 D MediaPlayer: _release native finished
+11-08 16:58:08.459 27015 27064 I HfpAudioBridge: HM-D001 HFP/SCO route confirmed: id=22654, name=vivo 1919, generation=120
+11-08 16:58:08.543 27015 27015 V MediaPlayerNative: constructor
+11-08 16:58:08.544 27015 27015 V MediaPlayerNative: setListener
+11-08 16:58:08.547 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:58:08.550 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:58:08.553 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:58:08.557 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:58:08.559 27015 27015 V MediaPlayerNative: MediaPlayer::setParameter(1400)
+11-08 16:58:08.562  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:08.565 27015 27015 V MediaPlayerNative: setOutputDevice: player not init
+11-08 16:58:08.570  5481 18972 W MediaProvider: Failed to fetch original file descriptor
+11-08 16:58:08.570  5481 18972 W MediaProvider: java.io.IOException: stat failed: ENOENT (No such file or directory)
+11-08 16:58:08.570  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5865)
+11-08 16:58:08.570  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getOriginalMediaFormatFileDescriptor(MediaProvider.java:5782)
+11-08 16:58:08.570  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFileCommon(MediaProvider.java:7205)
+11-08 16:58:08.570  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFile(MediaProvider.java:7186)
+11-08 16:58:08.570  5481 18972 W MediaProvider: 	at android.content.ContentProvider$Transport.openTypedAssetFile(ContentProvider.java:600)
+11-08 16:58:08.570  5481 18972 W MediaProvider: 	at android.content.ContentProviderNative.onTransact(ContentProviderNative.java:327)
+11-08 16:58:08.570  5481 18972 W MediaProvider: 	at android.os.Binder.execTransactInternal(Binder.java:1179)
+11-08 16:58:08.570  5481 18972 W MediaProvider: 	at android.os.Binder.execTransact(Binder.java:1143)
+11-08 16:58:08.570  5481 18972 W MediaProvider: Caused by: android.system.ErrnoException: stat failed: ENOENT (No such file or directory)
+11-08 16:58:08.570  5481 18972 W MediaProvider: 	at libcore.io.Linux.stat(Native Method)
+11-08 16:58:08.570  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:58:08.570  5481 18972 W MediaProvider: 	at libcore.io.BlockGuardOs.stat(BlockGuardOs.java:420)
+11-08 16:58:08.570  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:58:08.570  5481 18972 W MediaProvider: 	at android.app.ActivityThread$AndroidOs.stat(ActivityThread.java:8286)
+11-08 16:58:08.570  5481 18972 W MediaProvider: 	at android.system.Os.stat(Os.java:919)
+11-08 16:58:08.570  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5859)
+11-08 16:58:08.570  5481 18972 W MediaProvider: 	... 7 more
+11-08 16:58:08.571 27015 27015 V MediaPlayerNative: setDataSource(116, 0, 576460752303423487)
+11-08 16:58:08.585 27015 27015 V MediaPlayerNative: MediaPlayer::setVolume(1.000000, 1.000000)
+11-08 16:58:08.585 27015 27015 V MediaPlayerNative: setVideoSurfaceTexture
+11-08 16:58:08.586 27015 27015 V MediaPlayerNative: prepareAsync
+11-08 16:58:08.599 27015 27029 V MediaPlayerNative: message received msg=1, ext1=0, ext2=0
+11-08 16:58:08.600 27015 27029 V MediaPlayerNative: MediaPlayer::notify() prepared
+11-08 16:58:08.600 27015 27029 V MediaPlayerNative: callback application
+11-08 16:58:08.600 27015 27029 V MediaPlayerNative: back from callback
+11-08 16:58:08.603 27015 27015 V MediaPlayerNative: invoke 76
+11-08 16:58:08.605 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:58:08.608 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:58:08.615 27015 27015 I HomiDiag: {"event":"cue.native.start","utcMs":1794131888614,"elapsedMs":1277191142,"cueId":49,"sessionId":120673,"mode":3,"sco":true,"communicationDeviceType":7,"communicationDeviceId":22654,"mediaVolume":11,"mediaMax":15,"callVolume":4,"callMax":6}
+11-08 16:58:08.615 27015 27015 D MediaPlayer: MediaPlayer start called
+11-08 16:58:08.615 27015 27015 V MediaPlayerNative: getDuration_l
+11-08 16:58:08.617 27015 27015 V PlayerBase: baseStart() piid=130527 deviceId=0
+11-08 16:58:08.618 27015 27015 V MediaPlayerNative: start
+11-08 16:58:08.621 27015 27015 D MediaPlayer: MediaPlayer start end
+11-08 16:58:08.622  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:08.662 27015 27015 I HomiDiag: {"event":"cue.native.routed","utcMs":1794131888662,"elapsedMs":1277191190,"cueId":49,"deviceType":null,"deviceId":null}
+11-08 16:58:08.776 27015 27029 V MediaPlayerNative: message received msg=10000, ext1=61, ext2=22654
+11-08 16:58:08.783 27015 27029 V MediaPlayerNative: unrecognized message: (10000, 61, 22654)
+11-08 16:58:08.783 27015 27029 V MediaPlayerNative: callback application
+11-08 16:58:08.783 27015 27029 V MediaPlayerNative: back from callback
+11-08 16:58:08.783 27015 27029 V MediaPlayerNative: message received msg=6, ext1=0, ext2=0
+11-08 16:58:08.783 27015 27029 V MediaPlayerNative: unrecognized message: (6, 0, 0)
+11-08 16:58:08.783 27015 27029 V MediaPlayerNative: callback application
+11-08 16:58:08.783 27015 27029 V MediaPlayerNative: back from callback
+11-08 16:58:08.789 27015 27015 D MTP     : onPaused: false
+11-08 16:58:08.790 27015 27015 V MediaPlayerNative: isPlaying: 1
+11-08 16:58:08.790 27015 27015 D MTP     : onSeekComplete at 0
+11-08 16:58:08.792  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:09.324 27015 27015 V MediaPlayerNative: isPlaying: 1
+11-08 16:58:09.326 27015 27015 I HomiDiag: {"event":"cue.native.drain_guard","utcMs":1794131889325,"elapsedMs":1277191853,"cueId":49,"isPlaying":true,"deviceType":7,"deviceId":22654}
+11-08 16:58:09.329 27015 27015 D AudioManager: abandonAudioFocus  by com.innotrik.aispeaking
+11-08 16:58:09.330 27015 27015 I HomiDiag: {"event":"cue.native.complete","utcMs":1794131889330,"elapsedMs":1277191857,"cueId":49,"errorCode":null}
+11-08 16:58:09.330 27015 27260 V PlayerBase: baseRelease() piid=130527 state=2
+11-08 16:58:09.334 27015 27260 V MediaPlayer: resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+11-08 16:58:09.334 27015 27260 V MediaPlayer: cleanDrmObj: mDrmObj=null mDrmSessionId=null
+11-08 16:58:09.334 27015 27260 D MediaPlayer: _release native called
+11-08 16:58:09.334 27015 27260 V MediaPlayerNative: setListener
+11-08 16:58:09.334 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:58:09.354  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:09.362 27015  6831 I AudioRecord: set(): inputSource 7, sampleRate 16000, format 0x1, channelMask 0x10, frameCount 1280, notificationFrames 0, sessionId 0, transferType 0, flags 0, attributionSource AttributionSourceState{pid: -1, uid: 10427, packageName: com.innotrik.aispeaking, attributionTag: (null), token: , renouncedPermissions: [], next: []}uid -1, pid -1, latency 200
+11-08 16:58:09.365 27015  6831 D AudioSystem: getpackName client name com.innotrik.aispeaking(27015)
+11-08 16:58:09.366 27015  6831 D AudioRecord: getpackName client name com.innotrik.aispeaking(27015)
+11-08 16:58:09.405 27015 27260 V MediaPlayerNative: destructor
+11-08 16:58:09.405 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:58:09.405 27015 27260 D MediaPlayer: _release native finished
+11-08 16:58:09.450 27015  6831 D AudioRecord: start(22739): sync event 0 trigger session 0
+11-08 16:58:09.450 27015  6831 W AudioRecord: restoreRecord_l(22739): dead IAudioRecord, creating a new one from start()
+11-08 16:58:09.450 27015  6831 I AudioRecord: restoreRecord_l(): getPolicyInputSourceForVoip mAttributes input source= 7
+11-08 16:58:11.893 31862 31903 I id.gms.unstabl: Explicit concurrent copying GC freed 3269(232KB) AllocSpace objects, 0(0B) LOS objects, 46% free, 4722KB/8818KB, paused 396us,440us total 144.309ms
+11-08 16:58:12.642 27015 27015 I Aiv0BleControl: Button Event device=***************** len=12 duplicate=false raw=01 01 02 00 07 00 4B 00 67 AB 03 00
+11-08 16:58:12.668 27015  6831 D AudioRecord: stop(22740): mActive:1
+11-08 16:58:12.768 27015 27015 I HomiDiag: {"event":"prompt.native.prepare","utcMs":1794131892768,"elapsedMs":1277195296,"id":"authored-prompt-144"}
+11-08 16:58:12.768 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:58:12.796 27015  6831 D AudioRecord: stop(22740): mActive:0
+11-08 16:58:12.797 27015  6831 D AudioRecord: stop(22740): mActive:0
+11-08 16:58:12.797 27015  6831 D AudioRecord: stop(22740): mActive:0
+11-08 16:58:12.802 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:58:12.860  1489  6840 I Nearby  : (REDACTED) is blocked device type %s, isAuto=%s, isIot=%s, isLatchsky=%s, isChinaWearable=%s, isTv=%s, isWearable=%s (supportWearOs=%s), isChromeOsDevice=%s (supportChromeOs=%s)
+11-08 16:58:12.872  1489  1489 I NearbyDiscovery: (REDACTED) DiscoveryService onStartCommand action: %s, startId: %d
+11-08 16:58:13.014 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:58:13.018 27015 27015 D AudioManager: isBluetoothScoOn()=true
+11-08 16:58:13.023 27015 27260 V MediaPlayerNative: constructor
+11-08 16:58:13.024 27015 27260 V MediaPlayerNative: setListener
+11-08 16:58:13.027 27015 27260 V MediaPlayerNative: MediaPlayer::setParameter(1400)
+11-08 16:58:13.027 27015 27260 V MediaPlayerNative: setOutputDevice: player not init
+11-08 16:58:13.030  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:13.033  5481 18972 W MediaProvider: Failed to fetch original file descriptor
+11-08 16:58:13.033  5481 18972 W MediaProvider: java.io.IOException: stat failed: ENOENT (No such file or directory)
+11-08 16:58:13.033  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5865)
+11-08 16:58:13.033  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getOriginalMediaFormatFileDescriptor(MediaProvider.java:5782)
+11-08 16:58:13.033  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFileCommon(MediaProvider.java:7205)
+11-08 16:58:13.033  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.openTypedAssetFile(MediaProvider.java:7186)
+11-08 16:58:13.033  5481 18972 W MediaProvider: 	at android.content.ContentProvider$Transport.openTypedAssetFile(ContentProvider.java:600)
+11-08 16:58:13.033  5481 18972 W MediaProvider: 	at android.content.ContentProviderNative.onTransact(ContentProviderNative.java:327)
+11-08 16:58:13.033  5481 18972 W MediaProvider: 	at android.os.Binder.execTransactInternal(Binder.java:1179)
+11-08 16:58:13.033  5481 18972 W MediaProvider: 	at android.os.Binder.execTransact(Binder.java:1143)
+11-08 16:58:13.033  5481 18972 W MediaProvider: Caused by: android.system.ErrnoException: stat failed: ENOENT (No such file or directory)
+11-08 16:58:13.033  5481 18972 W MediaProvider: 	at libcore.io.Linux.stat(Native Method)
+11-08 16:58:13.033  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:58:13.033  5481 18972 W MediaProvider: 	at libcore.io.BlockGuardOs.stat(BlockGuardOs.java:420)
+11-08 16:58:13.033  5481 18972 W MediaProvider: 	at libcore.io.ForwardingOs.stat(ForwardingOs.java:853)
+11-08 16:58:13.033  5481 18972 W MediaProvider: 	at android.app.ActivityThread$AndroidOs.stat(ActivityThread.java:8286)
+11-08 16:58:13.033  5481 18972 W MediaProvider: 	at android.system.Os.stat(Os.java:919)
+11-08 16:58:13.033  5481 18972 W MediaProvider: 	at com.android.providers.media.MediaProvider.getFileFromFileDescriptor(MediaProvider.java:5859)
+11-08 16:58:13.033  5481 18972 W MediaProvider: 	... 7 more
+11-08 16:58:13.034 27015 27260 V MediaPlayerNative: setDataSource(116, 0, 576460752303423487)
+11-08 16:58:13.048 27015 27260 V MediaPlayerNative: MediaPlayer::setVolume(1.000000, 1.000000)
+11-08 16:58:13.051 27015 27015 V MediaPlayerNative: setVideoSurfaceTexture
+11-08 16:58:13.052 27015 27015 V MediaPlayerNative: prepareAsync
+11-08 16:58:13.066 27015 27029 V MediaPlayerNative: message received msg=1, ext1=0, ext2=0
+11-08 16:58:13.066 27015 27029 V MediaPlayerNative: MediaPlayer::notify() prepared
+11-08 16:58:13.066 27015 27029 V MediaPlayerNative: callback application
+11-08 16:58:13.066 27015 27029 V MediaPlayerNative: back from callback
+11-08 16:58:13.071 27015 27015 V MediaPlayerNative: invoke 76
+11-08 16:58:13.076 27015 27015 V MediaPlayerNative: MediaPlayer::setVolume(0.439542, 0.439542)
+11-08 16:58:13.456 27015 27015 I HomiDiag: {"event":"prompt.level.applied","utcMs":1794131893455,"elapsedMs":1277195983,"id":"authored-prompt-144","gainDb":-7.14,"measured":false,"manifest":true}
+11-08 16:58:13.456 27015 27015 D MediaPlayer: MediaPlayer start called
+11-08 16:58:13.456 27015 27015 V MediaPlayerNative: getDuration_l
+11-08 16:58:13.459 27015 27015 V PlayerBase: baseStart() piid=130543 deviceId=0
+11-08 16:58:13.461 27015 27015 V MediaPlayerNative: start
+11-08 16:58:13.464 27015 27015 D MediaPlayer: MediaPlayer start end
+11-08 16:58:13.464 27015 27015 V MediaPlayerNative: getDuration_l
+11-08 16:58:13.464 27015 27015 I AudioManager: In isBluetoothScoOn(), calling application: com.innotrik.aispeaking
+11-08 16:58:13.480  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:13.481 27015 27015 D AudioManager: isBluetoothScoOn()=false
+11-08 16:58:13.488 27015 27064 W HfpAudioBridge: Selected HM-D001 communication route was lost; re-asserting the connected HM-D001 route
+11-08 16:58:13.616 27015 27029 V MediaPlayerNative: message received msg=10000, ext1=61, ext2=2
+11-08 16:58:13.617 27015 27029 V MediaPlayerNative: unrecognized message: (10000, 61, 2)
+11-08 16:58:13.617 27015 27029 V MediaPlayerNative: callback application
+11-08 16:58:13.617 27015 27029 V MediaPlayerNative: back from callback
+11-08 16:58:13.617 27015 27029 V MediaPlayerNative: message received msg=6, ext1=0, ext2=0
+11-08 16:58:13.617 27015 27029 V MediaPlayerNative: unrecognized message: (6, 0, 0)
+11-08 16:58:13.617 27015 27029 V MediaPlayerNative: callback application
+11-08 16:58:13.617 27015 27029 V MediaPlayerNative: back from callback
+11-08 16:58:13.617 27015 27029 V MediaPlayerNative: message received msg=10000, ext1=61, ext2=2
+11-08 16:58:13.617 27015 27029 V MediaPlayerNative: unrecognized message: (10000, 61, 2)
+11-08 16:58:13.617 27015 27029 V MediaPlayerNative: callback application
+11-08 16:58:13.617 27015 27029 V MediaPlayerNative: back from callback
+11-08 16:58:13.804  1489  6840 I Nearby  : (REDACTED) is blocked device type %s, isAuto=%s, isIot=%s, isLatchsky=%s, isChinaWearable=%s, isTv=%s, isWearable=%s (supportWearOs=%s), isChromeOsDevice=%s (supportChromeOs=%s)
+11-08 16:58:13.813  1489  1489 I NearbyDiscovery: (REDACTED) DiscoveryService onStartCommand action: %s, startId: %d
+11-08 16:58:13.835  1489  6840 I Nearby  : (REDACTED) is blocked device type %s, isAuto=%s, isIot=%s, isLatchsky=%s, isChinaWearable=%s, isTv=%s, isWearable=%s (supportWearOs=%s), isChromeOsDevice=%s (supportChromeOs=%s)
+11-08 16:58:13.846  1489  1489 I NearbyDiscovery: (REDACTED) DiscoveryService onStartCommand action: %s, startId: %d
+11-08 16:58:13.849  1489  6840 I Nearby  : (REDACTED) is blocked device type %s, isAuto=%s, isIot=%s, isLatchsky=%s, isChinaWearable=%s, isTv=%s, isWearable=%s (supportWearOs=%s), isChromeOsDevice=%s (supportChromeOs=%s)
+11-08 16:58:13.855  1489  1489 I NearbyDiscovery: (REDACTED) DiscoveryService onStartCommand action: %s, startId: %d
+11-08 16:58:13.859 27015 27015 I HomiDiag: {"event":"prompt.native.started","utcMs":1794131893858,"elapsedMs":1277196386,"id":"authored-prompt-144","gainDb":-7.14,"durationMs":705,"sessionId":120689,"mode":3,"sco":false,"communicationDeviceType":1,"communicationDeviceId":2,"mediaVolume":13,"mediaMax":15,"callVolume":5,"callMax":6}
+11-08 16:58:13.866 27015 27015 D MTP     : onPaused: false
+11-08 16:58:13.870  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:13.873 27015 27029 V MediaPlayerNative: message received msg=211, ext1=0, ext2=0
+11-08 16:58:13.874 27015 27015 V MediaPlayerNative: isPlaying: 1
+11-08 16:58:13.874 27015 27029 V MediaPlayerNative: unrecognized message: (211, 0, 0)
+11-08 16:58:13.874 27015 27029 V MediaPlayerNative: callback application
+11-08 16:58:13.874 27015 27029 V MediaPlayerNative: back from callback
+11-08 16:58:13.874 27015 27015 D MTP     : onSeekComplete at 150000
+11-08 16:58:13.901 27015 27029 V MediaPlayerNative: message received msg=211, ext1=0, ext2=0
+11-08 16:58:13.901 27015 27029 V MediaPlayerNative: unrecognized message: (211, 0, 0)
+11-08 16:58:13.901 27015 27029 V MediaPlayerNative: callback application
+11-08 16:58:13.901 27015 27029 V MediaPlayerNative: back from callback
+11-08 16:58:14.174 25798 25879 I BistoDBWrapper: Close DB
+11-08 16:58:14.280 27015 27029 V MediaPlayerNative: message received msg=10000, ext1=61, ext2=2
+11-08 16:58:14.280 27015 27029 V MediaPlayerNative: unrecognized message: (10000, 61, 2)
+11-08 16:58:14.280 27015 27029 V MediaPlayerNative: callback application
+11-08 16:58:14.280 27015 27029 V MediaPlayerNative: back from callback
+11-08 16:58:14.414 27015 27029 V MediaPlayerNative: message received msg=2, ext1=0, ext2=0
+11-08 16:58:14.414 27015 27029 V MediaPlayerNative: playback complete
+11-08 16:58:14.415 27015 27029 V MediaPlayerNative: callback application
+11-08 16:58:14.415 27015 27029 V MediaPlayerNative: back from callback
+11-08 16:58:14.416 27015 27029 V MediaPlayerNative: message received msg=211, ext1=0, ext2=0
+11-08 16:58:14.416 27015 27029 V MediaPlayerNative: unrecognized message: (211, 0, 0)
+11-08 16:58:14.416 27015 27029 V MediaPlayerNative: callback application
+11-08 16:58:14.416 27015 27029 V MediaPlayerNative: back from callback
+11-08 16:58:14.577 27015 27015 V PlayerBase: baseStop() piid=130543
+11-08 16:58:14.580 27015 27015 I HomiDiag: {"event":"prompt.native.audio_completed","utcMs":1794131894580,"elapsedMs":1277197108,"id":"authored-prompt-144"}
+11-08 16:58:14.582 27015 27015 D AudioManager: abandonAudioFocus  by com.innotrik.aispeaking
+11-08 16:58:14.583 27015 27260 V PlayerBase: baseRelease() piid=130543 state=4
+11-08 16:58:14.584 27015 27015 I flutter : HM-D001 CONTROL: source=ble button=main gesture=longPress protocol=observedHmD001 seq=7 actionable=true duplicate=false result=accepted diagnosticsActive=false executeTests=false
+11-08 16:58:14.584 27015 27015 I flutter : HM-D001 MAIN: main • accepted
+11-08 16:58:14.585 27015 27260 V MediaPlayer: resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+11-08 16:58:14.585 27015 27260 V MediaPlayer: cleanDrmObj: mDrmObj=null mDrmSessionId=null
+11-08 16:58:14.585 27015 27260 D MediaPlayer: _release native called
+11-08 16:58:14.585 27015 27260 V MediaPlayerNative: setListener
+11-08 16:58:14.585 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:58:14.586  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:14.586  1489  1489 D AudioManager: dispatching onPlaybackConfigChanged()
+11-08 16:58:14.599 27015 27260 V MediaPlayerNative: destructor
+11-08 16:58:14.599 27015 27260 V MediaPlayerNative: disconnect
+11-08 16:58:14.599 27015 27260 D MediaPlayer: _release native finished
+11-08 16:58:14.971 27015 27064 I HfpAudioBridge: HM-D001 communication route recovered generation=120
+11-08 16:58:15.338 27015 27064 I HomiDiag: {"event":"hfp.stop.begin","utcMs":1794131895337,"elapsedMs":1277197865,"generation":120}
+11-08 16:58:15.338 27015 27064 I HfpAudioBridge: Stopping HFP route generation=120 pending=false
+11-08 16:58:15.362 27015 27064 I HomiDiag: {"event":"hfp.stop.restore_mode.begin","utcMs":1794131895362,"elapsedMs":1277197889}
+11-08 16:58:15.419  1489  6840 I Nearby  : (REDACTED) is blocked device type %s, isAuto=%s, isIot=%s, isLatchsky=%s, isChinaWearable=%s, isTv=%s, isWearable=%s (supportWearOs=%s), isChromeOsDevice=%s (supportChromeOs=%s)
+11-08 16:58:15.422 27015 27064 I HomiDiag: {"event":"hfp.stop.restore_mode.end","utcMs":1794131895422,"elapsedMs":1277197949}
+11-08 16:58:15.429 27015 27064 I HomiDiag: {"event":"hfp.stop.completed","utcMs":1794131895428,"elapsedMs":1277197956,"generation":121}
+11-08 16:58:15.430  1489  1489 I NearbyDiscovery: (REDACTED) DiscoveryService onStartCommand action: %s, startId: %d
+11-08 16:58:26.937  1489  6120 I NearbyDiscovery: (REDACTED) loadFastPairModule: checkFeaturesAreAvailable:%d
+11-08 16:58:26.938  1489  6120 I NearbyDiscovery: loadFastPairModule: FastPair module is downloaded. [CONTEXT service_id=265 ]
+11-08 16:58:37.372 17001 17144 D Linux   : [Posix_connect Debug]Process com.facebook.services :443 
+11-08 16:58:40.375 30175 31914 I FloggerStreamzLogger: Client streamz increments: # gdy@c89de57f
+11-08 16:58:58.839  1489  1896 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloom filter but too far away, ignoring. %sm, %s
+11-08 16:59:20.023  1489  1896 I NearbyDiscovery: (REDACTED) %s
+11-08 16:59:20.026  1489  1896 I NearbyDiscovery: (REDACTED) %s
+11-08 16:59:20.034  1489  6120 I NearbyDiscovery: (REDACTED) %s
+11-08 16:59:31.063  1489  6455 I NearbyDiscovery: (REDACTED) loadFastPairModule: checkFeaturesAreAvailable:%d
+11-08 16:59:31.063  1489  6455 I NearbyDiscovery: loadFastPairModule: FastPair module is downloaded. [CONTEXT service_id=265 ]
+11-08 16:59:32.752  1489  1489 D BoundBrokerSvc: onBind: Intent { act=com.google.android.gms.potokens.service.START dat=chimera-action: cmp=com.google.android.gms/.chimera.GmsApiService }
+11-08 16:59:32.752  1489  1489 D BoundBrokerSvc: Loading bound service for intent: Intent { act=com.google.android.gms.potokens.service.START dat=chimera-action: cmp=com.google.android.gms/.chimera.GmsApiService }
+11-08 16:59:47.841  1489  1489 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.gms.potokens.service.START dat=chimera-action: cmp=com.google.android.gms/.chimera.GmsApiService }
+11-08 16:59:55.331  1489  1896 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloom filter but too far away, ignoring. %sm, %s
+11-08 17:00:08.364 32213 32273 I ndroid.gms:sne: Explicit concurrent copying GC freed 1049(137KB) AllocSpace objects, 0(0B) LOS objects, 46% free, 4666KB/8762KB, paused 272us,105us total 121.671ms
+11-08 17:00:28.354  1489  1896 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloom filter but too far away, ignoring. %sm, %s
+11-08 17:00:36.020  1489  6120 I NearbyDiscovery: (REDACTED) loadFastPairModule: checkFeaturesAreAvailable:%d
+11-08 17:00:36.021  1489  6120 I NearbyDiscovery: loadFastPairModule: FastPair module is downloaded. [CONTEXT service_id=265 ]
+11-08 17:00:39.522  4014  4014 W fb4a.AppComponentFactory: Instantiating Service
+11-08 17:00:39.777  4014  4014 W fb4a.AppComponentFactory: Instantiating Service
+11-08 17:00:41.574  1489  1896 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloom filter but too far away, ignoring. %sm, %s
+11-08 17:00:42.315  4014  4183 W fb4a.FeedDbMutationService: DedupKey not found for cache ID: 7650098739697466384
+11-08 17:00:42.614  4014  4183 W fb4a.FeedDbMutationService: DedupKey not found for cache ID: -8619552295469428371
+11-08 17:00:42.756  4014  4339 W fb4a.FeedDbMutationService: DedupKey not found for cache ID: -7459067089280639586
+11-08 17:00:43.218  4014  4341 W fb4a.FeedDbMutationService: DedupKey not found for cache ID: 5530174218547578810
+11-08 17:00:43.230  4014  4341 W fb4a.FeedDbMutationService: DedupKey not found for cache ID: 5530174218547578810
+11-08 17:00:43.701  4014  7079 W fb4a.FeedDbMutationService: DedupKey not found for cache ID: -70**************723
+11-08 17:00:43.991  4014  4341 W fb4a.FeedDbMutationService: DedupKey not found for cache ID: -**************79631
+11-08 17:00:44.781  1489  1896 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloom filter but too far away, ignoring. %sm, %s
+11-08 17:01:00.742 30898  6766 I PlayCommon: [165] 1 files were purged due to exceeding total storage size of 2097152
+11-08 17:01:00.798 30898  6766 I PlayCommon: [165] Preparing logs for uploading
+11-08 17:01:00.862  1489  1509 W Auth    : [RequestTokenManager] getToken() -> BAD_AUTHENTICATION. App: com.android.vending, Service: oauth2:****************************************** [CONTEXT service_id=343 ]
+11-08 17:01:00.862  1489  1509 W Auth    : bqkr: Long live credential not available.
+11-08 17:01:00.862  1489  1509 W Auth    : 	at alxt.b(:com.google.android.gms@264330029@26.43.30 (190400-1006944126):1170)
+11-08 17:01:00.862  1489  1509 W Auth    : 	at alya.b(:com.google.android.gms@264330029@26.43.30 (190400-1006944126):26)
+11-08 17:01:00.862  1489  1509 W Auth    : 	at alxy.a(:com.google.android.gms@264330029@26.43.30 (190400-1006944126):640)
+11-08 17:01:00.862  1489  1509 W Auth    : 	at alxx.b(:com.google.android.gms@264330029@26.43.30 (190400-1006944126):133)
+11-08 17:01:00.862  1489  1509 W Auth    : 	at afbw.d(:com.google.android.gms@264330029@26.43.30 (190400-1006944126):971)
+11-08 17:01:00.862  1489  1509 W Auth    : 	at alqx.getAuthToken(:com.google.android.gms@264330029@26.43.30 (190400-1006944126):354)
+11-08 17:01:00.862  1489  1509 W Auth    : 	at android.accounts.AbstractAccountAuthenticator$Transport.getAuthToken(AbstractAccountAuthenticator.java:247)
+11-08 17:01:00.862  1489  1509 W Auth    : 	at android.accounts.IAccountAuthenticator$Stub.onTransact(IAccountAuthenticator.java:284)
+11-08 17:01:00.862  1489  1509 W Auth    : 	at android.os.Binder.transact(Binder.java:1064)
+11-08 17:01:00.862  1489  1509 W Auth    : 	at dbsq.onTransact(:com.google.android.gms@264330029@26.43.30 (190400-1006944126):8)
+11-08 17:01:00.862  1489  1509 W Auth    : 	at android.os.Binder.transact(Binder.java:1064)
+11-08 17:01:00.862  1489  1509 W Auth    : 	at cmzg.onTransact(:com.google.android.gms@264330029@26.43.30 (190400-1006944126):168)
+11-08 17:01:00.862  1489  1509 W Auth    : 	at android.os.Binder.execTransactInternal(Binder.java:1184)
+11-08 17:01:00.862  1489  1509 W Auth    : 	at android.os.Binder.execTransact(Binder.java:1143)
+11-08 17:01:00.863  1489  1509 W Auth    : [RequestTokenManager] Message is Long live credential not available. [CONTEXT service_id=343 ]
+11-08 17:01:00.899  1489  1509 I Auth    : (REDACTED) [GetToken] GetToken failed for app=%s with userRecoverable status: %s 
+11-08 17:01:00.901  1489  1509 W Auth    : [ChimeraGetToken] exception while trying to fetch auth tokens for app=com.google.android.gsf, scope=oauth2:****************************************** [CONTEXT service_id=153 ]
+11-08 17:01:00.901  1489  1509 W Auth    : alxs: GetToken failed with status code and recovery intent: BadAuthentication
+11-08 17:01:00.901  1489  1509 W Auth    : 	at alxx.b(:com.google.android.gms@264330029@26.43.30 (190400-1006944126):321)
+11-08 17:01:00.901  1489  1509 W Auth    : 	at afbw.d(:com.google.android.gms@264330029@26.43.30 (190400-1006944126):971)
+11-08 17:01:00.901  1489  1509 W Auth    : 	at alqx.getAuthToken(:com.google.android.gms@264330029@26.43.30 (190400-1006944126):354)
+11-08 17:01:00.901  1489  1509 W Auth    : 	at android.accounts.AbstractAccountAuthenticator$Transport.getAuthToken(AbstractAccountAuthenticator.java:247)
+11-08 17:01:00.901  1489  1509 W Auth    : 	at android.accounts.IAccountAuthenticator$Stub.onTransact(IAccountAuthenticator.java:284)
+11-08 17:01:00.901  1489  1509 W Auth    : 	at android.os.Binder.transact(Binder.java:1064)
+11-08 17:01:00.901  1489  1509 W Auth    : 	at dbsq.onTransact(:com.google.android.gms@264330029@26.43.30 (190400-1006944126):8)
+11-08 17:01:00.901  1489  1509 W Auth    : 	at android.os.Binder.transact(Binder.java:1064)
+11-08 17:01:00.901  1489  1509 W Auth    : 	at cmzg.onTransact(:com.google.android.gms@264330029@26.43.30 (190400-1006944126):168)
+11-08 17:01:00.901  1489  1509 W Auth    : 	at android.os.Binder.execTransactInternal(Binder.java:1184)
+11-08 17:01:00.901  1489  1509 W Auth    : 	at android.os.Binder.execTransact(Binder.java:1143)
+11-08 17:01:00.902  1489  1509 W Auth    : [GmsAccountAuthenticatorImpl] error status while fetching token:BadAuthentication [CONTEXT service_id=343 ]
+11-08 17:01:00.924 30898  6766 W PlayCommon: [165] Deferring log upload because couldn't retrieve auth token
+11-08 17:01:14.798  3630  3630 W msgr.AppComponentFactory: Instantiating BroadcastReceiver
+11-08 17:01:14.925  3630  3630 W msgr.AppComponentFactory: Instantiating Service
+11-08 17:01:14.937  3630  3964 W msgr.MqttDozeAwareClientWrapper: Doze mode disabled. Starting client
+11-08 17:01:14.999  3630  4348 D omnistore_android_logger: DebouncingRateLimiter attempting event SyncProtocol::onConnectionEstablished
+11-08 17:01:15.004  3630  4348 D omnistore_android_logger: Event not rate limited: SyncProtocol::onConnectionEstablished
+11-08 17:01:15.004  3630  4348 D omnistore_android_logger: SyncProtocol calling onConnectionEstablished callbacks
+11-08 17:01:15.005  3630  4348 D omnistore_android_logger: Removing all queue based subscriptions from rewire state
+11-08 17:01:15.005  3630  4045 E msgr.msys: E[C mem.context]_LogNetworkStateUpdate(7903)=>[Critical] network_state/prev/1/new/1/source/0
+11-08 17:01:15.009  3630  4348 D omnistore_android_logger: SendQueue::onConnectionEstablished: sending 0 transaction(s)
+11-08 17:01:15.010  3630  4045 E msgr.msys: E[C MEMConnectionManager]_NetworkConnectedConnectionEventHandler(1601)=>[Debug] Start _NetworkConnectedConnectionEventHandler.
+11-08 17:01:15.011  3630  4070 D omnistore_android_logger: SubscriptionManager::onConnectionEstablished is called back
+11-08 17:01:15.016  3630  4045 E msgr.msys: E[C MEMConnectionManager]_NetworkConnectedConnectionEventHandler(1611)=>[Debug] End _NetworkConnectedConnectionEventHandler.
+11-08 17:01:15.017  3630  3964 E msgr.msys: E[C MEMConnectionManager]__ConnectIfNeededOnNetworkContextAsyncImpl(1288)=>[Critical] Call WCCConnectionConnect with event id: 4
+11-08 17:01:15.018  3630  4070 I omnistore_android_logger: SubscriptionManager skipping connect message.
+11-08 17:01:15.020  3630  3964 E msgr.msys: E[N WCCConnectionMEM]_WCCConnectionMEMEmitStateChange(3331)=>[INFO] connection/new_state/connecting [connection_id=131965045, wcc_source=0, wcc_reason=0]
+11-08 17:01:15.020  3630  3964 E msgr.msys: E[C MEMConnectionManager]_MEMConnectionManagerStateChangeHandler(642)=>[Critical] MEMConnectionState updated to ID: 1 with connectionId: 131965045
+11-08 17:01:15.042  3630  3964 E msgr.msys: E[N WCCConnectionMEM]_WCCConnectionMEMDoConnectWithAuthKeys(1623)=>[INFO] connection/connect/start/[host=chat-e2ee-mini.facebook.com port=5222]/[***********:5222]/socketAddressCount=1
+11-08 17:01:15.043  3630  3964 E msgr.msys: E[N WCCConnectionMEM]_WCCConnectionMEMLifecycleEventHandler(2265)=>[INFO] connection/xmpp/lifecycle_event/will-connect
+11-08 17:01:15.044  3630  3964 E msgr.msys: E[A WA]WCCHandshakeCreate(191)=>handshake/create, pq mode:0
+11-08 17:01:15.053  3630  3964 E msgr.msys: E[N WCCConnectionMEM]_WCCConnectionMEMLifecycleEventHandler(2273)=>[INFO] connection/xmpp/lifecycle_event/did-connect, [0.0089s]
+11-08 17:01:15.056  3630  3964 E msgr.msys: E[N WCCConnectionMEM]_WCCConnectionMEMLifecycleEventHandler(2273)=>[INFO] connection/xmpp/lifecycle_event/did-send-initial-payload, [0.0032s]
+11-08 17:01:15.234  3630  3964 E msgr.msys: E[N WCCConnectionMEM]_WCCConnectionMEMLifecycleEventHandler(2273)=>[INFO] connection/xmpp/lifecycle_event/will-handshake, [0.1770s]
+11-08 17:01:15.239  3630  3964 E msgr.msys: E[N WCCConnectionMEM]_WCCConnectionMEMLifecycleEventHandler(2273)=>[INFO] connection/xmpp/lifecycle_event/did-handshake, [0.0043s]
+11-08 17:01:15.240  3630  3964 E msgr.msys: E[N WCCConnectionMEM]_WCCConnectionMEMReceiveHandler(2459)=>[INFO] connection/receive/login-success
+11-08 17:01:15.241  3630  3964 E msgr.msys: E[N WCCConnectionMEM]_WCCConnectionMEMEmitStateChange(3331)=>[INFO] connection/new_state/connected [connection_id=131965045, wcc_source=0, wcc_reason=0]
+11-08 17:01:15.242  3630  3964 E msgr.msys: E[C MEMConnectionManager]_MEMConnectionManagerStateChangeHandler(642)=>[Critical] MEMConnectionState updated to ID: 2 with connectionId: 131965045
+11-08 17:01:15.249  3630  3968 E msgr.ZeroChatDHostController: Trying to add the same listener twice. This must be a bug.
+11-08 17:01:15.442  1489  1896 I NearbyDiscovery: FastPair: isDestroyable: Scanner is alive. [CONTEXT service_id=265 ]
+11-08 17:01:15.443  1489  1896 I NearbyDiscovery: DiscoveryService: Skip stopSelf(), fast pair controller is not destroyable. [CONTEXT service_id=265 ]
+11-08 17:01:15.496  3630  3968 W msgr.AdvancedCryptoTransportNotificationServiceLauncher: Ignore service stop. Service not started.
+11-08 17:01:37.671  1489  6455 I NearbyDiscovery: (REDACTED) loadFastPairModule: checkFeaturesAreAvailable:%d
+11-08 17:01:37.672  1489  6455 I NearbyDiscovery: loadFastPairModule: FastPair module is downloaded. [CONTEXT service_id=265 ]
+11-08 17:01:40.325  1489  6120 I gle.android.gm: Explicit concurrent copying GC freed 385224(15MB) AllocSpace objects, 28(752KB) LOS objects, 49% free, 18MB/36MB, paused 527us,305us total 536.344ms
+11-08 17:01:40.356  1489  1507 W System  : A resource failed to call close. 
+11-08 17:01:47.093 30898 30922 I Finsky  : [56] Stats for Executor: LightweightExecutor ykb@d38b867[Running, pool size = 4, active threads = 0, queued tasks = 0, completed tasks = 2351]
+11-08 17:01:47.095 30898 30922 I Finsky  : [56] Stats for Executor: BlockingExecutor ykb@1614[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 397]
+11-08 17:01:47.435 30898 30922 I Finsky  : [56] Stats for Executor: bgExecutor ykb@e3baebd[Running, pool size = 4, active threads = 0, queued tasks = 0, completed tasks = 5069]
+11-08 17:01:57.354 30898 30922 I Finsky  : [56] Stats for Executor: GrpcBackgroundExecutor ykb@f31a00a[Running, pool size = 4, active threads = 0, queued tasks = 0, completed tasks = 14]
+11-08 17:02:12.586  2651  2915 E msys    : E[N mns:TigonMNS]onResolverSuccess(417)=>Cache refresh succeeded with system DNS resolver. IP count: 1
+11-08 17:02:12.591  2651  2915 E msys    : E[N mns:TigonMNS]onResolverSuccess(417)=>Cache refresh succeeded with system DNS resolver. IP count: 1
+11-08 17:02:12.591  2651  2915 E msys    : E[N mns:TigonMNS]onResolverSuccess(417)=>Cache refresh succeeded with system DNS resolver. IP count: 1
+11-08 17:02:12.592  2651  2915 E msys    : E[N mns:TigonMNS]onResolverSuccess(417)=>Cache refresh succeeded with system DNS resolver. IP count: 1
+11-08 17:02:12.646  2651  2915 E msys    : E[N mns:TigonMNS]onResolverSuccess(417)=>Cache refresh succeeded with system DNS resolver. IP count: 1
+11-08 17:02:12.695  2651  2915 E msys    : E[N mns:TigonMNS]onResolverSuccess(417)=>Cache refresh succeeded with system DNS resolver. IP count: 1
+11-08 17:02:38.038  1489  7149 I NearbyDiscovery: (REDACTED) loadFastPairModule: checkFeaturesAreAvailable:%d
+11-08 17:02:38.039  1489  7149 I NearbyDiscovery: loadFastPairModule: FastPair module is downloaded. [CONTEXT service_id=265 ]
+11-08 17:02:59.431  2651  2831 E MQTTBypassDGWStreamGroupCallbacks.cpp: onStreamGroupError TransientError domain: MNSQUICConnection code: 1 detail: Local error: 0x40000015: 35 seconds timeout
+11-08 17:02:59.442  2651  2831 W MQTTBypassDGWStreamGroupConnection.cpp: Restarting due to reason: StreamError
+11-08 17:02:59.651  2651  3433 E msys    : E[N mns:DGWClient]onResolverSuccess(417)=>Cache refresh succeeded with system DNS resolver. IP count: 1
+11-08 17:03:40.749  1489  7149 I NearbyDiscovery: (REDACTED) loadFastPairModule: checkFeaturesAreAvailable:%d
+11-08 17:03:40.749  1489  7149 I NearbyDiscovery: loadFastPairModule: FastPair module is downloaded. [CONTEXT service_id=265 ]
+11-08 17:03:44.766  1489  1489 D BoundBrokerSvc: onBind: Intent { act=com.google.android.gms.potokens.service.START dat=chimera-action: cmp=com.google.android.gms/.chimera.GmsApiService }
+11-08 17:03:44.766  1489  1489 D BoundBrokerSvc: Loading bound service for intent: Intent { act=com.google.android.gms.potokens.service.START dat=chimera-action: cmp=com.google.android.gms/.chimera.GmsApiService }

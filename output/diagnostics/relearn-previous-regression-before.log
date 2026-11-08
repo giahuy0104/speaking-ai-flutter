@@ -1,0 +1,37 @@
+00:00 +0: loading D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/vocabulary/vocabulary_practice_screen_test.dart
+00:00 +0: Review previous waits for its announcement and cancels before the sample (variant: TargetPlatform.android)
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: ['assistant.learning.previous_item.vi']
+  Actual: [
+            'vocabulary.entry.Apple.word.en',
+            'vocabulary.entry.Apple.meaning.vi',
+            'assistant.guide.your_turn.vi'
+          ]
+   Which: at location [0] is 'vocabulary.entry.Apple.word.en' instead of
+'assistant.learning.previous_item.vi'
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/vocabulary/vocabulary_practice_screen_test.dart:1956:7)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/vocabulary/vocabulary_practice_screen_test.dart line 1956
+The test description was:
+  Review previous waits for its announcement and cancels before the sample (variant:
+  TargetPlatform.android)
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:01 +0 -1: Review previous waits for its announcement and cancels before the sample (variant: TargetPlatform.android) [E]
+  Test failed. See exception logs above.
+  The test description was: Review previous waits for its announcement and cancels before the sample (variant: TargetPlatform.android)
+  
+00:01 +0 -1: Some tests failed.
+
+Failing tests:
+  D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/vocabulary/vocabulary_practice_screen_test.dart: Review previous waits for its announcement and cancels before the sample (variant: TargetPlatform.android)

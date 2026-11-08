@@ -13,6 +13,7 @@ import 'package:ai_speaking_flutter_app/core/device/active_learning_module.dart'
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/lesson_recording_endpoint_detector.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/lesson_guide_flow.dart';
+import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/main_assistant_audio_keys.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/master_navigation_contract.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/data/vocabulary_session_store.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/data/vocabulary_store.dart';
@@ -1875,7 +1876,12 @@ void main() {
           'Quả chuối',
           'Đây là câu cuối. Bạn hãy hoàn thành câu này nhé.',
         ),
-        (ActiveLearningCommand.previousItem, 'Apple', 'Quả táo', null),
+        (
+          ActiveLearningCommand.previousItem,
+          'Apple',
+          'Quả táo',
+          'Mình nghe lại câu trước nhé',
+        ),
         (ActiveLearningCommand.replayCurrent, 'Apple', 'Quả táo', null),
       ]) {
         await registry.pauseForMainAssistant();
@@ -1891,11 +1897,15 @@ void main() {
         await tester.pumpAndSettle();
         final isLastBoundary =
             scenario.$4 == LessonGuideFlowV2.lastItemComplete.text;
+        final isPreviousTransition =
+            scenario.$4 == 'Mình nghe lại câu trước nhé';
         expect(voice.spoken, <String>[
-          if (scenario.$4 != null && !isLastBoundary) 'vi-VN:${scenario.$4}',
+          if (scenario.$4 != null && !isLastBoundary && !isPreviousTransition)
+            'vi-VN:${scenario.$4}',
         ]);
         expect(voice.audioKeys, <String>[
           if (isLastBoundary) LessonGuideFlowV2.lastItemComplete.audioKey!,
+          if (isPreviousTransition) MainAssistantAudioKeys.previousItem,
           'vocabulary.entry.${scenario.$2}.word.en',
         ]);
         expect(media.startCalls, before);
@@ -1918,6 +1928,46 @@ void main() {
         expect(media.events.last, 'record');
       }
       await registry.pauseForMainAssistant();
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpAndSettle();
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  testWidgets(
+    'Review previous waits for its announcement and cancels before the sample',
+    (tester) async {
+      final registry = ActiveLearningModuleRegistry();
+      final media = _FakeLessonMediaService();
+      final voice = _KeyedGatedCueVoice(media);
+      addTearDown(registry.dispose);
+      addTearDown(media.close);
+      await _mountReview(
+        tester,
+        registry: registry,
+        media: media,
+        voice: voice,
+      );
+      await registry.execute(ActiveLearningCommand.nextItem);
+      await tester.pumpAndSettle();
+      await registry.pauseForMainAssistant();
+      voice.audioKeys.clear();
+      final before = media.startCalls;
+      final announcement = Completer<void>();
+      voice.gates = {'vi-VN:Mình nghe lại câu trước nhé': announcement};
+
+      final command = registry.execute(ActiveLearningCommand.previousItem);
+      await tester.pumpAndSettle();
+      expect(voice.audioKeys, [MainAssistantAudioKeys.previousItem]);
+      expect(media.startCalls, before);
+
+      await registry.pauseForMainAssistant();
+      announcement.complete();
+      await tester.pumpAndSettle();
+      expect((await command).wasHandled, isTrue);
+      expect(voice.audioKeys, [MainAssistantAudioKeys.previousItem]);
+      expect(media.startCalls, before);
+      expect(media.recording, isFalse);
       await tester.pumpWidget(const SizedBox());
       await tester.pumpAndSettle();
     },

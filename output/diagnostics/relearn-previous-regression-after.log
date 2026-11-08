@@ -1,0 +1,46 @@
+00:00 +0: loading D:/Code/HuaMei/App_noi/flutter/23_23th9/speaking-ai-flutter/test/features/vocabulary/vocabulary_practice_screen_test.dart
+00:00 +0: Today starts its intro without another frame after loading
+00:00 +1: Review resumes audio without another frame after loading
+00:01 +2: Review starts after loading behind a locked mobile screen (variant: TargetPlatform.android)
+00:01 +3: Review starts after loading behind a locked mobile screen (variant: TargetPlatform.iOS)
+00:01 +4: MAIN Stars releases Review ownership before the pop animation (variant: TargetPlatform.android)
+00:01 +5: MAIN Stars releases Review ownership before the pop animation (variant: TargetPlatform.iOS)
+00:02 +6: Today waits for its checkpoint before a direct Review can replace it (variant: TargetPlatform.android)
+00:02 +7: locked Android Review releases its route before unlock (variant: TargetPlatform.android)
+00:02 +8: Review follows the next entry after manual scrolling
+00:02 +9: iOS Review cancels pending start without touching a newer turn (variant: TargetPlatform.iOS)
+00:02 +10: iOS Review cancels pending stop without touching a newer turn (variant: TargetPlatform.iOS)
+00:02 +11: iOS Review stale start failure preserves the resumed capture endpoint (variant: TargetPlatform.iOS)
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":false,"levelSamples":0,"signalMs":null,"peakDbfs":-160.0,"lastDbfs":-160.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-53.0,"stopThresholdDbfs":-56.0}
+00:02 +12: iOS Review consumes Apple Speech completion during pending native start (variant: TargetPlatform.iOS)
+00:02 +13: iOS Review selects lesson output before cue and hands off after native start (variant: TargetPlatform.iOS)
+00:02 +14: unfinished Today exits with screen Back even if audio stop hangs
+00:03 +15: unfinished Today exits with system Back even if audio stop hangs
+00:03 +16: Today stops after five listen-only items and MAIN timeout never replays
+00:03 +17: MAIN interruption at Today completion does not open a choice microphone
+00:03 +18: Review shows one combined listen-and-repeat action without a card speaker
+00:03 +19: giving up on a word plays the authored clip, not synthesised speech
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":true,"levelSamples":5,"signalMs":200,"peakDbfs":-20.0,"lastDbfs":-60.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-46.0,"stopThresholdDbfs":-50.0}
+00:03 +20: Review retries with English only and stops early after speech silence
+{"event":"lesson_take_endpoint","reason":"silence","speechDetected":true,"levelHeardSpeech":true,"levelSamples":5,"signalMs":200,"peakDbfs":-20.0,"lastDbfs":-60.0,"noiseFloorDbfs":-60.0,"startThresholdDbfs":-46.0,"stopThresholdDbfs":-50.0}
+00:03 +21: Review recording action exposes idle preparing recording and processing states once (variant: TargetPlatform.android)
+00:03 +22: Review completion sends Other content when its button is tapped (variant: TargetPlatform.android)
+00:04 +23: Review block waits after a silent MAIN resume and continues only on choice (variant: TargetPlatform.android)
+00:04 +24: Review block waits after a silent MAIN resume and continues only on choice (variant: TargetPlatform.iOS)
+00:04 +25: locked mobile Review starts the next group and speaks its resume line (variant: TargetPlatform.android)
+00:04 +26: locked mobile Review starts the next group and speaks its resume line (variant: TargetPlatform.iOS)
+00:04 +27: Review localizes tap recording labels in Chinese
+00:04 +28: correct Review answer shows one fireworks overlay across item advance then hides
+00:04 +29: Review LessonAttemptOutcome.retry never shows praise fireworks
+00:05 +30: Review LessonAttemptOutcome.unclear never shows praise fireworks
+00:05 +31: Review LessonAttemptOutcome.noResponse never shows praise fireworks
+00:05 +32: Back disposes active Review fireworks without a late setState
+00:05 +33: completed block lets MAIN route directly to Stars after interruption
+00:05 +34: Review pauses only after two invalid microphone turns
+00:05 +35: system Back preserves an unfinished Today checkpoint
+00:05 +36: Review MAIN controls always play EN then VI before cue and mic (variant: TargetPlatform.android)
+00:05 +37: Review previous waits for its announcement and cancels before the sample (variant: TargetPlatform.android)
+00:05 +38: Android Review does not record after cue failure (variant: TargetPlatform.android)
+00:06 +39: Android Review does not record after cue cancellation (variant: TargetPlatform.android)
+00:06 +40: Review next keeps skipped items pending after completing the block
+00:06 +41: All tests passed!
