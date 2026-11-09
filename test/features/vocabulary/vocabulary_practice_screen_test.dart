@@ -1974,6 +1974,63 @@ void main() {
     variant: TargetPlatformVariant.only(TargetPlatform.android),
   );
 
+  for (final command in <ActiveLearningCommand>[
+    ActiveLearningCommand.previousItem,
+    ActiveLearningCommand.nextItem,
+  ]) {
+    for (final routeInvalidated in <bool>[false, true]) {
+      testWidgets(
+        'Review MAIN cancels ${command.name} during route preparation invalidated=$routeInvalidated',
+        (tester) async {
+          final registry = ActiveLearningModuleRegistry();
+          final media = _NavigationRouteGateMedia();
+          final voice = _SelectedNavigationVoice(media);
+          addTearDown(registry.dispose);
+          addTearDown(media.close);
+          await _mountReview(
+            tester,
+            registry: registry,
+            media: media,
+            voice: voice,
+          );
+          if (command == ActiveLearningCommand.previousItem) {
+            await registry.execute(ActiveLearningCommand.nextItem);
+            await tester.pumpAndSettle();
+          }
+          await registry.pauseForMainAssistant();
+          voice.spoken.clear();
+          voice.audioKeys.clear();
+          final before = media.startCalls;
+          final route = Completer<void>();
+          media.route = route;
+          final operation = registry.execute(command);
+          await tester.pumpAndSettle();
+          expect(voice.audioKeys, isEmpty);
+          expect(voice.spoken, isEmpty);
+
+          await registry.pauseForMainAssistant();
+          media.route = null;
+          if (routeInvalidated) {
+            route.completeError(
+              const LessonMediaException('Lượt phát âm thanh đã dừng.'),
+            );
+          } else {
+            route.complete();
+          }
+          await tester.pumpAndSettle();
+          expect((await operation).wasHandled, isTrue);
+          expect(voice.audioKeys, isEmpty);
+          expect(voice.spoken, isEmpty);
+          expect(media.startCalls, before);
+          expect(media.recording, isFalse);
+          await tester.pumpWidget(const SizedBox());
+          await tester.pumpAndSettle();
+        },
+        variant: TargetPlatformVariant.only(TargetPlatform.android),
+      );
+    }
+  }
+
   for (final cancel in <bool>[false, true]) {
     testWidgets(
       'Android Review does not record after cue ${cancel ? "cancellation" : "failure"}',
@@ -2516,4 +2573,25 @@ class _KeyedGatedCueVoice extends _GatedCueVoice
     String text, {
     String locale = 'vi-VN',
   }) => speakAndWaitWithAudioKey(audioKey, text, locale: locale);
+}
+
+class _NavigationRouteGateMedia extends _FakeLessonMediaService {
+  Completer<void>? route;
+
+  @override
+  Future<void> prepareSelectedLessonOutput() async {
+    await super.prepareSelectedLessonOutput();
+    await route?.future;
+  }
+}
+
+class _SelectedNavigationVoice extends _KeyedGatedCueVoice
+    implements SelectedMediaOutputVoicePromptService {
+  _SelectedNavigationVoice(super.media);
+
+  @override
+  Future<void> speakAndWaitOnSelectedMediaOutput(
+    String text, {
+    String locale = 'vi-VN',
+  }) => speakAndWait(text, locale: locale);
 }

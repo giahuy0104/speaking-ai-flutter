@@ -997,6 +997,7 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     });
     _followCurrentReviewEntry();
     final entryId = _entry.id;
+    bool canContinue() => _isCurrent(generation, entryId);
     try {
       _session = _session.copyWith(currentIndex: _index);
       await widget.sessionStore.saveActive(_session);
@@ -1008,13 +1009,20 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
               audioCode: 'CORE_FIRST_PREVIOUS',
               text: 'Đây là câu đầu tiên. Mình nghe lại nhé.',
             ),
+            canContinue: canContinue,
           );
         } else {
-          await _playLessonPrompt(LessonGuideFlowV2.lastItemComplete);
+          await _playLessonPrompt(
+            LessonGuideFlowV2.lastItemComplete,
+            canContinue: canContinue,
+          );
         }
         if (!_isCurrent(generation, entryId)) return;
       } else if (offset > 0) {
-        await _speakAndWait(MasterNavigationContract.nextItemPrompt);
+        await _speakAndWait(
+          MasterNavigationContract.nextItemPrompt,
+          canContinue: canContinue,
+        );
         if (!_isCurrent(generation, entryId)) return;
       } else if (offset < 0) {
         await _playLessonPrompt(
@@ -1023,6 +1031,7 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
             text: 'Mình nghe lại câu trước nhé',
             audioKey: MainAssistantAudioKeys.previousItem,
           ),
+          canContinue: canContinue,
         );
         if (!_isCurrent(generation, entryId)) return;
       }
@@ -1933,23 +1942,27 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     });
   }
 
+  bool _canPlayPrompt(bool Function()? canContinue) =>
+      mounted && !_exiting && (canContinue?.call() ?? true);
+
   Future<void> _speakAndWait(
     String text, {
     String locale = 'vi-VN',
     bool allowFixedPrompt = true,
+    bool Function()? canContinue,
   }) async {
-    if (_exiting || !mounted) return;
+    if (!_canPlayPrompt(canContinue)) return;
     if (allowFixedPrompt &&
         locale.toLowerCase().startsWith('vi') &&
         await widget.fixedPromptAudioService?.playPromptIfAvailable(text) ==
             true) {
       return;
     }
-    if (_exiting || !mounted) return;
+    if (!_canPlayPrompt(canContinue)) return;
     final promptService = _voicePromptService;
     if (!kIsWeb && promptService is SelectedMediaOutputVoicePromptService) {
       await widget.mediaService.prepareSelectedLessonOutput();
-      if (_exiting || !mounted) return;
+      if (!_canPlayPrompt(canContinue)) return;
       await (promptService as SelectedMediaOutputVoicePromptService)
           .speakAndWaitOnSelectedMediaOutput(text, locale: locale);
       return;
@@ -1957,7 +1970,11 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
     await promptService.speakAndWait(text, locale: locale);
   }
 
-  Future<void> _playLessonPrompt(LessonGuidePrompt prompt) async {
+  Future<void> _playLessonPrompt(
+    LessonGuidePrompt prompt, {
+    bool Function()? canContinue,
+  }) async {
+    if (!_canPlayPrompt(canContinue)) return;
     final audioKey = prompt.audioKey;
     final voicePrompt = _voicePromptService;
     if (audioKey != null) {
@@ -1965,7 +1982,7 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
         if (!kIsWeb &&
             voicePrompt is KeyedSelectedMediaOutputVoicePromptService) {
           await widget.mediaService.prepareSelectedLessonOutput();
-          if (_exiting || !mounted) return;
+          if (!_canPlayPrompt(canContinue)) return;
           await (voicePrompt as KeyedSelectedMediaOutputVoicePromptService)
               .speakAndWaitOnSelectedMediaOutputWithAudioKey(
                 audioKey,
@@ -1984,7 +2001,7 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
           return;
         }
       } catch (_) {
-        if (_exiting || !mounted) return;
+        if (!_canPlayPrompt(canContinue)) return;
         // Keep the existing authored-code and TTS fallbacks below.
       }
     }
@@ -1998,6 +2015,7 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
       prompt.text,
       locale: prompt.locale,
       allowFixedPrompt: false,
+      canContinue: canContinue,
     );
   }
 
