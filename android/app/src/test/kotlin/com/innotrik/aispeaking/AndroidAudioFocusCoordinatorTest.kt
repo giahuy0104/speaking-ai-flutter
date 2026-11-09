@@ -29,6 +29,45 @@ class AndroidAudioFocusCoordinatorTest {
     }
 
     @Test
+    @Config(sdk = [31])
+    fun providerCaptureYieldsMainFocusAndCueDoesNotStealItBack() {
+        var interruptions = 0
+        focus.onInterrupted = { interruptions++ }
+        assertTrue(focus.acquire("main"))
+        val original = shadowOf(manager).lastAudioFocusRequest
+        focus.beginProviderCapture("capture")
+        assertSame(original.audioFocusRequest, shadowOf(manager).lastAbandonedAudioFocusRequest)
+        original.listener.onAudioFocusChange(AudioManager.AUDIOFOCUS_LOSS)
+        assertEquals(0, interruptions)
+        assertTrue(focus.acquire("cue"))
+        assertSame(original, shadowOf(manager).lastAudioFocusRequest)
+        focus.release("cue")
+        assertTrue(focus.isHeld)
+        focus.endProviderCapture("capture")
+        assertTrue(focus.acquire("response"))
+        val response = shadowOf(manager).lastAudioFocusRequest
+        assertNotSame(original, response)
+        response.listener.onAudioFocusChange(AudioManager.AUDIOFOCUS_LOSS)
+        assertEquals(1, interruptions)
+        assertFalse(focus.isHeld)
+    }
+
+    @Test
+    fun staleProviderCompletionCannotEndReplacementCapture() {
+        focus.acquire("main")
+        focus.beginProviderCapture("old")
+        focus.beginProviderCapture("new")
+        focus.endProviderCapture("old")
+        val request = shadowOf(manager).lastAudioFocusRequest
+        focus.acquire("cue")
+        assertSame(request, shadowOf(manager).lastAudioFocusRequest)
+        focus.releaseAll()
+        focus.endProviderCapture("new")
+        focus.acquire("replacement")
+        assertNotSame(request, shadowOf(manager).lastAudioFocusRequest)
+    }
+
+    @Test
     fun mainRetainsFocusAcrossPromptCaptureAndResponseGaps() {
         assertTrue(focus.acquire("main:1"))
         val request = shadowOf(manager).lastAudioFocusRequest

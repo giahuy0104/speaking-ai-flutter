@@ -95,10 +95,23 @@ class AndroidSpeechMicrophoneSourceTest {
     }
 
     @Test @Config(sdk = [32]) fun olderAndroidRetainsProviderCapture() {
+        focus.acquire("main")
+        val request = shadowOf(manager).lastAudioFocusRequest
+        var interruptions = 0
+        focus.onInterrupted = { interruptions++ }
         assertNull(start().error)
         val intent = shadowOf(ShadowSpeechRecognizer.getLatestSpeechRecognizer()).lastRecognizerIntent
         assertFalse(intent.hasExtra(RecognizerIntent.EXTRA_AUDIO_SOURCE))
         assertEquals(-1, Capture.lastSource)
+        assertSame(request.audioFocusRequest, shadowOf(manager).lastAbandonedAudioFocusRequest)
+        request.listener.onAudioFocusChange(AudioManager.AUDIOFOCUS_LOSS)
+        assertEquals(0, interruptions)
+        bridge.onMethodCall(MethodCall("speech.stop", null), Reply())
+        focus.acquire("cue")
+        assertSame(request, shadowOf(manager).lastAudioFocusRequest)
+        bridge.onResults(android.os.Bundle())
+        focus.acquire("response")
+        assertNotSame(request, shadowOf(manager).lastAudioFocusRequest)
     }
 
     @Test fun queuedSourceFailureAfterIntentionalStopDoesNotCancelPendingFinalResult() {
@@ -111,6 +124,15 @@ class AndroidSpeechMicrophoneSourceTest {
         shadowOf(Looper.getMainLooper()).idle()
         assertEquals(0, interruptions)
         assertTrue(focus.isHeld)
+    }
+
+    @Test @Config(sdk = [31]) fun cancelledProviderCaptureAllowsNextPlaybackToAcquireFocus() {
+        focus.acquire("main")
+        val request = shadowOf(manager).lastAudioFocusRequest
+        assertNull(start().error)
+        bridge.onMethodCall(MethodCall("speech.cancel", null), Reply())
+        assertTrue(focus.acquire("response"))
+        assertNotSame(request, shadowOf(manager).lastAudioFocusRequest)
     }
 
     @Test fun queuedOldSourceFailureCannotCancelReplacementCapture() {

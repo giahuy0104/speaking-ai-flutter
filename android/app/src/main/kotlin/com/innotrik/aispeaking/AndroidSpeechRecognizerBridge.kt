@@ -51,6 +51,7 @@ class AndroidSpeechRecognizerBridge(
     private var events: EventChannel.EventSink? = null
     private var listening = false
     private var captureFocusOwner: String? = null
+    private var providerCaptureOwner: String? = null
     private var pendingPermissionResult: MethodChannel.Result? = null
     private var pendingPermissionCommandMode = false
     private var pendingPermissionPreferOnDevice = false
@@ -426,8 +427,12 @@ class AndroidSpeechRecognizerBridge(
         closeInjectedAudio()
         resetCapturedAudio()
 
-        val owner = audioFocus?.newOwner("capture")
-        if (owner != null && !audioFocus.acquire(owner)) {
+        // MAIN also retains focus between prompts. Hand the entire OS request to
+        // the provider, keeping logical owners until the turn finishes.
+        val providerOwnsCapture = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
+        val focus = if (providerOwnsCapture) null else audioFocus
+        val owner = focus?.newOwner("capture")
+        if (focus != null && owner != null && !focus.acquire(owner)) {
             result.error("AUDIO_FOCUS_DENIED", "Chưa thể dùng micro. Hãy dừng ứng dụng đang phát rồi thử lại.", null)
             return
         }
@@ -440,6 +445,12 @@ class AndroidSpeechRecognizerBridge(
                 preferOnDevice = preferOnDevice || requireOnDevice,
             )
         try {
+            if (providerOwnsCapture && audioFocus != null) {
+                val providerOwner = audioFocus.newOwner("provider-capture")
+                providerCaptureOwner = providerOwner
+                audioFocus.beginProviderCapture(providerOwner)
+                AudioDiagnostics.event("speech.provider_focus_handoff", mapOf("generation" to recognitionGeneration))
+            }
             attachAppMicrophone(intent)
             listening = true
             activeRequireOnDevice = requireOnDevice
@@ -1385,6 +1396,10 @@ class AndroidSpeechRecognizerBridge(
     }
 
     private fun closeInjectedAudio() {
+        if (!listening) {
+            providerCaptureOwner?.let { audioFocus?.endProviderCapture(it) }
+            providerCaptureOwner = null
+        }
         captureFocusOwner?.let { audioFocus?.release(it) }
         captureFocusOwner = null
         scheduleNotificationStreamRestore()
@@ -1505,6 +1520,7 @@ class AndroidSpeechRecognizerBridge(
             "Ứng dụng đã dừng trước khi nhận diện xong bản ghi âm.",
         )
         recognizer?.cancel()
+        listening = false
         closeInjectedAudio()
         mainHandler.removeCallbacks(restoreNotificationStream)
         restoreNotificationStreamNow()

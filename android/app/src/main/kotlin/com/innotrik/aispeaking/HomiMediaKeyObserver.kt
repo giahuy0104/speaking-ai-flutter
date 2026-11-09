@@ -95,7 +95,9 @@ internal class HomiMediaKeyObserver(
             "repeatCount" to key.repeatCount,
             "holdDurationMs" to holdMs,
             "nativeLongPress" to key.isLongPress,
-            "externalInputDevice" to (key.device?.isExternal == true),
+            "externalInputDevice" to (
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && key.device?.isExternal == true
+            ),
             "receiver" to receiver,
             "duplicate" to duplicate,
             "rawPayload" to "keyCode=${key.keyCode} action=${key.action} repeat=${key.repeatCount} " +

@@ -7,7 +7,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 
-/** One process-wide focus request, retained until every unique operation releases it. */
+/** Shared focus leases; provider-owned speech capture temporarily owns the OS request. */
 class AndroidAudioFocusCoordinator(private val audioManager: AudioManager) {
     private val mainHandler = Handler(Looper.getMainLooper())
     private val owners = mutableSetOf<String>()
@@ -15,6 +15,7 @@ class AndroidAudioFocusCoordinator(private val audioManager: AudioManager) {
     private var listener: AudioManager.OnAudioFocusChangeListener? = null
     private var generation = 0L
     private var ownerSequence = 0L
+    private var providerCaptureOwner: String? = null
     var onInterrupted: (String) -> Unit = {}
 
     val isHeld: Boolean get() = owners.isNotEmpty()
@@ -23,7 +24,7 @@ class AndroidAudioFocusCoordinator(private val audioManager: AudioManager) {
 
     fun acquire(ownerId: String, transientExclusive: Boolean = true): Boolean {
         if (ownerId.isBlank()) return false
-        if (owners.isNotEmpty()) {
+        if (providerCaptureOwner != null || listener != null) {
             owners.add(ownerId)
             return true
         }
@@ -70,9 +71,29 @@ class AndroidAudioFocusCoordinator(private val audioManager: AudioManager) {
         onInterrupted(reason)
     }
 
+    /** Older recognition services capture audio and request focus themselves. */
+    fun beginProviderCapture(ownerId: String) {
+        abandonRequest()
+        providerCaptureOwner?.let { owners.remove(it) }
+        providerCaptureOwner = ownerId
+        owners.add(ownerId)
+    }
+
+    fun endProviderCapture(ownerId: String) {
+        if (providerCaptureOwner != ownerId) return
+        providerCaptureOwner = null
+        owners.remove(ownerId)
+        // Reacquire on the next playback, after the provider has released focus.
+    }
+
     fun releaseAll() {
-        generation += 1
         owners.clear()
+        providerCaptureOwner = null
+        abandonRequest()
+    }
+
+    private fun abandonRequest() {
+        generation += 1
         val oldRequest = request
         val oldListener = listener
         request = null

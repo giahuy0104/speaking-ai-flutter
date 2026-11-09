@@ -70,5 +70,7 @@ flutter_*.log
 # Local reports, extracted test videos, and temporary deployment bundles.
 # Keep these on the workstation; they may contain user recordings or logs.
 /artifacts/reports/
+/output/diagnostics/*.log
+/output/diagnostics/*.bin
 /tmp/
 ~$*.docx
