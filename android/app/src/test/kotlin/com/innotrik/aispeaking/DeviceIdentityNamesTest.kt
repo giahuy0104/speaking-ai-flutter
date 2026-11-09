@@ -8,6 +8,8 @@ import android.bluetooth.le.ScanResult
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.AudioDeviceInfo
+import android.media.AudioManager
 import android.os.HandlerThread
 import android.os.Looper
 import io.flutter.plugin.common.BinaryMessenger
@@ -25,6 +27,9 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.Implementation
+import org.robolectric.annotation.Implements
+import org.robolectric.shadows.AudioDeviceInfoBuilder
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -85,6 +90,30 @@ class DeviceIdentityNamesTest {
         val device = device("AA:BB:CC:DD:EE:01")
         shadowOf(device).setName("HM-D001")
         assertEquals("HM-D001", name(device))
+    }
+
+    @Test
+    @Config(sdk = [27, 28], shadows = [NamedScoDevice::class])
+    fun legacyScoEndpointNameIsAvailableAcrossAddressApiBoundary() {
+        val selected = device("AA:BB:CC:DD:EE:01")
+        shadowOf(selected).setName("HM-D001")
+        HfpAudioBridge::class.java.getDeclaredField("selectedDevice")
+            .apply { isAccessible = true }.set(hfp, selected)
+        val sco = AudioDeviceInfoBuilder.newBuilder()
+            .setType(AudioDeviceInfo.TYPE_BLUETOOTH_SCO).build()
+        val manager = context.getSystemService(AudioManager::class.java)
+        shadowOf(manager).setInputDevices(listOf(sco))
+        val endpointName = HfpAudioBridge::class.java.getDeclaredMethod(
+            "activeScoDeviceName", Int::class.javaPrimitiveType, AudioDeviceInfo::class.java,
+        ).apply { isAccessible = true }
+            .invoke(hfp, AudioManager.GET_DEVICES_INPUTS, null)
+        assertEquals("HM-D001", endpointName)
+    }
+
+    @Implements(AudioDeviceInfo::class)
+    class NamedScoDevice {
+        @Implementation
+        fun getProductName(): CharSequence = "HM-D001"
     }
 
     @Test

@@ -275,6 +275,7 @@ class HfpAudioBridge(
     }
 
     private fun pollActiveRouteRecovery(generation: Int) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
         val recovery = activeRouteRecovery ?: return
         if (
             disposed ||
@@ -816,6 +817,7 @@ class HfpAudioBridge(
         generation: Int,
         attemptsRemaining: Int,
     ) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
         if (
             pendingAudioRouteResult == null ||
             pendingAudioRouteGeneration != generation ||
@@ -1273,7 +1275,8 @@ class HfpAudioBridge(
             it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
         }
         val matching = scoDevices.firstOrNull {
-            addressesMatch(it.address, selectedAddress)
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
+                addressesMatch(it.address, selectedAddress)
         } ?: scoDevices.singleOrNull {
             selectedName.isNotEmpty() &&
                 normalizedDeviceName(it.productName?.toString()) == selectedName

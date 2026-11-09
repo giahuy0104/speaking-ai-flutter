@@ -565,7 +565,9 @@ class VoicePromptBridge(
             val player = MediaPlayer()
             val failure = runCatching {
                 player.setAudioAttributes(attributes)
-                preferredDevice?.let { player.setPreferredDevice(it) }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    preferredDevice?.let { player.setPreferredDevice(it) }
+                }
                 player.setDataSource(audioFile.absolutePath)
                 player.setVolume(1.0f, 1.0f)
             }.exceptionOrNull()
@@ -847,13 +849,16 @@ class VoicePromptBridge(
                 readyCueCompletion?.let(mainHandler::removeCallbacks)
                 val drainGuard = Runnable {
                     if (readyCuePlayer === player) {
+                        val routedDevice = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                            runCatching { player.routedDevice }.getOrNull()
+                        } else null
                         AudioDiagnostics.event(
                             "cue.native.drain_guard",
                             mapOf(
                                 "cueId" to cueId,
                                 "isPlaying" to runCatching { player.isPlaying }.getOrNull(),
-                                "deviceType" to runCatching { player.routedDevice?.type }.getOrNull(),
-                                "deviceId" to runCatching { player.routedDevice?.id }.getOrNull(),
+                                "deviceType" to routedDevice?.type,
+                                "deviceId" to routedDevice?.id,
                             ),
                         )
                         completeReadyCue()
@@ -864,7 +869,10 @@ class VoicePromptBridge(
                 mainHandler.postDelayed({
                     if (readyCuePlayer === player) {
                         runCatching {
-                            AudioDiagnostics.event("cue.native.routed", mapOf("cueId" to cueId, "deviceType" to player.routedDevice?.type, "deviceId" to player.routedDevice?.id))
+                            val routedDevice = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                                player.routedDevice
+                            } else null
+                            AudioDiagnostics.event("cue.native.routed", mapOf("cueId" to cueId, "deviceType" to routedDevice?.type, "deviceId" to routedDevice?.id))
                         }
                     }
                 }, 40L)

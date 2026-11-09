@@ -50,6 +50,8 @@ internal class AppMicrophoneAudioSource(
                     AudioFormat.ENCODING_PCM_16BIT,
                     maxOf(minBuffer, frameBytes * 4),
                 )
+            } catch (_: SecurityException) {
+                return null
             } catch (_: Exception) {
                 return null
             }
