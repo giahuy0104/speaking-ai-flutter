@@ -271,41 +271,92 @@ void main() {
     },
   );
 
-  test('native interruption and resume become typed directives', () async {
-    final session = _FakeBackgroundSession();
-    addTearDown(session.dispose);
-    final directives = <BackgroundLearningDirective>[];
-    final coordinator = BackgroundLearningCoordinator(
-      session: session,
-      initialLifecycleState: AppLifecycleState.resumed,
-      onDirective: directives.add,
-      isWeb: false,
-      targetPlatform: TargetPlatform.android,
-    );
-    addTearDown(coordinator.dispose);
-    await coordinator.initialize(voiceAccessEnabled: true);
+  for (final platform in <TargetPlatform>[
+    TargetPlatform.android,
+    TargetPlatform.iOS,
+  ]) {
+    test(
+      '${platform.name} interruption pauses every owner and resume only restores eligibility',
+      () async {
+        final session = _FakeBackgroundSession();
+        addTearDown(session.dispose);
+        final directives = <BackgroundLearningDirective>[];
+        final coordinator = BackgroundLearningCoordinator(
+          session: session,
+          initialLifecycleState: AppLifecycleState.resumed,
+          onDirective: directives.add,
+          isWeb: false,
+          targetPlatform: platform,
+        );
+        addTearDown(coordinator.dispose);
+        await coordinator.initialize(voiceAccessEnabled: true);
 
-    session.emit(
-      const BackgroundLearningEvent(
-        type: BackgroundLearningEventType.interrupted,
-        reason: 'audio_focus_loss',
-      ),
-    );
-    await Future<void>.delayed(Duration.zero);
-    session.emit(
-      const BackgroundLearningEvent(
-        type: BackgroundLearningEventType.resumable,
-        reason: 'audio_session_interruption_ended',
-      ),
-    );
-    await Future<void>.delayed(Duration.zero);
+        session.emit(
+          const BackgroundLearningEvent(
+            type: BackgroundLearningEventType.interrupted,
+            reason: 'audio_focus_loss',
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
+        expect(coordinator.isActive, isTrue);
+        expect(coordinator.automaticVoiceNavigationAllowed, isFalse);
+        expect(
+          coordinator.canKeepMainListeningInBackground(
+            voiceAccessEnabled: true,
+            explicitMainSessionActive: true,
+          ),
+          isTrue,
+        );
+        session.emit(
+          const BackgroundLearningEvent(
+            type: BackgroundLearningEventType.resumable,
+            reason: 'audio_session_interruption_ended',
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
 
-    expect(directives, <BackgroundLearningDirective>[
-      BackgroundLearningDirective.keepVoiceNavigation,
-      BackgroundLearningDirective.pauseVoiceNavigation,
-      BackgroundLearningDirective.keepVoiceNavigation,
-    ]);
-  });
+        expect(directives, <BackgroundLearningDirective>[
+          BackgroundLearningDirective.keepVoiceNavigation,
+          BackgroundLearningDirective.pauseAllAudio,
+        ]);
+        expect(coordinator.isActive, isTrue);
+        expect(
+          coordinator.canKeepMainListeningInBackground(
+            voiceAccessEnabled: true,
+            explicitMainSessionActive: true,
+          ),
+          isTrue,
+        );
+      },
+    );
+
+    test('${platform.name} native stop pauses every owner', () async {
+      final session = _FakeBackgroundSession();
+      addTearDown(session.dispose);
+      final directives = <BackgroundLearningDirective>[];
+      final coordinator = BackgroundLearningCoordinator(
+        session: session,
+        initialLifecycleState: AppLifecycleState.resumed,
+        onDirective: directives.add,
+        isWeb: false,
+        targetPlatform: platform,
+      );
+      addTearDown(coordinator.dispose);
+      await coordinator.initialize(voiceAccessEnabled: true);
+      session.emit(
+        const BackgroundLearningEvent(
+          type: BackgroundLearningEventType.stopped,
+          reason: 'notification_stop',
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(coordinator.isActive, isFalse);
+      expect(directives, <BackgroundLearningDirective>[
+        BackgroundLearningDirective.keepVoiceNavigation,
+        BackgroundLearningDirective.pauseAllAudio,
+      ]);
+    });
+  }
 
   test(
     'visible resume restarts a session that cannot open mic in background',

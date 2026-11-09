@@ -191,7 +191,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
     switch call.method {
     case "initialize":
       do {
-        try configureSession(activate: false)
+        try audioSessionCoordinator.initializeHfpSession(caller: "HfpAudioBridge.initialize")
         refreshStatus()
         result(snapshot())
       } catch {
@@ -249,7 +249,24 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
     return (available + current).filter { seen.insert($0.uid).inserted }
   }
 
+  private func prepareSettingsRouteChange(
+    _ result: FlutterResult,
+    code: String,
+    caller: String
+  ) -> Bool {
+    do {
+      try audioSessionCoordinator.prepareForHfpSettingsChange(caller: caller)
+      return true
+    } catch {
+      // Rejected Settings work must not invalidate an active verified device.
+      audioSessionCoordinator.releaseUnownedAudioSession(caller: "\(caller).rejected")
+      result(FlutterError(code: code, message: error.localizedDescription, details: nil))
+      return false
+    }
+  }
+
   private func findDevices(_ result: @escaping FlutterResult) {
+    guard prepareSettingsRouteChange(result, code: "HFP_LIST_FAILED", caller: "HfpAudioBridge.findDevices") else { return }
     let generation = beginConnectionAttempt()
     let finish = connectionAttemptResult(generation: generation, result: result)
     suppressUnclaimedRouteSelection = true
@@ -289,6 +306,9 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       )
       return
     }
+    guard prepareSettingsRouteChange(
+      result, code: "HFP_LIST_FAILED", caller: "HfpAudioBridge.findDevices.pending"
+    ) else { return }
     let inputs = bluetoothInputs()
     if !inputs.isEmpty || attemptsRemaining <= 0 {
       let activeInput = activeTwoWayHfpInput()
@@ -365,6 +385,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       result(FlutterError(code: "INVALID_DEVICE", message: "Thiếu mã mic HFP.", details: nil))
       return
     }
+    guard prepareSettingsRouteChange(result, code: "HFP_CONNECT_FAILED", caller: "HfpAudioBridge.connect") else { return }
     let activationGeneration = beginConnectionAttempt()
     let finish = connectionAttemptResult(generation: activationGeneration, result: result)
     suppressUnclaimedRouteSelection = false
@@ -447,6 +468,7 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
   }
 
   private func disconnect(_ result: @escaping FlutterResult) {
+    guard prepareSettingsRouteChange(result, code: "HFP_DISCONNECT_FAILED", caller: "HfpAudioBridge.disconnect") else { return }
     do {
       routeActivationGeneration += 1
       selectionBeforeConnectionAttempt = nil
@@ -481,10 +503,16 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
         "generation": activationGeneration,
       ]
     )
-    let acquiredLeaseForThisAttempt = acquireHfpSessionLease(
-      caller: "HfpAudioBridge.startAudioRoute",
-      generation: activationGeneration
-    )
+    let acquiredLeaseForThisAttempt: Bool
+    do {
+      acquiredLeaseForThisAttempt = try acquireHfpSessionLease(
+        caller: "HfpAudioBridge.startAudioRoute",
+        generation: activationGeneration
+      )
+    } catch {
+      fail(result, code: "HFP_ROUTE_UNAVAILABLE", error: error)
+      return
+    }
     // HM-D001 can already own a confirmed two-way HFP route after Settings or a
     // previous MAIN turn. Re-applying the category, active flag and preferred
     // input here makes iOS renegotiate the Classic Bluetooth profile. On the
@@ -566,6 +594,9 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       selectedName: selectedInputName
     )
     if selectedInputId == nil || selectedIdentity != nil {
+      if !recording && !prepareSettingsRouteChange(
+        result, code: "HFP_ROUTE_UNAVAILABLE", caller: "HfpAudioBridge.selectSettingsInput"
+      ) { return }
       do {
         if let selectedIdentity,
           let selected = inputs.first(where: { $0.uid == selectedIdentity.uid })
@@ -659,6 +690,9 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       )
       return
     }
+    if !recording && !prepareSettingsRouteChange(
+      result, code: "HFP_ROUTE_UNAVAILABLE", caller: "HfpAudioBridge.connect.pending"
+    ) { return }
     if let hfpInput = selectedOrUnclaimedActiveTwoWayHfpInput() {
       selectedInputId = hfpInput.uid
       selectedInputName = hfpInput.portName
@@ -821,6 +855,9 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
       )
       return
     }
+    guard prepareSettingsRouteChange(
+      result, code: "HFP_ROUTE_UNAVAILABLE", caller: "HfpAudioBridge.connectVerified.pending"
+    ) else { return }
     let step = IOSHfpIdleRouteReleasePolicy.nextStep(
       hasTwoWayHfpRoute: activeTwoWayHfpInput() != nil,
       attemptsRemaining: attemptsRemaining
@@ -893,12 +930,17 @@ final class HfpAudioBridge: NSObject, FlutterStreamHandler {
   }
 
   @discardableResult
-  private func acquireHfpSessionLease(caller: String, generation: Int) -> Bool {
+  private func acquireHfpSessionLease(caller: String, generation: Int) throws -> Bool {
     let needsCoordinatorOwner = hfpRouteLease.acquireIfNeeded(
       generation: generation
     )
     if needsCoordinatorOwner {
-      audioSessionCoordinator.acquireHfpRoute(caller: caller)
+      do {
+        try audioSessionCoordinator.acquireHfpRoute(caller: caller)
+      } catch {
+        _ = hfpRouteLease.releaseIfHeld(generation: generation)
+        throw error
+      }
     }
     return hfpRouteLease.activeGeneration == generation
   }

@@ -5,6 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/audio/main_assistant_audio_state.dart';
+import '../../../core/audio/streaming_speech_input.dart';
 import '../../../core/device/active_learning_module.dart';
 import '../application/main_button_activation_policy.dart';
 import '../application/main_speaking_session_controller.dart';
@@ -62,6 +63,18 @@ class MainVoiceAssistantButton extends StatelessWidget {
                 canInterruptCollection ||
                 (!audioState.isBusy && !audioState.isPlaybackPlaying));
         final microphoneError = voiceController.lastErrorMessage;
+        final error =
+            !kIsWeb &&
+                defaultTargetPlatform == TargetPlatform.iOS &&
+                microphoneError != null
+            ? voiceController.lastError
+            : null;
+        final showInterruptionGuidance =
+            !kIsWeb &&
+            defaultTargetPlatform == TargetPlatform.iOS &&
+            error is StreamingSpeechInputException &&
+            error.code == 'AUDIO_SESSION_INTERRUPTED' &&
+            microphoneError != null;
         final commandError = voiceController.hasUnhandledLearningCommandError;
         final label = isSpeakingMode
             ? switch (speakingState) {
@@ -122,7 +135,7 @@ class MainVoiceAssistantButton extends StatelessWidget {
             ? '${voiceController.activeInputLabel}: $label'
             : '$microphoneError Bấm Main để thử lại.';
 
-        return Semantics(
+        final mainControl = Semantics(
           button: true,
           label: canActivate
               ? isSpeakingMode
@@ -167,6 +180,40 @@ class MainVoiceAssistantButton extends StatelessWidget {
               ),
             ),
           ),
+        );
+        if (!showInterruptionGuidance) return mainControl;
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: (MediaQuery.sizeOf(context).width - 32).clamp(
+                  0.0,
+                  320.0,
+                ),
+              ),
+              child: Semantics(
+                liveRegion: true,
+                child: Material(
+                  color: Theme.of(context).colorScheme.errorContainer,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Text(
+                      microphoneError,
+                      key: const Key('main-audio-interruption-guidance'),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            mainControl,
+          ],
         );
       },
     );

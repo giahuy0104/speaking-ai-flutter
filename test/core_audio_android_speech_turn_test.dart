@@ -187,6 +187,81 @@ void main() {
     expect(cancels, 1);
   });
 
+  for (final commandMode in [false, true]) {
+    test(
+      'focus loss discards partial and late final (commandMode=$commandMode)',
+      () async {
+        if (commandMode) {
+          await input.startCommandRecognition();
+        } else {
+          await input.start();
+        }
+        final interruptedTurn = turns.single;
+        events.add({
+          'type': 'speech.partial',
+          'turnId': interruptedTurn,
+          'text': 'Mở chủ đề ba',
+          'alternatives': ['Mở chủ đề hai'],
+        });
+        events.add({
+          'type': 'speech.error',
+          'turnId': interruptedTurn,
+          'code': 'AUDIO_FOCUS_LOST',
+          'message': 'Lượt nghe bị gián đoạn',
+        });
+        events.add({
+          'type': 'speech.final',
+          'turnId': interruptedTurn,
+          'text': 'Mở chủ đề ba',
+        });
+        await Future<void>.delayed(Duration.zero);
+        await expectLater(
+          input.stop(),
+          throwsA(
+            isA<StreamingSpeechInputException>().having(
+              (error) => error.code,
+              'code',
+              'ANDROID_SPEECH_AUDIO_FOCUS_LOST',
+            ),
+          ),
+        );
+
+        await input.start();
+        events.add({
+          'type': 'speech.error',
+          'turnId': interruptedTurn,
+          'code': 'AUDIO_FOCUS_LOST',
+        });
+        events.add({
+          'type': 'speech.final',
+          'turnId': turns.last,
+          'text': 'Câu mới',
+        });
+        await Future<void>.delayed(Duration.zero);
+        final replacement = await input.stop();
+        expect(replacement.sourceText, 'Câu mới');
+        expect(replacement.alternatives, isNot(contains('Mở chủ đề hai')));
+      },
+    );
+  }
+
+  test('ordinary recognition error preserves an available partial', () async {
+    await input.start();
+    events.add({
+      'type': 'speech.partial',
+      'turnId': turns.single,
+      'text': 'Câu đã nghe',
+    });
+    events.add({
+      'type': 'speech.error',
+      'turnId': turns.single,
+      'code': 5,
+      'message': 'Lỗi nhận dạng',
+    });
+    await Future<void>.delayed(Duration.zero);
+    expect((await input.stop()).sourceText, 'Câu đã nghe');
+  });
+
   test('current recognizer error remains visible with its code', () async {
     await input.start();
     events.add({

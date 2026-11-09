@@ -22,7 +22,8 @@ final class VoicePromptAudioRegistryAdapter
         PhoneSpeakerVoicePromptService,
         SelectedMediaOutputVoicePromptService,
         StyledMediaOutputVoicePromptService,
-        RoutedMainTurnVoicePromptService {
+        RoutedMainTurnVoicePromptService,
+        MainTurnAudioValidation {
   VoicePromptAudioRegistryAdapter({
     required VoicePromptService delegate,
     required List<String> manifestAssets,
@@ -160,6 +161,16 @@ final class VoicePromptAudioRegistryAdapter
     return !_disposed && delegate is MainTurnVoicePromptService
         ? (delegate as MainTurnVoicePromptService).beginMainTurn()
         : null;
+  }
+
+  @override
+  Future<void> validateMainTurnAudio({String? turnId}) async {
+    final delegate = _delegate;
+    if (delegate is MainTurnAudioValidation) {
+      await (delegate as MainTurnAudioValidation).validateMainTurnAudio(
+        turnId: turnId,
+      );
+    }
   }
 
   @override

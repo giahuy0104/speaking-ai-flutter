@@ -1,4 +1,8 @@
 import 'dart:async';
+import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
+import 'package:ai_speaking_flutter_app/core/audio/coordinated_voice_prompt_service.dart';
+import 'package:ai_speaking_flutter_app/core/audio/main_assistant_audio_prompt_service.dart';
+import 'package:ai_speaking_flutter_app/core/audio/catalog/voice_prompt_audio_registry_adapter.dart';
 
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service_native.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +11,58 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  test(
+    'MAIN validation reaches native through every production prompt wrapper',
+    () async {
+      const channel = MethodChannel('test_main_validation');
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            calls.add(call);
+            throw PlatformException(code: 'EXTERNAL_MEDIA_ACTIVE');
+          });
+      addTearDown(
+        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null),
+      );
+      final coordinator = AudioTurnCoordinator();
+      final service = CoordinatedVoicePromptService(
+        coordinator: coordinator,
+        owner: AudioTurnOwner.mainAssistant,
+        delegate: VoicePromptAudioRegistryAdapter(
+          manifestAssets: const [],
+          delegate: MainAssistantAudioPromptService(
+            delegate: const MethodChannelVoicePromptService(channel: channel),
+          ),
+        ),
+      );
+      addTearDown(service.dispose);
+      addTearDown(coordinator.dispose);
+      await expectLater(
+        service.validateMainTurnAudio(turnId: 'main:7'),
+        throwsA(
+          isA<PlatformException>().having(
+            (e) => e.code,
+            'code',
+            'EXTERNAL_MEDIA_ACTIVE',
+          ),
+        ),
+      );
+      expect(calls.single.method, 'validateMainTurnAudio');
+      expect(calls.single.arguments, {'turnId': 'main:7'});
+    },
+  );
+
+  test(
+    'MAIN validation remains optional on older and iOS native bridges',
+    () async {
+      const service = MethodChannelVoicePromptService(
+        channel: MethodChannel('missing_main_validation'),
+      );
+      await service.validateMainTurnAudio(turnId: 'ios-main');
+    },
+  );
 
   for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
     test(

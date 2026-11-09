@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../../../core/audio/adaptive_voice_activity_detector.dart';
 import '../../../core/audio/streaming_speech_input.dart';
 import '../../../core/audio/audio_diagnostics.dart';
+import '../../../core/audio/native_audio_focus.dart';
 import '../../../core/audio/voice_prompt_service.dart';
 import '../../../core/device/active_learning_module.dart';
 import '../../listening/domain/listening_content.dart';
@@ -37,6 +38,7 @@ class VoiceNavigationController extends ChangeNotifier {
         const VoiceNavigationIntentResolver(),
     MainVoiceAssistantFlow? mainAssistantFlow,
     VoicePromptService? voicePromptService,
+    NativeAudioFocus? audioFocus,
     bool ownsSpeechInput = false,
     bool ownsVoicePromptService = false,
     Duration restartDelay = const Duration(milliseconds: 300),
@@ -46,6 +48,7 @@ class VoiceNavigationController extends ChangeNotifier {
     Duration microphoneStartTimeout = const Duration(seconds: 15),
     Duration microphoneStartRetryDelay = const Duration(seconds: 2),
     Duration pauseDrainTimeout = const Duration(seconds: 2),
+    Duration iosMainPreparationTimeout = const Duration(seconds: 5),
     Duration commandSilenceEndpoint = const Duration(milliseconds: 700),
     Duration commandPhraseSilenceEndpoint = const Duration(milliseconds: 1200),
     ActiveLearningCommandHandler? activeLearningCommandHandler,
@@ -56,6 +59,7 @@ class VoiceNavigationController extends ChangeNotifier {
        _resolver = resolver,
        _mainAssistantFlow = mainAssistantFlow ?? MainVoiceAssistantFlow(),
        _voicePromptService = voicePromptService,
+       _audioFocus = audioFocus ?? nativeAudioFocus,
        _ownsSpeechInput = ownsSpeechInput,
        _ownsVoicePromptService = ownsVoicePromptService,
        _restartDelay = restartDelay,
@@ -65,6 +69,7 @@ class VoiceNavigationController extends ChangeNotifier {
        _microphoneStartTimeout = microphoneStartTimeout,
        _microphoneStartRetryDelay = microphoneStartRetryDelay,
        _pauseDrainTimeout = pauseDrainTimeout,
+       _iosMainPreparationTimeout = iosMainPreparationTimeout,
        _commandSilenceEndpoint = commandSilenceEndpoint,
        _commandPhraseSilenceEndpoint = commandPhraseSilenceEndpoint,
        _activeLearningCommandHandler = activeLearningCommandHandler,
@@ -115,6 +120,7 @@ class VoiceNavigationController extends ChangeNotifier {
   final VoiceNavigationIntentResolver _resolver;
   final MainVoiceAssistantFlow _mainAssistantFlow;
   final VoicePromptService? _voicePromptService;
+  final NativeAudioFocus _audioFocus;
   final bool _ownsSpeechInput;
   final bool _ownsVoicePromptService;
   final Duration _restartDelay;
@@ -124,6 +130,7 @@ class VoiceNavigationController extends ChangeNotifier {
   final Duration _microphoneStartTimeout;
   final Duration _microphoneStartRetryDelay;
   final Duration _pauseDrainTimeout;
+  final Duration _iosMainPreparationTimeout;
   final Duration _commandSilenceEndpoint;
   final Duration _commandPhraseSilenceEndpoint;
   final ActiveLearningCommandHandler? _activeLearningCommandHandler;
@@ -182,6 +189,8 @@ class VoiceNavigationController extends ChangeNotifier {
   int _mainPrematureCompletionRecoveryCount = 0;
   String? _mainNoSpeechRetryPromptOverride;
   Object? _lastError;
+  bool _mainActivationInterrupted = false;
+  bool _hasInterruptedMainRecovery = false;
   String? _activeInputLabelOverride;
   String? _nativeMainTurnId;
   int? _nativeMainTurnGeneration;
@@ -204,6 +213,8 @@ class VoiceNavigationController extends ChangeNotifier {
       _translationStoppedAwaitingMain;
   MainVoiceAssistantStage get mainAssistantStage => _mainAssistantFlow.stage;
   Object? get lastError => _lastError;
+  bool get canResumeLearningAfterFailedActivation =>
+      !_mainActivationInterrupted;
   String get activeInputLabel =>
       _activeInputLabelOverride ?? _speechInput.label;
   String? get lastErrorMessage {
@@ -252,7 +263,10 @@ class VoiceNavigationController extends ChangeNotifier {
   }
 
   void startContinuous({Duration delay = Duration.zero}) {
-    if (_disposed || !wakeWordEnabled || _translationStoppedAwaitingMain) {
+    if (_disposed ||
+        !wakeWordEnabled ||
+        _translationStoppedAwaitingMain ||
+        _hasInterruptedMainRecovery) {
       return;
     }
     if (!_continuousRequested) {
@@ -368,6 +382,7 @@ class VoiceNavigationController extends ChangeNotifier {
     if (_disposed) {
       return false;
     }
+    _mainActivationInterrupted = false;
     final pendingPause = pause(preserveChoice: true);
     final activationGeneration = _generation;
     _mainButtonActivationInProgress = true;
@@ -381,6 +396,7 @@ class VoiceNavigationController extends ChangeNotifier {
       if (_disposed || activationGeneration != _generation) return false;
       _activeInputLabelOverride = inputLabelOverride;
       _lastError = null;
+      _hasInterruptedMainRecovery = false;
       _buttonCommandSession = true;
       _mainNoSpeechRetryCount = 0;
       _mainPrematureCompletionRecoveryCount = 0;
@@ -432,7 +448,43 @@ class VoiceNavigationController extends ChangeNotifier {
     }
   }
 
-  /// Releases the recognizer so the conversation microphone can use it.
+  /// An interruption must not trigger the failed-activation lesson resume.
+  Future<void> pauseForAudioInterruption() {
+    _rememberInterruptedMain();
+    _mainActivationInterrupted = true;
+    final paused = pause(preserveChoice: true, stopPrompt: true);
+    // Show guidance immediately, even while native cancellation is draining.
+    if (!_disposed) notifyListeners();
+    return paused;
+  }
+
+  void _rememberInterruptedMain() {
+    if (!_disposed &&
+        !kIsWeb &&
+        defaultTargetPlatform == TargetPlatform.iOS &&
+        isMainButtonSessionActive) {
+      _hasInterruptedMainRecovery = true;
+      _mainActivationInterrupted = true;
+      _lastError = const StreamingSpeechInputException(
+        'HOMI đã tạm dừng. Tạm dừng âm thanh khác, mở HOMI rồi nhấn MAIN để dùng micro.',
+        code: 'AUDIO_SESSION_INTERRUPTED',
+      );
+    }
+  }
+
+  void _rememberNativeMainInterruption(Object error) {
+    final code = error is PlatformException
+        ? error.code
+        : error is StreamingSpeechInputException
+        ? error.code
+        : null;
+    if (code == 'AUDIO_SESSION_INTERRUPTED' ||
+        code == 'IOS_SPEECH_AUDIO_SESSION_INTERRUPTED' ||
+        code == 'IOS_SPEECH_AUDIO_FOCUS_LOST') {
+      _rememberInterruptedMain();
+    }
+  }
+
   Future<void> pause({bool preserveChoice = false, bool stopPrompt = false}) {
     if (_disposed) {
       return Future<void>.value();
@@ -730,80 +782,97 @@ class VoiceNavigationController extends ChangeNotifier {
     } else if (!iosNavigation || turn.navigationAfterPrompt == null) {
       _mainAssistantFlow.reset();
     }
-    // The MAIN controller is the sole owner of the native turn. Apple Speech
-    // may start, stop, or be replaced several times while the assistant asks
-    // follow-up questions, so recognition callbacks must not release HFP/BLE.
-    AudioDiagnostics.event('main.native_end.request', {
-      'generation': generation,
-    });
-    await _endNativeMainTurn(
-      'main_assistant_completed',
-      generation: generation,
-    );
-    if (_disposed || generation != _generation) return false;
-    if (turn.exhaustedUnrecognizedInput) {
-      _reportIosTopicRecognitionFailure(stage: choiceStage);
-    }
-    AudioDiagnostics.event('main.native_end.completed', {
-      'generation': generation,
-    });
-    final activeLearningCommand = turn.activeLearningCommand;
-    if (activeLearningCommand != null) {
-      final handler = _activeLearningCommandHandler;
-      if (handler != null) {
-        final result = await handler(activeLearningCommand);
-        if ((canCompleteRecognizedSongSkip || canCompleteVocabularyReturn) &&
-            result.wasHandled) {
-          _lastError = null;
-        }
-        if (!kIsWeb &&
-            defaultTargetPlatform == TargetPlatform.iOS &&
-            !result.wasHandled) {
-          _lastError = StreamingSpeechInputException(
-            result.spokenReply ??
-                'Chưa thực hiện được lệnh học. Bạn hãy thử lại hoặc chạm nút trên màn hình.',
-            code: 'NAVIGATION_COMMAND_UNHANDLED',
+    // Keep Android focus while the finished MAIN hands off to a lesson or
+    // conversation. Native turn cleanup still precedes navigation on iOS.
+    NativeAudioFocusLease? handoffFocus;
+    try {
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+        handoffFocus = await _audioFocus.acquire(
+          'main-handoff',
+          transientExclusive: true,
+        );
+        if (_disposed || generation != _generation) return false;
+        handoffFocus.requireCurrent();
+      }
+      // The MAIN controller is the sole owner of the native turn. Apple Speech
+      // may start, stop, or be replaced several times while the assistant asks
+      // follow-up questions, so recognition callbacks must not release HFP/BLE.
+      AudioDiagnostics.event('main.native_end.request', {
+        'generation': generation,
+      });
+      await _endNativeMainTurn(
+        'main_assistant_completed',
+        generation: generation,
+      );
+      if (_disposed || generation != _generation) return false;
+      if (turn.exhaustedUnrecognizedInput) {
+        _reportIosTopicRecognitionFailure(stage: choiceStage);
+      }
+      AudioDiagnostics.event('main.native_end.completed', {
+        'generation': generation,
+      });
+      final activeLearningCommand = turn.activeLearningCommand;
+      if (activeLearningCommand != null) {
+        final handler = _activeLearningCommandHandler;
+        if (handler != null) {
+          final result = await handler(activeLearningCommand);
+          if (_disposed || generation != _generation) return result.wasHandled;
+          if ((canCompleteRecognizedSongSkip || canCompleteVocabularyReturn) &&
+              result.wasHandled) {
+            _lastError = null;
+          }
+          if (!kIsWeb &&
+              defaultTargetPlatform == TargetPlatform.iOS &&
+              !result.wasHandled) {
+            _lastError = StreamingSpeechInputException(
+              result.spokenReply ??
+                  'Chưa thực hiện được lệnh học. Bạn hãy thử lại hoặc chạm nút trên màn hình.',
+              code: 'NAVIGATION_COMMAND_UNHANDLED',
+            );
+            AudioDiagnostics.event('main.active_command.unhandled', {
+              'generation': generation,
+              'command': activeLearningCommand.name,
+              'status': result.status.name,
+            });
+            notifyListeners();
+            return false;
+          }
+        } else if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+          _lastError = const StreamingSpeechInputException(
+            'Chưa thực hiện được lệnh học. Bạn hãy thử lại.',
+            code: 'NAVIGATION_COMMAND_UNAVAILABLE',
           );
           AudioDiagnostics.event('main.active_command.unhandled', {
             'generation': generation,
             'command': activeLearningCommand.name,
-            'status': result.status.name,
+            'status': 'unavailable',
           });
           notifyListeners();
           return false;
         }
-      } else if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
-        _lastError = const StreamingSpeechInputException(
-          'Chưa thực hiện được lệnh học. Bạn hãy thử lại.',
-          code: 'NAVIGATION_COMMAND_UNAVAILABLE',
-        );
-        AudioDiagnostics.event('main.active_command.unhandled', {
-          'generation': generation,
-          'command': activeLearningCommand.name,
-          'status': 'unavailable',
-        });
-        notifyListeners();
-        return false;
       }
+      if (navigationAfterPrompt != null) {
+        final dispatched = await _dispatchIntent(navigationAfterPrompt);
+        if (_disposed || generation != _generation) return dispatched;
+        if (!dispatched &&
+            (iosNavigation ||
+                navigationAfterPrompt.vocabularyTarget != null ||
+                navigationAfterPrompt.enterMainSpeakingMode)) {
+          notifyListeners();
+          return false;
+        }
+        if (iosNavigation &&
+            !_disposed &&
+            generation == _generation &&
+            _mainAssistantFlow.stage == choiceStage) {
+          _mainAssistantFlow.reset();
+        }
+      }
+      notifyListeners();
+      return true;
+    } finally {
+      await handoffFocus?.release();
     }
-    if (navigationAfterPrompt != null) {
-      final dispatched = await _dispatchIntent(navigationAfterPrompt);
-      if (!dispatched &&
-          (iosNavigation ||
-              navigationAfterPrompt.vocabularyTarget != null ||
-              navigationAfterPrompt.enterMainSpeakingMode)) {
-        notifyListeners();
-        return false;
-      }
-      if (iosNavigation &&
-          !_disposed &&
-          generation == _generation &&
-          _mainAssistantFlow.stage == choiceStage) {
-        _mainAssistantFlow.reset();
-      }
-    }
-    notifyListeners();
-    return true;
   }
 
   /// Stops only the navigation-side recognition lifecycle before another
@@ -957,6 +1026,7 @@ class VoiceNavigationController extends ChangeNotifier {
         // recognition here both hides the failure and records the tail of a
         // prompt whose native completion was lost. The caller may still
         // dispatch an already recognized terminal action after this cleanup.
+        _rememberNativeMainInterruption(error);
         await _suspendForExternalSpeechHandoff();
         await _endNativeMainTurn('prompt_failed', generation: generation);
       }
@@ -1202,6 +1272,23 @@ class VoiceNavigationController extends ChangeNotifier {
     _pendingStartPartialText = null;
     notifyListeners();
     try {
+      final promptService = _voicePromptService;
+      if (_buttonCommandSession && promptService is MainTurnAudioValidation) {
+        await (promptService as MainTurnAudioValidation)
+            .validateMainTurnAudio(turnId: _nativeMainTurnId)
+            .timeout(
+              _pauseDrainTimeout,
+              onTimeout: () {
+                throw const StreamingSpeechInputException(
+                  'Chưa xác nhận được âm thanh đã dừng. Bạn nhấn MAIN để thử lại.',
+                  code: 'MAIN_AUDIO_CHECK_TIMEOUT',
+                );
+              },
+            );
+        if (_disposed || generation != _generation || !_continuousRequested) {
+          return;
+        }
+      }
       final commandInput = _speechInput is CommandStreamingSpeechInput
           ? _speechInput as CommandStreamingSpeechInput
           : null;
@@ -1313,6 +1400,21 @@ class VoiceNavigationController extends ChangeNotifier {
         message: error.toString(),
       );
       _lastError = error;
+      _rememberNativeMainInterruption(error);
+      final errorCode = error is PlatformException
+          ? error.code
+          : error is StreamingSpeechInputException
+          ? error.code
+          : null;
+      if (errorCode == 'EXTERNAL_MEDIA_ACTIVE' ||
+          errorCode == 'MAIN_AUDIO_CHECK_TIMEOUT' ||
+          errorCode == 'AUDIO_FOCUS_DENIED' ||
+          errorCode == 'AUDIO_FOCUS_LOST' ||
+          errorCode == 'ANDROID_SPEECH_AUDIO_FOCUS_LOST' ||
+          errorCode == 'IOS_SPEECH_AUDIO_FOCUS_LOST' ||
+          errorCode == 'MAIN_TURN_CANCELLED') {
+        _mainActivationInterrupted = true;
+      }
       _reportIosTopicRecognitionFailure();
       _starting = false;
       _listening = false;
@@ -1332,6 +1434,11 @@ class VoiceNavigationController extends ChangeNotifier {
           generation: generation,
         );
       }
+      if (errorCode == 'EXTERNAL_MEDIA_ACTIVE' &&
+          !_disposed &&
+          generation == _generation) {
+        await _explainCompetingMedia(generation);
+      }
       if (!_disposed) {
         notifyListeners();
       }
@@ -1349,6 +1456,8 @@ class VoiceNavigationController extends ChangeNotifier {
       return true;
     }
     final mainTurnService = service as MainTurnVoicePromptService;
+    final requiresPreparedInput =
+        !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
     final audioSource = _mainSpeechAudioSource?.call();
     final beginOperation =
         audioSource != null && service is RoutedMainTurnVoicePromptService
@@ -1356,51 +1465,151 @@ class VoiceNavigationController extends ChangeNotifier {
               .beginMainTurnWithAudioSource(audioSource.channelValue)
         : mainTurnService.beginMainTurn();
     try {
-      final turnId = await beginOperation.timeout(_pauseDrainTimeout);
+      // Preparing an iOS input graph can outlast the bounded cleanup of the
+      // previous turn. Its own deadline never substitutes for native readiness.
+      final turnId = await beginOperation.timeout(
+        requiresPreparedInput ? _iosMainPreparationTimeout : _pauseDrainTimeout,
+      );
       if (_disposed || generation != _generation) {
         await _adoptOrCloseLateNativeMainTurn(
           mainTurnService,
           generation: generation,
           turnId: turnId,
+          allowAdoption: !requiresPreparedInput,
         );
-        return true;
+        return false;
+      }
+      if (requiresPreparedInput && turnId == null) {
+        return _failMainTurnPreparation('MAIN_TURN_NOT_READY');
       }
       _nativeMainTurnId = turnId;
       _nativeMainTurnGeneration = generation;
       return true;
     } on TimeoutException {
-      // iOS arms a background-capable Apple Speech engine before replying to
-      // beginMainTurn. That native preparation can occasionally finish late
-      // while a lesson is releasing its capture. Do not leave MAIN activation
-      // blocked (and every later physical press rejected) behind that reply.
-      // Adopt the exact turn if it is still current, otherwise close it by ID.
+      // A timed-out iOS preparation must never authorize prompt/capture. Close
+      // its eventual exact turn without adopting it into this or a newer MAIN.
+      // Other platforms retain their optional native-turn bridge behavior.
       unawaited(
         beginOperation.then(
           (turnId) => _adoptOrCloseLateNativeMainTurn(
             mainTurnService,
             generation: generation,
             turnId: turnId,
+            allowAdoption: !requiresPreparedInput,
           ),
           onError: (_) {},
         ),
       );
+      if (_disposed || generation != _generation) return false;
+      if (requiresPreparedInput) {
+        await _explainMainInputUnavailable(
+          generation,
+          code: 'MAIN_TURN_PREPARATION_TIMEOUT',
+        );
+        return false;
+      }
       return true;
     } on PlatformException catch (error) {
-      if (error.code != 'BACKGROUND_MIC_NOT_READY') return true;
-      const message = 'Mở khóa iPhone rồi nhấn MAIN lại để dùng micro.';
-      _lastError = const StreamingSpeechInputException(
-        message,
-        code: 'BACKGROUND_MIC_NOT_READY',
-      );
-      try {
-        await service?.speakAndWait(message);
-      } catch (_) {
-        // The visible error remains available if background playback fails.
+      if (_disposed || generation != _generation) return false;
+      _rememberNativeMainInterruption(error);
+      if (_hasInterruptedMainRecovery) {
+        _mainActivationInterrupted = true;
+        return false;
       }
+      if (error.code == 'MAIN_TURN_CANCELLED') {
+        _mainActivationInterrupted = true;
+        return false;
+      }
+      if (error.code == 'EXTERNAL_MEDIA_ACTIVE') {
+        await _explainCompetingMedia(generation);
+        return false;
+      }
+      if (error.code == 'AUDIO_FOCUS_LOST' ||
+          error.code == 'AUDIO_FOCUS_DENIED') {
+        _mainActivationInterrupted = true;
+        _lastError = StreamingSpeechInputException(
+          'Âm thanh đang bị gián đoạn. Bạn nhấn MAIN để thử lại.',
+          code: error.code,
+        );
+        return false;
+      }
+      if (error.code != 'BACKGROUND_MIC_NOT_READY') {
+        return requiresPreparedInput
+            ? _failMainTurnPreparation(error.code)
+            : true;
+      }
+      await _explainMainInputUnavailable(generation, code: error.code);
       return false;
     } catch (_) {
+      if (_disposed || generation != _generation) return false;
+      if (requiresPreparedInput) {
+        return _failMainTurnPreparation('MAIN_TURN_NOT_READY');
+      }
       // The visible prompt remains usable on platforms without this bridge.
       return true;
+    }
+  }
+
+  bool _failMainTurnPreparation(String code) {
+    _mainActivationInterrupted = true;
+    if (_hasInterruptedMainRecovery) return false;
+    _lastError = StreamingSpeechInputException(
+      'Chưa mở được micro. Mở lại ứng dụng HOMI rồi nhấn MAIN để thử lại.',
+      code: code,
+    );
+    return false;
+  }
+
+  Future<void> _explainMainInputUnavailable(
+    int generation, {
+    required String code,
+  }) async {
+    if (_disposed || generation != _generation) return;
+    _mainActivationInterrupted = true;
+    // A failed retry cannot establish that a call/Siri interruption ended.
+    // Keep visible guidance without reclaiming the audio session for a warning.
+    if (_hasInterruptedMainRecovery) return;
+    const message = 'Mở lại ứng dụng HOMI rồi nhấn MAIN để dùng micro.';
+    _lastError = StreamingSpeechInputException(message, code: code);
+    try {
+      await _voicePromptService
+          ?.speakAndWait(message)
+          .timeout(
+            _voicePromptTimeout,
+            onTimeout: () async {
+              if (!_disposed && generation == _generation) {
+                await _boundedCleanup(_voicePromptService.stop());
+              }
+            },
+          );
+    } catch (_) {
+      // The visible error remains available if background playback fails.
+    }
+  }
+
+  Future<void> _explainCompetingMedia(int generation) async {
+    if (_disposed || generation != _generation) return;
+    _mainActivationInterrupted = true;
+    if (_hasInterruptedMainRecovery) return;
+    const message =
+        'Vẫn có âm thanh đang phát. Tạm dừng video hoặc chờ âm thanh dừng rồi nhấn MAIN lại.';
+    _lastError = const StreamingSpeechInputException(
+      message,
+      code: 'EXTERNAL_MEDIA_ACTIVE',
+    );
+    try {
+      await _voicePromptService
+          ?.speakAndWait(message)
+          .timeout(
+            _voicePromptTimeout,
+            onTimeout: () async {
+              if (!_disposed && generation == _generation) {
+                await _boundedCleanup(_voicePromptService.stop());
+              }
+            },
+          );
+    } catch (_) {
+      // Keep the specific visible instruction if audio is interrupted again.
     }
   }
 
@@ -1408,8 +1617,10 @@ class VoiceNavigationController extends ChangeNotifier {
     MainTurnVoicePromptService service, {
     required int generation,
     required String? turnId,
+    bool allowAdoption = true,
   }) async {
-    if (!_disposed &&
+    if (allowAdoption &&
+        !_disposed &&
         generation == _generation &&
         (_mainButtonActivationInProgress ||
             _buttonCommandSession ||
@@ -1418,6 +1629,8 @@ class VoiceNavigationController extends ChangeNotifier {
       _nativeMainTurnGeneration = generation;
       return;
     }
+    // A missing ID cannot identify an obsolete iOS turn safely.
+    if (!allowAdoption && turnId == null) return;
     try {
       await service
           .endMainTurn('late_begin_completed', turnId: turnId)
@@ -1818,6 +2031,7 @@ class VoiceNavigationController extends ChangeNotifier {
         }
         _lastError = error;
         _reportIosTopicRecognitionFailure();
+        _rememberNativeMainInterruption(error);
         _continuousRequested = false;
         if (_buttonCommandSession) {
           _awaitingCommand = false;

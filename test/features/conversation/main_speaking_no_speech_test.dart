@@ -14,6 +14,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   test('early native no-speech terminal follows the retry flow', () async {
     final speechInput = _EarlyFinalStreamingSpeechInput(reportNoSpeech: true);
     final prompts = _FakeVoicePromptService();
