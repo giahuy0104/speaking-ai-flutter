@@ -832,19 +832,6 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     }
     setState(() => _parentSetupCompleted = true);
     if (_privacyConsentGranted) {
-      if (defaultTargetPlatform == TargetPlatform.android) {
-        try {
-          if (await _offlineModelConsentStore.read() ==
-              AndroidOfflineSpeechModelConsent.undecided) {
-            await _offlineModelConsentStore.write(
-              AndroidOfflineSpeechModelConsent.allowed,
-            );
-          }
-        } catch (error) {
-          debugPrint('Offline model preference setup deferred: $error');
-        }
-      }
-      if (!mounted) return;
       unawaited(_prepareOfflineLanguageModels());
       _startBackgroundWork();
       _syncIosUnifiedConnectionRetry();

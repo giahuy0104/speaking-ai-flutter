@@ -112,6 +112,30 @@ void main() {
     await declined.close();
   }, variant: TargetPlatformVariant.only(TargetPlatform.android));
 
+  testWidgets('Android parent setup preserves an undecided model preference', (
+    tester,
+  ) async {
+    final native = await _launch(
+      tester,
+      setupComplete: false,
+      fullConsent: true,
+      requireLearningDevice: false,
+    );
+    final setup = tester.widget<StartupSetupScreen>(
+      find.byType(StartupSetupScreen),
+    );
+    await setup.onCompleteSetup();
+    await tester.pumpAndSettle();
+    expect(find.byType(HomeLearningShell), findsOneWidget);
+    expect(native.translationScheduleCalls, isEmpty);
+    expect(
+      await const SharedPreferencesAndroidOfflineSpeechModelConsentStore()
+          .read(),
+      AndroidOfflineSpeechModelConsent.undecided,
+    );
+    await native.close();
+  }, variant: TargetPlatformVariant.only(TargetPlatform.android));
+
   testWidgets(
     'iOS Home stays interactive during installation and Topic has no download UI',
     (tester) async {
@@ -232,6 +256,7 @@ Future<_NativeAssets> _launch(
   WidgetTester tester, {
   bool setupComplete = true,
   bool fullConsent = false,
+  bool requireLearningDevice = true,
   AndroidOfflineSpeechModelConsent consent =
       AndroidOfflineSpeechModelConsent.undecided,
   Future<String> Function()? prepare,
@@ -262,6 +287,7 @@ Future<_NativeAssets> _launch(
               backendBaseUri: Uri.parse('https://example.com'),
               useDemoBackend: true,
               childAge: 6,
+              enableAiv0BleControl: requireLearningDevice,
               privacyPolicyUri: Uri.parse('https://example.com/privacy'),
               termsUri: Uri.parse('https://example.com/terms'),
               supportUri: Uri.parse('https://example.com/support'),
