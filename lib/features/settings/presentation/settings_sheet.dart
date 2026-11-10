@@ -212,12 +212,6 @@ class _SettingsSheetState extends State<SettingsSheet> {
                           ],
                         ),
                       ),
-                      if (!kIsWeb &&
-                          defaultTargetPlatform == TargetPlatform.android &&
-                          widget.privacyConsentGranted) ...<Widget>[
-                        const SizedBox(height: 12),
-                        const OfflineLanguagePacksCard(),
-                      ],
                       const SizedBox(height: 26),
                       _SectionLabel(
                         label: context.tr('Trải nghiệm học', '学习体验'),

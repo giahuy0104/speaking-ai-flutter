@@ -692,23 +692,16 @@ class ConversationController extends ChangeNotifier
 
   ConversationResult _offlineTranslationResult(
     StreamingSpeechCapture capture,
-    String translatedText,
-    TranslationOutputLanguage language,
+    String englishText,
   ) {
     return ConversationResult(
       conversationId: '',
       sessionId: '',
       context: context,
       vietnameseText: capture.sourceText.trim(),
-      englishText: language == TranslationOutputLanguage.english
-          ? translatedText.trim()
-          : '',
-      outputLanguage: language,
-      translatedText: language == TranslationOutputLanguage.english
-          ? null
-          : translatedText.trim(),
+      englishText: englishText.trim(),
       // There is no remote audio URL while offline. The controller speaks the
-      // result with the device TTS after applying this result.
+      // English result with the device TTS after applying this result.
       audioUri: null,
       processingMode: 'offline_translation',
       textSource: 'mlkit_on_device_translation',
@@ -842,7 +835,7 @@ class ConversationController extends ChangeNotifier
     bool useDeviceTtsForExact = false,
     int? expectedGeneration,
   }) async {
-    final language = outputLanguage;
+    if (outputLanguage != TranslationOutputLanguage.english) return null;
     try {
       final offlineCapture = await _resolveOfflineVietnameseCapture(
         capture: capture,
@@ -855,12 +848,10 @@ class ConversationController extends ChangeNotifier
         return null;
       }
 
-      final exactFallback = language == TranslationOutputLanguage.english
-          ? _localExactFallbackResult(
-              offlineCapture,
-              useDeviceTts: useDeviceTtsForExact,
-            )
-          : null;
+      final exactFallback = _localExactFallbackResult(
+        offlineCapture,
+        useDeviceTts: useDeviceTtsForExact,
+      );
       if (exactFallback != null) {
         debugPrint('Using on-device exact conversation rule: $reason');
         transientMessage = reason == 'network_transport_unavailable'
@@ -871,28 +862,16 @@ class ConversationController extends ChangeNotifier
 
       final translator = _offlineVietnameseEnglishTranslator;
       if (translator == null) return null;
-      final String translatedText;
-      if (language == TranslationOutputLanguage.english) {
-        translatedText = await translator.translate(offlineCapture.sourceText);
-      } else if (translator is OfflineVietnameseTargetTranslator) {
-        translatedText = await (translator as OfflineVietnameseTargetTranslator)
-            .translateTo(offlineCapture.sourceText, language);
-      } else {
-        return null;
-      }
+      final englishText = await translator.translate(offlineCapture.sourceText);
       if (expectedGeneration != null &&
           (_disposed || expectedGeneration != _conversationTurnGeneration)) {
         return null;
       }
-      if (translatedText.trim().isEmpty) return null;
+      if (englishText.trim().isEmpty) return null;
       debugPrint('Using on-device conversation translation: $reason');
       transientMessage =
           'Đang ngoại tuyến. Bản dịch được xử lý trực tiếp trên thiết bị.';
-      return _offlineTranslationResult(
-        offlineCapture,
-        translatedText,
-        language,
-      );
+      return _offlineTranslationResult(offlineCapture, englishText);
     } catch (offlineError) {
       debugPrint(
         'On-device conversation fallback was unavailable: $offlineError',
@@ -3895,9 +3874,7 @@ class ConversationController extends ChangeNotifier
             );
       if (turnGeneration != _conversationTurnGeneration) return;
       if (!hasNetworkTransport &&
-          !_isWebRuntime &&
-          (defaultTargetPlatform == TargetPlatform.android ||
-              defaultTargetPlatform == TargetPlatform.iOS) &&
+          useAndroidOfflineAudio &&
           offlineFirstResult == null) {
         throw _offlineUnavailableException();
       }
@@ -4189,8 +4166,7 @@ class ConversationController extends ChangeNotifier
           if (!current()) throw StateError('cancelled');
           if (!online &&
               !_isWebRuntime &&
-              (defaultTargetPlatform == TargetPlatform.android ||
-                  defaultTargetPlatform == TargetPlatform.iOS) &&
+              defaultTargetPlatform == TargetPlatform.android &&
               offline == null) {
             throw _offlineUnavailableException();
           }
@@ -5353,7 +5329,7 @@ class ConversationController extends ChangeNotifier
         return _offlineDataUnavailableMessage;
       }
       if (error.code == _offlineTargetUnavailableCode) {
-        return 'Gói dịch của ngôn ngữ này chưa sẵn sàng trên thiết bị. Hãy kết nối Wi-Fi rồi thử lại nhé.';
+        return 'Ngôn ngữ này cần Internet để dịch. Bạn hãy kết nối mạng rồi thử lại nhé.';
       }
     }
     if (error is TimeoutException) {

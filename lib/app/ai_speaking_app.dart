@@ -139,8 +139,6 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   final PrivacyConsentStore _privacyConsentStore = const PrivacyConsentStore();
   final ParentSetupProgressStore _parentSetupProgressStore =
       const ParentSetupProgressStore();
-  final AndroidOfflineSpeechModelConsentStore _offlineModelConsentStore =
-      const SharedPreferencesAndroidOfflineSpeechModelConsentStore();
   final AndroidOfflineSpeechModelService _androidOfflineSpeechModelService =
       const MethodChannelAndroidOfflineSpeechModelService();
   final TopicOfflineModelPreparationService _topicOfflineModelPreparation =
@@ -148,7 +146,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         isIos: !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS,
       );
   bool _homeOfflinePreparationStarted = false;
-  final MlKitOfflineVietnameseEnglishTranslator _offlineTranslator =
+  final OfflineVietnameseEnglishTranslator _offlineTranslator =
       MlKitOfflineVietnameseEnglishTranslator();
   final OfflineEnglishVietnameseTranslator _offlineVocabularyTranslator =
       MlKitOfflineEnglishVietnameseTranslator();
@@ -605,9 +603,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       locale: 'vi-VN',
     );
     return speech.state == AndroidOfflineSpeechModelState.installed &&
-        await _offlineTranslator.modelsReadyFor(
-          _controller?.outputLanguage ?? TranslationOutputLanguage.english,
-        );
+        await _offlineTranslator.modelsReady();
   }
 
   Future<bool> _iosOfflineLanguageReady() async {
@@ -615,35 +611,23 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       _appleOfflineSpeechAssetService
           .prepareBackgroundLocale('vi-VN')
           .then((state) => state == 'installed'),
-      _offlineTranslator.modelsReadyFor(
-        _controller?.outputLanguage ?? TranslationOutputLanguage.english,
-      ),
+      _offlineTranslator.modelsReady(),
     ]);
     return states.every((ready) => ready);
   }
 
   Future<void> _prepareOfflineLanguageModels() async {
     if (!_supportsOfflineLanguagePacks ||
-        !_parentSetupCompleted ||
-        !_privacyConsentGranted ||
         _offlineSpeechModelPreparationRunning ||
         _offlineSpeechModelPreparationFinished) {
       return;
     }
-    if (defaultTargetPlatform == TargetPlatform.android) {
+    if (isAndroidRuntime) {
       _offlineSpeechModelPreparationRunning = true;
       try {
-        Future<bool> stillAllowed() async =>
-            _privacyConsentGranted &&
-            _parentSetupCompleted &&
-            await _privacyConsentStore.readGranted() &&
-            await _offlineModelConsentStore.read() ==
-                AndroidOfflineSpeechModelConsent.allowed;
-        if (!await stillAllowed()) return;
         final status = await _androidOfflineSpeechModelService.status(
           locale: 'vi-VN',
         );
-        if (!await stillAllowed()) return;
         if (status.state != AndroidOfflineSpeechModelState.installed &&
             status.state != AndroidOfflineSpeechModelState.pending &&
             status.state != AndroidOfflineSpeechModelState.unavailable) {
@@ -651,27 +635,17 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
             locale: 'vi-VN',
           );
         }
-        if (!await stillAllowed()) {
-          await _androidOfflineSpeechModelService.cancelDownload();
-          return;
-        }
         await const MethodChannel(
           'homi_offline_speech',
         ).invokeMethod<void>('translation.scheduleDownload');
-        if (!await stillAllowed()) {
-          try {
-            await _androidOfflineSpeechModelService.cancelDownload();
-          } finally {
-            await const MethodChannel(
-              'homi_offline_speech',
-            ).invokeMethod<void>('translation.cancelDownload');
-          }
-        }
       } catch (error) {
         debugPrint('Android offline language setup deferred: $error');
       } finally {
         _offlineSpeechModelPreparationRunning = false;
       }
+      return;
+    }
+    if (!_parentSetupCompleted || !_privacyConsentGranted) {
       return;
     }
     _offlineSpeechModelPreparationRunning = true;
@@ -700,11 +674,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   }
 
   Future<bool> _prepareIosTranslationModels() async {
-    final ready = await Future.wait<bool>(
-      TranslationOutputLanguage.values.map(_offlineTranslator.modelsReadyFor),
-    );
-    if (ready.every((value) => value)) return true;
-    return _offlineTranslator.downloadAllModels(wifiOnly: true);
+    if (await _offlineTranslator.modelsReady()) return true;
+    return _offlineTranslator.downloadModels(wifiOnly: true);
   }
 
   void _startBackgroundStartup() {
@@ -769,7 +740,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       // both the virtual MAIN entry point and the physical MAIN action.
       unawaited(_requestStartupPermissions());
     }
-    if (_supportsOfflineLanguagePacks &&
+    if (_usesIosHfpLifecycle &&
         _privacyConsentGranted &&
         _parentSetupCompleted) {
       unawaited(_prepareOfflineLanguageModels());
@@ -849,7 +820,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     }
     setState(() => _parentSetupCompleted = true);
     if (_privacyConsentGranted) {
-      unawaited(_prepareOfflineLanguageModels());
+      if (_usesIosHfpLifecycle) {
+        unawaited(_prepareOfflineLanguageModels());
+      }
       _startBackgroundWork();
       _syncIosUnifiedConnectionRetry();
       if (defaultTargetPlatform == TargetPlatform.android) {
@@ -1090,20 +1063,6 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       );
     }
     await _privacyConsentStore.revoke();
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      try {
-        await _androidOfflineSpeechModelService.cancelDownload();
-      } catch (error) {
-        debugPrint('Offline speech cancellation deferred: $error');
-      }
-      try {
-        await const MethodChannel(
-          'homi_offline_speech',
-        ).invokeMethod<void>('translation.cancelDownload');
-      } catch (error) {
-        debugPrint('Offline translation cancellation deferred: $error');
-      }
-    }
     await _childAgeStore.clear();
     await _parentSetupProgressStore.clear();
     await _clientIdentity.resetClientId();

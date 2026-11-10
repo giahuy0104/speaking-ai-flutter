@@ -94,10 +94,6 @@ class HomiOfflineSpeechBridge(
                 HomiOfflineTranslationModel.scheduleDownload(appContext)
                 result.success(true)
             }
-            "translation.cancelDownload" -> {
-                HomiOfflineTranslationModel.cancelDownload(appContext)
-                result.success(true)
-            }
             "stream.start" -> startLiveRecognition(call, result)
             "stream.stop" -> stopLiveRecognition(call, result)
             "stream.cancel" -> {

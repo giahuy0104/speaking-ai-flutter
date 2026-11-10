@@ -994,13 +994,9 @@ class RunnerTests: XCTestCase {
     ))
   }
 
-  func testIOSOfflineTranslationSupportsAllOutputLanguages() {
+  func testIOSOfflineTranslationSupportsTheSameVietnameseEnglishPair() {
     XCTAssertTrue(GoogleMlKitTranslationPlugin.supportsLanguage("vi"))
     XCTAssertTrue(GoogleMlKitTranslationPlugin.supportsLanguage("en"))
-    XCTAssertTrue(GoogleMlKitTranslationPlugin.supportsLanguage("zh"))
-    XCTAssertTrue(GoogleMlKitTranslationPlugin.supportsLanguage("ja"))
-    XCTAssertTrue(GoogleMlKitTranslationPlugin.supportsLanguage("ko"))
-    XCTAssertTrue(GoogleMlKitTranslationPlugin.supportsLanguage("fr"))
     XCTAssertFalse(GoogleMlKitTranslationPlugin.supportsLanguage("unknown"))
   }
 
