@@ -225,4 +225,22 @@ void main() {
       await flush();
     },
   );
+
+  test(
+    'the Vietnamese question split is skipped for other source languages',
+    () {
+      const text =
+          'bạn có khả năng đọc số liệu và có hóa quảng cáo được không '
+          'bạn có thể vận hành sàn thương mại điện tử không';
+      expect(splitFinalSentences(text), hasLength(2));
+      expect(splitFinalSentences(text, vietnamese: false), [text]);
+      expect(
+        splitFinalSentences(
+          'I am thirsty. Can I have water?',
+          vietnamese: false,
+        ),
+        ['I am thirsty.', 'Can I have water?'],
+      );
+    },
+  );
 }

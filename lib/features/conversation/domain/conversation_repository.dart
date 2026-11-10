@@ -75,6 +75,12 @@ abstract interface class TranslationTargetRepository {
   void setTranslationTarget(TranslationOutputLanguage language);
 }
 
+/// Repositories that send the spoken language with every conversation request.
+/// Requests without it are treated as Vietnamese by the backend.
+abstract interface class TranslationSourceRepository {
+  void setTranslationSource(TranslationOutputLanguage language);
+}
+
 /// Optional capability for conversation paths that produce a transcript first
 /// and therefore cannot attach the original recording to `/api/conversation`.
 ///

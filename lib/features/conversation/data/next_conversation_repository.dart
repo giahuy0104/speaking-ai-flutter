@@ -27,7 +27,8 @@ class NextConversationRepository
         ChunkedConversationRepository,
         RealtimeConversationRepository,
         OfflineIntentCatalogRepository,
-        TranslationTargetRepository {
+        TranslationTargetRepository,
+        TranslationSourceRepository {
   NextConversationRepository({
     required AppConfig config,
     required Future<String> Function() clientIdProvider,
@@ -51,10 +52,22 @@ class NextConversationRepository
   TranslationOutputLanguage _translationTarget =
       TranslationOutputLanguage.english;
 
+  TranslationOutputLanguage _translationSource =
+      TranslationOutputLanguage.vietnamese;
+
   @override
   void setTranslationTarget(TranslationOutputLanguage language) {
     _translationTarget = language;
   }
+
+  @override
+  void setTranslationSource(TranslationOutputLanguage language) {
+    _translationSource = language;
+  }
+
+  /// Prefetch, preview and worker prepare are Vietnamese → English only.
+  bool get _isVietnameseToEnglish =>
+      isVietnameseToEnglishPair(_translationSource, _translationTarget);
 
   Future<String> get _clientId => _clientIdProvider();
   Future<OfflineIntentManifest>? _offlineIntentManifest;
@@ -176,6 +189,7 @@ class NextConversationRepository
         http.MultipartRequest('POST', _config.resolve('/api/conversation'))
           ..fields['clientId'] = clientId
           ..fields['context'] = context.apiValue
+          ..fields['sourceLanguage'] = _translationSource.apiValue
           ..fields['targetLanguage'] = _translationTarget.apiValue
           ..fields['childAge'] = childAge.toString()
           ..fields['benchmark'] = jsonEncode(<String, dynamic>{
@@ -245,6 +259,7 @@ class NextConversationRepository
     final body = jsonEncode(<String, dynamic>{
       'clientId': clientId,
       'context': context.apiValue,
+      'sourceLanguage': _translationSource.apiValue,
       'targetLanguage': _translationTarget.apiValue,
       'childAge': childAge,
       'asrMode': 'batch_chunks',
@@ -320,8 +335,7 @@ class NextConversationRepository
       supportsChunkChecksum: audioSession.supportsChunkChecksum,
       supportsMissingChunkRecovery: audioSession.supportsMissingChunkRecovery,
       supportsBatchPrefetch:
-          audioSession.supportsBatchPrefetch &&
-          _translationTarget == TranslationOutputLanguage.english,
+          audioSession.supportsBatchPrefetch && _isVietnameseToEnglish,
       uploadProtocolVersion: audioSession.uploadProtocolVersion,
     );
   }
@@ -360,6 +374,7 @@ class NextConversationRepository
     final body = jsonEncode(<String, dynamic>{
       'clientId': clientId,
       'context': context.apiValue,
+      'sourceLanguage': _translationSource.apiValue,
       'targetLanguage': _translationTarget.apiValue,
       'childAge': childAge,
       'sourceText': capture.sourceText,
@@ -512,7 +527,7 @@ class NextConversationRepository
     required PracticeContext context,
     required int childAge,
   }) async {
-    if (_translationTarget != TranslationOutputLanguage.english) return null;
+    if (!_isVietnameseToEnglish) return null;
     final clientId = await _clientId;
     final response = await _client
         .post(
@@ -555,7 +570,7 @@ class NextConversationRepository
     String? previousPrefetchId,
     Map<String, dynamic>? benchmark,
   }) async {
-    if (_translationTarget != TranslationOutputLanguage.english) return null;
+    if (!_isVietnameseToEnglish) return null;
     final response = await _client
         .post(
           _config.resolve('/api/audio-sessions/$audioSessionId/preview'),
@@ -1760,6 +1775,7 @@ class _NextBatchChunkUploadSession
   final Map<String, dynamic> _clientTerminalTelemetry = <String, dynamic>{};
 
   bool get _usesWorkerPrepare =>
+      _repository._isVietnameseToEnglish &&
       _repository._config.workerAsrPrepareReady &&
       supportsPcm16WavFinalize &&
       uploadToken != null;
@@ -2607,7 +2623,11 @@ class _NextBatchChunkUploadSession
     required int childAge,
     required int vadSilenceMs,
   }) async {
-    if (!_repository._config.workerAsrPilotReady || uploadToken == null) {
+    // The Worker ASR pilot transcribes Vietnamese only.
+    if (_repository._translationSource !=
+            TranslationOutputLanguage.vietnamese ||
+        !_repository._config.workerAsrPilotReady ||
+        uploadToken == null) {
       return null;
     }
     if (_workerPrepareSpeechGeneration == _speechGeneration &&

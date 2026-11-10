@@ -208,4 +208,48 @@ void main() {
 
     expect(benchmark.toJson()['browser'], 'flutter_ios');
   });
+
+  test('reads the language pair and keeps older records Vietnamese', () {
+    final japanese = ConversationResult.fromJson(<String, dynamic>{
+      'conversationId': 'conv_ja_ko',
+      'sessionId': 'sess_ja_ko',
+      'context': 'home',
+      'vietnameseText': '',
+      'englishText': '',
+      'sourceLanguage': 'ja',
+      'sourceText': 'お水が飲みたい',
+      'targetLanguage': 'ko',
+      'translatedText': '물 마시고 싶어요',
+    }, backendBaseUri: Uri.parse('https://api.example.com'));
+    expect(japanese.sourceLanguage, TranslationOutputLanguage.japanese);
+    expect(japanese.displayedSource, 'お水が飲みたい');
+    expect(japanese.displayedTranslation, '물 마시고 싶어요');
+    expect(japanese.isVietnameseToEnglish, isFalse);
+
+    final legacy = ConversationResult.fromJson(<String, dynamic>{
+      'conversationId': 'old',
+      'sessionId': 'old',
+      'vietnameseText': 'Con đói.',
+      'englishText': "I'm hungry.",
+    }, backendBaseUri: Uri.parse('https://api.example.com'));
+    expect(legacy.sourceLanguage, TranslationOutputLanguage.vietnamese);
+    expect(legacy.displayedSource, 'Con đói.');
+    expect(legacy.isVietnameseToEnglish, isTrue);
+
+    final history = ConversationHistoryItem.fromJson(<String, dynamic>{
+      'conversationId': 'conv_fr_vi',
+      'vietnameseText': '',
+      'englishText': '',
+      'sourceLanguage': 'fr',
+      'sourceText': "J'ai soif.",
+      'targetLanguage': 'vi',
+      'translatedText': 'Con khát nước.',
+    });
+    expect(history.sourceLanguage, TranslationOutputLanguage.french);
+    expect(history.displayedSource, "J'ai soif.");
+    expect(history.displayedTranslation, 'Con khát nước.');
+    final reviewed = history.copyWithReview(true);
+    expect(reviewed.sourceLanguage, TranslationOutputLanguage.french);
+    expect(reviewed.displayedSource, "J'ai soif.");
+  });
 }

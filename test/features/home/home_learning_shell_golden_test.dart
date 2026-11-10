@@ -91,9 +91,13 @@ void main() {
       expect(tester.getRect(wave), waveBefore);
       expect(tester.getRect(result), resultBefore);
       for (final language in TranslationOutputLanguage.values) {
+        // Without a source picker the source stays Vietnamese, so Vietnamese
+        // is not offered as a target.
         expect(
           find.byKey(Key('translation-language-${language.apiValue}')),
-          findsOneWidget,
+          language == TranslationOutputLanguage.vietnamese
+              ? findsNothing
+              : findsOneWidget,
         );
       }
       await expectLater(

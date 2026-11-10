@@ -1,7 +1,8 @@
 import 'dart:async';
 
 /// Conservative final-transcript segmentation. Uncertain periods stay intact.
-List<String> splitFinalSentences(String text) {
+/// The unpunctuated-question split only applies to Vietnamese transcripts.
+List<String> splitFinalSentences(String text, {bool vietnamese = true}) {
   final parts = <String>[];
   var start = 0;
   final boundary = RegExp(r'[.!?。！？]+[”’"»)]*(?:\s+|$)');
@@ -30,6 +31,7 @@ List<String> splitFinalSentences(String text) {
   }
   final tail = text.substring(start).trim();
   if (tail.isNotEmpty) parts.add(tail);
+  if (!vietnamese) return parts;
   return parts.expand(_splitVietnameseQuestions).toList(growable: false);
 }
 

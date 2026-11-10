@@ -125,6 +125,14 @@ abstract interface class StreamingSpeechInput {
   Future<void> dispose();
 }
 
+/// A native recognizer that can transcribe conversation turns in a chosen
+/// language. MAIN command recognition keeps its own Vietnamese locale.
+abstract interface class ConversationLocaleSpeechInput {
+  /// BCP-47 locale used by [StreamingSpeechInput.start]. Null keeps the
+  /// recognizer default (vi-VN).
+  set conversationLocale(String? locale);
+}
+
 /// Marks a native recognizer that acquires and releases its own short HFP
 /// route lease for every recognition turn.
 ///
@@ -294,6 +302,7 @@ abstract interface class RecordedAudioStreamingSpeechInput {
 class AndroidStreamingSpeechInput
     implements
         StreamingSpeechInput,
+        ConversationLocaleSpeechInput,
         SpeechActivityStreamingSpeechInput,
         RecordedAudioStreamingSpeechInput,
         CommandStreamingSpeechInput,
@@ -638,12 +647,18 @@ class AndroidStreamingSpeechInput
     }
   }
 
+  String? _conversationLocale;
+
+  @override
+  set conversationLocale(String? locale) => _conversationLocale = locale;
+
   @override
   Future<void> start() => startWithNativeAudioSource(
     commandMode: false,
     audioSource: takeNativeSpeechAudioSource(
       NativeSpeechAudioSource.builtInMic,
     ),
+    localeIdentifier: _conversationLocale,
   );
 
   @override
@@ -1441,7 +1456,10 @@ class IOSStreamingSpeechInput extends AndroidStreamingSpeechInput
   }
 
   @override
-  Future<void> start() => _startWithAudioRoute(commandMode: false);
+  Future<void> start() => _startWithAudioRoute(
+    commandMode: false,
+    localeIdentifier: _conversationLocale,
+  );
 
   @override
   // The native bridge still uses the dictation task hint for Vietnamese MAIN
@@ -1656,6 +1674,7 @@ class IOSStreamingSpeechInput extends AndroidStreamingSpeechInput
 class NativeFirstStreamingSpeechInput
     implements
         StreamingSpeechInput,
+        ConversationLocaleSpeechInput,
         SpeechActivityStreamingSpeechInput,
         CommandStreamingSpeechInput,
         AlternativeTranscriptStreamingSpeechInput,
@@ -1807,6 +1826,14 @@ class NativeFirstStreamingSpeechInput
     if (_disposed) return false;
     return await primary.checkAvailability() ||
         await fallback.checkAvailability();
+  }
+
+  @override
+  set conversationLocale(String? locale) {
+    final native = primary;
+    if (native is ConversationLocaleSpeechInput) {
+      (native as ConversationLocaleSpeechInput).conversationLocale = locale;
+    }
   }
 
   @override

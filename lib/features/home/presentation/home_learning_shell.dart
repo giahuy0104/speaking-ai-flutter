@@ -168,6 +168,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   bool? _offlineLanguageReady;
   int _networkStatusGeneration = 0;
   late TranslationOutputLanguage _observedOutputLanguage;
+  late TranslationOutputLanguage _observedSourceLanguage;
 
   bool get _isIos => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
 
@@ -192,6 +193,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   void initState() {
     super.initState();
     _observedOutputLanguage = widget.controller.outputLanguage;
+    _observedSourceLanguage = widget.controller.sourceLanguage;
     WidgetsBinding.instance.addObserver(this);
     _pageController = PageController();
     _authoredVocabularySuggestionProvider =
@@ -764,8 +766,10 @@ class _HomeLearningShellState extends State<HomeLearningShell>
       widget.controller.isInputAvailable;
 
   void _onConversationControllerChanged() {
-    if (_observedOutputLanguage != widget.controller.outputLanguage) {
+    if (_observedOutputLanguage != widget.controller.outputLanguage ||
+        _observedSourceLanguage != widget.controller.sourceLanguage) {
       _observedOutputLanguage = widget.controller.outputLanguage;
+      _observedSourceLanguage = widget.controller.sourceLanguage;
       if (_hasNetworkTransport == false) {
         setState(() => _offlineLanguageReady = null);
         unawaited(_refreshNetworkStatus());

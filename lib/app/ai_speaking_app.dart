@@ -157,7 +157,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       GlobalKey<ScaffoldMessengerState>();
   final HomiBatteryNotifications _homiBatteryNotifications =
       HomiBatteryNotifications();
-  final HomiBatteryAlertPolicy _homiBatteryAlertPolicy = HomiBatteryAlertPolicy();
+  final HomiBatteryAlertPolicy _homiBatteryAlertPolicy =
+      HomiBatteryAlertPolicy();
   late final ListeningAudioPrefetcher _listeningAudioPrefetcher;
   late final _MainOverlayNavigatorObserver _mainOverlayNavigatorObserver;
   final ActiveLearningModuleRegistry _activeLearningModules =
@@ -600,7 +601,13 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     unawaited(_topicOfflineModelPreparation.prepare());
   }
 
+  /// Offline speech and ML Kit packs only cover Vietnamese-source pairs.
+  bool get _offlineSourceSupported =>
+      (_controller?.sourceLanguage ?? TranslationOutputLanguage.vietnamese) ==
+      TranslationOutputLanguage.vietnamese;
+
   Future<bool> _androidOfflineLanguageReady() async {
+    if (!_offlineSourceSupported) return false;
     final speech = await _androidOfflineSpeechModelService.status(
       locale: 'vi-VN',
     );
@@ -611,7 +618,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   }
 
   Future<bool> _iosOfflineLanguageReady() async {
-    if (!_privacyConsentGranted ||
+    if (!_offlineSourceSupported ||
+        !_privacyConsentGranted ||
         _limitedModeSelected ||
         _offlineConsentSuspended) {
       return false;
@@ -2142,7 +2150,10 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
             critical: action == HomiBatteryAction.chargeCritical,
           );
           unawaited(
-            _homiBatteryNotifications.show(percent: percent, language: language),
+            _homiBatteryNotifications.show(
+              percent: percent,
+              language: language,
+            ),
           );
         case HomiBatteryAction.disconnectDepleted:
           _showHomiBatteryNotice(
@@ -2361,7 +2372,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
           ble.status.deviceName ?? controller.aiv0BleStatus.deviceName,
     );
     if (selected) {
-      debugPrint('Connected iOS HM-D001 HFP microphone selected automatically.');
+      debugPrint(
+        'Connected iOS HM-D001 HFP microphone selected automatically.',
+      );
     }
     return selected;
   }
@@ -2696,7 +2709,15 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     } else if (kIsWeb) {
       webBatchStreamingSpeechInput = WebBatchStreamingSpeechInput(
         audioInput: phoneMicrophoneInput,
-        repository: repository,
+        // MAIN commands are Vietnamese. A separate repository keeps them out
+        // of the language pair chosen for conversation turns.
+        repository: _config.useDemoBackend
+            ? repository
+            : NextConversationRepository(
+                config: _config,
+                clientIdProvider: _clientIdentity.getClientId,
+                clientIdResetter: _clientIdentity.resetClientId,
+              ),
         childAge: _config.childAge,
       );
       voiceNavigationSpeechInput = webBatchStreamingSpeechInput;
@@ -3122,7 +3143,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     } catch (error) {
       _androidMainHfpRouteHeld = false;
       await route.stopAudioRoute().catchError((Object _) {});
-      debugPrint('MAIN did not start because HM-D001 HFP was unavailable: $error');
+      debugPrint(
+        'MAIN did not start because HM-D001 HFP was unavailable: $error',
+      );
       return false;
     }
   }

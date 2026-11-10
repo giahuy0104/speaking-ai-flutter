@@ -74,6 +74,11 @@ class AndroidVoskVietnameseSpeechRecognizer
   }
 }
 
+/// ML Kit targets for the Vietnamese-source offline packs.
+final _offlineTargets = TranslationOutputLanguage.values.where(
+  (language) => language != TranslationOutputLanguage.vietnamese,
+);
+
 abstract interface class OfflineVietnameseEnglishTranslator {
   Future<bool> modelsReady();
 
@@ -149,6 +154,9 @@ class MlKitOfflineTranslationAdapter
   @override
   Future<String> translateTo(String text, TranslationOutputLanguage language) {
     if (language == TranslationOutputLanguage.english) return translate(text);
+    if (language == TranslationOutputLanguage.vietnamese) {
+      throw ArgumentError.value(language, 'language', 'is the source language');
+    }
     final translator = _targetTranslators.putIfAbsent(
       language,
       () => OnDeviceTranslator(
@@ -159,6 +167,7 @@ class MlKitOfflineTranslationAdapter
           TranslationOutputLanguage.korean => TranslateLanguage.korean,
           TranslationOutputLanguage.french => TranslateLanguage.french,
           TranslationOutputLanguage.english => TranslateLanguage.english,
+          TranslationOutputLanguage.vietnamese => TranslateLanguage.vietnamese,
         },
       ),
     );
@@ -276,7 +285,7 @@ class MlKitOfflineVietnameseEnglishTranslator
     try {
       final codes = <String>[
         _vietnameseCode,
-        ...TranslationOutputLanguage.values
+        ..._offlineTargets
             .where((language) => language != TranslationOutputLanguage.english)
             .map((language) => language.apiValue),
       ];
@@ -287,7 +296,7 @@ class MlKitOfflineVietnameseEnglishTranslator
       );
       if (results.any((ready) => !ready)) return false;
       final ready = await Future.wait<bool>(
-        TranslationOutputLanguage.values.map(modelsReadyFor),
+        _offlineTargets.map(modelsReadyFor),
       );
       return ready.every((value) => value);
     } on MissingPluginException {

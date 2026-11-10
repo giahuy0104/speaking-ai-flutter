@@ -9,6 +9,7 @@ class ResultPanel extends StatelessWidget {
     required this.result,
     required this.onPlay,
     this.outputLanguage = TranslationOutputLanguage.english,
+    this.sourceLanguage = TranslationOutputLanguage.vietnamese,
     this.sectionMinHeight = 110,
     super.key,
   });
@@ -16,23 +17,31 @@ class ResultPanel extends StatelessWidget {
   final ConversationResult? result;
   final VoidCallback onPlay;
   final TranslationOutputLanguage outputLanguage;
+  final TranslationOutputLanguage sourceLanguage;
   final double sectionMinHeight;
+
+  static String _chineseName(TranslationOutputLanguage language) =>
+      switch (language) {
+        TranslationOutputLanguage.english => '英语',
+        TranslationOutputLanguage.chinese => '中文',
+        TranslationOutputLanguage.japanese => '日语',
+        TranslationOutputLanguage.korean => '韩语',
+        TranslationOutputLanguage.french => '法语',
+        TranslationOutputLanguage.vietnamese => '越南语',
+      };
+
+  static String _vietnameseName(TranslationOutputLanguage language) =>
+      language.label.replaceFirst('Tiếng', 'tiếng');
 
   @override
   Widget build(BuildContext context) {
     final currentResult = result;
+    // Labels follow the result's own pair so an older result keeps its
+    // languages after the selection changes.
     final language = currentResult?.outputLanguage ?? outputLanguage;
-    final vietnameseLanguageName = language.label.replaceFirst(
-      'Tiếng',
-      'tiếng',
-    );
-    final chineseLanguageName = switch (language) {
-      TranslationOutputLanguage.english => '英语',
-      TranslationOutputLanguage.chinese => '中文',
-      TranslationOutputLanguage.japanese => '日语',
-      TranslationOutputLanguage.korean => '韩语',
-      TranslationOutputLanguage.french => '法语',
-    };
+    final source = currentResult?.sourceLanguage ?? sourceLanguage;
+    final vietnameseLanguageName = _vietnameseName(language);
+    final chineseLanguageName = _chineseName(language);
     final colorScheme = Theme.of(context).colorScheme;
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -41,8 +50,11 @@ class ResultPanel extends StatelessWidget {
           key: const Key('conversation-vietnamese-bubble'),
           minHeight: sectionMinHeight,
           icon: Icons.chat_bubble_rounded,
-          label: context.tr('Câu tiếng Việt', '越南语句子'),
-          text: currentResult?.vietnameseText,
+          label: context.tr(
+            'Câu ${_vietnameseName(source)}',
+            '${_chineseName(source)}句子',
+          ),
+          text: currentResult?.displayedSource,
           placeholder: context.tr('Câu bạn nói sẽ hiện ở đây', '你说的句子会显示在这里'),
         ),
         const SizedBox(height: 14),

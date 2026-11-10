@@ -62,6 +62,7 @@ class ConversationController extends ChangeNotifier
   static const _offlineDataUnavailableCode =
       'OFFLINE_LANGUAGE_DATA_UNAVAILABLE';
   static const _offlineTargetUnavailableCode = 'OFFLINE_TARGET_UNAVAILABLE';
+  static const _offlinePairUnavailableCode = 'OFFLINE_PAIR_UNAVAILABLE';
   static const _offlineDataUnavailableMessage =
       'Gói nói và dịch tiếng Anh offline chưa sẵn sàng. HOMI sẽ tải khi có Wi-Fi.';
   static const String connectionReadyMessage =
@@ -509,8 +510,20 @@ class ConversationController extends ChangeNotifier
   @override
   DisplayLanguage displayLanguage = DisplayLanguage.vietnamese;
   TranslationOutputLanguage outputLanguage = TranslationOutputLanguage.english;
+
+  /// Language the child speaks. The pair cannot change while a turn or the
+  /// sentence queue is active, so every request of a turn uses one pair.
+  TranslationOutputLanguage sourceLanguage =
+      TranslationOutputLanguage.vietnamese;
   bool get supportsTranslationTargets =>
       _repository is TranslationTargetRepository;
+  bool get supportsTranslationSources =>
+      _repository is TranslationSourceRepository;
+
+  /// Local exact rules, previews, early rule playback and the on-device
+  /// translation fallback all belong to the Vietnamese → English path.
+  bool get isVietnameseToEnglish =>
+      isVietnameseToEnglishPair(sourceLanguage, outputLanguage);
   bool bleDiagnosticRunning = false;
   @override
   bool homiHardwareTestModeEnabled = false;
@@ -638,7 +651,7 @@ class ConversationController extends ChangeNotifier
     String sourceText, {
     required PracticeContext targetContext,
   }) {
-    if (outputLanguage != TranslationOutputLanguage.english) return false;
+    if (!isVietnameseToEnglish) return false;
     final exact = _findLocalExactIntent(sourceText, targetContext);
     if (exact == null || exact.englishText.trim().isEmpty) {
       return false;
@@ -756,7 +769,9 @@ class ConversationController extends ChangeNotifier
     StreamingSpeechCapture capture,
   ) async {
     final corrector = _vietnameseTranscriptCorrector;
-    if (corrector == null || capture.sourceText.trim().isEmpty) {
+    if (corrector == null ||
+        sourceLanguage != TranslationOutputLanguage.vietnamese ||
+        capture.sourceText.trim().isEmpty) {
       return capture;
     }
     try {
@@ -843,6 +858,8 @@ class ConversationController extends ChangeNotifier
     int? expectedGeneration,
   }) async {
     final language = outputLanguage;
+    // Offline recognition (Vosk/device) and ML Kit packs are Vietnamese-source.
+    if (sourceLanguage != TranslationOutputLanguage.vietnamese) return null;
     try {
       final offlineCapture = await _resolveOfflineVietnameseCapture(
         capture: capture,
@@ -929,20 +946,72 @@ class ConversationController extends ChangeNotifier
     }
   }
 
+  bool get canChangeTranslationLanguages =>
+      supportsTranslationTargets && !isBusy && !sentenceQueueActive;
+
   void setOutputLanguage(TranslationOutputLanguage language) {
-    if (language == outputLanguage ||
-        !supportsTranslationTargets ||
-        isBusy ||
-        sentenceQueueActive) {
+    if (language == outputLanguage || !canChangeTranslationLanguages) return;
+    // Picking the current source as target swaps the pair instead of
+    // producing a same-language pair.
+    _applyTranslationPair(
+      source: language == sourceLanguage ? outputLanguage : sourceLanguage,
+      target: language,
+    );
+  }
+
+  void setSourceLanguage(TranslationOutputLanguage language) {
+    if (language == sourceLanguage ||
+        !supportsTranslationSources ||
+        !canChangeTranslationLanguages) {
       return;
     }
-    (_repository as TranslationTargetRepository).setTranslationTarget(language);
-    outputLanguage = language;
+    _applyTranslationPair(
+      source: language,
+      target: language == outputLanguage ? sourceLanguage : outputLanguage,
+    );
+  }
+
+  void swapTranslationLanguages() {
+    if (!supportsTranslationSources || !canChangeTranslationLanguages) return;
+    _applyTranslationPair(source: outputLanguage, target: sourceLanguage);
+  }
+
+  void _applyTranslationPair({
+    required TranslationOutputLanguage source,
+    required TranslationOutputLanguage target,
+  }) {
+    if (source == target) return;
+    final repository = _repository;
+    if (repository is TranslationSourceRepository) {
+      (repository as TranslationSourceRepository).setTranslationSource(source);
+    } else if (source != TranslationOutputLanguage.vietnamese) {
+      return;
+    }
+    (repository as TranslationTargetRepository).setTranslationTarget(target);
+    sourceLanguage = source;
+    outputLanguage = target;
     _previewGeneration += 1;
     _preview = null;
     _preferredPlaybackUri = result?.audioUri;
     _speculativePreloadUri = null;
     notifyListeners();
+  }
+
+  /// Starts conversation recognition in the selected source language. The
+  /// locale is cleared afterwards so lessons and MAIN commands that share the
+  /// recognizer keep their own language.
+  Future<void> _startConversationSpeech(StreamingSpeechInput input) async {
+    if (input is! ConversationLocaleSpeechInput) return input.start();
+    final localeInput = input as ConversationLocaleSpeechInput;
+    localeInput.conversationLocale =
+        sourceLanguage == TranslationOutputLanguage.vietnamese
+        ? null
+        : sourceLanguage.speechLocale;
+    try {
+      await input.start();
+    } finally {
+      localeInput.conversationLocale = null;
+    }
   }
 
   @override
@@ -2746,7 +2815,9 @@ class ConversationController extends ChangeNotifier
                   _streamingSpeechInput is RecordedAudioStreamingSpeechInput
               ? _streamingSpeechInput! as RecordedAudioStreamingSpeechInput
               : null;
+          // The recorded-WAV recognizer is the Vietnamese offline path.
           final hasRecordedAudioPipeline =
+              sourceLanguage == TranslationOutputLanguage.vietnamese &&
               !_isWebRuntime &&
               recordedAudioRecognizer != null &&
               _audioInput is ChunkedAudioInput;
@@ -2766,7 +2837,7 @@ class ConversationController extends ChangeNotifier
             // Starting Batch Chunks here added an audio-session round trip and
             // bypassed SpeechRecognizer even though it was ready.
             _streamingSpeechTurnGeneration = turnGeneration;
-            await _streamingSpeechInput!.start();
+            await _startConversationSpeech(_streamingSpeechInput!);
           }
           if (await abandonCancelledRecordingStart()) return;
         } catch (error) {
@@ -2844,7 +2915,13 @@ class ConversationController extends ChangeNotifier
             (_audioInput as BluetoothCapturePolicy)
                 .requireBluetoothCaptureOnce();
           }
-          await _startBleHybridRecording();
+          // The hybrid path runs the Vietnamese offline intent recognizer;
+          // other sources record the turn for backend recognition.
+          if (sourceLanguage == TranslationOutputLanguage.vietnamese) {
+            await _startBleHybridRecording();
+          } else {
+            await _startBatchRecording();
+          }
         } else {
           await _startRealtimeRecordingWithBatchFallback();
         }
@@ -3406,7 +3483,7 @@ class ConversationController extends ChangeNotifier
 
   void _onSpeculativeBatchPreview(ConversationPreview preview) {
     if (sentenceQueueActive ||
-        outputLanguage != TranslationOutputLanguage.english ||
+        !isVietnameseToEnglish ||
         !_isWebRuntime ||
         (phase != ConversationPhase.recording &&
             phase != ConversationPhase.processing) ||
@@ -3435,7 +3512,7 @@ class ConversationController extends ChangeNotifier
     required PracticeContext previewContext,
     required int generation,
   }) async {
-    if (outputLanguage != TranslationOutputLanguage.english) return;
+    if (!isVietnameseToEnglish) return;
     try {
       final preview = await _repository.previewStreamingText(
         sourceText: sourceText,
@@ -3778,7 +3855,8 @@ class ConversationController extends ChangeNotifier
         return;
       }
       String? streamingCommandText;
-      if (streamingCapture != null) {
+      if (streamingCapture != null &&
+          sourceLanguage == TranslationOutputLanguage.vietnamese) {
         for (final candidate in <String>[
           streamingCapture.sourceText,
           ...streamingCapture.alternatives,
@@ -3815,7 +3893,11 @@ class ConversationController extends ChangeNotifier
 
       final sentences = streamingCapture == null
           ? const <String>[]
-          : splitFinalSentences(streamingCapture.sourceText);
+          : splitFinalSentences(
+              streamingCapture.sourceText,
+              vietnamese:
+                  sourceLanguage == TranslationOutputLanguage.vietnamese,
+            );
       debugPrint(
         jsonEncode({
           'event': 'sentence_classification',
@@ -3861,7 +3943,7 @@ class ConversationController extends ChangeNotifier
       Uri? earlyRulePlaybackUri;
       String? earlyRuleEnglishText;
       _useTranslatedSpeechPlaybackRate();
-      if (outputLanguage == TranslationOutputLanguage.english &&
+      if (isVietnameseToEnglish &&
           (!useAndroidOfflineAudio || androidNetworkTransport == true) &&
           streamingCapture != null) {
         final matchedLocalRule = _applyLocalExactPreview(
@@ -3943,7 +4025,10 @@ class ConversationController extends ChangeNotifier
       }
       final nextResult = processing[1]! as ConversationResult;
       _responseReceivedAt = DateTime.now();
-      final batchCommandText = nextResult.vietnameseText.trim();
+      final batchCommandText =
+          nextResult.sourceLanguage == TranslationOutputLanguage.vietnamese
+          ? nextResult.vietnameseText.trim()
+          : '';
       if (batchCommandText.isNotEmpty &&
           _matchesRecognizedSpeechCommand(batchCommandText)) {
         handledSpeechCommand = batchCommandText;
@@ -3975,7 +4060,7 @@ class ConversationController extends ChangeNotifier
       // playback has started (or in finally on error).
       final preview = _preview;
       final preparedPreviewMatchesResult =
-          nextResult.outputLanguage == TranslationOutputLanguage.english &&
+          nextResult.isVietnameseToEnglish &&
           preview?.audioUri != null &&
           preview!.englishText.trim() == nextResult.englishText.trim() &&
           preview.audioUri == nextResult.audioUri;
@@ -3999,7 +4084,7 @@ class ConversationController extends ChangeNotifier
 
       var reusedEarlyRulePlayback = false;
       final canReuseEarlyRulePlayback =
-          nextResult.outputLanguage == TranslationOutputLanguage.english &&
+          nextResult.isVietnameseToEnglish &&
           earlyRulePlayback != null &&
           earlyRulePlaybackRequestedAt != null &&
           earlyRulePlaybackUri != null &&
@@ -4311,7 +4396,8 @@ class ConversationController extends ChangeNotifier
       _setError(
         cause is PlatformException &&
                 (cause.code == _offlineDataUnavailableCode ||
-                    cause.code == _offlineTargetUnavailableCode)
+                    cause.code == _offlineTargetUnavailableCode ||
+                    cause.code == _offlinePairUnavailableCode)
             ? _friendlyError(cause)
             : 'Câu ${failure.index + 1}/${sentences.length}: '
                   '${audioFailure ? "Không thể phát âm thanh" : "Không thể dịch câu"}.',
@@ -5355,6 +5441,9 @@ class ConversationController extends ChangeNotifier
       if (error.code == _offlineTargetUnavailableCode) {
         return 'Gói dịch của ngôn ngữ này chưa sẵn sàng trên thiết bị. Hãy kết nối Wi-Fi rồi thử lại nhé.';
       }
+      if (error.code == _offlinePairUnavailableCode) {
+        return 'Cặp ngôn ngữ này chỉ dịch được khi có mạng. Hãy kết nối mạng rồi thử lại nhé.';
+      }
     }
     if (error is TimeoutException) {
       return 'Kết nối backend quá chậm. Vui lòng thử lại.';
@@ -5374,7 +5463,9 @@ class ConversationController extends ChangeNotifier
   }
 
   PlatformException _offlineUnavailableException() => PlatformException(
-    code: outputLanguage == TranslationOutputLanguage.english
+    code: sourceLanguage != TranslationOutputLanguage.vietnamese
+        ? _offlinePairUnavailableCode
+        : outputLanguage == TranslationOutputLanguage.english
         ? _offlineDataUnavailableCode
         : _offlineTargetUnavailableCode,
   );

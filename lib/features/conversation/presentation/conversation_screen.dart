@@ -56,16 +56,43 @@ class ConversationScreen extends StatefulWidget {
   State<ConversationScreen> createState() => _ConversationScreenState();
 }
 
+/// Source languages list Vietnamese first; targets keep their original order.
+/// Without a source picker the source is always Vietnamese, so it is not a
+/// target option.
+List<TranslationOutputLanguage> _selectableLanguages({
+  required bool source,
+  bool vietnameseTarget = true,
+}) {
+  final others = TranslationOutputLanguage.values.where(
+    (language) => language != TranslationOutputLanguage.vietnamese,
+  );
+  if (source) {
+    return <TranslationOutputLanguage>[
+      TranslationOutputLanguage.vietnamese,
+      ...others,
+    ];
+  }
+  return vietnameseTarget
+      ? TranslationOutputLanguage.values
+      : others.toList(growable: false);
+}
+
 class _TranslationLanguageSelector extends StatefulWidget {
   const _TranslationLanguageSelector({
     required this.selected,
     required this.enabled,
     required this.onSelected,
+    this.source = false,
+    this.vietnameseTarget = true,
   });
 
   final TranslationOutputLanguage selected;
   final bool enabled;
   final ValueChanged<TranslationOutputLanguage> onSelected;
+
+  /// Selects the spoken language instead of the translation target.
+  final bool source;
+  final bool vietnameseTarget;
 
   @override
   State<_TranslationLanguageSelector> createState() =>
@@ -96,7 +123,10 @@ class _TranslationLanguageSelectorState
     final menuWidth = (MediaQuery.sizeOf(context).width - 56)
         .clamp(0.0, stacked ? 220.0 : 204.0)
         .toDouble();
-    final languages = TranslationOutputLanguage.values;
+    final languages = _selectableLanguages(
+      source: widget.source,
+      vietnameseTarget: widget.vietnameseTarget,
+    );
     return MenuAnchor(
       controller: _menu,
       alignmentOffset: const Offset(4, 6),
@@ -119,7 +149,11 @@ class _TranslationLanguageSelectorState
       ),
       menuChildren: <Widget>[
         SizedBox(
-          key: const Key('translation-language-menu'),
+          key: Key(
+            widget.source
+                ? 'translation-source-menu'
+                : 'translation-language-menu',
+          ),
           width: menuWidth,
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -154,7 +188,9 @@ class _TranslationLanguageSelectorState
       ],
       builder: (context, controller, _) {
         final label = Text(
-          context.tr('Dịch sang', '翻译成'),
+          widget.source
+              ? context.tr('Nói bằng', '说')
+              : context.tr('Dịch sang', '翻译成'),
           style: TextStyle(
             color: navy,
             fontSize: 16,
@@ -165,7 +201,11 @@ class _TranslationLanguageSelectorState
           color: isDark ? AppColors.darkSurfaceRaised : Colors.white,
           borderRadius: BorderRadius.circular(25),
           child: InkWell(
-            key: const Key('translation-output-language'),
+            key: Key(
+              widget.source
+                  ? 'translation-source-language'
+                  : 'translation-output-language',
+            ),
             onTap: widget.enabled
                 ? () =>
                       controller.isOpen ? controller.close() : controller.open()
@@ -265,7 +305,11 @@ class _TranslationLanguageSelectorState
             : (isDark ? AppColors.darkSurface : const Color(0xFFF3F6FC)),
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
-          key: Key('translation-language-${language.apiValue}'),
+          key: Key(
+            widget.source
+                ? 'translation-source-${language.apiValue}'
+                : 'translation-language-${language.apiValue}',
+          ),
           onTap: widget.enabled
               ? () {
                   _menu.close();
@@ -406,6 +450,13 @@ class _ConversationScreenState extends State<ConversationScreen> {
         '当前离线，正在检查设备上的离线数据。',
       );
     }
+    if (widget.controller.sourceLanguage !=
+        TranslationOutputLanguage.vietnamese) {
+      return context.tr(
+        'Đang ngoại tuyến. Cặp ngôn ngữ này chỉ dịch được khi có mạng.',
+        '当前离线，此语言组合仅在联网时可翻译。',
+      );
+    }
     return ready
         ? context.tr(
             'Đang ngoại tuyến. Bạn vẫn có thể nói và dịch sang ${widget.controller.outputLanguage.label}.',
@@ -504,65 +555,10 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                     padding: EdgeInsets.only(
                                       bottom: isMobileLayout ? 8 : 16,
                                     ),
-                                    child: isMobileLayout
-                                        ? _TranslationLanguageSelector(
-                                            selected: widget
-                                                .controller
-                                                .outputLanguage,
-                                            enabled:
-                                                !widget.controller.isBusy &&
-                                                !widget
-                                                    .controller
-                                                    .sentenceQueueActive,
-                                            onSelected: widget
-                                                .controller
-                                                .setOutputLanguage,
-                                          )
-                                        : Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: <Widget>[
-                                              Text(
-                                                context.tr('Dịch sang', '翻译成'),
-                                              ),
-                                              const SizedBox(width: 12),
-                                              DropdownButton<
-                                                TranslationOutputLanguage
-                                              >(
-                                                key: const Key(
-                                                  'translation-output-language',
-                                                ),
-                                                value: widget
-                                                    .controller
-                                                    .outputLanguage,
-                                                onChanged:
-                                                    widget.controller.isBusy ||
-                                                        widget
-                                                            .controller
-                                                            .sentenceQueueActive
-                                                    ? null
-                                                    : (language) {
-                                                        if (language != null) {
-                                                          widget.controller
-                                                              .setOutputLanguage(
-                                                                language,
-                                                              );
-                                                        }
-                                                      },
-                                                items: [
-                                                  for (final language
-                                                      in TranslationOutputLanguage
-                                                          .values)
-                                                    DropdownMenuItem(
-                                                      value: language,
-                                                      child: Text(
-                                                        language.label,
-                                                      ),
-                                                    ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
+                                    child: _LanguagePairBar(
+                                      controller: widget.controller,
+                                      mobile: isMobileLayout,
+                                    ),
                                   ),
                                 VoiceHero(
                                   useMobileSizing: isMobileLayout,
@@ -605,7 +601,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                   Padding(
                                     padding: const EdgeInsets.only(bottom: 12),
                                     child: Text(
-                                      '${previous.vietnameseText}\n'
+                                      '${previous.displayedSource}\n'
                                       '${previous.displayedTranslation}',
                                     ),
                                   ),
@@ -623,6 +619,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                   result: widget.controller.result,
                                   outputLanguage:
                                       widget.controller.outputLanguage,
+                                  sourceLanguage:
+                                      widget.controller.sourceLanguage,
                                   onPlay: () =>
                                       unawaited(widget.controller.playResult()),
                                 ),
@@ -764,6 +762,106 @@ class _InlineMessage extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Source and target pickers plus a swap button. Both pickers lock with the
+/// same controller guard so a turn keeps the pair it started with.
+class _LanguagePairBar extends StatelessWidget {
+  const _LanguagePairBar({required this.controller, required this.mobile});
+
+  final ConversationController controller;
+  final bool mobile;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = controller.canChangeTranslationLanguages;
+    final pickSource = controller.supportsTranslationSources;
+    final swap = IconButton(
+      key: const Key('translation-swap-languages'),
+      tooltip: context.tr('Đổi chiều dịch', '交换翻译方向'),
+      visualDensity: VisualDensity.compact,
+      onPressed: enabled ? controller.swapTranslationLanguages : null,
+      icon: Icon(mobile ? Icons.swap_vert_rounded : Icons.swap_horiz_rounded),
+    );
+    if (mobile) {
+      final target = _TranslationLanguageSelector(
+        selected: controller.outputLanguage,
+        enabled: enabled,
+        onSelected: controller.setOutputLanguage,
+        vietnameseTarget: pickSource,
+      );
+      if (!pickSource) return target;
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          _TranslationLanguageSelector(
+            source: true,
+            selected: controller.sourceLanguage,
+            enabled: enabled,
+            onSelected: controller.setSourceLanguage,
+          ),
+          swap,
+          target,
+        ],
+      );
+    }
+    DropdownButton<TranslationOutputLanguage> dropdown({
+      required bool source,
+      required TranslationOutputLanguage value,
+      required ValueChanged<TranslationOutputLanguage> onSelected,
+    }) => DropdownButton<TranslationOutputLanguage>(
+      key: Key(
+        source ? 'translation-source-language' : 'translation-output-language',
+      ),
+      value: value,
+      onChanged: enabled
+          ? (language) {
+              if (language != null) onSelected(language);
+            }
+          : null,
+      items: [
+        for (final language in _selectableLanguages(
+          source: source,
+          vietnameseTarget: pickSource,
+        ))
+          DropdownMenuItem(value: language, child: Text(language.label)),
+      ],
+    );
+    return Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 12,
+      children: <Widget>[
+        if (pickSource) ...<Widget>[
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text(context.tr('Nói bằng', '说')),
+              const SizedBox(width: 12),
+              dropdown(
+                source: true,
+                value: controller.sourceLanguage,
+                onSelected: controller.setSourceLanguage,
+              ),
+            ],
+          ),
+          swap,
+        ],
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text(context.tr('Dịch sang', '翻译成')),
+            const SizedBox(width: 12),
+            dropdown(
+              source: false,
+              value: controller.outputLanguage,
+              onSelected: controller.setOutputLanguage,
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

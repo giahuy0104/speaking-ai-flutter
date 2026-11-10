@@ -91,7 +91,7 @@ class _HistorySheetState extends State<HistorySheet> {
           };
           final matchesQuery =
               query.isEmpty ||
-              item.vietnameseText.toLowerCase().contains(query) ||
+              item.displayedSource.toLowerCase().contains(query) ||
               item.displayedTranslation.toLowerCase().contains(query);
           return matchesFilter && matchesQuery;
         })
@@ -204,7 +204,7 @@ class _HistorySheetState extends State<HistorySheet> {
                                     size: 18,
                                   ),
                                   label: Text(
-                                    '${_formatTime(item.createdAt)} · ${item.vietnameseText}',
+                                    '${_formatTime(item.createdAt)} · ${item.displayedSource}',
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
@@ -327,8 +327,8 @@ class _HistorySheetState extends State<HistorySheet> {
         title: Text(_t('Xóa lượt nói này?', '删除这条记录？')),
         content: Text(
           _t(
-            'HOMI sẽ yêu cầu máy chủ xóa “${item.vietnameseText}” cùng transcript và audio liên quan. Thao tác chỉ hoàn tất khi máy chủ xác nhận.',
-            '“${item.vietnameseText}”将从历史记录中删除。',
+            'HOMI sẽ yêu cầu máy chủ xóa “${item.displayedSource}” cùng transcript và audio liên quan. Thao tác chỉ hoàn tất khi máy chủ xác nhận.',
+            '“${item.displayedSource}”将从历史记录中删除。',
           ),
         ),
         actions: <Widget>[
@@ -632,7 +632,7 @@ class _HistoryRow extends StatelessWidget {
     return Semantics(
       container: true,
       label:
-          '$localizedStatus. ${item.vietnameseText}. ${item.outputLanguage.label}: ${item.displayedTranslation}. '
+          '$localizedStatus. ${item.sourceLanguage.label}: ${item.displayedSource}. ${item.outputLanguage.label}: ${item.displayedTranslation}. '
           '${_formatTime(item.createdAt)}.',
       child: HomiSurface(
         margin: const EdgeInsets.only(bottom: 10),
@@ -658,7 +658,7 @@ class _HistoryRow extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    item.vietnameseText,
+                    item.displayedSource,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),

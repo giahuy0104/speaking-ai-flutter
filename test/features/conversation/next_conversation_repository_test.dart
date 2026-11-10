@@ -130,7 +130,9 @@ void main() {
     'sends each selected language and skips English-only previews',
     () async {
       for (final language in TranslationOutputLanguage.values.where(
-        (language) => language != TranslationOutputLanguage.english,
+        (language) =>
+            language != TranslationOutputLanguage.english &&
+            language != TranslationOutputLanguage.vietnamese,
       )) {
         var requests = 0;
         final repository = NextConversationRepository(
@@ -2914,4 +2916,77 @@ void main() {
     expect(learning.message, 'Đã tối ưu câu này.');
     await repository.dispose();
   });
+
+  test(
+    'sends the language pair and keeps previews Vietnamese → English only',
+    () async {
+      final bodies = <Map<String, dynamic>>[];
+      final repository = NextConversationRepository(
+        config: config,
+        clientIdProvider: clientIdProvider,
+        client: MockClient((request) async {
+          expect(request.url.path, '/api/conversation');
+          final body = jsonDecode(request.body) as Map<String, dynamic>;
+          bodies.add(body);
+          return http.Response(
+            jsonEncode(<String, dynamic>{
+              'conversationId': 'conv_pair',
+              'sessionId': 'sess_pair',
+              'context': 'home',
+              'vietnameseText': '',
+              'englishText': 'I want to drink water.',
+              'sourceLanguage': body['sourceLanguage'],
+              'sourceText': body['sourceText'],
+              'targetLanguage': body['targetLanguage'],
+              'translatedText': 'I want to drink water.',
+            }),
+            200,
+            headers: const <String, String>{'content-type': 'application/json'},
+          );
+        }),
+      );
+      const capture = StreamingSpeechCapture(
+        sourceText: 'お水が飲みたい',
+        duration: Duration(seconds: 2),
+        inputLabel: 'Mic điện thoại',
+        confidence: null,
+        firstResultMs: 300,
+        finalAfterStopMs: 100,
+        asrMode: 'android_streaming',
+      );
+
+      // Defaults stay Vietnamese → English for existing users.
+      await repository.processStreamingText(
+        capture: capture,
+        context: PracticeContext.home,
+        childAge: 6,
+        vadSilenceMs: 700,
+      );
+      expect(bodies.single['sourceLanguage'], 'vi');
+      expect(bodies.single['targetLanguage'], 'en');
+
+      repository.setTranslationSource(TranslationOutputLanguage.japanese);
+      expect(
+        await repository.previewStreamingText(
+          sourceText: 'お水が飲みたい',
+          context: PracticeContext.home,
+          childAge: 6,
+        ),
+        isNull,
+        reason: 'the English fast preview is Vietnamese-source only',
+      );
+      final result = await repository.processStreamingText(
+        capture: capture,
+        context: PracticeContext.home,
+        childAge: 6,
+        vadSilenceMs: 700,
+      );
+      expect(bodies, hasLength(2));
+      expect(bodies.last['sourceLanguage'], 'ja');
+      expect(bodies.last['targetLanguage'], 'en');
+      expect(result.sourceLanguage, TranslationOutputLanguage.japanese);
+      expect(result.displayedSource, 'お水が飲みたい');
+      await repository.dispose();
+    },
+  );
 }

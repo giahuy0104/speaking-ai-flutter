@@ -13,12 +13,16 @@ enum PracticeContext {
   final String label;
 }
 
+/// A conversation language, used for both the spoken source and the
+/// translation target. Vietnamese is listed last so the existing target order
+/// stays unchanged.
 enum TranslationOutputLanguage {
   english('en', 'Tiếng Anh', 'en-US'),
   chinese('zh', 'Tiếng Trung', 'zh-CN'),
   japanese('ja', 'Tiếng Nhật', 'ja-JP'),
   korean('ko', 'Tiếng Hàn', 'ko-KR'),
-  french('fr', 'Tiếng Pháp', 'fr-FR');
+  french('fr', 'Tiếng Pháp', 'fr-FR'),
+  vietnamese('vi', 'Tiếng Việt', 'vi-VN');
 
   const TranslationOutputLanguage(this.apiValue, this.label, this.speechLocale);
 
@@ -31,7 +35,23 @@ enum TranslationOutputLanguage {
         (language) => language.apiValue == code,
         orElse: () => TranslationOutputLanguage.english,
       );
+
+  /// Records and requests from before multilingual pairs are Vietnamese.
+  static TranslationOutputLanguage sourceFromCode(Object? code) =>
+      TranslationOutputLanguage.values.firstWhere(
+        (language) => language.apiValue == code,
+        orElse: () => TranslationOutputLanguage.vietnamese,
+      );
 }
+
+/// Whether a source/target pair is the original Vietnamese → English path,
+/// which owns local exact rules, previews, offline fallback and learning.
+bool isVietnameseToEnglishPair(
+  TranslationOutputLanguage source,
+  TranslationOutputLanguage target,
+) =>
+    source == TranslationOutputLanguage.vietnamese &&
+    target == TranslationOutputLanguage.english;
 
 enum AsrMode {
   androidStreaming('android_streaming', 'Chế độ tiêu chuẩn'),
@@ -175,6 +195,8 @@ class ConversationResult {
     required this.context,
     required this.vietnameseText,
     required this.englishText,
+    this.sourceLanguage = TranslationOutputLanguage.vietnamese,
+    this.sourceText,
     this.outputLanguage = TranslationOutputLanguage.english,
     this.translatedText,
     required this.audioUri,
@@ -203,6 +225,10 @@ class ConversationResult {
       ),
       vietnameseText: json['vietnameseText'] as String? ?? '',
       englishText: json['englishText'] as String? ?? '',
+      sourceLanguage: TranslationOutputLanguage.sourceFromCode(
+        json['sourceLanguage'],
+      ),
+      sourceText: json['sourceText'] as String?,
       outputLanguage: TranslationOutputLanguage.fromCode(
         json['targetLanguage'],
       ),
@@ -231,8 +257,21 @@ class ConversationResult {
   final PracticeContext context;
   final String vietnameseText;
   final String englishText;
+
+  /// Language the turn was spoken in; older records are Vietnamese.
+  final TranslationOutputLanguage sourceLanguage;
+  final String? sourceText;
   final TranslationOutputLanguage outputLanguage;
   final String? translatedText;
+
+  /// Transcript in [sourceLanguage]. Older records only have vietnameseText.
+  String get displayedSource {
+    final text = sourceText;
+    return text == null || text.trim().isEmpty ? vietnameseText : text;
+  }
+
+  bool get isVietnameseToEnglish =>
+      isVietnameseToEnglishPair(sourceLanguage, outputLanguage);
   String get displayedTranslation =>
       outputLanguage == TranslationOutputLanguage.english
       ? englishText
@@ -274,6 +313,8 @@ class ConversationHistoryItem {
     required this.conversationId,
     required this.vietnameseText,
     required this.englishText,
+    this.sourceLanguage = TranslationOutputLanguage.vietnamese,
+    this.sourceText,
     this.outputLanguage = TranslationOutputLanguage.english,
     this.translatedText,
     required this.createdAt,
@@ -311,6 +352,10 @@ class ConversationHistoryItem {
       conversationId: json['conversationId'] as String? ?? '',
       vietnameseText: json['vietnameseText'] as String? ?? '',
       englishText: json['englishText'] as String? ?? '',
+      sourceLanguage: TranslationOutputLanguage.sourceFromCode(
+        json['sourceLanguage'],
+      ),
+      sourceText: json['sourceText'] as String?,
       outputLanguage: TranslationOutputLanguage.fromCode(
         json['targetLanguage'],
       ),
@@ -344,8 +389,21 @@ class ConversationHistoryItem {
   final String conversationId;
   final String vietnameseText;
   final String englishText;
+
+  /// Language the turn was spoken in; older records are Vietnamese.
+  final TranslationOutputLanguage sourceLanguage;
+  final String? sourceText;
   final TranslationOutputLanguage outputLanguage;
   final String? translatedText;
+
+  /// Transcript in [sourceLanguage]. Older records only have vietnameseText.
+  String get displayedSource {
+    final text = sourceText;
+    return text == null || text.trim().isEmpty ? vietnameseText : text;
+  }
+
+  bool get isVietnameseToEnglish =>
+      isVietnameseToEnglishPair(sourceLanguage, outputLanguage);
   String get displayedTranslation =>
       outputLanguage == TranslationOutputLanguage.english
       ? englishText
@@ -380,6 +438,8 @@ class ConversationHistoryItem {
       conversationId: conversationId,
       vietnameseText: vietnameseText,
       englishText: englishText,
+      sourceLanguage: sourceLanguage,
+      sourceText: sourceText,
       outputLanguage: outputLanguage,
       translatedText: translatedText,
       createdAt: createdAt,
