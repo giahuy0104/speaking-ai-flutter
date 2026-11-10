@@ -7,11 +7,10 @@ const _limitedModeKey = 'homi.parental-privacy-consent.limited-mode';
 class PrivacyConsentStore {
   const PrivacyConsentStore();
 
-  // Version 3 explicitly names Railway, Cloudflare Workers AI and Cloudinary,
-  // together with the data each provider receives and its purpose. Existing
-  // grants must be confirmed again because Apple requires this disclosure to
-  // be shown before voice data is sent to third parties.
-  static const int currentVersion = 3;
+  // Version 4 reflects the backend hosting change from Railway to the VPS
+  // provider. Existing grants must be confirmed again before voice data is
+  // sent to the updated set of processors.
+  static const int currentVersion = 4;
 
   Future<bool> readGranted() async {
     try {

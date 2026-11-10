@@ -35,7 +35,7 @@
    - `PRIVACY_POLICY_URL=https://homi-app-privacy.lixiang22.chatgpt.site/privacy`
    - `TERMS_URL=https://homi-app-privacy.lixiang22.chatgpt.site/terms`
    - `SUPPORT_URL=https://homi-app-privacy.lixiang22.chatgpt.site/support`
-   - `AI_SUBPROCESSORS=Railway (hạ tầng backend HOMI), Cloudflare Workers AI (nhận dạng, dịch và tạo giọng đọc), Cloudinary (lưu bản ghi để phụ huynh nghe lại)`
+   - `AI_SUBPROCESSORS=thuecloud.com (hạ tầng VPS vận hành backend HOMI), Cloudflare Workers AI (nhận dạng, dịch và tạo giọng đọc), Cloudinary (lưu bản ghi để phụ huynh nghe lại), Google ML Kit (cung cấp model dịch chạy cục bộ)`
    - `DATA_RETENTION_SUMMARY=HOMI chỉ hiển thị tối đa 3 audio gần nhất trong Lịch sử gần đây. Audio người dùng được lưu tối đa 30 ngày; transcript và lịch sử tương tác tối đa 180 ngày; chẩn đoán kỹ thuật tối đa 30 ngày. Phụ huynh có thể xóa riêng hoặc rút chấp thuận để xóa ngay toàn bộ dữ liệu liên quan.`
 7. Run the `ios-app-store` workflow manually. It fetches the matching App Store
    signing assets, builds a signed IPA and uploads it to App Store Connect.
@@ -122,7 +122,7 @@ production backend actually implements the same claims.
 
 - Choose one primary Kids Category age band: 5 and under, 6–8, or 9–11. The
   current product range 3–15 does not map to one Apple Kids age band.
-- Publish a Privacy Policy that names Railway/HOMI infrastructure, Cloudflare
+- Publish a Privacy Policy that names thuecloud.com/HOMI infrastructure, Cloudflare
   and every other real subprocessor that receives child data. HOMI currently
   does not use OpenAI.
 - Define separate TTL/retention for raw audio, transcripts, history, telemetry,

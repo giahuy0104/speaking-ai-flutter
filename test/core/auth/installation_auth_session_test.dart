@@ -55,6 +55,57 @@ void main() {
     expect(store.value?.refreshToken, 'refresh-1');
   });
 
+  test('registers on the new backend before reusing stored tokens', () async {
+    for (final storedBackendUrl in <String?>[
+      'https://old-backend.example',
+      null,
+    ]) {
+      final store = _MemoryCredentialStore()
+        ..value = InstallationCredentials(
+          clientId: 'android_test-installation',
+          installationSecret: 'existing-installation-secret-1234567890',
+          backendBaseUrl: storedBackendUrl,
+          accessToken: 'old-access',
+          accessTokenExpiresAt: DateTime.now().toUtc().add(
+            const Duration(hours: 1),
+          ),
+          refreshToken: 'old-refresh',
+          refreshTokenExpiresAt: DateTime.now().toUtc().add(
+            const Duration(days: 1),
+          ),
+        );
+      var registrations = 0;
+      final session = InstallationAuthSession(
+        config: config,
+        clientIdProvider: () async => 'android_test-installation',
+        store: store,
+        transport: MockClient((request) async {
+          expect(request.url, config.resolve('/api/installations/register'));
+          final body = jsonDecode(request.body) as Map<String, dynamic>;
+          expect(body['clientId'], 'android_test-installation');
+          expect(
+            body['installationSecret'],
+            'existing-installation-secret-1234567890',
+          );
+          registrations += 1;
+          return http.Response(
+            jsonEncode(_sessionResponse('new-access', 'new-refresh')),
+            201,
+          );
+        }),
+      );
+
+      expect(await session.accessToken(), 'new-access');
+      expect(registrations, 1);
+      expect(store.value?.clientId, 'android_test-installation');
+      expect(store.value?.backendBaseUrl, config.backendBaseUri.toString());
+      expect(
+        InstallationCredentials.fromJson(store.value!.toJson())?.backendBaseUrl,
+        config.backendBaseUri.toString(),
+      );
+    }
+  });
+
   test('does not overwrite a scoped audio upload token', () async {
     final session = InstallationAuthSession(
       config: config,

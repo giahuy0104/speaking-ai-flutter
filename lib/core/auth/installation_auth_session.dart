@@ -101,6 +101,15 @@ class InstallationAuthSession {
       await _store.clear();
       current = null;
     }
+    if (current != null &&
+        current.backendBaseUrl != _config.backendBaseUri.toString()) {
+      // Credentials from an older backend may contain valid-looking tokens.
+      // Keep the installation identity and secret for idempotent registration.
+      current = InstallationCredentials(
+        clientId: current.clientId,
+        installationSecret: current.installationSecret,
+      );
+    }
     if (current?.hasUsableAccessToken == true) {
       _credentials = current;
       return current!;
@@ -222,6 +231,7 @@ class InstallationAuthSession {
     final credentials = InstallationCredentials(
       clientId: clientId,
       installationSecret: installationSecret,
+      backendBaseUrl: _config.backendBaseUri.toString(),
       accessToken: accessToken,
       accessTokenExpiresAt: DateTime.parse(accessExpiresAt).toUtc(),
       refreshToken: refreshToken,

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/application/offline_language_service.dart';
+import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_models.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -35,7 +36,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('ML Kit offline Vietnamese-English translator', () {
-    test('downloads both language models over Wi-Fi and translates', () async {
+    test('downloads Vietnamese over Wi-Fi and translates to English', () async {
       final adapter = _FakeTranslationAdapter();
       final translator = MlKitOfflineVietnameseEnglishTranslator(
         adapter: adapter,
@@ -44,7 +45,7 @@ void main() {
 
       expect(await translator.modelsReady(), isFalse);
       expect(await translator.downloadModels(), isTrue);
-      expect(adapter.downloads, <String>['vi:wifi', 'en:wifi']);
+      expect(adapter.downloads, <String>['vi:wifi']);
       expect(
         await translator.translate('Con muốn uống nước'),
         'Can I have some water?',
@@ -63,7 +64,7 @@ void main() {
       );
 
       expect(await translator.downloadModels(), isTrue);
-      expect(adapter.downloads, <String>['en:wifi']);
+      expect(adapter.downloads, isEmpty);
     });
 
     test('rejects translation while a language model is missing', () async {
@@ -83,6 +84,63 @@ void main() {
         ),
       );
     });
+
+    test('prepares all five offline outputs with one operation', () async {
+      final adapter = _FakeTranslationAdapter(installed: <String>{'vi', 'ja'});
+      final translator = MlKitOfflineVietnameseEnglishTranslator(
+        adapter: adapter,
+        enabled: true,
+      );
+
+      expect(await translator.downloadAllModels(), isTrue);
+      expect(
+        adapter.downloads,
+        unorderedEquals(<String>['zh:wifi', 'ko:wifi', 'fr:wifi']),
+      );
+      for (final language in TranslationOutputLanguage.values) {
+        expect(await translator.modelsReadyFor(language), isTrue);
+      }
+      expect(
+        await translator.translateTo(
+          'Xin chào',
+          TranslationOutputLanguage.korean,
+        ),
+        'ko:Xin chào',
+      );
+      await translator.close();
+    });
+
+    test(
+      'a missing target pack does not claim that language is ready',
+      () async {
+        final adapter = _FakeTranslationAdapter(
+          installed: <String>{'vi', 'zh'},
+        );
+        final translator = MlKitOfflineVietnameseEnglishTranslator(
+          adapter: adapter,
+          enabled: true,
+        );
+        expect(
+          await translator.modelsReadyFor(TranslationOutputLanguage.chinese),
+          isTrue,
+        );
+        expect(
+          await translator.modelsReadyFor(TranslationOutputLanguage.french),
+          isFalse,
+        );
+        await expectLater(
+          translator.translateTo('Xin chào', TranslationOutputLanguage.french),
+          throwsA(
+            isA<PlatformException>().having(
+              (error) => error.code,
+              'code',
+              'OFFLINE_TRANSLATION_MODEL_UNAVAILABLE',
+            ),
+          ),
+        );
+        await translator.close();
+      },
+    );
   });
 
   test(
@@ -139,7 +197,7 @@ void main() {
     );
     expect(await translator.modelsReady(), isFalse);
     expect(await translator.downloadModels(), isTrue);
-    expect(adapter.downloads, <String>['vi:wifi', 'en:wifi']);
+    expect(adapter.downloads, <String>['vi:wifi']);
     expect(
       await translator.translate('Con muốn uống nước'),
       'Can I have some water?',
@@ -147,7 +205,7 @@ void main() {
     await translator.close();
   });
 
-  test('iOS queues both downloads before the first one finishes', () async {
+  test('iOS queues all five packs before the first one finishes', () async {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
 
@@ -156,15 +214,24 @@ void main() {
     final translator = MlKitOfflineVietnameseEnglishTranslator(
       adapter: adapter,
     );
-    final pending = translator.downloadModels();
+    final pending = translator.downloadAllModels();
     await Future<void>.delayed(Duration.zero);
-    expect(adapter.downloads, <String>['vi:wifi', 'en:wifi']);
+    expect(
+      adapter.downloads,
+      unorderedEquals(<String>[
+        'vi:wifi',
+        'zh:wifi',
+        'ja:wifi',
+        'ko:wifi',
+        'fr:wifi',
+      ]),
+    );
     gate.complete();
     expect(await pending, isTrue);
     await translator.close();
   });
 
-  test('iOS translates both directions using installed native packs', () async {
+  test('iOS routes English, Japanese and reverse translation to native packs', () async {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
     const channel = MethodChannel('google_mlkit_on_device_translator');
@@ -174,6 +241,7 @@ void main() {
           calls.add(call);
           if (call.method == 'nlp#manageLanguageModelModels') return true;
           if (call.method == 'nlp#startLanguageTranslator') {
+            if ((call.arguments as Map)['target'] == 'ja') return '水が飲みたいです。';
             return (call.arguments as Map)['source'] == 'en'
                 ? 'Con muốn uống nước'
                 : 'Can I have some water?';
@@ -194,6 +262,13 @@ void main() {
       await reverse.translate('Can I have some water?'),
       'Con muốn uống nước',
     );
+    expect(
+      await forward.translateTo(
+        'Con muốn uống nước',
+        TranslationOutputLanguage.japanese,
+      ),
+      '水が飲みたいです。',
+    );
     final translationCalls = calls
         .where((call) => call.method == 'nlp#startLanguageTranslator')
         .toList();
@@ -201,6 +276,8 @@ void main() {
     expect(translationCalls[0].arguments, containsPair('target', 'en'));
     expect(translationCalls[1].arguments, containsPair('source', 'en'));
     expect(translationCalls[1].arguments, containsPair('target', 'vi'));
+    expect(translationCalls[2].arguments, containsPair('source', 'vi'));
+    expect(translationCalls[2].arguments, containsPair('target', 'ja'));
     expect(
       calls.where(
         (call) =>
@@ -288,7 +365,8 @@ void main() {
   );
 }
 
-class _FakeTranslationAdapter implements OfflineTranslationAdapter {
+class _FakeTranslationAdapter
+    implements OfflineTranslationAdapter, OfflineTargetTranslationAdapter {
   _FakeTranslationAdapter({Set<String>? installed, this.vietnameseDownloadGate})
     : installed = installed ?? <String>{};
 
@@ -307,6 +385,7 @@ class _FakeTranslationAdapter implements OfflineTranslationAdapter {
     String languageCode, {
     required bool wifiOnly,
   }) async {
+    if (installed.contains(languageCode)) return true;
     downloads.add('$languageCode:${wifiOnly ? 'wifi' : 'any'}');
     if (languageCode == 'vi') await vietnameseDownloadGate?.future;
     installed.add(languageCode);
@@ -317,6 +396,15 @@ class _FakeTranslationAdapter implements OfflineTranslationAdapter {
   Future<String> translate(String text) async {
     translatedTexts.add(text);
     return 'Can I have some water?';
+  }
+
+  @override
+  Future<String> translateTo(
+    String text,
+    TranslationOutputLanguage language,
+  ) async {
+    translatedTexts.add(text);
+    return '${language.apiValue}:$text';
   }
 
   @override

@@ -13,7 +13,7 @@ void main() {
     'requires renewed consent after third-party disclosure changes',
     () async {
       SharedPreferences.setMockInitialValues(<String, Object>{
-        'homi.parental-privacy-consent.version': 2,
+        'homi.parental-privacy-consent.version': 3,
       });
 
       expect(await const PrivacyConsentStore().readGranted(), isFalse);

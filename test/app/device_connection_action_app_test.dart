@@ -280,7 +280,7 @@ Future<_NativeAppHarness> _pumpApp(
     'innotrik.child-age.v1': 6,
     'homi.parent-setup.version': 1,
     'innotrik.user-onboarding.version': 1,
-    if (grantPrivacy) 'homi.parental-privacy-consent.version': 3,
+    if (grantPrivacy) 'homi.parental-privacy-consent.version': 4,
     if (!grantPrivacy) 'homi.parental-privacy-consent.limited-mode': true,
   });
   final app = _NativeAppHarness(tester);

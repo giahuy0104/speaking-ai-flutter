@@ -2,6 +2,7 @@ class InstallationCredentials {
   const InstallationCredentials({
     required this.clientId,
     required this.installationSecret,
+    this.backendBaseUrl,
     this.accessToken,
     this.accessTokenExpiresAt,
     this.refreshToken,
@@ -10,6 +11,7 @@ class InstallationCredentials {
 
   final String clientId;
   final String installationSecret;
+  final String? backendBaseUrl;
   final String? accessToken;
   final DateTime? accessTokenExpiresAt;
   final String? refreshToken;
@@ -40,6 +42,7 @@ class InstallationCredentials {
   InstallationCredentials withoutAccessToken() => InstallationCredentials(
     clientId: clientId,
     installationSecret: installationSecret,
+    backendBaseUrl: backendBaseUrl,
     refreshToken: refreshToken,
     refreshTokenExpiresAt: refreshTokenExpiresAt,
   );
@@ -47,6 +50,7 @@ class InstallationCredentials {
   Map<String, Object?> toJson() => <String, Object?>{
     'clientId': clientId,
     'installationSecret': installationSecret,
+    if (backendBaseUrl != null) 'backendBaseUrl': backendBaseUrl,
     if (accessToken != null) 'accessToken': accessToken,
     if (accessTokenExpiresAt != null)
       'accessTokenExpiresAt': accessTokenExpiresAt!.toUtc().toIso8601String(),
@@ -70,6 +74,7 @@ class InstallationCredentials {
     return InstallationCredentials(
       clientId: clientId.trim(),
       installationSecret: installationSecret.trim(),
+      backendBaseUrl: _stringOrNull(value['backendBaseUrl']),
       accessToken: _stringOrNull(value['accessToken']),
       accessTokenExpiresAt: _dateOrNull(value['accessTokenExpiresAt']),
       refreshToken: _stringOrNull(value['refreshToken']),

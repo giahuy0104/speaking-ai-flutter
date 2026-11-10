@@ -46,6 +46,167 @@ void main() {
     }),
   );
 
+  testWidgets(
+    'step 1 consent starts offline translation while setup remains open',
+    (tester) async {
+      final native = await _launch(
+        tester,
+        setupComplete: false,
+        fullConsent: true,
+        storedConsent: false,
+      );
+      expect(find.byType(StartupSetupScreen), findsOneWidget);
+      expect(native.translationScheduleCalls, isEmpty);
+      expect(native.translationDownloads, isEmpty);
+
+      await tester.tap(find.byKey(const Key('startup-confirm-adult-role')));
+      await tester.pump();
+      await _completeLegalReview(tester);
+      final consentButton = find.byKey(
+        const Key('startup-grant-privacy-consent'),
+      );
+      await tester.ensureVisible(consentButton);
+      await tester.tap(consentButton);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(StartupSetupScreen), findsOneWidget);
+      expect(find.text('Bé đang ở độ tuổi nào?'), findsOneWidget);
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        expect(native.translationScheduleCalls, hasLength(1));
+        expect(native.modelRequestCalls, hasLength(1));
+      } else {
+        expect(
+          native.translationDownloads.map(
+            (call) => (call.arguments as Map)['model'],
+          ),
+          unorderedEquals(<String>['vi', 'zh', 'ja', 'ko', 'fr']),
+        );
+        expect(native.backgroundSpeechCalls, isEmpty);
+      }
+      await native.close();
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
+  testWidgets(
+    'unfinished setup resumes offline translation after prior consent',
+    (tester) async {
+      final native = await _launch(
+        tester,
+        setupComplete: false,
+        fullConsent: true,
+      );
+      expect(find.byType(StartupSetupScreen), findsOneWidget);
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        expect(native.translationScheduleCalls, hasLength(1));
+      } else {
+        expect(native.translationDownloads, hasLength(5));
+        expect(native.backgroundSpeechCalls, isEmpty);
+      }
+      await native.close();
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
+  testWidgets(
+    'old consent reopens setup and blocks offline work until renewed',
+    (tester) async {
+      final native = await _launch(
+        tester,
+        fullConsent: true,
+        storedConsentVersion: 3,
+      );
+      expect(find.byType(StartupSetupScreen), findsOneWidget);
+      expect(find.byType(HomeLearningShell), findsNothing);
+      expect(native.translationScheduleCalls, isEmpty);
+      expect(native.translationDownloads, isEmpty);
+
+      await tester.tap(find.byKey(const Key('startup-confirm-adult-role')));
+      await tester.pump();
+      await _completeLegalReview(tester);
+      await tester.tap(find.byKey(const Key('startup-grant-privacy-consent')));
+      await tester.pumpAndSettle();
+
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        expect(native.translationScheduleCalls, hasLength(1));
+      } else {
+        expect(native.translationDownloads, hasLength(5));
+      }
+      await native.close();
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
+  testWidgets(
+    'limited mode does not start offline translation',
+    (tester) async {
+      final native = await _launch(tester, setupComplete: false);
+      expect(find.byType(StartupSetupScreen), findsOneWidget);
+      expect(native.translationScheduleCalls, isEmpty);
+      expect(native.translationDownloads, isEmpty);
+      await native.close();
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
+  testWidgets(
+    'Android limited mode after step 1 cancels queued translation',
+    (tester) async {
+      final native = await _launch(
+        tester,
+        setupComplete: false,
+        fullConsent: true,
+        storedConsent: false,
+      );
+      await tester.tap(find.byKey(const Key('startup-confirm-adult-role')));
+      await tester.pump();
+      await _completeLegalReview(tester);
+      await tester.tap(find.byKey(const Key('startup-grant-privacy-consent')));
+      await tester.pumpAndSettle();
+      expect(native.translationScheduleCalls, hasLength(1));
+
+      await tester.tap(find.byKey(const ValueKey('startup-age-8-10')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('startup-next')));
+      await tester.pumpAndSettle();
+      final limited = find.byKey(
+        const Key('startup-continue-without-voice-after-consent'),
+      );
+      await tester.ensureVisible(limited);
+      await tester.tap(limited);
+      await tester.pumpAndSettle();
+      expect(native.translationCancelCalls, hasLength(1));
+      await tester.pump(const Duration(seconds: 35));
+      expect(native.translationScheduleCalls, hasLength(1));
+      await native.close();
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  testWidgets('iOS limited Home status does not prepare speech assets', (
+    tester,
+  ) async {
+    final native = await _launch(tester);
+    final home = tester.widget<HomeLearningShell>(
+      find.byType(HomeLearningShell),
+    );
+    expect(await home.offlineLanguageReady!(), isFalse);
+    expect(native.backgroundSpeechCalls, isEmpty);
+    await native.close();
+  }, variant: ios);
+
   testWidgets('iOS does not prepare Topic assets before onboarding completes', (
     tester,
   ) async {
@@ -78,7 +239,7 @@ void main() {
         native.translationDownloads.map(
           (call) => (call.arguments as Map)['model'],
         ),
-        ['vi', 'en'],
+        unorderedEquals(<String>['vi', 'zh', 'ja', 'ko', 'fr']),
       );
       expect(
         native.translationDownloads.every(
@@ -212,6 +373,8 @@ Future<_NativeAssets> _launch(
   WidgetTester tester, {
   bool setupComplete = true,
   bool fullConsent = false,
+  bool storedConsent = true,
+  int storedConsentVersion = 4,
   AndroidOfflineSpeechModelConsent consent =
       AndroidOfflineSpeechModelConsent.undecided,
   Future<String> Function()? prepare,
@@ -225,10 +388,11 @@ Future<_NativeAssets> _launch(
     'innotrik.child-age.v1': 6,
     if (setupComplete) 'homi.parent-setup.version': 1,
     'innotrik.user-onboarding.version': 1,
-    'homi.parental-privacy-consent.version': 3,
+    if (storedConsent)
+      'homi.parental-privacy-consent.version': storedConsentVersion,
     // Most cases use browse-only mode; the automatic-download case supplies
     // complete privacy configuration below.
-    'homi.parental-privacy-consent.limited-mode': !fullConsent,
+    'homi.parental-privacy-consent.limited-mode': storedConsent && !fullConsent,
     'homi.offline-language-packs-consent.v2': consent.name,
   });
   final native = _NativeAssets(tester, prepare ?? () async => 'installed');
@@ -264,6 +428,9 @@ class _NativeAssets {
   final topicCalls = <MethodCall>[];
   final backgroundSpeechCalls = <MethodCall>[];
   final translationDownloads = <MethodCall>[];
+  final translationScheduleCalls = <MethodCall>[];
+  final translationCancelCalls = <MethodCall>[];
+  final modelRequestCalls = <MethodCall>[];
   final installedTranslationModels = <String>{};
   final directory = Directory.systemTemp.createTempSync('homi-topic-app-');
   static const channels = [
@@ -282,6 +449,7 @@ class _NativeAssets {
     'com.ryanheise.audio_session',
     'plugins.flutter.io/path_provider',
     'google_mlkit_on_device_translator',
+    'homi_offline_speech',
   ];
   void install() {
     AndroidFlutterLocalNotificationsPlugin.registerWith();
@@ -304,6 +472,24 @@ class _NativeAssets {
               return installedTranslationModels.contains(args!['model']);
             }
             return null;
+          }
+          if (name == 'homi_offline_speech') {
+            if (call.method == 'translation.scheduleDownload') {
+              translationScheduleCalls.add(call);
+              return true;
+            }
+            if (call.method == 'translation.cancelDownload') {
+              translationCancelCalls.add(call);
+              return true;
+            }
+            if (call.method == 'model.status') {
+              return <String, Object?>{'state': 'not_installed'};
+            }
+            if (call.method == 'model.requestDownload') {
+              modelRequestCalls.add(call);
+              return <String, Object?>{'state': 'requested'};
+            }
+            if (call.method == 'model.cancelDownload') return null;
           }
           if (call.method == 'speech.prepareTopicAssets') {
             topicCalls.add(call);
@@ -360,4 +546,24 @@ class _NativeAssets {
     }
     directory.deleteSync(recursive: true);
   }
+}
+
+Future<void> _completeLegalReview(WidgetTester tester) async {
+  final review = find.byKey(const Key('startup-review-legal'));
+  await tester.ensureVisible(review);
+  await tester.tap(review);
+  await tester.pumpAndSettle();
+
+  final reviewed = find.byKey(const Key('startup-legal-reviewed'));
+  for (var attempt = 0; attempt < 6; attempt += 1) {
+    if (tester.widget<FilledButton>(reviewed).onPressed != null) break;
+    await tester.drag(
+      find.byKey(const Key('startup-legal-scroll')),
+      const Offset(0, -480),
+    );
+    await tester.pumpAndSettle();
+  }
+  expect(tester.widget<FilledButton>(reviewed).onPressed, isNotNull);
+  await tester.tap(reviewed);
+  await tester.pumpAndSettle();
 }
