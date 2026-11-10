@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_turn_coordinator.dart';
+import 'package:ai_speaking_flutter_app/features/listening/application/lesson_media_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -320,6 +321,60 @@ void main() {
       expect(released, isEmpty);
     });
   });
+
+  for (final recordedTake in [false, true]) {
+    test(
+      '${recordedTake ? "recording" : "authored clip"} source-end fallback releases audio before the next prompt',
+      () async {
+        final coordinator = AudioTurnCoordinator();
+        addTearDown(coordinator.dispose);
+        final player = ControlledPlayer();
+        final cache = ControlledCache();
+        final playback = JustAudioPlaybackService(
+          player: player,
+          cache: cache,
+          audioTurnCoordinator: coordinator,
+          audioTurnOwner: AudioTurnOwner.vocabulary,
+        );
+        final media = LessonMediaService(playbackService: playback);
+        addTearDown(() async {
+          await media.dispose();
+          cache.dispose();
+        });
+
+        final completion = recordedTake
+            ? media.playRecordedTakeToCompletion(uri)
+            : media.playToCompletion(uri);
+        completion.ignore();
+        await cache.resolveEntered.future.timeout(const Duration(seconds: 2));
+        await flushMicrotasks();
+        expect(player.playedPaths, hasLength(1));
+        player.emitState(
+          playing: true,
+          processingState: ProcessingState.ready,
+          position: const Duration(milliseconds: 500),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 150));
+        final prompt = coordinator.acquire(
+          owner: AudioTurnOwner.vocabulary,
+          mode: AudioTurnMode.promptPlayback,
+        );
+        prompt.ignore();
+        expect(coordinator.pendingCount, 1);
+
+        // HM-D001 can finish the recording without a native completed event.
+        player.emitState(
+          playing: false,
+          processingState: ProcessingState.ready,
+          position: const Duration(seconds: 2),
+        );
+        await completion.timeout(const Duration(seconds: 2));
+        final lease = await prompt.timeout(const Duration(milliseconds: 200));
+        expect(releasedFocus, contains(acquiredFocus.last));
+        await lease.release();
+      },
+    );
+  }
 
   test(
     'queued old completion cannot release replacement audio leases',

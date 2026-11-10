@@ -431,6 +431,7 @@ class LessonMediaService {
     Timer? endPositionTimer;
     DateTime? endPositionObservedAt;
     var observedProgressWhilePlaying = false;
+    var inferredSourceEnd = false;
     final CompletionAwareAudioPlaybackService? completionPlayback =
         playback is CompletionAwareAudioPlaybackService
         ? playback as CompletionAwareAudioPlaybackService
@@ -566,6 +567,7 @@ class LessonMediaService {
             'HOMI lesson playback completion inferred at source end: '
             'position=$position duration=$duration',
           );
+          inferredSourceEnd = true;
           completed.complete();
         });
       }
@@ -575,6 +577,13 @@ class LessonMediaService {
           ? null
           : listenForCompletion(completionPlayback.completionStream);
       await completed.future.timeout(timeout);
+      if (inferredSourceEnd) {
+        // No native completion event will release this player's audio turn.
+        // Retire the finished source before the next prompt queues for it.
+        _requireCurrentPlayback(generation);
+        await playback.stop();
+        _requireCurrentPlayback(generation);
+      }
     } on TimeoutException {
       final progress = playback is ProgressAwareAudioPlaybackService
           ? playback as ProgressAwareAudioPlaybackService
