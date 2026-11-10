@@ -1135,7 +1135,7 @@ class _LegalReviewSheetState extends State<_LegalReviewSheet> {
                       title: 'Bên thứ ba nhận dữ liệu và mục đích',
                       text:
                           'Các nhà cung cấp được cấu hình cho bản này: ${widget.aiSubprocessors}. '
-                          'Railway nhận dữ liệu cần thiết để vận hành backend HOMI và xử lý yêu cầu. '
+                          'Nhà cung cấp VPS vận hành backend HOMI nhận dữ liệu cần thiết để xử lý yêu cầu. '
                           'Cloudflare Workers AI nhận audio khi cần nhận dạng dự phòng và nhận transcript cần thiết để nhận dạng, dịch hoặc tạo giọng đọc. '
                           'Cloudinary nhận và lưu bản ghi giọng nói có kiểm soát để phụ huynh nghe lại trong Lịch sử gần đây. '
                           'Các nhà cung cấp này chỉ được xử lý dữ liệu cho các mục đích HOMI mô tả, phải áp dụng biện pháp bảo vệ dữ liệu tương đương và không được dùng dữ liệu cho quảng cáo hoặc huấn luyện mô hình nếu chưa có chấp thuận riêng.',

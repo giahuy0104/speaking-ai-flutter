@@ -714,7 +714,7 @@ Future<_NativeApp> _pumpApp(
     'innotrik.child-age.v1': 6,
     if (setupCompleted) 'homi.parent-setup.version': 1,
     'innotrik.user-onboarding.version': 1,
-    'homi.parental-privacy-consent.version': 3,
+    'homi.parental-privacy-consent.version': 4,
   });
   final app = _NativeApp(
     tester,

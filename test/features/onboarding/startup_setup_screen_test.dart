@@ -418,7 +418,7 @@ void main() {
               homiBleConnected: bleConnected,
               homiHfpConfigured: hfpConfigured,
               selectedAge: selectedAge,
-              aiSubprocessors: 'HOMI backend trên Railway và Cloudflare',
+              aiSubprocessors: 'thuecloud.com và Cloudflare',
               dataRetentionSummary: 'Audio được xóa sau 24 giờ.',
               privacyPolicyUri: Uri.parse('https://example.com/privacy'),
               termsUri: Uri.parse('https://example.com/terms'),
@@ -547,7 +547,7 @@ void main() {
             homiBleConnected: false,
             homiHfpConfigured: false,
             selectedAge: age,
-            aiSubprocessors: 'Railway và Cloudflare',
+            aiSubprocessors: 'thuecloud.com và Cloudflare',
             dataRetentionSummary: 'Theo chính sách công khai.',
             onGrantPrivacyConsent: () async {},
             onContinueWithoutVoice: () async {
@@ -613,7 +613,7 @@ void main() {
           homiHfpConfigured: false,
           allowPhoneMicFallback: true,
           selectedAge: 8,
-          aiSubprocessors: 'Railway và Cloudflare',
+          aiSubprocessors: 'thuecloud.com và Cloudflare',
           dataRetentionSummary: 'Theo chính sách công khai.',
           onGrantPrivacyConsent: () async {},
           onContinueWithoutVoice: () async {},
@@ -683,7 +683,7 @@ void main() {
             homiHfpConfigured: false,
             allowPhoneMicFallback: true,
             selectedAge: 8,
-            aiSubprocessors: 'Railway và Cloudflare',
+            aiSubprocessors: 'thuecloud.com và Cloudflare',
             dataRetentionSummary: 'Theo chính sách công khai.',
             onGrantPrivacyConsent: () async {},
             onContinueWithoutVoice: () async {},
@@ -757,7 +757,7 @@ void main() {
               homiHfpConfigured: false,
               allowBleOnlySetup: true,
               selectedAge: 8,
-              aiSubprocessors: 'Railway và Cloudflare',
+              aiSubprocessors: 'thuecloud.com và Cloudflare',
               dataRetentionSummary: 'Theo chính sách công khai.',
               onGrantPrivacyConsent: () async {},
               onContinueWithoutVoice: () async {},
@@ -834,7 +834,7 @@ void main() {
             homiBleConnected: connected,
             homiHfpConfigured: connected,
             selectedAge: 8,
-            aiSubprocessors: 'Railway và Cloudflare',
+            aiSubprocessors: 'thuecloud.com và Cloudflare',
             dataRetentionSummary: 'Theo chính sách công khai.',
             onGrantPrivacyConsent: () async {},
             onContinueWithoutVoice: () async {},
@@ -895,7 +895,7 @@ void main() {
           homiBleConnected: false,
           homiHfpConfigured: false,
           selectedAge: null,
-          aiSubprocessors: 'Railway và Cloudflare',
+          aiSubprocessors: 'thuecloud.com và Cloudflare',
           dataRetentionSummary: 'Theo chính sách công khai.',
           privacyPolicyUri: Uri.parse('https://example.com/privacy'),
           termsUri: Uri.parse('https://example.com/terms'),
@@ -941,6 +941,8 @@ Future<void> _completeLegalReview(WidgetTester tester) async {
   await tester.pumpAndSettle();
 
   expect(find.text('Bên thứ ba nhận dữ liệu và mục đích'), findsOneWidget);
+  expect(find.textContaining('thuecloud.com'), findsOneWidget);
+  expect(find.textContaining('Railway'), findsNothing);
   expect(
     find.textContaining('biện pháp bảo vệ dữ liệu tương đương'),
     findsOneWidget,

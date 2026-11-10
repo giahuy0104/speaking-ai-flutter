@@ -8,7 +8,7 @@ $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $definesFile = Join-Path $repositoryRoot 'dart_defines.production.json'
 $apkFile = Join-Path $repositoryRoot 'build\app\outputs\flutter-apk\app-release.apk'
 $signingPropertiesFile = Join-Path $repositoryRoot 'android\key.properties'
-$expectedBackendUrl = 'https://speaking-ai-nextjs-backend-production.up.railway.app'
+$expectedBackendUrl = 'https://api.hoamytech.com'
 
 if (-not (Test-Path -LiteralPath $signingPropertiesFile)) {
   throw "Production signing requires $signingPropertiesFile."

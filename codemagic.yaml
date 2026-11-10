@@ -4,7 +4,7 @@ definitions:
       name: Build simulator and run iOS native unit tests
       script: |
         set -euo pipefail
-        EXPECTED_BACKEND_BASE_URL="https://speaking-ai-nextjs-backend-production.up.railway.app"
+        EXPECTED_BACKEND_BASE_URL="https://api.hoamytech.com"
         if [ "$BACKEND_BASE_URL" != "$EXPECTED_BACKEND_BASE_URL" ]; then
           echo "Production builds must use $EXPECTED_BACKEND_BASE_URL"
           exit 1
@@ -63,7 +63,7 @@ workflows:
       xcode: 26.6
       vars:
         BUNDLE_ID: com.innotrik.aispeaking
-        BACKEND_BASE_URL: https://speaking-ai-nextjs-backend-production.up.railway.app
+        BACKEND_BASE_URL: https://api.hoamytech.com
         REQUIRE_BACKEND_HEALTH: "true"
         USE_DEMO_BACKEND: "false"
         CHILD_AGE: "6"
@@ -98,9 +98,14 @@ workflows:
             fi
           done
 
-          EXPECTED_BACKEND_BASE_URL="https://speaking-ai-nextjs-backend-production.up.railway.app"
+          EXPECTED_BACKEND_BASE_URL="https://api.hoamytech.com"
           if [ "$BACKEND_BASE_URL" != "$EXPECTED_BACKEND_BASE_URL" ]; then
             echo "Production builds must use $EXPECTED_BACKEND_BASE_URL"
+            exit 1
+          fi
+          if [[ "$AI_SUBPROCESSORS" != *"thuecloud.com"* ]] ||
+             printf '%s' "$AI_SUBPROCESSORS" | grep -qi railway; then
+            echo "AI_SUBPROCESSORS must name thuecloud.com and exclude the retired provider."
             exit 1
           fi
 
@@ -250,7 +255,7 @@ workflows:
       flutter: 3.44.6
       xcode: 26.6
       vars:
-        BACKEND_BASE_URL: https://speaking-ai-nextjs-backend-production.up.railway.app
+        BACKEND_BASE_URL: https://api.hoamytech.com
         USE_DEMO_BACKEND: "false"
         CHILD_AGE: "6"
         PREFER_BLE_STREAMING: "false"

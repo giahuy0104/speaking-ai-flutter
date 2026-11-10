@@ -115,6 +115,38 @@ void main() {
   );
 
   testWidgets(
+    'old consent reopens setup and blocks offline work until renewed',
+    (tester) async {
+      final native = await _launch(
+        tester,
+        fullConsent: true,
+        storedConsentVersion: 3,
+      );
+      expect(find.byType(StartupSetupScreen), findsOneWidget);
+      expect(find.byType(HomeLearningShell), findsNothing);
+      expect(native.translationScheduleCalls, isEmpty);
+      expect(native.translationDownloads, isEmpty);
+
+      await tester.tap(find.byKey(const Key('startup-confirm-adult-role')));
+      await tester.pump();
+      await _completeLegalReview(tester);
+      await tester.tap(find.byKey(const Key('startup-grant-privacy-consent')));
+      await tester.pumpAndSettle();
+
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        expect(native.translationScheduleCalls, hasLength(1));
+      } else {
+        expect(native.translationDownloads, hasLength(5));
+      }
+      await native.close();
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
+  testWidgets(
     'limited mode does not start offline translation',
     (tester) async {
       final native = await _launch(tester, setupComplete: false);
@@ -342,6 +374,7 @@ Future<_NativeAssets> _launch(
   bool setupComplete = true,
   bool fullConsent = false,
   bool storedConsent = true,
+  int storedConsentVersion = 4,
   AndroidOfflineSpeechModelConsent consent =
       AndroidOfflineSpeechModelConsent.undecided,
   Future<String> Function()? prepare,
@@ -355,7 +388,8 @@ Future<_NativeAssets> _launch(
     'innotrik.child-age.v1': 6,
     if (setupComplete) 'homi.parent-setup.version': 1,
     'innotrik.user-onboarding.version': 1,
-    if (storedConsent) 'homi.parental-privacy-consent.version': 3,
+    if (storedConsent)
+      'homi.parental-privacy-consent.version': storedConsentVersion,
     // Most cases use browse-only mode; the automatic-download case supplies
     // complete privacy configuration below.
     'homi.parental-privacy-consent.limited-mode': storedConsent && !fullConsent,

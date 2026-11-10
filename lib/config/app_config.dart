@@ -1,8 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 class AppConfig {
-  static const String productionBackendBaseUrl =
-      'https://speaking-ai-nextjs-backend-production.up.railway.app';
+  static const String productionBackendBaseUrl = 'https://api.hoamytech.com';
 
   const AppConfig({
     required this.backendBaseUri,
@@ -182,7 +181,7 @@ class AppConfig {
       dataRetentionSummary.trim().isNotEmpty;
 
   String get disclosedAiSubprocessors => aiSubprocessors.trim().isEmpty
-      ? 'HOMI backend trên Railway và Cloudflare'
+      ? 'Backend HOMI trên VPS và Cloudflare'
       : aiSubprocessors.trim();
 
   String get disclosedDataRetention => dataRetentionSummary.trim().isEmpty

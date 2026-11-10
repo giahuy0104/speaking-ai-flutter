@@ -299,7 +299,7 @@ void main() {
       shell = tester.widget<HomeLearningShell>(find.byType(HomeLearningShell));
       expect(shell.privacyConsentGranted, isTrue);
       expect(shell.voiceAccessEnabled, isTrue);
-      expect(preferences.getInt('homi.parental-privacy-consent.version'), 3);
+      expect(preferences.getInt('homi.parental-privacy-consent.version'), 4);
       expect(
         preferences.getBool('homi.parental-privacy-consent.limited-mode'),
         isNull,
@@ -644,7 +644,7 @@ Future<_NativeAppHarness> _pumpApp(
     'innotrik.child-age.v1': 6,
     'homi.parent-setup.version': 1,
     'innotrik.user-onboarding.version': 1,
-    if (grantPrivacy) 'homi.parental-privacy-consent.version': 3,
+    if (grantPrivacy) 'homi.parental-privacy-consent.version': 4,
     if (!grantPrivacy) 'homi.parental-privacy-consent.limited-mode': true,
   });
   final app = _NativeAppHarness(tester);
