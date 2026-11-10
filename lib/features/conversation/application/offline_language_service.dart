@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:google_mlkit_translation/google_mlkit_translation.dart';
 
 import '../../../core/audio/audio_input.dart';
+import '../domain/conversation_models.dart';
 
 class OfflineSpeechTranscript {
   const OfflineSpeechTranscript({
@@ -83,6 +84,17 @@ abstract interface class OfflineVietnameseEnglishTranslator {
   Future<void> close();
 }
 
+abstract interface class OfflineVietnameseTargetTranslator {
+  Future<bool> modelsReadyFor(TranslationOutputLanguage language);
+
+  Future<bool> downloadAllModels({bool wifiOnly = true});
+
+  Future<String> translateTo(
+    String vietnameseText,
+    TranslationOutputLanguage language,
+  );
+}
+
 abstract interface class OfflineEnglishVietnameseTranslator {
   Future<bool> modelsReady();
 
@@ -101,7 +113,12 @@ abstract interface class OfflineTranslationAdapter {
   Future<void> close();
 }
 
-class MlKitOfflineTranslationAdapter implements OfflineTranslationAdapter {
+abstract interface class OfflineTargetTranslationAdapter {
+  Future<String> translateTo(String text, TranslationOutputLanguage language);
+}
+
+class MlKitOfflineTranslationAdapter
+    implements OfflineTranslationAdapter, OfflineTargetTranslationAdapter {
   MlKitOfflineTranslationAdapter()
     : _modelManager = OnDeviceTranslatorModelManager(),
       _translator = OnDeviceTranslator(
@@ -111,6 +128,8 @@ class MlKitOfflineTranslationAdapter implements OfflineTranslationAdapter {
 
   final OnDeviceTranslatorModelManager _modelManager;
   final OnDeviceTranslator _translator;
+  final Map<TranslationOutputLanguage, OnDeviceTranslator> _targetTranslators =
+      <TranslationOutputLanguage, OnDeviceTranslator>{};
 
   @override
   Future<bool> isModelDownloaded(String languageCode) {
@@ -128,16 +147,41 @@ class MlKitOfflineTranslationAdapter implements OfflineTranslationAdapter {
   }
 
   @override
-  Future<void> close() => _translator.close();
+  Future<String> translateTo(String text, TranslationOutputLanguage language) {
+    if (language == TranslationOutputLanguage.english) return translate(text);
+    final translator = _targetTranslators.putIfAbsent(
+      language,
+      () => OnDeviceTranslator(
+        sourceLanguage: TranslateLanguage.vietnamese,
+        targetLanguage: switch (language) {
+          TranslationOutputLanguage.chinese => TranslateLanguage.chinese,
+          TranslationOutputLanguage.japanese => TranslateLanguage.japanese,
+          TranslationOutputLanguage.korean => TranslateLanguage.korean,
+          TranslationOutputLanguage.french => TranslateLanguage.french,
+          TranslationOutputLanguage.english => TranslateLanguage.english,
+        },
+      ),
+    );
+    return translator.translateText(text);
+  }
+
+  @override
+  Future<void> close() async {
+    await Future.wait<void>(<Future<void>>[
+      _translator.close(),
+      ..._targetTranslators.values.map((translator) => translator.close()),
+    ]);
+    _targetTranslators.clear();
+  }
 }
 
-/// Android/iOS on-device Vietnamese-to-English translation.
+/// Android/iOS on-device Vietnamese translation for every output language.
 ///
-/// ML Kit downloads the Vietnamese and English language packs once, stores
-/// them in the platform model store, and performs subsequent translations
-/// without sending text or audio to a server.
+/// ML Kit stores downloaded language packs in the platform model store.
 class MlKitOfflineVietnameseEnglishTranslator
-    implements OfflineVietnameseEnglishTranslator {
+    implements
+        OfflineVietnameseEnglishTranslator,
+        OfflineVietnameseTargetTranslator {
   MlKitOfflineVietnameseEnglishTranslator({
     OfflineTranslationAdapter? adapter,
     bool? enabled,
@@ -149,7 +193,6 @@ class MlKitOfflineVietnameseEnglishTranslator
                    defaultTargetPlatform == TargetPlatform.iOS));
 
   static const String _vietnameseCode = 'vi';
-  static const String _englishCode = 'en';
 
   final OfflineTranslationAdapter _adapter;
   final bool _enabled;
@@ -158,13 +201,19 @@ class MlKitOfflineVietnameseEnglishTranslator
 
   @override
   Future<bool> modelsReady() async {
+    return modelsReadyFor(TranslationOutputLanguage.english);
+  }
+
+  @override
+  Future<bool> modelsReadyFor(TranslationOutputLanguage language) async {
     if (!_enabled || _closed) {
       return false;
     }
     try {
       final states = await Future.wait<bool>(<Future<bool>>[
         _adapter.isModelDownloaded(_vietnameseCode),
-        _adapter.isModelDownloaded(_englishCode),
+        if (language != TranslationOutputLanguage.english)
+          _adapter.isModelDownloaded(language.apiValue),
       ]);
       return states.every((ready) => ready);
     } on MissingPluginException {
@@ -211,20 +260,7 @@ class MlKitOfflineVietnameseEnglishTranslator
         return true;
       }
 
-      if (defaultTargetPlatform == TargetPlatform.iOS) {
-        final results = await Future.wait<bool>(<Future<bool>>[
-          ensureModel(_vietnameseCode),
-          ensureModel(_englishCode),
-        ]);
-        if (results.any((ready) => !ready)) return false;
-      } else {
-        for (final languageCode in const <String>[
-          _vietnameseCode,
-          _englishCode,
-        ]) {
-          if (!await ensureModel(languageCode)) return false;
-        }
-      }
+      if (!await ensureModel(_vietnameseCode)) return false;
       return modelsReady();
     } on MissingPluginException {
       return false;
@@ -235,18 +271,67 @@ class MlKitOfflineVietnameseEnglishTranslator
   }
 
   @override
+  Future<bool> downloadAllModels({bool wifiOnly = true}) async {
+    if (!_enabled || _closed) return false;
+    try {
+      final codes = <String>[
+        _vietnameseCode,
+        ...TranslationOutputLanguage.values
+            .where((language) => language != TranslationOutputLanguage.english)
+            .map((language) => language.apiValue),
+      ];
+      // Start every model request before yielding so a later consent change
+      // cannot leave only some language downloads queued.
+      final results = await Future.wait<bool>(
+        codes.map((code) => _adapter.downloadModel(code, wifiOnly: wifiOnly)),
+      );
+      if (results.any((ready) => !ready)) return false;
+      final ready = await Future.wait<bool>(
+        TranslationOutputLanguage.values.map(modelsReadyFor),
+      );
+      return ready.every((value) => value);
+    } on MissingPluginException {
+      return false;
+    } on PlatformException catch (error) {
+      debugPrint('Offline translation model download skipped: $error');
+      return false;
+    }
+  }
+
+  @override
   Future<String> translate(String vietnameseText) async {
+    return translateTo(vietnameseText, TranslationOutputLanguage.english);
+  }
+
+  @override
+  Future<String> translateTo(
+    String vietnameseText,
+    TranslationOutputLanguage language,
+  ) async {
     final source = vietnameseText.trim();
     if (source.isEmpty) {
       return '';
     }
-    if (!await modelsReady()) {
+    if (!await modelsReadyFor(language)) {
       throw PlatformException(
         code: 'OFFLINE_TRANSLATION_MODEL_UNAVAILABLE',
-        message: 'Vietnamese and English translation models are not installed.',
+        message: 'The translation models are not installed.',
       );
     }
-    return (await _adapter.translate(source)).trim();
+    if (language == TranslationOutputLanguage.english) {
+      return (await _adapter.translate(source)).trim();
+    }
+    final adapter = _adapter;
+    if (adapter is! OfflineTargetTranslationAdapter) {
+      throw PlatformException(
+        code: 'OFFLINE_TRANSLATION_TARGET_UNAVAILABLE',
+        message: 'The selected language is unavailable on this device.',
+      );
+    }
+    return (await (adapter as OfflineTargetTranslationAdapter).translateTo(
+      source,
+      language,
+    )).trim();
   }
 
   @override
@@ -289,11 +374,8 @@ class MlKitOfflineEnglishVietnameseTranslator
   Future<bool> modelsReady() async {
     if (!_enabled || _closed) return false;
     try {
-      final states = await Future.wait<bool>(<Future<bool>>[
-        _modelManager.isModelDownloaded('en'),
-        _modelManager.isModelDownloaded('vi'),
-      ]);
-      return states.every((ready) => ready);
+      // English is bundled with ML Kit on both platforms.
+      return _modelManager.isModelDownloaded('vi');
     } on MissingPluginException {
       return false;
     } on PlatformException {

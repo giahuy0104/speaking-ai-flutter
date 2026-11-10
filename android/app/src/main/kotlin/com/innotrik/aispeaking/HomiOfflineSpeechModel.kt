@@ -504,26 +504,43 @@ class HomiOfflineSpeechModelDownloadWorker(
     private class DownloadPausedException(message: String) : IOException(message)
 }
 
-/** Schedules the ML Kit models used by Vietnamese-to-English offline translation. */
+/** Schedules every ML Kit model used by Vietnamese-to-target offline translation. */
 object HomiOfflineTranslationModel {
-    private const val workName = "homi.offline-translation.vi-en"
+    const val languageKey = "language"
+    val languages = listOf(
+        TranslateLanguage.VIETNAMESE,
+        TranslateLanguage.CHINESE,
+        TranslateLanguage.JAPANESE,
+        TranslateLanguage.KOREAN,
+        TranslateLanguage.FRENCH,
+    )
+
+    private fun workName(language: String): String =
+        // Preserve the existing Vietnamese job when updating the app.
+        if (language == TranslateLanguage.VIETNAMESE) "homi.offline-translation.vi-en"
+        else "homi.offline-translation.$language"
 
     fun scheduleDownload(context: Context) {
-        val request =
-            OneTimeWorkRequestBuilder<HomiOfflineTranslationModelDownloadWorker>()
-                .setConstraints(
-                    Constraints.Builder()
-                        .setRequiredNetworkType(NetworkType.UNMETERED)
-                        .setRequiresStorageNotLow(true)
-                        .build(),
-                )
-                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
-                .build()
-        WorkManager.getInstance(context.applicationContext).enqueueUniqueWork(
-            workName,
-            ExistingWorkPolicy.KEEP,
-            request,
-        )
+        val manager = WorkManager.getInstance(context.applicationContext)
+        for (language in languages) {
+            val request =
+                OneTimeWorkRequestBuilder<HomiOfflineTranslationModelDownloadWorker>()
+                    .setInputData(workDataOf(languageKey to language))
+                    .setConstraints(
+                        Constraints.Builder()
+                            .setRequiredNetworkType(NetworkType.UNMETERED)
+                            .setRequiresStorageNotLow(true)
+                            .build(),
+                    )
+                    .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
+                    .build()
+            manager.enqueueUniqueWork(workName(language), ExistingWorkPolicy.KEEP, request)
+        }
+    }
+
+    fun cancelDownload(context: Context) {
+        val manager = WorkManager.getInstance(context.applicationContext)
+        for (language in languages) manager.cancelUniqueWork(workName(language))
     }
 }
 
@@ -532,22 +549,23 @@ class HomiOfflineTranslationModelDownloadWorker(
     workerParameters: WorkerParameters,
 ) : Worker(appContext, workerParameters) {
     override fun doWork(): Result {
+        val language = inputData.getString(HomiOfflineTranslationModel.languageKey)
+            ?: TranslateLanguage.VIETNAMESE
+        if (language !in HomiOfflineTranslationModel.languages) return Result.failure()
         if (!HomiOfflineSpeechModel.hasValidatedWifi(applicationContext)) {
             return Result.retry()
         }
         return try {
             val manager = RemoteModelManager.getInstance()
             val conditions = DownloadConditions.Builder().requireWifi().build()
-            for (language in listOf(TranslateLanguage.VIETNAMESE, TranslateLanguage.ENGLISH)) {
-                if (isStopped) return Result.retry()
-                val model = TranslateRemoteModel.Builder(language).build()
-                if (!Tasks.await(manager.isModelDownloaded(model), 30, TimeUnit.SECONDS)) {
-                    Tasks.await(manager.download(model, conditions), 8, TimeUnit.MINUTES)
-                }
+            if (isStopped) return Result.retry()
+            val model = TranslateRemoteModel.Builder(language).build()
+            if (!Tasks.await(manager.isModelDownloaded(model), 30, TimeUnit.SECONDS)) {
+                Tasks.await(manager.download(model, conditions), 8, TimeUnit.MINUTES)
             }
             Result.success()
         } catch (error: Exception) {
-            Log.w("HomiOfflineTranslation", "ML Kit model preparation deferred", error)
+            Log.w("HomiOfflineTranslation", "ML Kit $language model preparation deferred", error)
             Result.retry()
         }
     }

@@ -10,7 +10,7 @@ import MLKitCommon
 import MLKitTranslate
 #endif
 
-/// HOMI's on-device Vietnamese/English adapter. Translation never initiates a
+/// HOMI's on-device Vietnamese-to-target adapter. Translation never initiates a
 /// download: only the parent-authorized model download method can do so.
 @objc
 public final class GoogleMlKitTranslationPlugin: NSObject, FlutterPlugin {
@@ -23,7 +23,7 @@ public final class GoogleMlKitTranslationPlugin: NSObject, FlutterPlugin {
   }
 
   public static func supportsLanguage(_ tag: String) -> Bool {
-    return tag == "vi" || tag == "en"
+    return ["vi", "en", "zh", "ja", "ko", "fr"].contains(tag)
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
