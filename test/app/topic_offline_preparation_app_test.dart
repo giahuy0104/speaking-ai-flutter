@@ -5,9 +5,11 @@ import 'package:ai_speaking_flutter_app/app/ai_speaking_app.dart';
 import 'package:ai_speaking_flutter_app/config/app_config.dart';
 import 'package:ai_speaking_flutter_app/core/audio/catalog/listening_audio_prefetcher.dart';
 import 'package:ai_speaking_flutter_app/features/home/presentation/home_learning_shell.dart';
+import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/application/android_offline_speech_model_service.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/topic_listening_screen.dart';
 import 'package:ai_speaking_flutter_app/features/onboarding/presentation/startup_setup_screen.dart';
+import 'package:ai_speaking_flutter_app/features/settings/presentation/settings_sheet.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -137,6 +139,161 @@ void main() {
   }, variant: TargetPlatformVariant.only(TargetPlatform.android));
 
   testWidgets(
+    'Android schedules translation before Settings is dismissed',
+    (tester) async {
+      final speechDownload = Completer<Object?>();
+      final native = await _launch(
+        tester,
+        fullConsent: true,
+        requireLearningDevice: false,
+        modelRequest: () => speechDownload.future,
+      );
+      tester
+          .widget<ConversationScreen>(find.byType(ConversationScreen))
+          .onOpenSettings();
+      await tester.pumpAndSettle();
+      expect(find.byType(SettingsSheet), findsOneWidget);
+      final toggle = find.byKey(
+        const Key('settings-offline-language-packs-switch'),
+      );
+      await tester.ensureVisible(toggle);
+      await tester.tap(toggle);
+      await tester.pump();
+      expect(native.modelRequestCalls, isNotEmpty);
+      await tester.pumpWidget(const SizedBox.shrink());
+      speechDownload.complete(<String, Object?>{'state': 'requested'});
+      await tester.pump();
+      expect(native.translationScheduleCalls, hasLength(1));
+      await native.close();
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  testWidgets(
+    'Android limited mode does not offer offline model downloads',
+    (tester) async {
+      final native = await _launch(tester);
+      tester
+          .widget<ConversationScreen>(find.byType(ConversationScreen))
+          .onOpenSettings();
+      await tester.pumpAndSettle();
+      expect(find.byType(SettingsSheet), findsOneWidget);
+      expect(
+        find.byKey(const Key('settings-offline-language-packs-switch')),
+        findsNothing,
+      );
+      await native.close();
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  testWidgets(
+    'Android disabling cancels translation when speech cancellation fails',
+    (tester) async {
+      final scheduled = Completer<Object?>();
+      final native = await _launch(
+        tester,
+        fullConsent: true,
+        requireLearningDevice: false,
+        translationSchedule: () => scheduled.future,
+        failModelCancel: true,
+      );
+      tester
+          .widget<ConversationScreen>(find.byType(ConversationScreen))
+          .onOpenSettings();
+      await tester.pumpAndSettle();
+      final toggle = find.byKey(
+        const Key('settings-offline-language-packs-switch'),
+      );
+      await tester.ensureVisible(toggle);
+      await tester.tap(toggle);
+      await tester.pump();
+      expect(native.translationScheduleCalls, hasLength(1));
+      await tester.tap(toggle);
+      for (var i = 0; i < 12 && native.translationCancelCalls.isEmpty; i++) {
+        await tester.pump(const Duration(milliseconds: 250));
+      }
+      expect(native.translationCancelCalls, hasLength(1));
+      scheduled.complete(true);
+      for (var i = 0; i < 12 && native.translationCancelCalls.length < 2; i++) {
+        await tester.pump(const Duration(milliseconds: 250));
+      }
+      expect(native.translationCancelCalls, hasLength(2));
+      await native.close();
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  testWidgets(
+    'Android disabling during speech preparation leaves speech cancelled',
+    (tester) async {
+      final speechDownload = Completer<Object?>();
+      final native = await _launch(
+        tester,
+        fullConsent: true,
+        requireLearningDevice: false,
+        modelRequest: () => speechDownload.future,
+      );
+      tester
+          .widget<ConversationScreen>(find.byType(ConversationScreen))
+          .onOpenSettings();
+      await tester.pumpAndSettle();
+      final toggle = find.byKey(
+        const Key('settings-offline-language-packs-switch'),
+      );
+      await tester.ensureVisible(toggle);
+      await tester.tap(toggle);
+      await tester.pump();
+      expect(native.modelRequestCalls, isNotEmpty);
+      await tester.tap(toggle);
+      for (var i = 0; i < 12 && native.modelCancelCalls.isEmpty; i++) {
+        await tester.pump(const Duration(milliseconds: 250));
+      }
+      expect(native.modelCancelCalls, hasLength(1));
+      speechDownload.complete(<String, Object?>{'state': 'requested'});
+      for (var i = 0; i < 12 && native.modelCancelCalls.length < 2; i++) {
+        await tester.pump(const Duration(milliseconds: 250));
+      }
+      expect(native.modelCancelCalls, hasLength(2));
+      await native.close();
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  testWidgets(
+    'Android privacy revocation continues when speech cancellation fails',
+    (tester) async {
+      final native = await _launch(
+        tester,
+        fullConsent: true,
+        consent: AndroidOfflineSpeechModelConsent.allowed,
+        requireLearningDevice: false,
+        failModelCancel: true,
+      );
+      expect(native.translationScheduleCalls, isNotEmpty);
+      tester
+          .widget<ConversationScreen>(find.byType(ConversationScreen))
+          .onOpenSettings();
+      for (
+        var i = 0;
+        i < 12 && find.byType(SettingsSheet).evaluate().isEmpty;
+        i++
+      ) {
+        await tester.pump(const Duration(milliseconds: 250));
+      }
+      final settings = tester.widget<SettingsSheet>(find.byType(SettingsSheet));
+      unawaited(settings.onRevokePrivacyConsent!());
+      for (var i = 0; i < 24 && native.translationCancelCalls.isEmpty; i++) {
+        await tester.pump(const Duration(milliseconds: 250));
+      }
+      expect(native.translationCancelCalls, hasLength(1));
+      expect(native.modelCancelCalls, hasLength(1));
+      await native.close();
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  testWidgets(
     'iOS Home stays interactive during installation and Topic has no download UI',
     (tester) async {
       final installing = Completer<String>();
@@ -261,6 +418,9 @@ Future<_NativeAssets> _launch(
       AndroidOfflineSpeechModelConsent.undecided,
   Future<String> Function()? prepare,
   ListeningAudioPrefetcher? listeningAudioPrefetcher,
+  Future<Object?> Function()? modelRequest,
+  Future<Object?> Function()? translationSchedule,
+  bool failModelCancel = false,
 }) async {
   tester.view.physicalSize = const Size(430, 844);
   tester.view.devicePixelRatio = 1;
@@ -276,7 +436,13 @@ Future<_NativeAssets> _launch(
     'homi.parental-privacy-consent.limited-mode': !fullConsent,
     'homi.offline-language-packs-consent.v2': consent.name,
   });
-  final native = _NativeAssets(tester, prepare ?? () async => 'installed');
+  final native = _NativeAssets(
+    tester,
+    prepare ?? () async => 'installed',
+    modelRequest,
+    translationSchedule,
+    failModelCancel,
+  );
   native.install();
   addTearDown(native.close);
   await tester.pumpWidget(
@@ -304,13 +470,25 @@ Future<_NativeAssets> _launch(
 /// Mock only platform boundaries: app lifecycle, Home callback, navigation,
 /// SharedPreferences and the preparation service are production implementations.
 class _NativeAssets {
-  _NativeAssets(this.tester, this.prepare);
+  _NativeAssets(
+    this.tester,
+    this.prepare,
+    this.modelRequest,
+    this.translationSchedule,
+    this.failModelCancel,
+  );
   final WidgetTester tester;
   final Future<String> Function() prepare;
+  final Future<Object?> Function()? modelRequest;
+  final Future<Object?> Function()? translationSchedule;
+  final bool failModelCancel;
   final topicCalls = <MethodCall>[];
   final backgroundSpeechCalls = <MethodCall>[];
   final translationDownloads = <MethodCall>[];
   final translationScheduleCalls = <MethodCall>[];
+  final translationCancelCalls = <MethodCall>[];
+  final modelRequestCalls = <MethodCall>[];
+  final modelCancelCalls = <MethodCall>[];
   final installedTranslationModels = <String>{};
   final directory = Directory.systemTemp.createTempSync('homi-topic-app-');
   static const channels = [
@@ -356,7 +534,24 @@ class _NativeAssets {
           if (name == 'homi_offline_speech' &&
               call.method == 'translation.scheduleDownload') {
             translationScheduleCalls.add(call);
+            return translationSchedule?.call() ?? true;
+          }
+          if (name == 'homi_offline_speech' &&
+              call.method == 'translation.cancelDownload') {
+            translationCancelCalls.add(call);
             return true;
+          }
+          if (name == 'homi_offline_speech' &&
+              call.method == 'model.requestDownload') {
+            modelRequestCalls.add(call);
+            return modelRequest?.call() ??
+                <String, Object?>{'state': 'requested'};
+          }
+          if (name == 'homi_offline_speech' &&
+              call.method == 'model.cancelDownload') {
+            modelCancelCalls.add(call);
+            if (failModelCancel) throw StateError('cancel_failed');
+            return null;
           }
           if (call.method == 'speech.prepareTopicAssets') {
             topicCalls.add(call);

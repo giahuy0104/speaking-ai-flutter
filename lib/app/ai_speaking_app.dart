@@ -633,13 +633,17 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (defaultTargetPlatform == TargetPlatform.android) {
       _offlineSpeechModelPreparationRunning = true;
       try {
-        if (await _offlineModelConsentStore.read() !=
-            AndroidOfflineSpeechModelConsent.allowed) {
-          return;
-        }
+        Future<bool> stillAllowed() async =>
+            _privacyConsentGranted &&
+            _parentSetupCompleted &&
+            await _privacyConsentStore.readGranted() &&
+            await _offlineModelConsentStore.read() ==
+                AndroidOfflineSpeechModelConsent.allowed;
+        if (!await stillAllowed()) return;
         final status = await _androidOfflineSpeechModelService.status(
           locale: 'vi-VN',
         );
+        if (!await stillAllowed()) return;
         if (status.state != AndroidOfflineSpeechModelState.installed &&
             status.state != AndroidOfflineSpeechModelState.pending &&
             status.state != AndroidOfflineSpeechModelState.unavailable) {
@@ -647,9 +651,22 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
             locale: 'vi-VN',
           );
         }
+        if (!await stillAllowed()) {
+          await _androidOfflineSpeechModelService.cancelDownload();
+          return;
+        }
         await const MethodChannel(
           'homi_offline_speech',
         ).invokeMethod<void>('translation.scheduleDownload');
+        if (!await stillAllowed()) {
+          try {
+            await _androidOfflineSpeechModelService.cancelDownload();
+          } finally {
+            await const MethodChannel(
+              'homi_offline_speech',
+            ).invokeMethod<void>('translation.cancelDownload');
+          }
+        }
       } catch (error) {
         debugPrint('Android offline language setup deferred: $error');
       } finally {
@@ -1073,6 +1090,20 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       );
     }
     await _privacyConsentStore.revoke();
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      try {
+        await _androidOfflineSpeechModelService.cancelDownload();
+      } catch (error) {
+        debugPrint('Offline speech cancellation deferred: $error');
+      }
+      try {
+        await const MethodChannel(
+          'homi_offline_speech',
+        ).invokeMethod<void>('translation.cancelDownload');
+      } catch (error) {
+        debugPrint('Offline translation cancellation deferred: $error');
+      }
+    }
     await _childAgeStore.clear();
     await _parentSetupProgressStore.clear();
     await _clientIdentity.resetClientId();

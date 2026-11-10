@@ -19,6 +19,7 @@ import '../../conversation/application/offline_language_service.dart';
 import '../../conversation/domain/conversation_models.dart';
 import '../../listening/application/android_offline_speech_model_service.dart';
 import '../../listening/domain/listening_catalog.dart';
+import '../../privacy/data/privacy_consent_store.dart';
 import '../application/parent_media_settings.dart';
 import 'history_sheet.dart';
 import 'homi_control_diagnostics_screen.dart';
@@ -453,7 +454,7 @@ class IosSettingsSheet extends StatelessWidget {
                           ),
                         if (isAndroid) ...<Widget>[
                           const SizedBox(height: 10),
-                          const _OfflineLanguagePacksCard(),
+                          const OfflineLanguagePacksCard(),
                         ],
                         const SizedBox(height: 12),
                         Column(
@@ -1184,15 +1185,15 @@ class IosSettingsSheet extends StatelessWidget {
   }
 }
 
-class _OfflineLanguagePacksCard extends StatefulWidget {
-  const _OfflineLanguagePacksCard();
+class OfflineLanguagePacksCard extends StatefulWidget {
+  const OfflineLanguagePacksCard({super.key});
 
   @override
-  State<_OfflineLanguagePacksCard> createState() =>
+  State<OfflineLanguagePacksCard> createState() =>
       _OfflineLanguagePacksCardState();
 }
 
-class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
+class _OfflineLanguagePacksCardState extends State<OfflineLanguagePacksCard> {
   static const AndroidOfflineSpeechModelConsentStore _consentStore =
       SharedPreferencesAndroidOfflineSpeechModelConsentStore();
   static const AndroidOfflineSpeechModelService _service =
@@ -1330,10 +1331,13 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
         unawaited(_prepareAllModels());
         return;
       } else {
-        await _service.cancelDownload();
-        await const MethodChannel(
-          'homi_offline_speech',
-        ).invokeMethod<void>('translation.cancelDownload');
+        try {
+          await _service.cancelDownload();
+        } finally {
+          await const MethodChannel(
+            'homi_offline_speech',
+          ).invokeMethod<void>('translation.cancelDownload');
+        }
       }
       final status = await _service.status();
       if (!mounted || request != _request) {
@@ -1366,21 +1370,29 @@ class _OfflineLanguagePacksCardState extends State<_OfflineLanguagePacksCard> {
 
   Future<void> _prepareAllModels() async {
     try {
-      if (await _consentStore.read() !=
-          AndroidOfflineSpeechModelConsent.allowed) {
+      Future<bool> stillAllowed() async =>
+          await _consentStore.read() ==
+              AndroidOfflineSpeechModelConsent.allowed &&
+          await const PrivacyConsentStore().readGranted();
+      if (!await stillAllowed()) return;
+      await const MethodChannel(
+        'homi_offline_speech',
+      ).invokeMethod<void>('translation.scheduleDownload');
+      if (!await stillAllowed()) {
+        await const MethodChannel(
+          'homi_offline_speech',
+        ).invokeMethod<void>('translation.cancelDownload');
         return;
       }
       await Future.wait<AndroidOfflineSpeechModelPreparationResult>([
         _coordinator.prepare(locale: 'en-US'),
         _coordinator.prepare(locale: 'vi-VN'),
       ]);
-      if (mounted &&
-          await _consentStore.read() ==
-              AndroidOfflineSpeechModelConsent.allowed) {
-        await const MethodChannel(
-          'homi_offline_speech',
-        ).invokeMethod<void>('translation.scheduleDownload');
+      if (!await stillAllowed()) {
+        await _service.cancelDownload();
       }
+    } catch (error) {
+      debugPrint('Offline language pack setup deferred: $error');
     } finally {
       if (mounted) {
         await _refresh();
