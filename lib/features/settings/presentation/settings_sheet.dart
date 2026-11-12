@@ -10,11 +10,11 @@ import '../../../app/homi_ui.dart';
 import '../../../app/homi_connection_presentation.dart';
 import '../../../config/app_config.dart';
 import '../../../core/audio/audio_input.dart';
-import '../../../core/audio/hfp_audio_control.dart';
 import '../../../core/device/aiv0_ble_control.dart';
 import '../../../core/device/device_display_name.dart';
 import '../../../core/device/device_connection_coordinator.dart';
 import '../../../core/device/device_connection_history.dart';
+import '../../../presentation/device/device_hfp_picker_flow.dart';
 import '../../../core/privacy/parental_gate.dart';
 import '../../../l10n/display_language.dart';
 import '../../conversation/application/conversation_settings_port.dart';
@@ -67,6 +67,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
   String? _manualFailure;
   int? _coordinatorToken;
   bool _ownsCoordinatorConnection = false;
+  late final DeviceHfpPickerFlow _hfpPickerFlow;
 
   bool get _canUseBluetooth =>
       widget.connectionCoordinator?.bluetoothPower?.canConnect ?? true;
@@ -74,11 +75,38 @@ class _SettingsSheetState extends State<SettingsSheet> {
   bool get _isIos => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
 
   @override
+  void initState() {
+    super.initState();
+    _hfpPickerFlow = DeviceHfpPickerFlow(
+      controller: widget.controller,
+      connectionCoordinator: widget.connectionCoordinator,
+    )..isActive.addListener(_onHfpPickerFlowActiveChanged);
+  }
+
+  void _onHfpPickerFlowActiveChanged() {
+    if (!mounted) return;
+    final active = _hfpPickerFlow.isActive.value;
+    if (active) {
+      setState(() {
+        _manualOperationActive = true;
+        _manualFailure = null;
+      });
+    } else {
+      setState(() => _manualOperationActive = false);
+    }
+  }
+
+  @override
   void dispose() {
     _manualGeneration++;
     if (_manualOperationActive || _ownsCoordinatorConnection) {
       unawaited(_cancelConnectionWork());
     }
+    if (_hfpPickerFlow.isActive.value) {
+      unawaited(_hfpPickerFlow.cancel());
+    }
+    _hfpPickerFlow.isActive.removeListener(_onHfpPickerFlowActiveChanged);
+    _hfpPickerFlow.dispose();
     final picker = _devicePickerRoute;
     if (picker?.isActive == true) {
       scheduleMicrotask(() {
@@ -775,6 +803,9 @@ class _SettingsSheetState extends State<SettingsSheet> {
     _ownsCoordinatorConnection = false;
     if (mounted) setState(() => _manualOperationActive = false);
     await _cancelConnectionWork();
+    if (_hfpPickerFlow.isActive.value) {
+      await _hfpPickerFlow.cancel();
+    }
   }
 
   Future<void> _cancelConnectionWork() async {
@@ -810,20 +841,6 @@ class _SettingsSheetState extends State<SettingsSheet> {
     }
   }
 
-  Future<T?> _showOwnedDialog<T extends Object>({
-    required BuildContext context,
-    required WidgetBuilder builder,
-  }) async {
-    final navigator = Navigator.of(context, rootNavigator: true);
-    final route = DialogRoute<T>(context: context, builder: builder);
-    _devicePickerRoute = route;
-    try {
-      return await navigator.push<T>(route);
-    } finally {
-      if (identical(_devicePickerRoute, route)) _devicePickerRoute = null;
-    }
-  }
-
   bool _isLikelyBle(Aiv0BleDevice device) =>
       device.advertisesControlService || device.isLikelyAiv0;
 
@@ -831,21 +848,6 @@ class _SettingsSheetState extends State<SettingsSheet> {
       List<Aiv0BleDevice>.of(devices)..sort((a, b) {
         if (_isLikelyBle(a) != _isLikelyBle(b)) return _isLikelyBle(a) ? -1 : 1;
         return b.rssi.compareTo(a.rssi);
-      });
-
-  bool _isLikelyMicrophone(HfpAudioDevice device) =>
-      selectLikelyHomiHfpDevice(<HfpAudioDevice>[
-        device,
-      ], bleDeviceName: controller.aiv0BleStatus.deviceName) !=
-      null;
-
-  List<HfpAudioDevice> _prioritizeMicrophones(List<HfpAudioDevice> devices) =>
-      List<HfpAudioDevice>.of(devices)..sort((a, b) {
-        if (_isLikelyMicrophone(a) != _isLikelyMicrophone(b)) {
-          return _isLikelyMicrophone(a) ? -1 : 1;
-        }
-        if (a.isConnected != b.isConnected) return a.isConnected ? -1 : 1;
-        return a.name.compareTo(b.name);
       });
 
   void _showConnectionResult(
@@ -1181,271 +1183,12 @@ class _SettingsSheetState extends State<SettingsSheet> {
   }
 
   Future<void> _findAndConnectHfp(BuildContext context) async {
-    if (!_canUseBluetooth) return;
-    await _runManualOperation(context, (generation) async {
-      final isIOS = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
-      try {
-        _setManualPhase(DeviceConnectionPhase.preparingMicrophone);
-        final foundDevices = await controller.findHfpDevices();
-        final devices = _prioritizeMicrophones(foundDevices);
-        if (!_isCurrent(generation) || !context.mounted) {
-          return;
-        }
-        if (devices.isEmpty) {
-          setState(
-            () => _manualFailure = context.tr(
-              'Micro chưa khả dụng. Hãy kiểm tra Cài đặt Bluetooth.',
-              '麦克风暂不可用。请检查蓝牙设置。',
-            ),
-          );
-          await _showHfpMessage(
-            context,
-            title: controller.supportsBrowserHfp
-                ? context.tr('Chưa thấy mic Bluetooth trên Web', '网页中未发现蓝牙麦克风')
-                : context.tr('Chưa có thiết bị HFP', '暂无 HFP 设备'),
-            message: context.tr(
-              controller.supportsBrowserHfp
-                  ? 'Web không thể tự kết nối HFP. Hãy kết nối tai nghe trong Cài đặt Bluetooth, cho phép quyền micro, tải lại trang rồi bấm Chọn mic HFP. Safari trên iPhone có thể chỉ cung cấp mic iPhone.'
-                  : isIOS
-                  ? 'iOS chỉ cho ứng dụng chọn mic HFP đang kết nối. Hãy kết nối HM-D001 trong Cài đặt Bluetooth, sau đó quay lại bấm Tìm HFP.'
-                  : 'Hãy ghép đôi tai nghe hoặc thiết bị HFP trong Cài đặt Bluetooth, sau đó quay lại bấm Tìm HFP.',
-              controller.supportsBrowserHfp
-                  ? '网页无法自行连接 HFP。请先在蓝牙设置中连接耳机、允许麦克风权限、刷新页面，再点击选择 HFP 麦克风。iPhone Safari 可能只提供 iPhone 麦克风。'
-                  : isIOS
-                  ? 'iOS 只能选择当前已连接的 HFP 麦克风。请先在蓝牙设置中连接 HM-D001，然后返回并点击“查找 HFP”。'
-                  : '请先在蓝牙设置中配对耳机或 HFP 设备，然后返回并点击“查找 HFP”。',
-            ),
-          );
-          return;
-        }
-        final selected = await _showDevicePicker<HfpAudioDevice>(
-          context: context,
-          builder: (sheetContext) => SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    controller.supportsBrowserHfp
-                        ? context.tr('Chọn mic Bluetooth', '选择蓝牙麦克风')
-                        : context.tr('Chọn thiết bị HFP', '选择 HFP 设备'),
-                    style: Theme.of(sheetContext).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    context.tr(
-                      controller.supportsBrowserHfp
-                          ? 'Chỉ các mic Bluetooth mà trình duyệt công bố mới xuất hiện. Thiết bị đã chọn được ưu tiên.'
-                          : isIOS
-                          ? 'iOS chỉ hiển thị các mic HFP đang khả dụng trong AVAudioSession. Thiết bị đang dùng được ưu tiên.'
-                          : 'Android chỉ cho ứng dụng dùng HFP đã ghép đôi. Thiết bị đang kết nối được ưu tiên.',
-                      controller.supportsBrowserHfp
-                          ? '这里只显示浏览器公开的蓝牙麦克风；已选择的设备优先。'
-                          : isIOS
-                          ? 'iOS 仅显示 AVAudioSession 中可用的 HFP 麦克风；当前设备优先。'
-                          : 'Android 仅允许应用使用已配对的 HFP；已连接设备优先显示。',
-                    ),
-                    style: Theme.of(sheetContext).textTheme.bodyMedium
-                        ?.copyWith(
-                          color: Theme.of(
-                            sheetContext,
-                          ).colorScheme.onSurfaceVariant,
-                        ),
-                  ),
-                  const SizedBox(height: 12),
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxHeight: 420),
-                    child: ListView.separated(
-                      shrinkWrap: true,
-                      itemCount: devices.length,
-                      separatorBuilder: (_, _) => const Divider(height: 1),
-                      itemBuilder: (context, index) {
-                        final device = devices[index];
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            if (index == 0 ||
-                                _isLikelyMicrophone(devices[index - 1]) !=
-                                    _isLikelyMicrophone(device))
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                  16,
-                                  12,
-                                  16,
-                                  4,
-                                ),
-                                child: Text(
-                                  _isLikelyMicrophone(device)
-                                      ? context.tr(
-                                          'Micro HOMI phù hợp',
-                                          '符合条件的 HOMI 麦克风',
-                                        )
-                                      : context.tr('Micro khác', '其他麦克风'),
-                                ),
-                              ),
-                            ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: device.isConnected
-                                    ? Color.alphaBlend(
-                                        AppColors.success.withValues(
-                                          alpha: 0.14,
-                                        ),
-                                        Theme.of(
-                                          context,
-                                        ).colorScheme.surfaceContainerHighest,
-                                      )
-                                    : Theme.of(
-                                        context,
-                                      ).colorScheme.surfaceContainer,
-                                child: Icon(
-                                  Icons.headset_mic_rounded,
-                                  color: device.isConnected
-                                      ? AppColors.success
-                                      : Theme.of(
-                                          context,
-                                        ).colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                              title: Text(
-                                localizedDeviceName(
-                                  device.name,
-                                  controller.displayLanguage,
-                                  deviceId: device.id,
-                                ),
-                              ),
-                              subtitle: Text(
-                                device.isConnected
-                                    ? controller.supportsBrowserHfp
-                                          ? context.tr(
-                                              'Mic đang được chọn cho Web',
-                                              '已选为网页麦克风',
-                                            )
-                                          : context.tr(
-                                              'HFP đang kết nối',
-                                              'HFP 已连接',
-                                            )
-                                    : context.tr(
-                                        controller.supportsBrowserHfp
-                                            ? 'Chạm để dùng mic này'
-                                            : 'Đã ghép đôi • chạm để mở kết nối',
-                                        controller.supportsBrowserHfp
-                                            ? '点击使用此麦克风'
-                                            : '已配对 • 点击连接',
-                                      ),
-                              ),
-                              trailing: device.isConnected
-                                  ? const Icon(
-                                      Icons.check_circle_rounded,
-                                      color: AppColors.success,
-                                    )
-                                  : const Icon(Icons.chevron_right_rounded),
-                              onTap: () => Navigator.of(context).pop(device),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-        if (selected == null || !_isCurrent(generation) || !context.mounted) {
-          return;
-        }
-        var confirmHomiAssociation = false;
-        if (controller.requiresHomiMicrophoneConfirmation(selected)) {
-          final associationBleId = controller.aiv0BleStatus.deviceId
-              ?.trim()
-              .toUpperCase();
-          final microphoneName = localizedDeviceName(
-            selected.name,
-            controller.displayLanguage,
-            deviceId: selected.id,
-          );
-          final confirmed = await _showOwnedDialog<bool>(
-            context: context,
-            builder: (dialogContext) => AlertDialog(
-              title: Text(context.tr('Đây là micro của HOMI?', '这是 HOMI 的麦克风吗？')),
-              content: Text(
-                context.tr(
-                  'Micro “$microphoneName” có đi cùng thiết bị HOMI của bạn không? Nếu chưa chắc, hãy chọn “Chỉ dùng micro”.',
-                  '麦克风“$microphoneName”是您的 HOMI 设备配套的吗？如果不确定，请选择“仅使用麦克风”。',
-                ),
-              ),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(false),
-                  child: Text(context.tr('Chỉ dùng micro', '仅使用麦克风')),
-                ),
-                FilledButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(true),
-                  child: Text(context.tr('Đúng, dùng với HOMI', '是的，连接 HOMI')),
-                ),
-              ],
-            ),
-          );
-          if (!_isCurrent(generation) ||
-              !context.mounted ||
-              confirmed == null) {
-            return;
-          }
-          if (confirmed &&
-              (associationBleId == null ||
-                  associationBleId.isEmpty ||
-                  !controller.aiv0BleStatus.isConnected ||
-                  controller.aiv0BleStatus.deviceId?.trim().toUpperCase() !=
-                      associationBleId)) {
-            _showConnectionResult(
-              context,
-              const DeviceConnectionResult(DeviceConnectionOutcome.unavailable),
-            );
-            return;
-          }
-          confirmHomiAssociation = confirmed;
-        }
-        final result = await controller.connectHfpDevice(
-          selected,
-          confirmHomiAssociation: confirmHomiAssociation,
-        );
-        if (_isCurrent(generation) && context.mounted && !result.succeeded) {
-          _showConnectionResult(context, result);
-        }
-      } catch (error) {
-        if (_isCurrent(generation) && context.mounted) {
-          await _showHfpMessage(
-            context,
-            title: context.tr('Chưa thể dùng HFP', '暂时无法使用 HFP'),
-            message: context.tr(
-              'Chưa kết nối được micro. Hãy kiểm tra Bluetooth và thử lại.',
-              '暂时无法连接麦克风。请检查蓝牙后重试。',
-            ),
-          );
-        }
-      }
-    });
-  }
-
-  Future<void> _showHfpMessage(
-    BuildContext context, {
-    required String title,
-    required String message,
-  }) async {
-    await _showOwnedDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(context.tr('Đã hiểu', '知道了')),
-          ),
-        ],
-      ),
+    if (!_canUseBluetooth || _manualOperationActive) return;
+    await _hfpPickerFlow.findAndConnectHfp(
+      context,
+      onMessage: (message) {
+        if (mounted) setState(() => _manualFailure = message);
+      },
     );
   }
 }

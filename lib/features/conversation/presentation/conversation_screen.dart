@@ -7,7 +7,11 @@ import '../../../app/app_theme.dart';
 import '../../../app/homi_connection_presentation.dart';
 import '../../../app/learning_scenery.dart';
 import '../../../app/scenic_app_header.dart';
+import '../../../core/device/aiv0_ble_control.dart';
+import '../../../core/device/device_connection_coordinator.dart';
 import '../../../l10n/display_language.dart';
+import '../../../presentation/device/device_ble_picker_flow.dart';
+import '../../../presentation/device/device_hfp_picker_flow.dart';
 import '../domain/conversation_models.dart';
 import 'conversation_controller.dart';
 import 'widgets/result_panel.dart';
@@ -22,6 +26,7 @@ class ConversationScreen extends StatefulWidget {
     this.isOffline = false,
     this.offlineLanguageReady,
     this.ensureDeviceConnected,
+    this.connectionCoordinator,
     this.resumeForegroundAudio,
     this.audioInterruptionGeneration,
     this.isDeviceConnectionReady,
@@ -41,6 +46,7 @@ class ConversationScreen extends StatefulWidget {
   final VoidCallback onOpenHistory;
   final VoidCallback onOpenSettings;
   final Future<bool> Function()? ensureDeviceConnected;
+  final DeviceConnectionCoordinator? connectionCoordinator;
   final Future<bool> Function()? resumeForegroundAudio;
   final int Function()? audioInterruptionGeneration;
   final bool Function()? isDeviceConnectionReady;
@@ -310,8 +316,46 @@ class _TranslationLanguageSelectorState
 
 class _ConversationScreenState extends State<ConversationScreen> {
   bool _waitingForDevice = false;
+  bool _connectingDevice = false;
   bool _stoppingSession = false;
   int _actionGeneration = 0;
+  late DeviceHfpPickerFlow _hfpPickerFlow;
+  late DeviceBlePickerFlow _blePickerFlow;
+
+  @override
+  void initState() {
+    super.initState();
+    _hfpPickerFlow = DeviceHfpPickerFlow(
+      controller: widget.controller,
+      connectionCoordinator: widget.connectionCoordinator,
+    );
+    _blePickerFlow = DeviceBlePickerFlow(
+      controller: widget.controller,
+      connectionCoordinator: widget.connectionCoordinator,
+    );
+  }
+
+  @override
+  void didUpdateWidget(ConversationScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller ||
+        oldWidget.connectionCoordinator != widget.connectionCoordinator) {
+      final previousHfp = _hfpPickerFlow;
+      _hfpPickerFlow = DeviceHfpPickerFlow(
+        controller: widget.controller,
+        connectionCoordinator: widget.connectionCoordinator,
+      );
+      unawaited(previousHfp.cancel());
+      previousHfp.dispose();
+      final previousBle = _blePickerFlow;
+      _blePickerFlow = DeviceBlePickerFlow(
+        controller: widget.controller,
+        connectionCoordinator: widget.connectionCoordinator,
+      );
+      unawaited(previousBle.cancel());
+      previousBle.dispose();
+    }
+  }
 
   Future<void> _openOtherScreen(VoidCallback open) async {
     if (widget.resumeForegroundAudio != null) _actionGeneration++;
@@ -326,6 +370,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
     if (widget.controller.sentenceQueueActive) {
       unawaited(widget.controller.cancelCurrentMainAction());
     }
+    _hfpPickerFlow.dispose();
+    _blePickerFlow.dispose();
     super.dispose();
   }
 
@@ -382,8 +428,74 @@ class _ConversationScreenState extends State<ConversationScreen> {
           !identical(controller, widget.controller)) {
         return;
       }
-      final ensureConnected = widget.ensureDeviceConnected;
-      if (ensureConnected != null && !await ensureConnected()) return;
+      final alreadyConnected =
+          widget.isDeviceConnectionReady?.call() ?? controller.isHomiReady;
+      if (!alreadyConnected) {
+        setState(() => _connectingDevice = true);
+        try {
+          final power = widget.connectionCoordinator?.bluetoothPower;
+          if (power != null &&
+              power.state != Aiv0BluetoothAdapterState.poweredOn) {
+            if (power.canRequestEnable) {
+              // Android: request permission + request radio enable, then
+              // keep going into the normal connect attempt below.
+              await power.enable();
+              if (!mounted ||
+                  generation != _actionGeneration ||
+                  !audioActionIsCurrent() ||
+                  !identical(controller, widget.controller)) {
+                return;
+              }
+            } else {
+              // iOS can't enable the radio itself (Settings' own Bluetooth
+              // panel shows the same limit -- it only offers a manual
+              // recheck there).
+              await _promptOpenBluetoothSettings(context);
+              return;
+            }
+          }
+          final coordinator = widget.connectionCoordinator;
+          if (coordinator != null) {
+            // Call the coordinator directly -- same primitive Settings' own
+            // "Kết nối HOMI" button uses -- instead of
+            // widget.ensureDeviceConnected, whose dialog only ever resolves
+            // false on an explicit user Cancel and would never let us tell
+            // "not found" apart from "cancelled".
+            final connected = await coordinator.connect();
+            if (!mounted ||
+                generation != _actionGeneration ||
+                !audioActionIsCurrent() ||
+                !identical(controller, widget.controller)) {
+              return;
+            }
+            if (!connected) {
+              if (!controller.canUseAiv0Ble) {
+                await _blePickerFlow.findAndConnectBle(
+                  context,
+                  onMessage: _showConnectionSnack,
+                );
+              } else if (!controller.isHomiReady) {
+                await _hfpPickerFlow.findAndConnectHfp(
+                  context,
+                  onMessage: _showConnectionSnack,
+                );
+              }
+              return;
+            }
+          } else {
+            final ensureConnected = widget.ensureDeviceConnected;
+            if (ensureConnected != null && !await ensureConnected()) return;
+            if (!mounted ||
+                generation != _actionGeneration ||
+                !audioActionIsCurrent() ||
+                !identical(controller, widget.controller)) {
+              return;
+            }
+          }
+        } finally {
+          if (mounted) setState(() => _connectingDevice = false);
+        }
+      }
       if (!mounted ||
           generation != _actionGeneration ||
           !audioActionIsCurrent() ||
@@ -396,6 +508,47 @@ class _ConversationScreenState extends State<ConversationScreen> {
     } finally {
       _waitingForDevice = false;
     }
+  }
+
+  Future<void> _promptOpenBluetoothSettings(BuildContext context) async {
+    final coordinator = widget.connectionCoordinator;
+    if (coordinator == null || !context.mounted) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        key: const Key('conversation-open-bluetooth-settings-dialog'),
+        icon: const Icon(Icons.bluetooth_disabled_rounded),
+        title: Text(context.tr('Chưa tìm thấy HOMI', '未找到 HOMI')),
+        content: Text(
+          context.tr(
+            'Hãy mở Bluetooth và kết nối với HOMI trong Cài đặt Bluetooth của điện thoại, sau đó quay lại thử lại.',
+            '请在手机的蓝牙设置中打开蓝牙并连接 HOMI，然后返回重试。',
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            key: const Key('conversation-open-bluetooth-settings-cancel'),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(context.tr('Hủy', '取消')),
+          ),
+          FilledButton(
+            key: const Key('conversation-open-bluetooth-settings-confirm'),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(context.tr('Mở Cài đặt Bluetooth', '打开蓝牙设置')),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await coordinator.openBluetoothSettings();
+    }
+  }
+
+  void _showConnectionSnack(String message) {
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    messenger?.hideCurrentSnackBar();
+    messenger?.showSnackBar(SnackBar(content: Text(message)));
   }
 
   String _offlineStatusText(BuildContext context) {
@@ -681,6 +834,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                       processingStage: widget.controller.processingStage,
                       isPreparingMicrophone:
                           widget.controller.isPreparingMicrophone,
+                      isConnectingDevice: _connectingDevice,
                       onPressed: () => unawaited(_onPrimaryAction()),
                     ),
                   ],

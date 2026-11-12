@@ -9,6 +9,7 @@ class SpeakActionBar extends StatelessWidget {
     required this.phase,
     required this.processingStage,
     this.isPreparingMicrophone = false,
+    this.isConnectingDevice = false,
     this.needsDeviceConnection = false,
     required this.onPressed,
     super.key,
@@ -17,6 +18,7 @@ class SpeakActionBar extends StatelessWidget {
   final ConversationPhase phase;
   final ConversationProcessingStage processingStage;
   final bool isPreparingMicrophone;
+  final bool isConnectingDevice;
   final bool needsDeviceConnection;
   final VoidCallback? onPressed;
 
@@ -26,7 +28,13 @@ class SpeakActionBar extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final isRecording = phase == ConversationPhase.recording;
     final isProcessing =
-        phase == ConversationPhase.processing || isPreparingMicrophone;
+        phase == ConversationPhase.processing ||
+        isPreparingMicrophone ||
+        isConnectingDevice;
+    final isBusyLabel = isConnectingDevice || isPreparingMicrophone;
+    final busyText = isConnectingDevice
+        ? context.tr('Đang kết nối HOMI…', '正在连接 HOMI…')
+        : context.tr('Đang chuẩn bị micro…', '正在准备麦克风…');
     final primary = isRecording
         ? (isDark ? theme.colorScheme.secondary : AppColors.accentPink)
         : (isDark ? theme.colorScheme.primary : AppColors.primaryNavy);
@@ -46,9 +54,7 @@ class SpeakActionBar extends StatelessWidget {
             child: Semantics(
               button: true,
               enabled: !isProcessing,
-              label: isPreparingMicrophone
-                  ? context.tr('Đang chuẩn bị micro…', '正在准备麦克风…')
-                  : _label(context),
+              label: isBusyLabel ? busyText : _label(context),
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: isProcessing
@@ -68,6 +74,7 @@ class SpeakActionBar extends StatelessWidget {
                 child: Material(
                   color: Colors.transparent,
                   child: InkWell(
+                    key: const Key('speak-action-bar-ink-well'),
                     onTap: isProcessing ? null : onPressed,
                     borderRadius: BorderRadius.circular(34),
                     child: ConstrainedBox(
@@ -75,26 +82,28 @@ class SpeakActionBar extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
-                          Icon(
-                            isRecording
-                                ? Icons.stop_rounded
-                                : needsDeviceConnection && !isProcessing
-                                ? Icons.bluetooth_rounded
-                                : Icons.mic_rounded,
-                            color: foreground,
-                            size: 31,
-                          ),
+                          isBusyLabel
+                              ? SizedBox.square(
+                                  dimension: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                  ),
+                                )
+                              : Icon(
+                                  isRecording
+                                      ? Icons.stop_rounded
+                                      : needsDeviceConnection && !isProcessing
+                                      ? Icons.bluetooth_rounded
+                                      : Icons.mic_rounded,
+                                  color: foreground,
+                                  size: 31,
+                                ),
                           const SizedBox(width: 12),
                           Flexible(
                             child: Padding(
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               child: Text(
-                                isPreparingMicrophone
-                                    ? context.tr(
-                                        'Đang chuẩn bị micro…',
-                                        '正在准备麦克风…',
-                                      )
-                                    : _label(context),
+                                isBusyLabel ? busyText : _label(context),
                                 textAlign: TextAlign.center,
                                 style: theme.textTheme.titleLarge?.copyWith(
                                   color: foreground,
