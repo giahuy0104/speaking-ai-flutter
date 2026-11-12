@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../core/device/aiv0_ble_control.dart';
+import '../../core/device/device_connection_coordinator.dart';
+import '../../core/device/device_display_name.dart';
 import '../../features/conversation/application/conversation_settings_port.dart';
 import '../../l10n/display_language.dart';
-import 'aiv0_ble_control.dart';
-import 'device_connection_coordinator.dart';
-import 'device_display_name.dart';
 
 /// Scans for nearby HOMI BLE devices and lets the user pick one, showing the
 /// same bottom sheet regardless of which screen triggers it (Settings'

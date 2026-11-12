@@ -14,7 +14,7 @@ import '../../../core/device/aiv0_ble_control.dart';
 import '../../../core/device/device_display_name.dart';
 import '../../../core/device/device_connection_coordinator.dart';
 import '../../../core/device/device_connection_history.dart';
-import '../../../core/device/device_hfp_picker_flow.dart';
+import '../../../presentation/device/device_hfp_picker_flow.dart';
 import '../../../core/privacy/parental_gate.dart';
 import '../../../l10n/display_language.dart';
 import '../../conversation/application/conversation_settings_port.dart';
