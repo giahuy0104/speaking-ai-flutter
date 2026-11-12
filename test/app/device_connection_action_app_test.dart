@@ -6,7 +6,6 @@ import 'package:ai_speaking_flutter_app/config/app_config.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_models.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_screen.dart';
-import 'package:ai_speaking_flutter_app/features/conversation/presentation/widgets/speak_action_bar.dart';
 import 'package:ai_speaking_flutter_app/features/listening/domain/listening_content.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/topic_lesson_list_screen.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const _dialog = Key('device-connection-action-dialog');
 const _cancel = Key('device-connection-action-cancel');
-const _retry = Key('device-connection-action-retry');
+const _openBtSettingsDialog = Key('conversation-open-bluetooth-settings-dialog');
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -24,25 +23,26 @@ void main() {
     await AssetListeningContentRepository().load();
   });
   testWidgets(
-    'Home action observes native retry failure and Cancel reaches native',
+    'Home action starts a native scan immediately and offers the device picker on failure',
     (tester) async {
       final app = await _pumpApp(tester);
-      await app.emitBle('reconnecting');
-      expect(find.byKey(_dialog), findsNothing);
+      expect(find.byKey(_openBtSettingsDialog), findsNothing);
 
       await _tapSpeak(tester);
-      expect(find.text('Đang tìm thiết bị'), findsOneWidget);
+      await _pumpAsync(tester);
+      // The automatic attempt failed without finding the device: Home now
+      // runs the same scan-and-pick round Settings uses instead of just
+      // bouncing to system Bluetooth settings.
+      expect(app.scans, hasLength(1));
       expect(app.controller.phase, ConversationPhase.idle);
 
-      await app.emitBle('error');
-      expect(find.text('Cần kết nối thiết bị'), findsOneWidget);
-      await tester.tap(find.byKey(_cancel));
+      app.scans.single.complete(<Object?>[]);
       await _pumpAsync(tester);
 
-      expect(find.byKey(_dialog), findsNothing);
+      expect(find.byKey(_openBtSettingsDialog), findsNothing);
       expect(
-        app.bleCalls.where((call) => call.method == 'cancelConnectionAttempt'),
-        hasLength(1),
+        find.text('Không tìm thấy thiết bị. Hãy bật thiết bị và thử lại.'),
+        findsOneWidget,
       );
       expect(app.controller.phase, ConversationPhase.idle);
       expect(
@@ -54,21 +54,23 @@ void main() {
   );
 
   testWidgets(
-    'Retry starts a fresh native scan and unsuccessful completion shows guidance',
+    'Tapping speak starts a fresh native scan and offers the device picker on failure',
     (tester) async {
       final app = await _pumpApp(tester);
       await app.emitBle('error');
       await _tapSpeak(tester);
-      await tester.tap(find.byKey(_retry));
       await _pumpAsync(tester);
 
       expect(app.scans, hasLength(1));
-      expect(find.text('Đang tìm thiết bị'), findsOneWidget);
       expect(app.controller.phase, ConversationPhase.idle);
       app.scans.single.complete(<Object?>[]);
       await _pumpAsync(tester);
 
-      expect(find.text('Cần kết nối thiết bị'), findsOneWidget);
+      expect(find.byKey(_openBtSettingsDialog), findsNothing);
+      expect(
+        find.text('Không tìm thấy thiết bị. Hãy bật thiết bị và thử lại.'),
+        findsOneWidget,
+      );
       expect(app.controller.phase, ConversationPhase.idle);
       expect(app.bleCalls.where((call) => call.method == 'connect'), isEmpty);
     },
@@ -76,63 +78,42 @@ void main() {
   );
 
   testWidgets(
-    'Cancel rejects a late scan candidate and a new action can retry immediately',
+    'tapping speak again while a scan is in flight is ignored',
     (tester) async {
       final app = await _pumpApp(tester);
       await _tapSpeak(tester);
-      await tester.tap(find.byKey(_retry));
       await _pumpAsync(tester);
       expect(app.scans, hasLength(1));
 
-      await tester.tap(find.byKey(_cancel));
-      await _pumpAsync(tester);
-      expect(find.byKey(_dialog), findsNothing);
       await _tapSpeak(tester);
-      await tester.tap(find.byKey(_retry));
       await _pumpAsync(tester);
-      expect(app.scans, hasLength(2));
+      expect(app.scans, hasLength(1));
 
-      app.scans.first.complete(<Object?>[
-        <String, Object?>{
-          'id': 'AA:BB:CC:DD:EE:FF',
-          'name': 'HM-D001',
-          'serviceUuids': <String>['9E3B0001-4A7C-4D6F-8B21-5C17A2D94010'],
-        },
-      ]);
+      app.scans.single.complete(<Object?>[]);
       await _pumpAsync(tester);
-      expect(app.bleCalls.where((call) => call.method == 'connect'), isEmpty);
-      expect(find.text('Đang tìm thiết bị'), findsOneWidget);
 
-      app.scans.last.complete(<Object?>[]);
-      await _pumpAsync(tester);
-      expect(find.text('Cần kết nối thiết bị'), findsOneWidget);
+      expect(find.byKey(_openBtSettingsDialog), findsNothing);
       expect(app.controller.phase, ConversationPhase.idle);
     },
     variant: TargetPlatformVariant(<TargetPlatform>{TargetPlatform.android}),
   );
 
   testWidgets(
-    'a stuck native scan releases Retry after the requested-round deadline',
+    'a stuck native scan still resolves after the requested-round deadline',
     (tester) async {
       final app = await _pumpApp(tester);
       await _tapSpeak(tester);
-      await tester.tap(find.byKey(_retry));
       await _pumpAsync(tester);
       expect(app.scans, hasLength(1));
 
       await tester.pump(const Duration(seconds: 75));
       await _pumpAsync(tester);
 
-      expect(find.text('Cần kết nối thiết bị'), findsOneWidget);
-      expect(
-        tester.widget<FilledButton>(find.byKey(_retry)).onPressed,
-        isNotNull,
-      );
-      expect(find.byKey(_cancel).hitTestable(), findsOneWidget);
-      expect(app.controller.phase, ConversationPhase.idle);
       app.scans.single.complete(<Object?>[]);
       await _pumpAsync(tester);
-      expect(find.text('Cần kết nối thiết bị'), findsOneWidget);
+
+      expect(find.byKey(_openBtSettingsDialog), findsNothing);
+      expect(app.controller.phase, ConversationPhase.idle);
     },
     variant: TargetPlatformVariant(<TargetPlatform>{TargetPlatform.android}),
   );
@@ -229,22 +210,35 @@ void main() {
   );
 
   testWidgets(
-    'BLE alone does not let the Home speaking action through',
+    'BLE alone prompts the HFP picker instead of letting the Home speaking action through',
     (tester) async {
       final app = await _pumpApp(tester);
       await app.emitBle('connected');
-      // Let the bounded HFP selection complete without a matching microphone.
-      for (var attempt = 0; attempt < 6; attempt += 1) {
-        await tester.pump(const Duration(seconds: 2));
-        await _pumpAsync(tester);
-      }
       expect(app.controller.canUseAiv0Ble, isTrue);
-      expect(app.controller.isHomiReady, isFalse);
       expect(find.byKey(_dialog), findsNothing);
 
       await _tapSpeak(tester);
+      await _pumpAsync(tester);
+      // retryKnownOrNearby forces a fresh scan even though BLE is already
+      // connected; resolve it so the round can continue into HFP selection.
+      for (var i = 0; i < 10 && app.scans.isEmpty; i += 1) {
+        await tester.pump(const Duration(seconds: 1));
+        await _pumpAsync(tester);
+      }
+      if (app.scans.isNotEmpty && !app.scans.last.isCompleted) {
+        app.scans.last.complete(<Object?>[]);
+      }
+      for (
+        var i = 0;
+        i < 20 &&
+            find.text('Chưa có thiết bị HFP', skipOffstage: false).evaluate().isEmpty;
+        i += 1
+      ) {
+        await tester.pump(const Duration(seconds: 1));
+        await _pumpAsync(tester);
+      }
 
-      expect(find.byKey(_dialog), findsOneWidget);
+      expect(find.text('Chưa có thiết bị HFP'), findsOneWidget);
       expect(app.controller.phase, ConversationPhase.idle);
     },
     variant: TargetPlatformVariant(<TargetPlatform>{TargetPlatform.android}),
@@ -252,12 +246,7 @@ void main() {
 }
 
 Future<void> _tapSpeak(WidgetTester tester) async {
-  await tester.tap(
-    find.descendant(
-      of: find.byType(SpeakActionBar),
-      matching: find.byType(InkWell),
-    ),
-  );
+  await tester.tap(find.byKey(const Key('speak-action-bar-ink-well')));
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 300));
 }
