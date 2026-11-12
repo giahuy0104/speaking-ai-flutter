@@ -596,6 +596,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                       isOffline: _hasNetworkTransport == false,
                       offlineLanguageReady: _offlineLanguageReady,
                       ensureDeviceConnected: widget.ensureDeviceConnected,
+                      connectionCoordinator: widget.connectionCoordinator,
                       resumeForegroundAudio:
                           !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
                           ? _backgroundLearningCoordinator.resumeForegroundAudio
