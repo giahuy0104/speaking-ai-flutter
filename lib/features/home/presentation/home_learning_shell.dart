@@ -53,6 +53,7 @@ class HomeLearningShell extends StatefulWidget {
     this.themeMode = ThemeMode.system,
     this.onThemeModeChanged,
     this.onChildAgeChanged,
+    this.onHomePageChanged,
     this.onActiveLearningExitCommitted,
     this.onMainSpeakingModeStarted,
     this.ensureDeviceConnected,
@@ -95,6 +96,10 @@ class HomeLearningShell extends StatefulWidget {
   final ThemeMode themeMode;
   final ValueChanged<ThemeMode>? onThemeModeChanged;
   final ValueChanged<int>? onChildAgeChanged;
+
+  /// Reports the visible Home page (0 = translation, 1 = vocabulary) after
+  /// each change, so app-level overlays can adapt to it.
+  final ValueChanged<int>? onHomePageChanged;
   final VoidCallback? onActiveLearningExitCommitted;
   final Future<void> Function()? onMainSpeakingModeStarted;
   final Future<bool> Function()? ensureDeviceConnected;
@@ -136,6 +141,7 @@ class _HomeLearningShellState extends State<HomeLearningShell>
   _authoredVocabularySuggestionProvider;
   late final MinhqndDictionaryProvider _vocabularyDictionaryProvider;
   int _page = 0;
+  int? _reportedPage;
   // Controller values the shell last rendered; see
   // _onConversationControllerChanged.
   DisplayLanguage? _builtDisplayLanguage;
@@ -551,6 +557,13 @@ class _HomeLearningShellState extends State<HomeLearningShell>
 
   @override
   Widget build(BuildContext context) {
+    if (_reportedPage != _page) {
+      _reportedPage = _page;
+      final page = _page;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) widget.onHomePageChanged?.call(page);
+      });
+    }
     _builtDisplayLanguage = widget.controller.displayLanguage;
     _builtHomiStatus = HomiConnectionPresentation.from(
       widget.controller.homiConnectionState(),
@@ -559,9 +572,12 @@ class _HomeLearningShellState extends State<HomeLearningShell>
     _builtChildAge = widget.controller.childAge;
     final screenSize = MediaQuery.sizeOf(context);
     final safeTop = MediaQuery.paddingOf(context).top;
-    final railTop = (screenSize.height * 0.33)
-        .clamp(safeTop + 148, screenSize.height - 238)
-        .toDouble();
+    // Rails sit beside HOMI and end before half the screen, so the study card
+    // below them gets the full width (see ConversationScreen.heroBandHeight).
+    final railTop = ConversationScreen.railTop(
+      screenSize,
+      safeTop,
+    ).clamp(0.0, screenSize.height - 238).toDouble();
     return DisplayLanguageScope(
       language: widget.controller.displayLanguage,
       child: PopScope<void>(
@@ -591,30 +607,38 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                 children: <Widget>[
                   HeroMode(
                     enabled: _page == 0,
-                    child: ConversationScreen(
-                      controller: widget.controller,
-                      isOffline: _hasNetworkTransport == false,
-                      offlineLanguageReady: _offlineLanguageReady,
-                      ensureDeviceConnected: widget.ensureDeviceConnected,
-                      resumeForegroundAudio:
-                          !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
-                          ? _backgroundLearningCoordinator.resumeForegroundAudio
-                          : null,
-                      audioInterruptionGeneration:
-                          !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
-                          ? () => _backgroundLearningCoordinator
-                                .foregroundResumeGeneration
-                          : null,
-                      isDeviceConnectionReady: widget.isDeviceConnectionReady,
-                      sessionActive: widget.sessionActive,
-                      isStoppingSession: widget.isStoppingSession,
-                      onStopSession: widget.onStopSession,
-                      speakActionKey: _speakActionKey,
-                      resultPanelKey: _resultPanelKey,
-                      historyButtonKey: _historyButtonKey,
-                      settingsButtonKey: _settingsButtonKey,
-                      onOpenHistory: _showHistory,
-                      onOpenSettings: _showSettings,
+                    // The page stays mounted behind Vocabulary; pause its
+                    // animations (HOMI, waveform) while it is not shown.
+                    child: TickerMode(
+                      enabled: _page == 0,
+                      child: ConversationScreen(
+                        controller: widget.controller,
+                        isOffline: _hasNetworkTransport == false,
+                        offlineLanguageReady: _offlineLanguageReady,
+                        ensureDeviceConnected: widget.ensureDeviceConnected,
+                        resumeForegroundAudio:
+                            !kIsWeb &&
+                                defaultTargetPlatform == TargetPlatform.iOS
+                            ? _backgroundLearningCoordinator
+                                  .resumeForegroundAudio
+                            : null,
+                        audioInterruptionGeneration:
+                            !kIsWeb &&
+                                defaultTargetPlatform == TargetPlatform.iOS
+                            ? () => _backgroundLearningCoordinator
+                                  .foregroundResumeGeneration
+                            : null,
+                        isDeviceConnectionReady: widget.isDeviceConnectionReady,
+                        sessionActive: widget.sessionActive,
+                        isStoppingSession: widget.isStoppingSession,
+                        onStopSession: widget.onStopSession,
+                        speakActionKey: _speakActionKey,
+                        resultPanelKey: _resultPanelKey,
+                        historyButtonKey: _historyButtonKey,
+                        settingsButtonKey: _settingsButtonKey,
+                        onOpenHistory: _showHistory,
+                        onOpenSettings: _showSettings,
+                      ),
                     ),
                   ),
                   HeroMode(
@@ -1692,7 +1716,6 @@ class _HomeLearningShellState extends State<HomeLearningShell>
                 .voiceNavigationController
                 ?.iosTopicRecognitionFailureRevision,
             onRequestParentAccess: _requestTopicAgeAccess,
-            onCommunicationRequested: widget.controller.clearPresentationResult,
             onLessonSelectionRequested:
                 ({
                   required childAge,

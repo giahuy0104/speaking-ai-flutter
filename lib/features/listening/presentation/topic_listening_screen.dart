@@ -56,7 +56,6 @@ class TopicListeningScreen extends StatefulWidget {
     this.iosTopicRecognitionFailureRevision,
     this.onChildAgeChanged,
     this.onRequestParentAccess,
-    this.onCommunicationRequested,
     this.contentFuture,
     this.progressStore = const ListeningProgressStore(),
     this.mediaService,
@@ -80,7 +79,6 @@ class TopicListeningScreen extends StatefulWidget {
   final ValueListenable<int>? iosTopicRecognitionFailureRevision;
   final ValueChanged<int>? onChildAgeChanged;
   final Future<bool> Function()? onRequestParentAccess;
-  final VoidCallback? onCommunicationRequested;
   final Future<ListeningContentCatalog>? contentFuture;
   final ListeningProgressStore progressStore;
   final LessonMediaService? mediaService;
@@ -884,7 +882,6 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
             progressStore: widget.progressStore,
             voicePromptService: _voicePromptService,
             onTopicCompleted: () => topicCompletedDuringVisit = true,
-            onCommunicationRequested: widget.onCommunicationRequested,
           ),
         ),
       );
@@ -1029,7 +1026,6 @@ class _TopicListeningScreenState extends State<TopicListeningScreen> {
             initialLessonLeadPrompt: resumePrompt,
             initialLessonMainReply: mainReply,
             onTopicCompleted: () => topicCompletedDuringVisit = true,
-            onCommunicationRequested: widget.onCommunicationRequested,
           ),
         ),
       );

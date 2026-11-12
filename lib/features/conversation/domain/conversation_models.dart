@@ -14,17 +14,25 @@ enum PracticeContext {
 }
 
 enum TranslationOutputLanguage {
-  english('en', 'Tiếng Anh', 'en-US'),
-  chinese('zh', 'Tiếng Trung', 'zh-CN'),
-  japanese('ja', 'Tiếng Nhật', 'ja-JP'),
-  korean('ko', 'Tiếng Hàn', 'ko-KR'),
-  french('fr', 'Tiếng Pháp', 'fr-FR');
+  english('en', 'Tiếng Anh', 'en-US', 'EN'),
+  chinese('zh', 'Tiếng Trung', 'zh-CN', '中'),
+  japanese('ja', 'Tiếng Nhật', 'ja-JP', '日'),
+  korean('ko', 'Tiếng Hàn', 'ko-KR', '한'),
+  french('fr', 'Tiếng Pháp', 'fr-FR', 'FR');
 
-  const TranslationOutputLanguage(this.apiValue, this.label, this.speechLocale);
+  const TranslationOutputLanguage(
+    this.apiValue,
+    this.label,
+    this.speechLocale,
+    this.badge,
+  );
 
   final String apiValue;
   final String label;
   final String speechLocale;
+
+  /// Short mark shown on language badges (EN, 中, 日, 한, FR).
+  final String badge;
 
   static TranslationOutputLanguage fromCode(Object? code) =>
       TranslationOutputLanguage.values.firstWhere(

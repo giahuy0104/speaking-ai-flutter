@@ -14,8 +14,18 @@ class ScenicAppHeader extends StatelessWidget {
     this.connectionState,
     this.historyButtonKey,
     this.settingsButtonKey,
+    this.leadingAction,
     super.key,
   });
+
+  /// Height at the normal text size: the 56 px avatar row plus its 10 px
+  /// top and 8 px bottom padding.
+  static const double height = _avatarSize + 10 + 8;
+  static const double _avatarSize = 56;
+
+  /// Optional round control shown before History, such as the translation
+  /// language picker.
+  final Widget? leadingAction;
 
   final bool isReady;
   final HomiConnectionState? connectionState;
@@ -46,8 +56,8 @@ class ScenicAppHeader extends StatelessWidget {
           child: Row(
             children: <Widget>[
               Container(
-                width: 56,
-                height: 56,
+                width: _avatarSize,
+                height: _avatarSize,
                 clipBehavior: Clip.antiAlias,
                 decoration: BoxDecoration(
                   color: isDark
@@ -124,6 +134,10 @@ class ScenicAppHeader extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 4),
+              if (leadingAction case final action?) ...<Widget>[
+                action,
+                const SizedBox(width: 8),
+              ],
               _HeaderAction(
                 key: historyButtonKey,
                 icon: Icons.history_rounded,

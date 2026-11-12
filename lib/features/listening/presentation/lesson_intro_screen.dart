@@ -47,7 +47,6 @@ class LessonIntroScreen extends StatefulWidget {
     this.relearnFromBeginning = false,
     this.relearnTopicSequence = false,
     this.onTopicCompleted,
-    this.onCommunicationRequested,
     super.key,
   });
 
@@ -71,7 +70,6 @@ class LessonIntroScreen extends StatefulWidget {
   final bool relearnFromBeginning;
   final bool relearnTopicSequence;
   final VoidCallback? onTopicCompleted;
-  final VoidCallback? onCommunicationRequested;
 
   @override
   State<LessonIntroScreen> createState() => _LessonIntroScreenState();
@@ -839,7 +837,6 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
           mediaService: widget.mediaService,
           guideAudioLibrary: _guideAudioLibrary,
           onTopicCompleted: widget.onTopicCompleted,
-          onCommunicationRequested: widget.onCommunicationRequested,
         ),
       ),
     );
@@ -881,7 +878,6 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
           guideAudioLibrary: _guideAudioLibrary,
           voicePromptService: _voicePromptService,
           onTopicCompleted: widget.onTopicCompleted,
-          onCommunicationRequested: widget.onCommunicationRequested,
         ),
       ),
     );
@@ -952,6 +948,5 @@ class _LessonIntroScreenState extends State<LessonIntroScreen>
     isRelearn: widget.relearnFromBeginning,
     relearnTopicSequence: widget.relearnTopicSequence,
     onTopicCompleted: widget.onTopicCompleted,
-    onCommunicationRequested: widget.onCommunicationRequested,
   );
 }

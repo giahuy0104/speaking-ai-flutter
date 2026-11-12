@@ -44,7 +44,6 @@ class TopicLessonListScreen extends StatefulWidget {
     this.relearnTopicSequence = false,
     this.songsOnly = false,
     this.onTopicCompleted,
-    this.onCommunicationRequested,
     super.key,
   });
 
@@ -73,7 +72,6 @@ class TopicLessonListScreen extends StatefulWidget {
   final bool relearnTopicSequence;
   final bool songsOnly;
   final VoidCallback? onTopicCompleted;
-  final VoidCallback? onCommunicationRequested;
 
   List<ListeningLessonContent> get songEntries =>
       content.availableSongsForAge(startAge);
@@ -649,7 +647,6 @@ class _TopicLessonListScreenState extends State<TopicLessonListScreen> {
             voicePromptService: _voicePromptService,
             leadPrompt: leadPrompt,
             onTopicCompleted: widget.onTopicCompleted,
-            onCommunicationRequested: widget.onCommunicationRequested,
           ),
         ),
       );

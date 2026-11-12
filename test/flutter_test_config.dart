@@ -2,9 +2,14 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:ai_speaking_flutter_app/features/conversation/presentation/widgets/homi_hero_3d.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
+  // HOMI's endless idle motion would keep pumpAndSettle from settling, and
+  // resized decoding finishes outside the fake clock (goldens miss images).
+  HomiHero3D.motionEnabled = false;
+  HomiHero3D.decodeAtDisplaySize = false;
   final comparator = goldenFileComparator;
   if (Platform.isWindows && comparator is LocalFileComparator) {
     goldenFileComparator = _WindowsGoldenFileComparator(comparator);

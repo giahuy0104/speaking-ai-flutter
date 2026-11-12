@@ -9,6 +9,7 @@ import 'package:ai_speaking_flutter_app/features/voice_navigation/application/ma
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/main_button_activation_policy.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/main_speaking_session_controller.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/application/voice_navigation_controller.dart';
+import 'package:ai_speaking_flutter_app/features/voice_navigation/presentation/homi_assistant_bubble.dart';
 import 'package:ai_speaking_flutter_app/features/voice_navigation/presentation/main_voice_assistant_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -297,7 +298,7 @@ void main() {
         ),
       );
       final button = find.byKey(const Key('main-voice-assistant-button'));
-      expect(tester.widget<FloatingActionButton>(button).onPressed, isNull);
+      expect(tester.widget<HomiAssistantBubble>(button).onPressed, isNull);
       final gesture = await tester.startGesture(tester.getCenter(button));
       await tester.pump(const Duration(milliseconds: 1499));
       expect(longCalls, 0);
@@ -346,12 +347,12 @@ void main() {
         ),
       );
       final button = find.byKey(const Key('main-voice-assistant-button'));
-      expect(tester.widget<FloatingActionButton>(button).onPressed, isNotNull);
+      expect(tester.widget<HomiAssistantBubble>(button).onPressed, isNotNull);
       await tester.tap(button);
       expect(shortCalls, 1);
       registry.unregister(registration);
       await tester.pump();
-      expect(tester.widget<FloatingActionButton>(button).onPressed, isNull);
+      expect(tester.widget<HomiAssistantBubble>(button).onPressed, isNull);
     },
     variant: TargetPlatformVariant.only(TargetPlatform.android),
   );
