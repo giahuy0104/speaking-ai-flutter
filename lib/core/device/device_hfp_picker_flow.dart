@@ -245,6 +245,22 @@ class DeviceHfpPickerFlow {
                   },
                 ),
               ),
+              if (connectionCoordinator case final coordinator?) ...<Widget>[
+                const SizedBox(height: 4),
+                TextButton.icon(
+                  onPressed: () {
+                    Navigator.of(sheetContext).pop();
+                    unawaited(coordinator.openBluetoothSettings());
+                  },
+                  icon: const Icon(Icons.bluetooth_rounded),
+                  label: Text(
+                    context.tr(
+                      'Không thấy HOMI? Mở Cài đặt Bluetooth',
+                      '没看到 HOMI？打开蓝牙设置',
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
