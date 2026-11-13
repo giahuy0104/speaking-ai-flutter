@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
 
@@ -56,7 +57,6 @@ import '../features/listening/application/topic_offline_model_preparation_servic
 import '../features/listening/application/android_runtime_platform.dart';
 import '../features/listening/domain/listening_catalog.dart';
 import '../features/listening/domain/listening_content.dart';
-import '../features/listening/presentation/listening_route_names.dart';
 import '../features/onboarding/application/onboarding_progress_store.dart';
 import '../features/onboarding/application/parent_setup_progress_store.dart';
 import '../features/onboarding/presentation/startup_setup_screen.dart';
@@ -69,6 +69,7 @@ import '../features/voice_navigation/application/main_speaking_session_controlle
 import '../features/voice_navigation/application/voice_navigation_controller.dart';
 import '../features/voice_navigation/data/web_batch_streaming_speech_input.dart';
 import '../features/voice_navigation/domain/homi_fallback_catalog.dart';
+import '../features/voice_navigation/presentation/homi_bubble_dock.dart';
 import '../features/voice_navigation/presentation/main_voice_assistant_button.dart';
 import '../l10n/display_language.dart';
 import 'app_theme.dart';
@@ -181,7 +182,11 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   bool _hasMainSpeakingTurnStarted = false;
   int _mainSpeakingHfpSessionGeneration = 0;
   bool _isGlobalModalOpen = false;
-  bool _showFloatingMainButton = false;
+  int _floatingRouteCount = 0;
+  int _homePage = 0;
+
+  bool get _showFloatingMainButton =>
+      showsFloatingHomi(routeCount: _floatingRouteCount, homePage: _homePage);
   bool _backgroundWorkStarted = false;
   bool _retryParentHomiSetupOnResume = false;
   bool _parentHomiResumeRetryInProgress = false;
@@ -502,9 +507,21 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       },
     );
     _mainOverlayNavigatorObserver = _MainOverlayNavigatorObserver(
-      onVisibilityChanged: (visible) {
-        if (!mounted || _showFloatingMainButton == visible) return;
-        setState(() => _showFloatingMainButton = visible);
+      onRouteCountChanged: (count) {
+        if (!mounted || _floatingRouteCount == count) return;
+        // The first route is pushed while the Navigator is still building,
+        // where setState is not allowed; apply the change after that frame,
+        // reading the count then so a newer change is never overwritten.
+        if (SchedulerBinding.instance.schedulerPhase ==
+            SchedulerPhase.persistentCallbacks) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final latest = _mainOverlayNavigatorObserver.routeCount;
+            if (!mounted || _floatingRouteCount == latest) return;
+            setState(() => _floatingRouteCount = latest);
+          });
+          return;
+        }
+        setState(() => _floatingRouteCount = count);
       },
     );
     _config = widget.config ?? AppConfig.fromEnvironment();
@@ -4188,22 +4205,17 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
                       _startupReady &&
                       _voiceAccessEnabled &&
                       _showFloatingMainButton)
-                    Positioned(
-                      right: 16,
-                      bottom: 0,
-                      child: SafeArea(
-                        minimum: const EdgeInsets.only(bottom: 88),
-                        child: MainVoiceAssistantButton(
-                          voiceController: voiceController,
-                          audioState: controller,
-                          activeLearningRegistry: _activeLearningModules,
-                          speakingSessionController:
-                              _mainSpeakingSessionController,
-                          isActivationPending: _isActivatingMainAssistant,
-                          onPressed: _handleScreenMainShortPress,
-                          onLongPressed: _handleScreenMainLongPress,
-                          onLongPressReleased: _handleScreenMainRelease,
-                        ),
+                    HomiBubbleDock(
+                      child: MainVoiceAssistantButton(
+                        voiceController: voiceController,
+                        audioState: controller,
+                        activeLearningRegistry: _activeLearningModules,
+                        speakingSessionController:
+                            _mainSpeakingSessionController,
+                        isActivationPending: _isActivatingMainAssistant,
+                        onPressed: _handleScreenMainShortPress,
+                        onLongPressed: _handleScreenMainLongPress,
+                        onLongPressReleased: _handleScreenMainRelease,
                       ),
                     ),
                   if (_iosBleReconnectNoticeVisible)
@@ -4250,6 +4262,11 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
                   themeMode: _themeMode,
                   onThemeModeChanged: _setThemeMode,
                   onChildAgeChanged: _setChildAge,
+                  onHomePageChanged: (page) {
+                    if (mounted && _homePage != page) {
+                      setState(() => _homePage = page);
+                    }
+                  },
                   onActiveLearningExitCommitted:
                       _appFlowCoordinator.forgetPausedModule,
                   onMainSpeakingModeStarted: _startMainSpeakingMode,
@@ -4359,22 +4376,25 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   }
 }
 
-class _MainOverlayNavigatorObserver extends NavigatorObserver {
-  _MainOverlayNavigatorObserver({required this.onVisibilityChanged});
+/// HOMI floats over every screen except Home's translation page (Home alone
+/// on the stack, showing page 0), where a stray tap could interrupt the
+/// child's translation.
+@visibleForTesting
+bool showsFloatingHomi({required int routeCount, required int homePage}) =>
+    routeCount > 1 || (routeCount == 1 && homePage != 0);
 
-  final ValueChanged<bool> onVisibilityChanged;
+class _MainOverlayNavigatorObserver extends NavigatorObserver {
+  _MainOverlayNavigatorObserver({required this.onRouteCountChanged});
+
+  final ValueChanged<int> onRouteCountChanged;
   final Set<Route<dynamic>> _pageRoutes = <Route<dynamic>>{};
   int navigationRevision = 0;
 
+  int get routeCount => _pageRoutes.length;
+
   void _notify() {
     navigationRevision += 1;
-    final topRoute = _pageRoutes.isEmpty ? null : _pageRoutes.last;
-    final topName = topRoute?.settings.name;
-    final hideFloatingMainButton =
-        topName == ListeningRouteNames.topicCatalog ||
-        topName == ListeningRouteNames.topicLessons ||
-        topName == ListeningRouteNames.lessonPractice;
-    onVisibilityChanged(_pageRoutes.length > 1 && !hideFloatingMainButton);
+    onRouteCountChanged(_pageRoutes.length);
   }
 
   @override

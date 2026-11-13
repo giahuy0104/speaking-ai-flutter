@@ -1220,50 +1220,38 @@ void main() {
     },
   );
 
-  testWidgets('communication tab reports the lesson exit before navigation', (
-    tester,
-  ) async {
-    SharedPreferences.setMockInitialValues({});
-    await _usePhoneSurface(tester);
-    var communicationRequests = 0;
+  testWidgets(
+    'practice keeps lesson controls without bottom tabs',
+    (tester) async {
+      await _usePhoneSurface(tester);
 
-    await tester.pumpWidget(
-      _subject(
-        _lessonWithSentences(1),
-        _MemoryProgressStore(),
-        const Key('communication-exit'),
-        onCommunicationRequested: () => communicationRequests += 1,
-      ),
-    );
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        _subject(
+          _lessonWithSentences(1),
+          _MemoryProgressStore(),
+          const Key('practice-without-tabs'),
+        ),
+      );
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Giao tiếp'));
-    await tester.pump();
-
-    expect(communicationRequests, 1);
-  });
-
-  testWidgets('iOS practice keeps lesson controls without bottom tabs', (
-    tester,
-  ) async {
-    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-    addTearDown(() => debugDefaultTargetPlatformOverride = null);
-    await _usePhoneSurface(tester);
-
-    await tester.pumpWidget(
-      _subject(
-        _lessonWithSentences(1),
-        _MemoryProgressStore(),
-        const Key('ios-practice-without-tabs'),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.byKey(const Key('listening-bottom-navigation')), findsNothing);
-    expect(find.byTooltip('Quay lại'), findsOneWidget);
-    expect(find.byKey(const Key('previous-lesson-sentence')), findsOneWidget);
-    debugDefaultTargetPlatformOverride = null;
-  });
+      expect(
+        find.byKey(const Key('listening-bottom-navigation')),
+        findsNothing,
+      );
+      expect(find.text('Giao tiếp'), findsNothing);
+      expect(find.byTooltip('Quay lại'), findsOneWidget);
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
+        expect(
+          find.byKey(const Key('previous-lesson-sentence')),
+          findsOneWidget,
+        );
+      }
+    },
+    variant: const TargetPlatformVariant(<TargetPlatform>{
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
 
   testWidgets('previous sentence is persisted and restored after re-entry', (
     tester,
@@ -2047,7 +2035,6 @@ Widget _subject(
   ListeningLevelContent? levelContent,
   LessonCompletionChoiceRecognizer? completionChoiceRecognizer,
   ListeningResumeStage initialResumeStage = ListeningResumeStage.core,
-  VoidCallback? onCommunicationRequested,
 }) {
   return MaterialApp(
     onGenerateRoute: createAppRouter().onGenerateRoute,
@@ -2076,7 +2063,6 @@ Widget _subject(
       levelContent: levelContent,
       completionChoiceRecognizer: completionChoiceRecognizer,
       initialResumeStage: initialResumeStage,
-      onCommunicationRequested: onCommunicationRequested,
       guideAudioLibrary:
           guideAudioLibrary ??
           LessonGuideAudioLibrary(assetPaths: const <String>[]),

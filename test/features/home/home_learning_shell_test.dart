@@ -65,6 +65,27 @@ void main() {
     messenger.setMockMethodCallHandler(focusEventsChannel, null);
   });
 
+  testWidgets('Home reports the visible page for the floating HOMI', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final controller = _ObservedPrimaryActionController(
+      _FakeStreamingSpeechInput(),
+    );
+    addTearDown(controller.dispose);
+    final pages = <int>[];
+    await tester.pumpWidget(_app(controller, onHomePageChanged: pages.add));
+    await tester.pumpAndSettle();
+    expect(pages, <int>[0]);
+
+    await tester.tap(find.text('Từ vựng').last);
+    await tester.pumpAndSettle();
+    expect(pages.last, 1);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 3));
+  });
+
   testWidgets(
     'iOS explicit conversation resumes audio before device gate only',
     (tester) async {
@@ -645,7 +666,12 @@ void main() {
         findsOneWidget,
       );
       expect(topicTabRect.top, closeTo(vocabularyTabRect.top, 0.01));
-      expect(vocabularyTabRect.top, closeTo(844 * 0.33, 0.01));
+      // Rails sit level with HOMI and end a little before half the screen.
+      expect(
+        vocabularyTabRect.top,
+        closeTo(ConversationScreen.railTop(const Size(390, 844), 0), 0.01),
+      );
+      expect(vocabularyTabRect.bottom, lessThan(844 / 2));
       expect(find.byKey(const Key('home-conversation-tab')), findsNothing);
       expect(find.byKey(const Key('home-main-button')), findsNothing);
       expect(find.byKey(const Key('home-history-tab')), findsNothing);
@@ -4066,9 +4092,11 @@ Widget _app(
       const _FakeParentMediaSettingsStore(true),
   OnboardingProgressStore? onboardingStore,
   VoidCallback? onReady,
+  ValueChanged<int>? onHomePageChanged,
 }) {
   final home = HomeLearningShell(
     onReady: onReady,
+    onHomePageChanged: onHomePageChanged,
     controller: controller,
     ensureDeviceConnected: ensureDeviceConnected,
     isDeviceConnectionReady: isDeviceConnectionReady,

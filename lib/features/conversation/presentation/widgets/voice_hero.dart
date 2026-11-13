@@ -5,8 +5,7 @@ import '../../../../app/homi_ui.dart';
 import '../../../../app/mascot_assets.dart';
 import '../../../../l10n/display_language.dart';
 import '../../domain/conversation_models.dart';
-
-const _homeHeroBlobAsset = 'assets/images/home-hero-blob-option2.png';
+import 'homi_hero_3d.dart';
 
 class VoiceHero extends StatelessWidget {
   const VoiceHero({
@@ -16,6 +15,7 @@ class VoiceHero extends StatelessWidget {
     this.useMobileSizing = false,
     this.isPreparingMicrophone = false,
     this.needsDeviceConnection = false,
+    this.mobileHeroHeight = 150,
     required this.onStop,
     super.key,
   });
@@ -26,6 +26,10 @@ class VoiceHero extends StatelessWidget {
   final bool useMobileSizing;
   final bool isPreparingMicrophone;
   final bool needsDeviceConnection;
+
+  /// Height of the 3D HOMI on phones; the screen grows it with the space
+  /// above the study card.
+  final double mobileHeroHeight;
   final VoidCallback onStop;
 
   @override
@@ -38,106 +42,141 @@ class VoiceHero extends StatelessWidget {
         ? Duration.zero
         : const Duration(milliseconds: 120);
 
+    final heroActive =
+        isRecording ||
+        phase == ConversationPhase.processing ||
+        isPreparingMicrophone;
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 560),
       child: Column(
         children: <Widget>[
-          SizedBox(
-            height: useMobileSizing
-                ? (compact ? 190 : 216)
-                : (compact ? 205 : 232),
-            child: Stack(
-              alignment: Alignment.center,
-              children: <Widget>[
-                Positioned.fill(
-                  child: Transform.scale(
-                    scale: useMobileSizing ? 1.26 : 1.32,
-                    child: Opacity(
-                      opacity: isDark ? 0.18 : 1,
-                      child: Image.asset(
-                        _homeHeroBlobAsset,
-                        fit: BoxFit.contain,
-                        filterQuality: FilterQuality.high,
+          if (useMobileSizing)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: HomiHero3D(
+                key: const Key('conversation-homi-hero'),
+                mood: phase == ConversationPhase.processing
+                    ? HomiHeroMood.speaking
+                    : heroActive
+                    ? HomiHeroMood.listening
+                    : HomiHeroMood.idle,
+                size: Size(
+                  mobileHeroHeight * HomiHero3D.aspectRatio,
+                  mobileHeroHeight,
+                ),
+              ),
+            )
+          else
+            SizedBox(
+              height: compact ? 205 : 232,
+              child: Stack(
+                alignment: Alignment.center,
+                children: <Widget>[
+                  Positioned.fill(
+                    child: Transform.scale(
+                      scale: 1.32,
+                      child: Opacity(
+                        opacity: isDark ? 0.18 : 1,
+                        child: Image.asset(
+                          MascotAssets.heroCloud,
+                          fit: BoxFit.contain,
+                          filterQuality: FilterQuality.high,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                AnimatedScale(
-                  duration: motionDuration,
-                  scale: isRecording ? 0.96 + (amplitude * 0.08) : 1,
-                  child: Transform.scale(
-                    scale: useMobileSizing ? 1.06 : 1.12,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 12),
-                      child: Image.asset(
-                        MascotAssets.listen,
-                        fit: BoxFit.contain,
-                        filterQuality: FilterQuality.high,
+                  AnimatedScale(
+                    duration: motionDuration,
+                    scale: isRecording ? 0.96 + (amplitude * 0.08) : 1,
+                    child: Transform.scale(
+                      scale: 1.12,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Image.asset(
+                          MascotAssets.listen,
+                          fit: BoxFit.contain,
+                          filterQuality: FilterQuality.high,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
           SizedBox(
-            height: useMobileSizing ? (compact ? 47 : 56) : (compact ? 52 : 58),
+            height: useMobileSizing ? mobileWaveBoxHeight : (compact ? 52 : 58),
             child: Center(
               child: HomiWaveform(
                 key: Key(
-                  isRecording ||
-                          phase == ConversationPhase.processing ||
-                          isPreparingMicrophone
+                  heroActive
                       ? 'conversation-animated-waveform'
                       : 'conversation-static-waveform',
                 ),
-                active:
-                    isRecording ||
-                    phase == ConversationPhase.processing ||
-                    isPreparingMicrophone,
+                active: heroActive,
                 amplitude: amplitude,
-                width: compact ? 228 : 254,
-                height: compact ? 44 : 50,
+                width: useMobileSizing ? 214 : (compact ? 228 : 254),
+                height: useMobileSizing ? 46 : (compact ? 44 : 50),
                 semanticLabel: context.tr('Mức âm thanh', '音量'),
               ),
             ),
           ),
-          Padding(
-            padding: EdgeInsets.only(
-              top: useMobileSizing ? (compact ? 3 : 6) : (compact ? 6 : 8),
-            ),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 24),
-              child: Center(
-                child: Semantics(
-                  liveRegion: true,
-                  child: Text(
-                    _statusText(context),
-                    key: const Key('conversation-wave-status'),
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: isDark
-                          ? colorScheme.onSurfaceVariant
-                          : AppColors.muted,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      shadows: <Shadow>[
-                        Shadow(
-                          color: isDark ? Colors.black54 : Colors.white,
-                          blurRadius: 7,
-                        ),
-                        Shadow(
-                          color: isDark ? Colors.black54 : Colors.white,
-                          blurRadius: 14,
-                        ),
-                      ],
-                    ),
-                  ),
+          if (useMobileSizing)
+            // Phones show the status through HOMI's pose and the main button;
+            // the line stays in the tree, invisible, for screen readers.
+            SizedBox(
+              height: 0,
+              child: OverflowBox(
+                maxHeight: double.infinity,
+                alignment: Alignment.topCenter,
+                child: Opacity(
+                  opacity: 0,
+                  alwaysIncludeSemantics: true,
+                  child: _statusLine(context, colorScheme, isDark),
                 ),
               ),
+            )
+          else
+            Padding(
+              padding: EdgeInsets.only(top: compact ? 6 : 8),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 24),
+                child: Center(child: _statusLine(context, colorScheme, isDark)),
+              ),
             ),
-          ),
         ],
+      ),
+    );
+  }
+
+  /// Height the phone wave row takes under HOMI.
+  static const double mobileWaveBoxHeight = 52;
+
+  Widget _statusLine(
+    BuildContext context,
+    ColorScheme colorScheme,
+    bool isDark,
+  ) {
+    return Semantics(
+      liveRegion: true,
+      child: Text(
+        _statusText(context),
+        key: const Key('conversation-wave-status'),
+        textAlign: TextAlign.center,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          color: isDark ? colorScheme.onSurfaceVariant : AppColors.muted,
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          shadows: <Shadow>[
+            Shadow(
+              color: isDark ? Colors.black54 : Colors.white,
+              blurRadius: 7,
+            ),
+            Shadow(
+              color: isDark ? Colors.black54 : Colors.white,
+              blurRadius: 14,
+            ),
+          ],
+        ),
       ),
     );
   }

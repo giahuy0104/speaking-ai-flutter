@@ -42,9 +42,7 @@ import '../../../presentation/navigation/view_arguments/song_stage_arguments.dar
 import '../../../presentation/navigation/view_arguments/lesson_review_arguments.dart';
 import '../../../presentation/navigation/view_arguments/lesson_intro_arguments.dart';
 import '../../../presentation/navigation/view_arguments/lesson_challenge_arguments.dart';
-import 'lesson_recording_history_sheet.dart';
 import 'lesson_review_screen.dart';
-import 'listening_navigation_bar.dart';
 import 'listening_route_names.dart';
 import 'v4_song_stage_screen.dart';
 
@@ -70,7 +68,6 @@ class LessonPracticeScreen extends StatefulWidget {
     this.isRelearn = false,
     this.relearnTopicSequence = false,
     this.onTopicCompleted,
-    this.onCommunicationRequested,
     super.key,
   });
 
@@ -94,7 +91,6 @@ class LessonPracticeScreen extends StatefulWidget {
   final bool isRelearn;
   final bool relearnTopicSequence;
   final VoidCallback? onTopicCompleted;
-  final VoidCallback? onCommunicationRequested;
 
   @override
   State<LessonPracticeScreen> createState() => _LessonPracticeScreenState();
@@ -1149,21 +1145,9 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
               ],
             ),
           ),
-          bottomNavigationBar:
-              !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
-              ? null
-              : ListeningNavigationBar(
-                  onCommunication: _returnToCommunication,
-                  onHistory: _showHistory,
-                ),
         ),
       ),
     );
-  }
-
-  void _returnToCommunication() {
-    widget.onCommunicationRequested?.call();
-    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   Future<void> _playSample() async {
@@ -3256,7 +3240,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
               ? null
               : _voicePromptService,
           onTopicCompleted: widget.onTopicCompleted,
-          onCommunicationRequested: widget.onCommunicationRequested,
         ),
       ),
     );
@@ -3439,7 +3422,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           progressStore: widget.progressStore,
           mediaService: widget.mediaService,
           onTopicCompleted: widget.onTopicCompleted,
-          onCommunicationRequested: widget.onCommunicationRequested,
         ),
       ),
     );
@@ -3517,7 +3499,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
           progressStore: widget.progressStore,
           mediaService: widget.mediaService,
           onTopicCompleted: widget.onTopicCompleted,
-          onCommunicationRequested: widget.onCommunicationRequested,
         ),
       ),
     );
@@ -4788,17 +4769,6 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
         _praiseFireworksVisible = false;
       });
     }
-  }
-
-  void _showHistory() {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      showDragHandle: true,
-      builder: (_) =>
-          LessonRecordingHistorySheet(mediaService: widget.mediaService),
-    );
   }
 
   void _setMessage(String message) {

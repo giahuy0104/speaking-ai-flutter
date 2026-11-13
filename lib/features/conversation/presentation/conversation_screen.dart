@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -12,8 +13,10 @@ import '../../../core/device/device_connection_coordinator.dart';
 import '../../../l10n/display_language.dart';
 import '../../../presentation/device/device_ble_picker_flow.dart';
 import '../../../presentation/device/device_hfp_picker_flow.dart';
+import '../../home/presentation/home_mode_rail.dart';
 import '../domain/conversation_models.dart';
 import 'conversation_controller.dart';
+import 'widgets/homi_hero_3d.dart';
 import 'widgets/result_panel.dart';
 import 'widgets/speak_action_bar.dart';
 import 'widgets/voice_hero.dart';
@@ -58,6 +61,24 @@ class ConversationScreen extends StatefulWidget {
   final Key? historyButtonKey;
   final Key? settingsButtonKey;
 
+  static const double headerHeight = ScenicAppHeader.height;
+  static const double railHeight = HomeModeRail.collapsedHeight;
+  static const double railWidth = HomeModeRail.collapsedWidth;
+
+  /// Room the hero band keeps besides HOMI: 4 px top margin, the wave row
+  /// and an 8 px gap.
+  static const double _heroBandExtras = 4 + VoiceHero.mobileWaveBoxHeight + 8;
+
+  /// Home's rails sit level with HOMI and end a little before half the
+  /// screen, leaving the lower part to the study card.
+  static double railTop(Size screen, double safeTop) =>
+      math.max(safeTop + headerHeight + 24, screen.height * 0.45 - railHeight);
+
+  /// On phones HOMI and the wave fill at least this band, which ends just
+  /// below the rails, so the study card always has the full width.
+  static double heroBandHeight(Size screen, double safeTop) =>
+      railTop(screen, safeTop) + railHeight + 8 - (safeTop + headerHeight);
+
   @override
   State<ConversationScreen> createState() => _ConversationScreenState();
 }
@@ -78,6 +99,8 @@ class _TranslationLanguageSelector extends StatefulWidget {
       _TranslationLanguageSelectorState();
 }
 
+/// Round mint "translate" button for the header. The badge shows the target
+/// language; tapping opens a list of every target.
 class _TranslationLanguageSelectorState
     extends State<_TranslationLanguageSelector> {
   final MenuController _menu = MenuController();
@@ -93,26 +116,47 @@ class _TranslationLanguageSelectorState
     }
   }
 
+  void _onPressed() {
+    if (!widget.enabled) {
+      ScaffoldMessenger.maybeOf(context)
+        ?..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+            content: Text(
+              context.tr(
+                'Chờ HOMI xong việc rồi đổi ngôn ngữ nhé',
+                '请等 HOMI 完成后再切换语言',
+              ),
+            ),
+          ),
+        );
+      return;
+    }
+    _menu.isOpen ? _menu.close() : _menu.open();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final navy = isDark ? AppColors.darkPrimary : AppColors.primaryNavy;
-    final stacked = MediaQuery.textScalerOf(context).scale(17) > 23;
-    final menuWidth = (MediaQuery.sizeOf(context).width - 56)
-        .clamp(0.0, stacked ? 220.0 : 204.0)
+    final mint = isDark ? AppColors.darkMint : AppColors.success;
+    final menuWidth = (MediaQuery.sizeOf(context).width - 40)
+        .clamp(0.0, 236.0)
         .toDouble();
-    final languages = TranslationOutputLanguage.values;
     return MenuAnchor(
       controller: _menu,
-      alignmentOffset: const Offset(4, 6),
+      // Right-align the list under the 52 px button.
+      alignmentOffset: Offset(-(menuWidth - 52), 8),
       style: MenuStyle(
         backgroundColor: WidgetStatePropertyAll(
           isDark ? AppColors.darkSurfaceRaised : Colors.white,
         ),
         surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
-        elevation: const WidgetStatePropertyAll(3),
-        shadowColor: const WidgetStatePropertyAll(Color(0x260B2C66)),
+        elevation: const WidgetStatePropertyAll(6),
+        shadowColor: const WidgetStatePropertyAll(Color(0x400B2C66)),
         padding: const WidgetStatePropertyAll(EdgeInsets.all(6)),
         shape: WidgetStatePropertyAll(
           RoundedRectangleBorder(
@@ -129,128 +173,100 @@ class _TranslationLanguageSelectorState
           width: menuWidth,
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              for (
-                var row = 0;
-                row < (languages.length + 1) ~/ 2;
-                row++
-              ) ...<Widget>[
-                if (row > 0) const SizedBox(height: 5),
-                Row(
-                  children: <Widget>[
-                    for (var column = 0; column < 2; column++) ...<Widget>[
-                      if (column > 0) const SizedBox(width: 5),
-                      Expanded(
-                        child: row * 2 + column < languages.length
-                            ? _languageOption(
-                                languages[row * 2 + column],
-                                isDark: isDark,
-                                navy: navy,
-                                largeText: stacked,
-                              )
-                            : const SizedBox.shrink(),
-                      ),
-                    ],
-                  ],
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 6, 10, 6),
+                child: Text(
+                  context.tr('Dịch tiếng Việt sang', '把越南语翻译成'),
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: isDark ? AppColors.darkMuted : AppColors.muted,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ],
+              ),
+              for (final language in TranslationOutputLanguage.values)
+                _languageOption(language, isDark: isDark, navy: navy),
             ],
           ),
         ),
       ],
       builder: (context, controller, _) {
-        final label = Text(
-          context.tr('Dịch sang', '翻译成'),
-          style: TextStyle(
-            color: navy,
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
+        final open = controller.isOpen;
+        return Semantics(
+          button: true,
+          enabled: widget.enabled,
+          label: context.tr(
+            'Dịch sang ${widget.selected.label}. Bấm để đổi ngôn ngữ',
+            '翻译成${widget.selected.label}，点击切换语言',
           ),
-        );
-        final pill = Material(
-          color: isDark ? AppColors.darkSurfaceRaised : Colors.white,
-          borderRadius: BorderRadius.circular(25),
-          child: InkWell(
-            key: const Key('translation-output-language'),
-            onTap: widget.enabled
-                ? () =>
-                      controller.isOpen ? controller.close() : controller.open()
-                : null,
-            borderRadius: BorderRadius.circular(25),
-            child: Container(
-              height: stacked ? 68 : 42,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: isDark
-                      ? AppColors.darkOutline
-                      : const Color(0xFF9CECCE),
-                ),
-                borderRadius: BorderRadius.circular(25),
-              ),
-              child: Row(
-                mainAxisSize: stacked ? MainAxisSize.max : MainAxisSize.min,
-                children: <Widget>[
-                  Icon(
-                    Icons.translate_rounded,
-                    color: isDark ? AppColors.darkMint : AppColors.mint,
-                    size: 17,
-                  ),
-                  const SizedBox(width: 7),
-                  if (stacked)
-                    Expanded(
-                      child: Text(
-                        widget.selected.label,
-                        maxLines: 2,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: widget.enabled ? navy : theme.disabledColor,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
+          child: Tooltip(
+            message: context.tr('Đổi ngôn ngữ dịch', '切换翻译语言'),
+            child: Opacity(
+              opacity: widget.enabled ? 1 : 0.6,
+              child: Material(
+                type: MaterialType.transparency,
+                child: InkWell(
+                  key: const Key('translation-output-language'),
+                  customBorder: const CircleBorder(),
+                  onTap: _onPressed,
+                  child: SizedBox.square(
+                    dimension: 52,
+                    // Two tilted letter tiles: "Aa" for Vietnamese behind,
+                    // the target language in front.
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: <Widget>[
+                        Positioned(
+                          left: 2,
+                          top: 2,
+                          child: _LetterTile(
+                            text: 'Aa',
+                            angle: -0.21,
+                            fontSize: 12,
+                            alignTop: true,
+                            textColor: widget.enabled
+                                ? AppColors.accentPink
+                                : theme.disabledColor,
+                            colors: const <Color>[
+                              Colors.white,
+                              Color(0xFFFFEEF2),
+                            ],
+                            edge: const Color(0xFFF6C9D4),
+                          ),
                         ),
-                      ),
-                    )
-                  else
-                    Flexible(
-                      child: Text(
-                        widget.selected.label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: widget.enabled ? navy : theme.disabledColor,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
+                        Positioned(
+                          right: 2,
+                          bottom: 2,
+                          child: _LetterTile(
+                            text: widget.selected.badge,
+                            angle: 0.14,
+                            fontSize: 14,
+                            textColor: widget.enabled
+                                ? AppColors.primaryNavy
+                                : theme.disabledColor,
+                            colors: widget.enabled
+                                ? const <Color>[
+                                    Color(0xFFEAFFF7),
+                                    Color(0xFFC8F0DF),
+                                  ]
+                                : const <Color>[
+                                    Color(0xFFF2F4F7),
+                                    Color(0xFFE1E5EB),
+                                  ],
+                            edge: widget.enabled
+                                ? const Color(0xFFA9DCC6)
+                                : const Color(0xFFCDD3DC),
+                            ring: open ? mint : null,
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  const SizedBox(width: 8),
-                  Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    color: navy,
-                    size: 19,
                   ),
-                ],
+                ),
               ),
             ),
           ),
-        );
-        if (stacked) {
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              label,
-              const SizedBox(height: 6),
-              SizedBox(width: menuWidth, child: pill),
-            ],
-          );
-        }
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            label,
-            const SizedBox(width: 8),
-            Flexible(child: pill),
-          ],
         );
       },
     );
@@ -260,16 +276,16 @@ class _TranslationLanguageSelectorState
     TranslationOutputLanguage language, {
     required bool isDark,
     required Color navy,
-    required bool largeText,
   }) {
     final selected = language == widget.selected;
+    final mint = isDark ? AppColors.darkMint : AppColors.success;
     return Semantics(
       selected: selected,
       child: Material(
         color: selected
             ? (isDark ? AppColors.darkSurfaceStrong : AppColors.mintSoft)
-            : (isDark ? AppColors.darkSurface : const Color(0xFFF3F6FC)),
-        borderRadius: BorderRadius.circular(16),
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(14),
         child: InkWell(
           key: Key('translation-language-${language.apiValue}'),
           onTap: widget.enabled
@@ -278,34 +294,127 @@ class _TranslationLanguageSelectorState
                   widget.onSelected(language);
                 }
               : null,
-          borderRadius: BorderRadius.circular(16),
-          child: SizedBox(
-            height: largeText ? 44 : 38,
+          borderRadius: BorderRadius.circular(14),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 46),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 9),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               child: Row(
                 children: <Widget>[
+                  Container(
+                    width: 30,
+                    height: 30,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: selected
+                          ? mint
+                          : (isDark
+                                ? AppColors.darkSurface
+                                : const Color(0xFFF1F5FB)),
+                    ),
+                    child: Text(
+                      language.badge,
+                      style: TextStyle(
+                        color: selected
+                            ? (isDark ? AppColors.darkSurface : Colors.white)
+                            : navy,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
                   Expanded(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        language.label,
-                        maxLines: 1,
-                        style: TextStyle(
-                          color: navy,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                        ),
+                    child: Text(
+                      language.label,
+                      maxLines: 2,
+                      style: TextStyle(
+                        color: navy,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
                   if (selected) ...<Widget>[
-                    const SizedBox(width: 4),
-                    Icon(Icons.check_circle_rounded, color: navy, size: 21),
+                    const SizedBox(width: 6),
+                    Icon(Icons.check_rounded, color: mint, size: 20),
                   ],
                 ],
               ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// One tilted, raised letter tile of the language button.
+class _LetterTile extends StatelessWidget {
+  const _LetterTile({
+    required this.text,
+    required this.angle,
+    required this.fontSize,
+    required this.textColor,
+    required this.colors,
+    required this.edge,
+    this.alignTop = false,
+    this.ring,
+  });
+
+  final String text;
+  final double angle;
+  final double fontSize;
+  final Color textColor;
+  final List<Color> colors;
+
+  /// Solid bottom edge that gives the tile its thickness.
+  final Color edge;
+
+  /// The back tile shows its letters near the top, above the front tile.
+  final bool alignTop;
+
+  /// Focus ring shown while the language list is open.
+  final Color? ring;
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.rotate(
+      angle: angle,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: 30,
+        height: 32,
+        alignment: alignTop ? Alignment.topCenter : Alignment.center,
+        padding: EdgeInsets.only(top: alignTop ? 3 : 0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(9),
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: colors,
+          ),
+          boxShadow: <BoxShadow>[
+            BoxShadow(color: edge, offset: const Offset(0, 3)),
+            const BoxShadow(
+              color: Color(0x1F142451),
+              blurRadius: 10,
+              offset: Offset(0, 6),
+            ),
+            if (ring case final color?)
+              BoxShadow(color: color.withValues(alpha: 0.35), spreadRadius: 3),
+          ],
+        ),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            text,
+            style: TextStyle(
+              color: textColor,
+              fontSize: fontSize,
+              fontWeight: FontWeight.w900,
+              height: 1.1,
             ),
           ),
         ),
@@ -580,6 +689,22 @@ class _ConversationScreenState extends State<ConversationScreen> {
             !kIsWeb &&
             (defaultTargetPlatform == TargetPlatform.android ||
                 defaultTargetPlatform == TargetPlatform.iOS);
+        // Same formula Home uses to place its rails beside HOMI.
+        final screenSize = MediaQuery.sizeOf(context);
+        final heroBand = ConversationScreen.heroBandHeight(
+          screenSize,
+          MediaQuery.paddingOf(context).top,
+        );
+        // HOMI grows with its band (leaving room for the wave) while its
+        // cloud stays inside the gap between the rails, 4 px clear of each.
+        final railGap =
+            screenSize.width - 2 * (ConversationScreen.railWidth + 4);
+        final heroHeight = math
+            .min(
+              heroBand - ConversationScreen._heroBandExtras,
+              railGap / (HomiHero3D.aspectRatio * HomiHero3D.cloudWidthFactor),
+            )
+            .clamp(140.0, 240.0);
         final needsDeviceConnection =
             widget.ensureDeviceConnected != null &&
             !(widget.isDeviceConnectionReady?.call() ??
@@ -603,6 +728,17 @@ class _ConversationScreenState extends State<ConversationScreen> {
                           unawaited(_openOtherScreen(widget.onOpenSettings)),
                       historyButtonKey: widget.historyButtonKey,
                       settingsButtonKey: widget.settingsButtonKey,
+                      leadingAction:
+                          isMobileLayout &&
+                              widget.controller.supportsTranslationTargets
+                          ? _TranslationLanguageSelector(
+                              selected: widget.controller.outputLanguage,
+                              enabled:
+                                  !widget.controller.isBusy &&
+                                  !widget.controller.sentenceQueueActive,
+                              onSelected: widget.controller.setOutputLanguage,
+                            )
+                          : null,
                     ),
                     HomiConnectionNotice(
                       status: HomiConnectionPresentation.from(
@@ -635,168 +771,177 @@ class _ConversationScreenState extends State<ConversationScreen> {
                         ),
                       ),
                     Expanded(
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 720),
-                          child: SingleChildScrollView(
-                            key: const Key('conversation-home-scroll'),
-                            padding: EdgeInsets.fromLTRB(
-                              isMobileLayout ? 20 : 24,
-                              isMobileLayout
-                                  ? (compact ? 12 : 56)
-                                  : (compact ? 24 : 64),
-                              isMobileLayout ? 20 : 24,
-                              10,
-                            ),
-                            child: Column(
-                              children: <Widget>[
-                                if (widget
-                                    .controller
-                                    .supportsTranslationTargets)
-                                  Padding(
-                                    padding: EdgeInsets.only(
-                                      bottom: isMobileLayout ? 8 : 16,
-                                    ),
-                                    child: isMobileLayout
-                                        ? _TranslationLanguageSelector(
-                                            selected: widget
+                      child: LayoutBuilder(
+                        builder: (context, viewport) => Align(
+                          // Phones keep HOMI right under the header; the
+                          // study card takes the remaining height.
+                          alignment: isMobileLayout
+                              ? Alignment.topCenter
+                              : Alignment.center,
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 720),
+                            child: SingleChildScrollView(
+                              key: const Key('conversation-home-scroll'),
+                              padding: EdgeInsets.fromLTRB(
+                                isMobileLayout ? 20 : 24,
+                                isMobileLayout ? 0 : (compact ? 24 : 64),
+                                isMobileLayout ? 20 : 24,
+                                10,
+                              ),
+                              child: Column(
+                                children: <Widget>[
+                                  if (!isMobileLayout &&
+                                      widget
+                                          .controller
+                                          .supportsTranslationTargets)
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        bottom: 16,
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: <Widget>[
+                                          Text(context.tr('Dịch sang', '翻译成')),
+                                          const SizedBox(width: 12),
+                                          DropdownButton<
+                                            TranslationOutputLanguage
+                                          >(
+                                            key: const Key(
+                                              'translation-output-language',
+                                            ),
+                                            value: widget
                                                 .controller
                                                 .outputLanguage,
-                                            enabled:
-                                                !widget.controller.isBusy &&
-                                                !widget
-                                                    .controller
-                                                    .sentenceQueueActive,
-                                            onSelected: widget
-                                                .controller
-                                                .setOutputLanguage,
-                                          )
-                                        : Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: <Widget>[
-                                              Text(
-                                                context.tr('Dịch sang', '翻译成'),
-                                              ),
-                                              const SizedBox(width: 12),
-                                              DropdownButton<
-                                                TranslationOutputLanguage
-                                              >(
-                                                key: const Key(
-                                                  'translation-output-language',
+                                            onChanged:
+                                                widget.controller.isBusy ||
+                                                    widget
+                                                        .controller
+                                                        .sentenceQueueActive
+                                                ? null
+                                                : (language) {
+                                                    if (language != null) {
+                                                      widget.controller
+                                                          .setOutputLanguage(
+                                                            language,
+                                                          );
+                                                    }
+                                                  },
+                                            items: [
+                                              for (final language
+                                                  in TranslationOutputLanguage
+                                                      .values)
+                                                DropdownMenuItem(
+                                                  value: language,
+                                                  child: Text(language.label),
                                                 ),
-                                                value: widget
-                                                    .controller
-                                                    .outputLanguage,
-                                                onChanged:
-                                                    widget.controller.isBusy ||
-                                                        widget
-                                                            .controller
-                                                            .sentenceQueueActive
-                                                    ? null
-                                                    : (language) {
-                                                        if (language != null) {
-                                                          widget.controller
-                                                              .setOutputLanguage(
-                                                                language,
-                                                              );
-                                                        }
-                                                      },
-                                                items: [
-                                                  for (final language
-                                                      in TranslationOutputLanguage
-                                                          .values)
-                                                    DropdownMenuItem(
-                                                      value: language,
-                                                      child: Text(
-                                                        language.label,
-                                                      ),
-                                                    ),
-                                                ],
-                                              ),
                                             ],
                                           ),
-                                  ),
-                                VoiceHero(
-                                  useMobileSizing: isMobileLayout,
-                                  needsDeviceConnection: needsDeviceConnection,
-                                  phase: widget.controller.phase,
-                                  processingStage:
-                                      widget.controller.processingStage,
-                                  amplitude: widget.controller.amplitude,
-                                  isPreparingMicrophone:
-                                      widget.controller.isPreparingMicrophone,
-                                  onStop: () => unawaited(
-                                    widget.controller.stopRecording(
-                                      manual: true,
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: isMobileLayout
-                                      ? (compact ? 5 : 14)
-                                      : (compact ? 8 : 18),
-                                ),
-                                if (widget.controller.sentenceProgress != null)
-                                  Text(widget.controller.sentenceProgress!),
-                                if (widget.controller.sentenceQueueActive)
-                                  TextButton.icon(
-                                    onPressed: () => unawaited(
-                                      widget.controller
-                                          .cancelCurrentMainAction(),
-                                    ),
-                                    icon: const Icon(Icons.stop),
-                                    label: const Text('Dừng phát'),
-                                  ),
-                                for (final previous
-                                    in widget.controller.sentenceResults.where(
-                                      (item) => !identical(
-                                        item,
-                                        widget.controller.result,
+                                        ],
                                       ),
-                                    ))
-                                  Padding(
-                                    padding: const EdgeInsets.only(bottom: 12),
-                                    child: Text(
-                                      '${previous.vietnameseText}\n'
-                                      '${previous.displayedTranslation}',
+                                    ),
+                                  ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      minHeight: isMobileLayout ? heroBand : 0,
+                                    ),
+                                    child: Align(
+                                      alignment: Alignment.topCenter,
+                                      child: VoiceHero(
+                                        useMobileSizing: isMobileLayout,
+                                        mobileHeroHeight: heroHeight,
+                                        needsDeviceConnection:
+                                            needsDeviceConnection,
+                                        phase: widget.controller.phase,
+                                        processingStage:
+                                            widget.controller.processingStage,
+                                        amplitude: widget.controller.amplitude,
+                                        isPreparingMicrophone: widget
+                                            .controller
+                                            .isPreparingMicrophone,
+                                        onStop: () => unawaited(
+                                          widget.controller.stopRecording(
+                                            manual: true,
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                if (widget
-                                    .controller
-                                    .sentenceResults
-                                    .isNotEmpty)
-                                  const Text(
-                                    'Nghe lại áp dụng cho câu đang hiển thị '
-                                    'bên dưới, sau khi hàng đợi dừng.',
+                                  if (!isMobileLayout)
+                                    SizedBox(height: compact ? 8 : 18),
+                                  if (widget.controller.sentenceProgress !=
+                                      null)
+                                    Text(widget.controller.sentenceProgress!),
+                                  if (widget.controller.sentenceQueueActive)
+                                    TextButton.icon(
+                                      onPressed: () => unawaited(
+                                        widget.controller
+                                            .cancelCurrentMainAction(),
+                                      ),
+                                      icon: const Icon(Icons.stop),
+                                      label: const Text('Dừng phát'),
+                                    ),
+                                  for (final previous
+                                      in widget.controller.sentenceResults
+                                          .where(
+                                            (item) => !identical(
+                                              item,
+                                              widget.controller.result,
+                                            ),
+                                          ))
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        bottom: 12,
+                                      ),
+                                      child: Text(
+                                        '${previous.vietnameseText}\n'
+                                        '${previous.displayedTranslation}',
+                                      ),
+                                    ),
+                                  if (widget
+                                      .controller
+                                      .sentenceResults
+                                      .isNotEmpty)
+                                    const Text(
+                                      'Nghe lại áp dụng cho câu đang hiển thị '
+                                      'bên dưới, sau khi hàng đợi dừng.',
+                                    ),
+                                  ResultPanel(
+                                    key: widget.resultPanelKey,
+                                    sectionMinHeight: isMobileLayout
+                                        ? 120
+                                        : 110,
+                                    // Fill the space down to the main action.
+                                    minCardHeight: isMobileLayout
+                                        ? (viewport.maxHeight - heroBand - 18)
+                                              .clamp(220.0, 560.0)
+                                        : 0,
+                                    result: widget.controller.result,
+                                    outputLanguage:
+                                        widget.controller.outputLanguage,
+                                    onPlay: () => unawaited(
+                                      widget.controller.playResult(),
+                                    ),
                                   ),
-                                ResultPanel(
-                                  key: widget.resultPanelKey,
-                                  sectionMinHeight: isMobileLayout ? 122 : 110,
-                                  result: widget.controller.result,
-                                  outputLanguage:
-                                      widget.controller.outputLanguage,
-                                  onPlay: () =>
-                                      unawaited(widget.controller.playResult()),
-                                ),
-                                if (widget.controller.errorMessage != null ||
-                                    widget.controller.transientMessage !=
-                                        null) ...<Widget>[
-                                  const SizedBox(height: 12),
-                                  _InlineMessage(
-                                    isError:
-                                        widget.controller.errorMessage != null,
-                                    isConnectionReady:
-                                        widget.controller.transientMessage ==
-                                        ConversationController
-                                            .connectionReadyMessage,
-                                    message:
-                                        widget.controller.errorMessage ??
-                                        widget.controller.transientMessage!,
-                                    onDismiss: widget.controller.clearMessage,
-                                  ),
+                                  if (widget.controller.errorMessage != null ||
+                                      widget.controller.transientMessage !=
+                                          null) ...<Widget>[
+                                    const SizedBox(height: 12),
+                                    _InlineMessage(
+                                      isError:
+                                          widget.controller.errorMessage !=
+                                          null,
+                                      isConnectionReady:
+                                          widget.controller.transientMessage ==
+                                          ConversationController
+                                              .connectionReadyMessage,
+                                      message:
+                                          widget.controller.errorMessage ??
+                                          widget.controller.transientMessage!,
+                                      onDismiss: widget.controller.clearMessage,
+                                    ),
+                                  ],
                                 ],
-                              ],
+                              ),
                             ),
                           ),
                         ),

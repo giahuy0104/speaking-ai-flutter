@@ -10,6 +10,7 @@ import '../../../core/device/active_learning_module.dart';
 import '../application/main_button_activation_policy.dart';
 import '../application/main_speaking_session_controller.dart';
 import '../application/voice_navigation_controller.dart';
+import 'homi_assistant_bubble.dart';
 
 class MainVoiceAssistantButton extends StatelessWidget {
   const MainVoiceAssistantButton({
@@ -107,33 +108,47 @@ class MainVoiceAssistantButton extends StatelessWidget {
                   ? 'Lệnh chưa xong'
                   : 'Thử lại mic'
             : 'Main';
-        final icon = isSpeakingMode
+        // Mirrors the label cascade above so each label has its own look.
+        final activeVisual = isSpeakingMode
             ? switch (speakingState) {
-                MainSpeakingSessionState.ready => Icons.mic_rounded,
-                MainSpeakingSessionState.recording => Icons.hearing_rounded,
-                MainSpeakingSessionState.processing => Icons.sync_rounded,
-                MainSpeakingSessionState.playing => Icons.volume_up_rounded,
-                MainSpeakingSessionState.inactive => Icons.auto_awesome_rounded,
+                MainSpeakingSessionState.ready => HomiBubbleVisual.preparing,
+                MainSpeakingSessionState.recording =>
+                  HomiBubbleVisual.listening,
+                MainSpeakingSessionState.processing =>
+                  audioState.isPreparingMicrophone
+                      ? HomiBubbleVisual.preparing
+                      : HomiBubbleVisual.translating,
+                MainSpeakingSessionState.playing => HomiBubbleVisual.playing,
+                MainSpeakingSessionState.inactive => HomiBubbleVisual.idle,
               }
             : voiceController.isMainButtonSessionActive &&
+                  voiceController.isAcknowledgingWakeWord
+            ? HomiBubbleVisual.homiSpeaking
+            : voiceController.isMainButtonSessionActive &&
                   voiceController.isListening
-            ? Icons.hearing_rounded
+            ? HomiBubbleVisual.listening
             : voiceController.isMainButtonSessionActive &&
                   microphoneError != null
-            ? Icons.sync_problem_rounded
+            ? commandError
+                  ? HomiBubbleVisual.commandError
+                  : HomiBubbleVisual.retrying
             : voiceController.isMainButtonSessionActive &&
                   (voiceController.isStarting ||
                       voiceController.isAwaitingCommand)
-            ? Icons.mic_none_rounded
-            : voiceController.isMainButtonSessionActive &&
-                  voiceController.isAcknowledgingWakeWord
-            ? Icons.campaign_rounded
+            ? HomiBubbleVisual.preparing
             : microphoneError != null
-            ? Icons.error_outline_rounded
-            : Icons.auto_awesome_rounded;
+            ? commandError
+                  ? HomiBubbleVisual.commandError
+                  : HomiBubbleVisual.micError
+            : HomiBubbleVisual.idle;
+        final visual = activeVisual == HomiBubbleVisual.idle && !canActivate
+            ? HomiBubbleVisual.busy
+            : activeVisual;
+        final showLabel =
+            visual != HomiBubbleVisual.idle && visual != HomiBubbleVisual.busy;
         final microphoneStatus = microphoneError == null
             ? '${voiceController.activeInputLabel}: $label'
-            : '$microphoneError Bấm Main để thử lại.';
+            : '$microphoneError Bấm HOMI để thử lại.';
 
         final mainControl = Semantics(
           button: true,
@@ -147,7 +162,7 @@ class MainVoiceAssistantButton extends StatelessWidget {
                     : microphoneStatus
               : '$microphoneStatus Vui lòng chờ.',
           child: RawGestureDetector(
-            // STOP remains available while the short-press FAB is disabled.
+            // STOP remains available while the short-press bubble is disabled.
             behavior: HitTestBehavior.opaque,
             gestures: <Type, GestureRecognizerFactory>{
               LongPressGestureRecognizer:
@@ -168,15 +183,14 @@ class MainVoiceAssistantButton extends StatelessWidget {
             },
             child: Tooltip(
               message: microphoneStatus,
-              // The FAB's default tooltip claims LONG after 500 ms, before
+              // A long-press tooltip would claim LONG after 500 ms, before
               // MAIN's 1.5-second STOP gesture can win the gesture arena.
               triggerMode: TooltipTriggerMode.manual,
-              child: FloatingActionButton.extended(
+              child: HomiAssistantBubble(
                 key: const Key('main-voice-assistant-button'),
-                heroTag: 'main-voice-assistant-button',
+                visual: visual,
+                label: showLabel ? label : null,
                 onPressed: canActivate ? () => unawaited(onPressed()) : null,
-                icon: Icon(icon),
-                label: Text(label),
               ),
             ),
           ),

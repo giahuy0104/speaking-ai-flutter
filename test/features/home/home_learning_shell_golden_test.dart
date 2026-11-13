@@ -72,21 +72,25 @@ void main() {
         initialResult: _homeReferenceResult,
       );
       addTearDown(controller.dispose);
-      final mascot = find.image(
-        const AssetImage('assets/images/mascot/penguin-listen.png'),
-      );
+      final mascot = find.byKey(const Key('conversation-homi-hero'));
       final wave = find.byKey(const Key('conversation-static-waveform'));
       final result = find.byKey(const Key('conversation-vietnamese-bubble'));
+      final button = find.byKey(const Key('translation-output-language'));
       final mascotBefore = tester.getRect(mascot);
       final waveBefore = tester.getRect(wave);
       final resultBefore = tester.getRect(result);
 
-      await tester.tap(find.byKey(const Key('translation-output-language')));
+      await tester.tap(button);
       await tester.pumpAndSettle();
       final menu = find.byKey(const Key('translation-language-menu'));
       expect(menu, findsOneWidget);
+      // The list drops from the header button, right-aligned with it.
+      expect(tester.getRect(menu).top, greaterThan(tester.getRect(button).top));
+      expect(
+        tester.getRect(menu).right,
+        closeTo(tester.getRect(button).right, 16),
+      );
       expect(tester.getRect(menu).overlaps(mascotBefore), isTrue);
-      expect(tester.getRect(menu).bottom, lessThan(resultBefore.top));
       expect(tester.getRect(mascot), mascotBefore);
       expect(tester.getRect(wave), waveBefore);
       expect(tester.getRect(result), resultBefore);
@@ -107,10 +111,19 @@ void main() {
       await tester.pumpAndSettle();
       expect(controller.outputLanguage, TranslationOutputLanguage.japanese);
       expect(menu, findsNothing);
-      expect(find.text('Tiếng Nhật'), findsOneWidget);
+      // The header badge now names Japanese; the shown sentence keeps the
+      // language it was translated into.
+      expect(
+        find.descendant(of: button, matching: find.text('日')),
+        findsOneWidget,
+      );
       await tester.tap(find.byKey(const Key('translation-output-language')));
       await tester.pumpAndSettle();
-      await tester.tapAt(tester.getCenter(wave));
+      await tester.tapAt(
+        tester.getCenter(
+          find.byKey(const Key('conversation-english-bubble')),
+        ),
+      );
       await tester.pumpAndSettle();
       expect(menu, findsNothing);
       expect(controller.outputLanguage, TranslationOutputLanguage.japanese);
@@ -122,7 +135,7 @@ void main() {
   );
 
   testWidgets(
-    'both translation cards fit above the main action on a phone',
+    'study card fits above the main action and clear of the side rails',
     (tester) async {
       final controller = await _pumpGoldenApp(
         tester,
@@ -138,9 +151,23 @@ void main() {
         find.byKey(const Key('conversation-english-bubble')),
       );
       final action = tester.getRect(find.byType(SpeakActionBar));
-      expect(vietnamese.height, greaterThanOrEqualTo(122));
-      expect(translation.height, greaterThanOrEqualTo(122));
+      final leftRail = tester.getRect(
+        find.byKey(const Key('vocabulary-edge-tab')),
+      );
+      final rightRail = tester.getRect(
+        find.byKey(const Key('topic-listening-edge-tab')),
+      );
+      expect(vietnamese.bottom, lessThan(translation.top));
+      expect(translation.height, greaterThanOrEqualTo(120));
       expect(translation.bottom, lessThanOrEqualTo(action.top));
+      // The card starts below both rails, so it can use the full width.
+      expect(vietnamese.top, greaterThanOrEqualTo(leftRail.bottom));
+      expect(vietnamese.top, greaterThanOrEqualTo(rightRail.bottom));
+      expect(vietnamese.left, lessThan(leftRail.right));
+      final hero = tester.getRect(
+        find.byKey(const Key('conversation-homi-hero')),
+      );
+      expect(hero.top, lessThan(leftRail.top));
       expect(tester.takeException(), isNull);
     },
     variant: TargetPlatformVariant({

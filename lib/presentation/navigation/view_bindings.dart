@@ -35,7 +35,6 @@ class TopicListeningBindings {
     this.iosTopicRecognitionFailureRevision,
     this.onChildAgeChanged,
     this.onRequestParentAccess,
-    this.onCommunicationRequested,
     this.contentFuture,
     this.progressStore = const ListeningProgressStore(),
     this.mediaService,
@@ -54,7 +53,6 @@ class TopicListeningBindings {
   final ValueListenable<int>? iosTopicRecognitionFailureRevision;
   final ValueChanged<int>? onChildAgeChanged;
   final Future<bool> Function()? onRequestParentAccess;
-  final VoidCallback? onCommunicationRequested;
   final Future<ListeningContentCatalog>? contentFuture;
   final ListeningProgressStore progressStore;
   final LessonMediaService? mediaService;
@@ -75,7 +73,6 @@ class TopicLessonListBindings {
     this.initialLessonLeadPrompt,
     this.initialLessonMainReply,
     this.onTopicCompleted,
-    this.onCommunicationRequested,
     this.key,
   });
 
@@ -89,7 +86,6 @@ class TopicLessonListBindings {
   final Future<void>? initialLessonLeadPrompt;
   final Future<void>? initialLessonMainReply;
   final VoidCallback? onTopicCompleted;
-  final VoidCallback? onCommunicationRequested;
   final Key? key;
 }
 
@@ -103,7 +99,6 @@ class LessonIntroBindings {
     this.voicePromptService,
     this.leadPrompt,
     this.onTopicCompleted,
-    this.onCommunicationRequested,
     this.key,
   });
 
@@ -114,7 +109,6 @@ class LessonIntroBindings {
   final VoicePromptService? voicePromptService;
   final Future<void>? leadPrompt;
   final VoidCallback? onTopicCompleted;
-  final VoidCallback? onCommunicationRequested;
   final Key? key;
 }
 
@@ -130,7 +124,6 @@ class LessonPracticeBindings {
     this.completionChoiceRecognizer,
     this.voicePromptService,
     this.onTopicCompleted,
-    this.onCommunicationRequested,
     this.key,
   });
 
@@ -143,7 +136,6 @@ class LessonPracticeBindings {
   final LessonCompletionChoiceRecognizer? completionChoiceRecognizer;
   final VoicePromptService? voicePromptService;
   final VoidCallback? onTopicCompleted;
-  final VoidCallback? onCommunicationRequested;
   final Key? key;
 }
 
