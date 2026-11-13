@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
 
@@ -509,19 +508,14 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     _mainOverlayNavigatorObserver = _MainOverlayNavigatorObserver(
       onRouteCountChanged: (count) {
         if (!mounted || _floatingRouteCount == count) return;
-        // The first route is pushed while the Navigator is still building,
-        // where setState is not allowed; apply the change after that frame,
-        // reading the count then so a newer change is never overwritten.
-        if (SchedulerBinding.instance.schedulerPhase ==
-            SchedulerPhase.persistentCallbacks) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            final latest = _mainOverlayNavigatorObserver.routeCount;
-            if (!mounted || _floatingRouteCount == latest) return;
-            setState(() => _floatingRouteCount = latest);
-          });
-          return;
-        }
-        setState(() => _floatingRouteCount = count);
+        // Navigator notifications can fire during the first widget build,
+        // even when the scheduler is not in its persistent callback phase.
+        // Read the latest count after the frame so rapid route changes coalesce.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final latest = _mainOverlayNavigatorObserver.routeCount;
+          if (!mounted || _floatingRouteCount == latest) return;
+          setState(() => _floatingRouteCount = latest);
+        });
       },
     );
     _config = widget.config ?? AppConfig.fromEnvironment();
