@@ -77,6 +77,49 @@ void main() {
     expect(coordinator.activeModulePausedForMain, isFalse);
   });
 
+  test(
+    'a stopped lesson stays stopped when MAIN ends without a command',
+    () async {
+      final registry = ActiveLearningModuleRegistry();
+      addTearDown(registry.dispose);
+      final module = _FakeActiveModule();
+      registry.register(module);
+      final coordinator = AppFlowCoordinator(registry: registry);
+      await coordinator.execute(ActiveLearningCommand.stop);
+
+      final pause = await coordinator.pauseForMainAssistant();
+      // Silence, a failed activation or a closed MAIN must not resume it.
+      await coordinator.resumeAfterMainAssistant();
+
+      expect(pause.paused, isTrue);
+      expect(pause.hasActiveModule, isTrue);
+      expect(registry.isActiveModuleStoppedForChoice, isTrue);
+      expect(module.commands, <ActiveLearningCommand>[
+        ActiveLearningCommand.stop,
+      ]);
+      expect(module.isPausedForMain, isTrue);
+
+      await coordinator.execute(ActiveLearningCommand.resume);
+      expect(registry.isActiveModuleStoppedForChoice, isFalse);
+      expect(module.isPausedForMain, isFalse);
+    },
+  );
+
+  test('a stopped vocabulary module keeps its automatic resume', () async {
+    final registry = ActiveLearningModuleRegistry();
+    addTearDown(registry.dispose);
+    final module = _FakeActiveModule(kind: ActiveLearningModuleKind.vocabulary);
+    registry.register(module);
+    final coordinator = AppFlowCoordinator(registry: registry);
+    await coordinator.execute(ActiveLearningCommand.stop);
+
+    await coordinator.pauseForMainAssistant();
+    await coordinator.resumeAfterMainAssistant();
+
+    expect(registry.isActiveModuleStoppedForChoice, isFalse);
+    expect(module.commands.last, ActiveLearningCommand.resume);
+  });
+
   test('navigation handoff does not resume the lesson being left', () async {
     final registry = ActiveLearningModuleRegistry();
     addTearDown(registry.dispose);
@@ -123,6 +166,7 @@ class _FakeActiveModule implements ActiveLearningModuleController {
     ActiveLearningCommand command,
   ) async {
     commands.add(command);
+    if (command == ActiveLearningCommand.stop) paused = true;
     if (command == ActiveLearningCommand.resume && commandResult.wasHandled) {
       paused = false;
     }

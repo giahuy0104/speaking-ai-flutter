@@ -450,7 +450,9 @@ class AivoControlDispatcher extends ChangeNotifier {
     }
     if (intent == AivoControlIntent.assistantOrResume) {
       final owner = registry.controller;
+      // A stopped Chủ đề lesson asks "học tiếp hay học chủ đề khác" first.
       final waitingForChoice =
+          registry.isActiveModuleStoppedForChoice ||
           (owner is ActiveLearningVoiceContext &&
               (owner as ActiveLearningVoiceContext)
                   .mainVoiceNode

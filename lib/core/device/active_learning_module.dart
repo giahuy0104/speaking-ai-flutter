@@ -129,11 +129,24 @@ class ActiveLearningModuleRegistry extends ChangeNotifier {
   final List<_ActiveLearningModuleRegistration> _registrations =
       <_ActiveLearningModuleRegistration>[];
   bool _notificationScheduled = false;
+  ActiveLearningModuleController? _stoppedController;
 
   ActiveLearningModuleController? get controller =>
       _registrations.lastOrNull?.controller;
   bool get hasActiveModule => controller != null;
   bool get isActiveModulePaused => controller?.isPausedForMain ?? false;
+
+  /// A Chủ đề lesson the child explicitly stopped (LONG MAIN or "dừng lại").
+  /// The next SHORT MAIN asks whether to continue or choose another topic
+  /// instead of resuming it directly.
+  bool get isActiveModuleStoppedForChoice {
+    final active = controller;
+    return active != null &&
+        identical(active, _stoppedController) &&
+        active.moduleKind == ActiveLearningModuleKind.listeningLesson &&
+        active.isPausedForMain;
+  }
+
   ActiveLearningModuleKind? get activeKind => controller?.moduleKind;
 
   Object register(ActiveLearningModuleController controller) {
@@ -153,6 +166,9 @@ class ActiveLearningModuleRegistry extends ChangeNotifier {
       return;
     }
     final wasActive = index == _registrations.length - 1;
+    if (identical(_registrations[index].controller, _stoppedController)) {
+      _stoppedController = null;
+    }
     _registrations.removeAt(index);
     if (wasActive) {
       _notifySafely();
@@ -185,6 +201,11 @@ class ActiveLearningModuleRegistry extends ChangeNotifier {
       if (active == null) {
         return false;
       }
+      // A module that resumed on its own (an on-screen control) is no longer
+      // in the explicit stop state.
+      if (!active.isPausedForMain && identical(active, _stoppedController)) {
+        _stoppedController = null;
+      }
       try {
         await active.pauseForMainAssistant().timeout(_operationTimeout);
       } on TimeoutException {
@@ -211,8 +232,23 @@ class ActiveLearningModuleRegistry extends ChangeNotifier {
       return const ActiveLearningCommandResult.unavailable();
     }
     try {
-      return await active.handleMainCommand(command).timeout(_operationTimeout);
+      final result = await active
+          .handleMainCommand(command)
+          .timeout(_operationTimeout);
+      if (result.wasHandled) {
+        if (command == ActiveLearningCommand.stop) {
+          _stoppedController = active;
+        } else if (identical(active, _stoppedController)) {
+          _stoppedController = null;
+        }
+      }
+      return result;
     } on TimeoutException {
+      // Module state is paused synchronously; slow native cleanup must not
+      // turn an accepted stop back into a direct resume on the next MAIN.
+      if (command == ActiveLearningCommand.stop && active.isPausedForMain) {
+        _stoppedController = active;
+      }
       // The command may still be completing its prompt/native handoff. Do not
       // overlay that valid flow with a second, unrelated spoken busy prompt.
       return const ActiveLearningCommandResult.busy();

@@ -3049,6 +3049,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
                   ? _activeLearningModules.controller
                         as ActiveLearningVoiceContext
                   : null,
+              activeLessonStopped:
+                  _activeLearningModules.isActiveModuleStoppedForChoice,
               inputLabelOverride: inputLabelOverride,
               promptAlreadySpoken: promptAlreadySpoken,
               noSpeechRetryPrompt: noSpeechRetryPrompt,

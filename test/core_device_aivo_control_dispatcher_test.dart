@@ -145,7 +145,7 @@ void main() {
     }
   });
   test(
-    'LONG only pauses, SHORT resumes once instead of starting assistant',
+    'LONG only pauses, SHORT asks the stopped lesson choice once',
     () async {
       registry.register(module);
       expect(
@@ -167,11 +167,10 @@ void main() {
         ),
         AivoControlStatus.accepted,
       );
-      expect(module.commands, [
-        ActiveLearningCommand.stop,
-        ActiveLearningCommand.resume,
-      ]);
-      expect(mainCalls, 0);
+      // "Học tiếp hay học chủ đề khác" belongs to MAIN, not a direct resume.
+      expect(module.commands, [ActiveLearningCommand.stop]);
+      expect(module.paused, isTrue);
+      expect(mainCalls, 1);
     },
   );
   for (final node in [
@@ -197,6 +196,40 @@ void main() {
       expect(review.commands, isEmpty);
     });
   }
+
+  test('a stopped vocabulary module still resumes directly on MAIN', () async {
+    final vocabulary = _VocabularyModule();
+    registry.register(vocabulary);
+    await registry.execute(ActiveLearningCommand.stop);
+
+    expect(
+      await controls.dispatch(
+        input(Aiv0Button.main, Aiv0ButtonGesture.shortPress),
+      ),
+      AivoControlStatus.accepted,
+    );
+    expect(mainCalls, 0);
+    expect(vocabulary.commands, [
+      ActiveLearningCommand.stop,
+      ActiveLearningCommand.resume,
+    ]);
+  });
+
+  test('a lesson resumed after its stop no longer asks the choice', () async {
+    registry.register(module);
+    await registry.execute(ActiveLearningCommand.stop);
+    await registry.execute(ActiveLearningCommand.resume);
+    module.paused = true;
+
+    expect(
+      await controls.dispatch(
+        input(Aiv0Button.main, Aiv0ButtonGesture.shortPress),
+      ),
+      AivoControlStatus.accepted,
+    );
+    expect(mainCalls, 0);
+    expect(module.commands.last, ActiveLearningCommand.resume);
+  });
 
   test('paused Review item still resumes on MAIN', () async {
     final review = _ChoiceModule(ActiveLearningVoiceNode.review)..paused = true;
@@ -259,11 +292,8 @@ void main() {
         await dispatch(Aiv0ButtonGesture.shortPress, sequence: 8),
         AivoControlStatus.accepted,
       );
-      expect(module.commands, [
-        ActiveLearningCommand.stop,
-        ActiveLearningCommand.resume,
-      ]);
-      expect(mainCalls, 0);
+      expect(module.commands, [ActiveLearningCommand.stop]);
+      expect(mainCalls, 1);
     },
   );
   test('new physical sequence rearms even when release is missing', () async {
@@ -287,10 +317,8 @@ void main() {
       ),
       AivoControlStatus.accepted,
     );
-    expect(module.commands, [
-      ActiveLearningCommand.stop,
-      ActiveLearningCommand.resume,
-    ]);
+    expect(module.commands, [ActiveLearningCommand.stop]);
+    expect(mainCalls, 1);
   });
   test(
     'unsequenced held gesture expires and does not survive clock rollback',
@@ -397,10 +425,10 @@ void main() {
       ActiveLearningCommand.nextItem,
       ActiveLearningCommand.previousItem,
       ActiveLearningCommand.stop,
-      ActiveLearningCommand.resume,
       ActiveLearningCommand.replayCurrent,
     ]);
-    expect(mainCalls, 0);
+    // SHORT after the stop opened MAIN's question instead of resuming.
+    expect(mainCalls, 1);
   });
   test(
     'observed HM-D001 item packets cannot play lesson audio while MAIN owns speech',
@@ -643,7 +671,7 @@ void main() {
     },
   );
   test(
-    'MAIN pressed while "Đã dừng." is still being spoken resumes after it',
+    'MAIN pressed while "Đã dừng." is still being spoken asks after it',
     () async {
       registry.register(module);
       final speaking = Completer<void>();
@@ -675,12 +703,9 @@ void main() {
       speaking.complete();
       await stop;
       expect(await resume, AivoControlStatus.accepted);
-      expect(module.commands, [
-        ActiveLearningCommand.stop,
-        ActiveLearningCommand.resume,
-      ]);
-      expect(module.paused, isFalse);
-      expect(mainCalls, 0);
+      expect(module.commands, [ActiveLearningCommand.stop]);
+      expect(module.paused, isTrue);
+      expect(mainCalls, 1);
     },
   );
   test(
@@ -716,16 +741,14 @@ void main() {
         input(Aiv0Button.main, Aiv0ButtonGesture.shortPress),
       );
       await Future<void>.delayed(Duration.zero);
-      // The resume must wait for the stop prompt, not run underneath it.
+      // MAIN's question must wait for the stop prompt, not run underneath it.
       expect(module.commands, [ActiveLearningCommand.stop]);
+      expect(mainCalls, 0);
       speaking.complete();
       await stop;
       expect(await resume, AivoControlStatus.accepted);
-      expect(module.commands, [
-        ActiveLearningCommand.stop,
-        ActiveLearningCommand.resume,
-      ]);
-      expect(mainCalls, 0);
+      expect(module.commands, [ActiveLearningCommand.stop]);
+      expect(mainCalls, 1);
     },
   );
   test(
@@ -785,6 +808,12 @@ class _Module implements ActiveLearningModuleController {
     if (command == gatedCommand) await commandGate?.future;
     return const ActiveLearningCommandResult.handled();
   }
+}
+
+class _VocabularyModule extends _Module {
+  @override
+  ActiveLearningModuleKind get moduleKind =>
+      ActiveLearningModuleKind.vocabulary;
 }
 
 class _ChoiceModule extends _Module implements ActiveLearningVoiceContext {
