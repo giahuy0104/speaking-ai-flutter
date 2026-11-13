@@ -800,6 +800,159 @@ void main() {
     );
   });
 
+  group('stopped Chủ đề lesson asks how to continue', () {
+    MainVoiceAssistantFlow stoppedFlow(ActiveLearningVoiceNode node) =>
+        MainVoiceAssistantFlow(childAge: 6)..beginActiveLearning(
+          kind: ActiveLearningModuleKind.listeningLesson,
+          voiceContext: _VoiceContext(node, 'old'),
+          lessonStopped: true,
+        );
+
+    test('each lesson part asks its own stopped question', () {
+      for (final (node, prompt) in [
+        (
+          ActiveLearningVoiceNode.core,
+          'Bạn muốn học tiếp, nghe lại, sang câu sau hay học chủ đề khác?',
+        ),
+        (
+          ActiveLearningVoiceNode.intro,
+          'Bạn muốn học tiếp, nghe lại, hay học chủ đề khác?',
+        ),
+        (
+          ActiveLearningVoiceNode.challenge,
+          'Bạn muốn học tiếp, nghe lại, hay học chủ đề khác?',
+        ),
+        (
+          ActiveLearningVoiceNode.review,
+          'Bạn muốn học tiếp, nghe lại, hay học chủ đề khác?',
+        ),
+        (
+          ActiveLearningVoiceNode.song,
+          'Bạn muốn học tiếp, nghe lại bài hát, bỏ qua hay học chủ đề khác?',
+        ),
+      ]) {
+        final flow = MainVoiceAssistantFlow(childAge: 6);
+        expect(
+          flow.beginActiveLearning(
+            kind: ActiveLearningModuleKind.listeningLesson,
+            voiceContext: _VoiceContext(node, 'old'),
+            lessonStopped: true,
+          ),
+          prompt,
+          reason: node.name,
+        );
+        // The old authored control recording must not play over it.
+        expect(flow.currentPromptAudioKey, isNull, reason: node.name);
+      }
+    });
+
+    test('the normal MAIN question is unchanged when not stopped', () {
+      final flow = MainVoiceAssistantFlow(childAge: 6);
+      expect(
+        flow.beginActiveLearning(
+          kind: ActiveLearningModuleKind.listeningLesson,
+          voiceContext: const _VoiceContext(
+            ActiveLearningVoiceNode.core,
+            MasterNavigationContract.coreControlPrompt,
+          ),
+        ),
+        MasterNavigationContract.coreControlPrompt,
+      );
+    });
+
+    test('a completion choice keeps its own question', () {
+      final flow = MainVoiceAssistantFlow(childAge: 6);
+      expect(
+        flow.beginActiveLearning(
+          kind: ActiveLearningModuleKind.listeningLesson,
+          voiceContext: const _VoiceContext(
+            ActiveLearningVoiceNode.blockEnd,
+            'Bạn chọn một trong các lựa chọn trên màn hình nhé.',
+          ),
+          lessonStopped: true,
+        ),
+        'Bạn chọn một trong các lựa chọn trên màn hình nhé.',
+      );
+    });
+
+    test('Học tiếp resumes with one spoken lead', () async {
+      final turn = await stoppedFlow(
+        ActiveLearningVoiceNode.core,
+      ).handle('Học tiếp');
+      expect(turn.activeLearningCommand, ActiveLearningCommand.resume);
+      expect(turn.promptText, MasterNavigationContract.continueSubject);
+      expect(turn.continueListening, isFalse);
+    });
+
+    test('Học chủ đề khác reopens Topic selection', () async {
+      for (final phrase in ['Học chủ đề khác', 'Chủ đề khác']) {
+        final turn = await stoppedFlow(
+          ActiveLearningVoiceNode.core,
+        ).handle(phrase);
+        expect(
+          turn.navigationBeforePrompt?.destination,
+          VoiceNavigationDestination.topics,
+          reason: phrase,
+        );
+        expect(turn.navigationBeforePrompt?.topicNumber, isNull);
+        expect(turn.activeLearningCommand, isNull, reason: phrase);
+      }
+    });
+
+    test('item commands named in the question still work', () async {
+      for (final (node, phrase, command) in [
+        (
+          ActiveLearningVoiceNode.core,
+          'Nghe lại',
+          ActiveLearningCommand.replayCurrent,
+        ),
+        (
+          ActiveLearningVoiceNode.core,
+          'Sang câu sau',
+          ActiveLearningCommand.nextItem,
+        ),
+        (
+          ActiveLearningVoiceNode.song,
+          'Nghe lại bài hát',
+          ActiveLearningCommand.replayCurrent,
+        ),
+        (
+          ActiveLearningVoiceNode.song,
+          'Bỏ qua',
+          ActiveLearningCommand.nextItem,
+        ),
+      ]) {
+        final turn = await stoppedFlow(node).handle(phrase);
+        expect(turn.activeLearningCommand, command, reason: phrase);
+      }
+    });
+
+    test('a second unclear answer keeps the lesson stopped', () async {
+      final flow = stoppedFlow(ActiveLearningVoiceNode.core);
+
+      final first = await flow.handle('con mèo màu xanh');
+      expect(first.continueListening, isTrue);
+      expect(first.promptText, MasterNavigationContract.coreStoppedPrompt);
+      expect(first.activeLearningCommand, isNull);
+
+      final second = await flow.handle('con mèo màu xanh');
+      expect(second.promptText, 'Mình tạm dừng nhé.');
+      expect(second.continueListening, isFalse);
+      expect(second.activeLearningCommand, ActiveLearningCommand.stop);
+    });
+
+    test('a second silence keeps the lesson stopped', () {
+      final flow = stoppedFlow(ActiveLearningVoiceNode.core);
+      expect(
+        flow.silenceRetryPrompt,
+        MasterNavigationContract.coreStoppedPrompt,
+      );
+      final exit = flow.handleSilenceExit();
+      expect(exit.promptText, 'Mình tạm dừng nhé.');
+      expect(exit.activeLearningCommand, ActiveLearningCommand.stop);
+    });
+  });
+
   test('lesson and topic change phrases reopen Topic selection', () async {
     for (final phrase in ['Bài khác', 'Chủ đề khác']) {
       final flow = MainVoiceAssistantFlow(childAge: 6)

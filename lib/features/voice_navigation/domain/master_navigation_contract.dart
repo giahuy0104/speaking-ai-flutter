@@ -32,6 +32,14 @@ abstract final class MasterNavigationContract {
   static const songSkipped = 'Mình bỏ qua bài hát nhé.';
   static const pause = 'Mình tạm dừng nhé.';
 
+  /// Asked by MAIN after the child stopped a Chủ đề lesson.
+  static const coreStoppedPrompt =
+      'Bạn muốn học tiếp, nghe lại, sang câu sau hay học chủ đề khác?';
+  static const introStoppedPrompt =
+      'Bạn muốn học tiếp, nghe lại, hay học chủ đề khác?';
+  static const songStoppedPrompt =
+      'Bạn muốn học tiếp, nghe lại bài hát, bỏ qua hay học chủ đề khác?';
+
   /// Review/import metadata. Callers still validate dynamic numbers against
   /// the owner's unlocked choices before constructing a navigation action.
   static const allowedStates = <String, List<String>>{
@@ -389,6 +397,7 @@ abstract final class MasterNavigationContract {
       'Mình muốn nghe câu khác',
       'Tiếp câu mới nhé',
       'Câu sau',
+      'Sang câu sau',
       'Tiếp theo',
       'Câu tiếp',
       'Câu mới',
@@ -442,6 +451,8 @@ abstract final class MasterNavigationContract {
     ],
     'GO_TO_TOPIC_SELECTION': [
       'Chủ đề khác',
+      'Học chủ đề khác',
+      'Mình muốn học chủ đề khác',
       'Đổi Chủ đề',
       'Chọn Chủ đề khác',
       'Qua Chủ đề khác',
