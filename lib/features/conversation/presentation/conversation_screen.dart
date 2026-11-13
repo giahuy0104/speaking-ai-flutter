@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
 import '../../../app/homi_connection_presentation.dart';
+import '../../../app/learning_rail_metrics.dart';
 import '../../../app/learning_scenery.dart';
 import '../../../app/scenic_app_header.dart';
 import '../../../core/device/aiv0_ble_control.dart';
@@ -13,7 +14,6 @@ import '../../../core/device/device_connection_coordinator.dart';
 import '../../../l10n/display_language.dart';
 import '../../../presentation/device/device_ble_picker_flow.dart';
 import '../../../presentation/device/device_hfp_picker_flow.dart';
-import '../../home/presentation/home_mode_rail.dart';
 import '../domain/conversation_models.dart';
 import 'conversation_controller.dart';
 import 'widgets/homi_hero_3d.dart';
@@ -62,8 +62,8 @@ class ConversationScreen extends StatefulWidget {
   final Key? settingsButtonKey;
 
   static const double headerHeight = ScenicAppHeader.height;
-  static const double railHeight = HomeModeRail.collapsedHeight;
-  static const double railWidth = HomeModeRail.collapsedWidth;
+  static const double railHeight = LearningRailMetrics.collapsedHeight;
+  static const double railWidth = LearningRailMetrics.collapsedWidth;
 
   /// Room the hero band keeps besides HOMI: 4 px top margin, the wave row
   /// and an 8 px gap.

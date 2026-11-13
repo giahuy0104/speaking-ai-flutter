@@ -95,7 +95,6 @@ void main() {
       'Có 10 Chủ đề. Bạn muốn chọn Chủ đề số mấy?',
     ]);
     expect(find.byKey(const ValueKey('topic-choice-2')), findsOneWidget);
-    print('CONFIRMED: one activation, one failed microphone start, two identical prompts, fallback sheet visible.');
     await tester.pumpWidget(const SizedBox.shrink());
     controller.dispose();
   });

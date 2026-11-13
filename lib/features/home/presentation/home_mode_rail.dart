@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
+import '../../../app/learning_rail_metrics.dart';
 
 enum HomeRailEdge { left, right }
 
@@ -27,8 +28,8 @@ class HomeModeRail extends StatefulWidget {
   static const double _expandedWidth = 138;
   static const double _expandedHeight = 184;
 
-  static const double collapsedWidth = 60;
-  static const double collapsedHeight = 210;
+  static const double collapsedWidth = LearningRailMetrics.collapsedWidth;
+  static const double collapsedHeight = LearningRailMetrics.collapsedHeight;
 
   @override
   State<HomeModeRail> createState() => _HomeModeRailState();
