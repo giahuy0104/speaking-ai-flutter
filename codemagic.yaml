@@ -359,3 +359,20 @@ workflows:
       - build/ios/iphonesimulator/*.app
       - build/ios/test-results/*.xcresult
       - build/ios/test-results/*.log
+
+  ios-audio-manifest-diagnostic:
+    name: iOS Audio Manifest Diagnostic
+    instance_type: mac_mini_m2
+    max_build_duration: 20
+
+    environment:
+      xcode: 26.6
+
+    scripts:
+      - name: Measure bundled audio
+        script: |
+          set -euo pipefail
+          python3 tool/measure_audio_loudness.py
+
+    artifacts:
+      - assets/data/audio_loudness.json
