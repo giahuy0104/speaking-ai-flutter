@@ -1811,11 +1811,45 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
 
   Future<void> _exitPractice() async {
     if (_exiting) return;
+    if (!_completed && !await _confirmExitPractice()) {
+      return;
+    }
+    if (!mounted || _exiting) return;
     _commitNavigationExit();
     if (mounted) {
       _routePopRequested = true;
       _popOrRemovePractice();
     }
+  }
+
+  Future<bool> _confirmExitPractice() async {
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        key: const Key('vocabulary-exit-confirm-dialog'),
+        title: Text(context.tr('Thoát luyện tập?', '退出练习？')),
+        content: Text(
+          context.tr(
+            'Quá trình học đang diễn ra, bạn có chắc muốn thoát không?',
+            '学习正在进行中，确定要退出吗？',
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            key: const Key('vocabulary-exit-confirm-cancel'),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(context.tr('Tiếp tục học', '继续学习')),
+          ),
+          FilledButton(
+            key: const Key('vocabulary-exit-confirm-exit'),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(context.tr('Thoát', '退出')),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
   }
 
   bool get _removeRouteWithoutTransition =>

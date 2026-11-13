@@ -827,6 +827,17 @@ void main() {
       final back = find.byKey(const Key('vocabulary-home-back-button'));
       await tester.ensureVisible(back);
       await tester.tap(back);
+      // Playback is active, so a confirmation dialog intercepts the back
+      // press before the journey detail screen is actually left.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(
+        find.byKey(const Key('vocabulary-home-exit-confirm-dialog')),
+        findsOneWidget,
+      );
+      await tester.tap(
+        find.byKey(const Key('vocabulary-home-exit-confirm-exit')),
+      );
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('vocabulary-family-card')), findsOneWidget);
       expect(audio.stopCalls, 1);
