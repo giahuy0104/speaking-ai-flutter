@@ -163,9 +163,9 @@ def main():
                   file=sys.stderr)
             diff = difflib.unified_diff(
                 current.splitlines(), serialized.splitlines(),
-                fromfile="committed manifest", tofile="measured audio", lineterm="",
+                fromfile="committed manifest", tofile="measured audio", lineterm="", n=0,
             )
-            for line in list(diff)[:30]:
+            for line in diff:
                 print(line, file=sys.stderr)
             return 1
         return 0
