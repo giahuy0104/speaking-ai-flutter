@@ -110,7 +110,7 @@ void main() {
         expect(bundled, isNot(contains(e['asset'])));
       }
       final pubspec = File('pubspec.yaml').readAsStringSync();
-      expect(pubspec, isNot(contains('    - assets/audio/')));
+      expect(pubspec, isNot(contains('    - assets/audio/homi-gap66/')));
       expect(pubspec, isNot(contains('    - deliverables/')));
     },
   );

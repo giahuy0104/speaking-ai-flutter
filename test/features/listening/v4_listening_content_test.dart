@@ -182,9 +182,15 @@ void main() {
         final uri = lesson.songAudioUri!;
         expect(uri.scheme, 'https', reason: lesson.id);
         expect(uri.host, 'res.cloudinary.com', reason: lesson.id);
+        final sourcePath = expectedSongPaths[lesson.id]!;
         expect(
           uri.path,
-          endsWith(expectedSongPaths[lesson.id]!),
+          matches(
+            RegExp(
+              RegExp.escape(sourcePath.substring(0, sourcePath.length - 4)) +
+                  r'-[0-9a-f]{64}\.mp3$',
+            ),
+          ),
           reason: lesson.id,
         );
       }

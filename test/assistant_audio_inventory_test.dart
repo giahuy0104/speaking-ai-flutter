@@ -196,9 +196,21 @@ void main() {
     },
   );
 
-  test('pubspec keeps audio manifests and excludes every audio file', () async {
+  test('pubspec keeps only the selected fallback audio bundles', () async {
     final pubspec = await File('pubspec.yaml').readAsString();
-    expect(pubspec, isNot(contains('    - assets/audio/')));
+    final bundledAudioDirectories = RegExp(
+      r'^    - (assets/audio/[^\r\n]+)$',
+      multiLine: true,
+    ).allMatches(pubspec).map((match) => match.group(1)).toSet();
+    expect(
+      bundledAudioDirectories,
+      equals({
+        'assets/audio/assistant-core/',
+        'assets/audio/listening-common/',
+        'assets/audio/LESSON_HOOKS/',
+        'assets/audio/vocabulary-common/',
+      }),
+    );
     expect(pubspec, contains('assets/data/remote_audio_catalog.json'));
     expect(pubspec, contains('assets/data/assistant_core_audio.json'));
     expect(pubspec, contains('assets/data/homi_gap66_audio.json'));

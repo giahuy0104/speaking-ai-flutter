@@ -6,6 +6,7 @@ import 'package:ai_speaking_flutter_app/domain/device/device_connection.dart';
 
 import 'package:ai_speaking_flutter_app/app/ai_speaking_app.dart';
 import 'package:ai_speaking_flutter_app/core/device/device_connection_coordinator.dart';
+import 'package:ai_speaking_flutter_app/config/app_config.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_screen.dart';
 import 'package:ai_speaking_flutter_app/features/onboarding/presentation/startup_setup_screen.dart';
 import 'package:ai_speaking_flutter_app/features/settings/presentation/settings_sheet.dart';
@@ -724,7 +725,19 @@ Future<_NativeApp> _pumpApp(
   app.installChannels();
   addTearDown(app.close);
   await tester.pumpWidget(
-    AiSpeakingApp(useDeviceConnectionService: useService),
+    AiSpeakingApp(
+      useDeviceConnectionService: useService,
+      config: AppConfig(
+        backendBaseUri: Uri.parse('https://example.test'),
+        useDemoBackend: true,
+        childAge: 6,
+        privacyPolicyUri: Uri.parse('https://example.test/privacy'),
+        termsUri: Uri.parse('https://example.test/terms'),
+        supportUri: Uri.parse('https://example.test/support'),
+        aiSubprocessors: 'Test provider',
+        dataRetentionSummary: 'Test retention policy',
+      ),
+    ),
   );
   await tester.pumpAndSettle();
   await tester.pump(const Duration(seconds: 15));

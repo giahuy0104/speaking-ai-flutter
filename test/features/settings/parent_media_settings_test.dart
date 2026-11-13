@@ -23,7 +23,7 @@ void main() {
     },
   );
 
-  test('iOS retains the stop-on-background default', () async {
+  test('iOS keeps an explicit HOMI session alive by default', () async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
@@ -31,7 +31,7 @@ void main() {
     expect(
       await const SharedPreferencesParentMediaSettingsStore()
           .readStopMediaWhenBackgrounded(),
-      isTrue,
+      isFalse,
     );
   });
 
