@@ -766,11 +766,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
               _VocabularyHeader(
                 isReady: widget.isReady,
                 connectionState: widget.connectionState,
-                onBrandPressed: _selectedJourney == null
-                    ? widget.onReturnToConversation
-                    : () => unawaited(
-                        _leavePlaybackForOtherContent(announceMenu: false),
-                      ),
+                onBrandPressed: () => unawaited(_handleBrandBack()),
                 backTooltip: _selectedJourney == null
                     ? context.tr('Về trang chủ', '返回主页')
                     : context.tr('Quay lại danh sách từ vựng', '返回词汇列表'),
@@ -2631,6 +2627,48 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       announceInitialResume: true,
     );
     return true;
+  }
+
+  Future<void> _handleBrandBack() async {
+    if (_playingCollection && !await _confirmExitWhilePlaying()) {
+      return;
+    }
+    if (!mounted) return;
+    if (_selectedJourney == null) {
+      widget.onReturnToConversation();
+    } else {
+      await _leavePlaybackForOtherContent(announceMenu: false);
+    }
+  }
+
+  Future<bool> _confirmExitWhilePlaying() async {
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        key: const Key('vocabulary-home-exit-confirm-dialog'),
+        title: Text(context.tr('Thoát?', '退出？')),
+        content: Text(
+          context.tr(
+            'Quá trình học đang diễn ra, bạn có chắc muốn thoát không?',
+            '学习正在进行中，确定要退出吗？',
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            key: const Key('vocabulary-home-exit-confirm-cancel'),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(context.tr('Tiếp tục học', '继续学习')),
+          ),
+          FilledButton(
+            key: const Key('vocabulary-home-exit-confirm-exit'),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(context.tr('Thoát', '退出')),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
   }
 
   Future<bool> _leavePlaybackForOtherContent({
