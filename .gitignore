@@ -74,3 +74,6 @@ flutter_*.log
 /output/diagnostics/*.bin
 /tmp/
 ~$*.docx
+
+# FVM Version Cache
+.fvm/

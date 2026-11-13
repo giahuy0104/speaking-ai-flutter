@@ -361,6 +361,21 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     final generation = _deviceAttemptGeneration;
     await cancellation;
     if (!mounted || generation != _deviceAttemptGeneration) return;
+    if (!_privacyConsentGranted) return;
+    // The Home connect button only drives Bluetooth transport. Without this,
+    // a denied/never-requested phone microphone permission stays stale: BLE
+    // reports "connected" while voice stays blocked by _voiceAccessEnabled.
+    await _requestStartupPermissions(autoConnectHomi: false);
+    if (!mounted || generation != _deviceAttemptGeneration) return;
+    if (!_microphonePermissionGranted ||
+        (_bluetoothPermissionRequired && !_bluetoothPermissionGranted)) {
+      setState(() {
+        _startupPermissionError = _deviceIssueMessage(
+          DeviceIssue.permissionRequired,
+        );
+      });
+      return;
+    }
     if (!await _ensureParentSetupBluetoothReady(interactive: true)) return;
     if (!mounted || generation != _deviceAttemptGeneration) return;
     await _controller?.resumeAutomaticDeviceConnection();

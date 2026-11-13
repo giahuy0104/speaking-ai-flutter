@@ -214,10 +214,12 @@ void main() {
             session.interrupt('audio_session_interruption');
           } else if (cancellation == 'history') {
             await tester.tap(find.byTooltip('Lịch sử gần đây'));
-            await tester.pumpAndSettle();
+            await tester.pump(const Duration(milliseconds: 300));
           } else if (cancellation == 'vocabulary') {
             await tester.tap(find.text('Từ vựng').last);
-            await tester.pumpAndSettle();
+            for (var frame = 0; frame < 30; frame++) {
+              await tester.pump(const Duration(milliseconds: 16));
+            }
           } else if (cancellation == 'topic') {
             await tester.tap(find.text('Chủ đề').last);
             await tester.pumpAndSettle();
