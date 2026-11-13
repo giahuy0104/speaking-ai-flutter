@@ -794,12 +794,12 @@ class RunnerTests: XCTestCase {
     coordinator.dispose()
   }
 
-  func testIOSInterruptionBlocksPassiveArmAndPromptUntilAnExplicitAction() {
+  func testIOSInterruptionBlocksPassiveArmAndPromptUntilAnExplicitAction() throws {
     let coordinator = IOSAudioSessionCoordinator()
     let handoff = DeferredMainTurnHandoff()
     coordinator.backgroundCaptureHandoffDelegate = handoff
     coordinator.setBackgroundLearningEnabled(true)
-    IOSNativeWork.sync {
+    try IOSNativeWork.sync {
       coordinator.suspendForAudioInterruption()
       coordinator.requestBackgroundCaptureArm(caller: "passiveRouteRecovery")
       XCTAssertEqual(handoff.armCount, 0)
