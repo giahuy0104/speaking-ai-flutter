@@ -23,14 +23,17 @@ test asserts the constants match.
 Usage
 -----
     python3 tool/measure_audio_loudness.py           # regenerate the manifest
-    python3 tool/measure_audio_loudness.py --check   # fail if it is stale
+    python3 tool/measure_audio_loudness.py --check   # check policy, MP3 bytes and gains
 
 Decoding uses afconvert, which ships with macOS; no extra tooling is required.
+The check accepts up to 0.6 dB of decoder drift only when every MP3 byte,
+manifest key and policy value matches the committed source.
 """
 
 import argparse
 import array
 import difflib
+import hashlib
 import json
 import math
 import os
@@ -52,6 +55,9 @@ ABSOLUTE_GATE_MEAN_SQUARE = 0.00001  # -50 dBFS
 RELATIVE_GATE_RATIO = 1000.0  # -30 dB below the strongest window
 MAX_DURATION_MS = 30_000
 DECODE_RATE = 16_000
+# The same MP3 bytes decode slightly differently across macOS afconvert builds.
+# The diagnostic Codemagic run observed a maximum 0.58 dB difference.
+DECODER_DRIFT_TOLERANCE_DB = 0.6
 
 
 def decode(path, scratch):
@@ -110,14 +116,58 @@ def gain_for(samples):
     return min(TARGET_RMS_DBFS - measured, MAX_GAIN_DB, headroom)
 
 
-def build():
-    entries = {}
-    scratch = os.path.join(tempfile.mkdtemp(), "decode.wav")
+def audio_paths():
     paths = []
     for base, _, names in os.walk(AUDIO_ROOT):
         paths += [os.path.join(base, n) for n in sorted(names)
                   if n.endswith(".mp3")]
-    paths.sort()
+    paths.sort(key=lambda path: os.path.relpath(path, REPO).replace(os.sep, "/"))
+    return paths
+
+
+def audio_source_sha256(paths):
+    digest = hashlib.sha256()
+    for path in paths:
+        key = os.path.relpath(path, REPO).replace(os.sep, "/")
+        digest.update(key.encode("utf-8"))
+        digest.update(b"\0")
+        with open(path, "rb") as handle:
+            while chunk := handle.read(1024 * 1024):
+                digest.update(chunk)
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
+def gain_db_sha256(gains):
+    canonical = json.dumps(gains, sort_keys=True, separators=(",", ":"),
+                           ensure_ascii=False)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def manifest_matches(current, measured):
+    if not isinstance(current, dict):
+        return False
+    if (current.get("policy") != measured["policy"] or
+            current.get("audioSourceSha256") != measured["audioSourceSha256"]):
+        return False
+    saved_gains = current.get("gainDb")
+    measured_gains = measured["gainDb"]
+    if not isinstance(saved_gains, dict) or saved_gains.keys() != measured_gains.keys():
+        return False
+    if current.get("gainDbSha256") != gain_db_sha256(saved_gains):
+        return False
+    for key, saved in saved_gains.items():
+        actual = measured_gains[key]
+        if (isinstance(saved, bool) or not isinstance(saved, (int, float)) or
+                not math.isfinite(saved) or not math.isfinite(actual) or
+                abs(saved - actual) > DECODER_DRIFT_TOLERANCE_DB + 1e-9):
+            return False
+    return True
+
+
+def build(paths):
+    entries = {}
+    scratch = os.path.join(tempfile.mkdtemp(), "decode.wav")
     for index, path in enumerate(paths, 1):
         key = os.path.relpath(path, REPO).replace(os.sep, "/")
         try:
@@ -136,7 +186,8 @@ def main():
     parser.add_argument("--check", action="store_true")
     options = parser.parse_args()
 
-    entries = build()
+    paths = audio_paths()
+    entries = build(paths)
     payload = {
         "policy": {
             "targetRmsDbfs": TARGET_RMS_DBFS,
@@ -150,15 +201,22 @@ def main():
             "absoluteGateMeanSquare": ABSOLUTE_GATE_MEAN_SQUARE,
             "relativeGateRatio": RELATIVE_GATE_RATIO,
             "maxDurationMs": MAX_DURATION_MS,
+            "decodeRate": DECODE_RATE,
             "measurement": "gated-rms-dbfs",
         },
+        "audioSourceSha256": audio_source_sha256(paths),
+        "gainDbSha256": gain_db_sha256(entries),
         "gainDb": dict(sorted(entries.items())),
     }
     serialized = json.dumps(payload, indent=2, ensure_ascii=False) + "\n"
 
     if options.check:
         current = open(MANIFEST, encoding="utf-8").read() if os.path.exists(MANIFEST) else ""
-        if current != serialized:
+        try:
+            saved = json.loads(current)
+        except json.JSONDecodeError:
+            saved = None
+        if not manifest_matches(saved, payload):
             print("assets/data/audio_loudness.json is stale; regenerate it.",
                   file=sys.stderr)
             diff = difflib.unified_diff(

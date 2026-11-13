@@ -7,8 +7,11 @@
     "absoluteGateMeanSquare": 1e-05,
     "relativeGateRatio": 1000.0,
     "maxDurationMs": 30000,
+    "decodeRate": 16000,
     "measurement": "gated-rms-dbfs"
   },
+  "audioSourceSha256": "33bcd21f68fc358313d2d48a598dcbaff0e6f2929d292be39f86f56daeebb33e",
+  "gainDbSha256": "681f8873e4ad816bbf6a8ccdf3df2d99ede3b34bd7c17f117219c88347f9888b",
   "gainDb": {
     "assets/audio/A-3-5/GUIDE_RECORD/A035_GUIDE_RECORD_01.mp3": -2.97,
     "assets/audio/A-6-7/SONGS/A067_T05_SONG01_FULL_EN.mp3": -2.57,

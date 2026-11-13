@@ -149,6 +149,7 @@ workflows:
           # The manifest is what both platforms read instead of decoding a clip,
           # so a clip added or re-rendered without regenerating it plays at the
           # wrong level with nothing to say so. afconvert ships with macOS.
+          python3 -B -m unittest discover -s tool -p test_measure_audio_loudness.py
           python3 tool/measure_audio_loudness.py --check
 
       - name: Run platform-independent automated tests
@@ -325,6 +326,7 @@ workflows:
           # The manifest is what both platforms read instead of decoding a clip,
           # so a clip added or re-rendered without regenerating it plays at the
           # wrong level with nothing to say so. afconvert ships with macOS.
+          python3 -B -m unittest discover -s tool -p test_measure_audio_loudness.py
           python3 tool/measure_audio_loudness.py --check
 
       - name: Run platform-independent automated tests

@@ -10,7 +10,8 @@ import pathlib
 import subprocess
 import tempfile
 
-from measure_audio_loudness import gain_for
+from measure_audio_loudness import (audio_paths, audio_source_sha256,
+                                    gain_db_sha256, gain_for)
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
@@ -77,6 +78,8 @@ def main():
             loudness['gainDb'][asset] = round(gain_for(samples), 2)
     save(manifest_path, manifest)
     loudness['gainDb'] = dict(sorted(loudness['gainDb'].items()))
+    loudness['audioSourceSha256'] = audio_source_sha256(audio_paths())
+    loudness['gainDbSha256'] = gain_db_sha256(loudness['gainDb'])
     save(loudness_path, loudness)
     index_path = ROOT / 'assets/data/audio_pack_index.json'
     index = read(index_path)
