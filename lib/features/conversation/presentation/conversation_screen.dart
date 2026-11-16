@@ -622,6 +622,11 @@ class _ConversationScreenState extends State<ConversationScreen> {
   Future<void> _promptOpenBluetoothSettings(BuildContext context) async {
     final coordinator = widget.connectionCoordinator;
     if (coordinator == null || !context.mounted) return;
+    // iOS has no public API to deep-link into Settings > Bluetooth; the only
+    // app-settings page it can open is this app's own permission page, which
+    // confuses users expecting a Bluetooth screen. Let them navigate there
+    // themselves instead of sending them to the wrong place.
+    final isIOS = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -634,18 +639,26 @@ class _ConversationScreenState extends State<ConversationScreen> {
             '请在手机的蓝牙设置中打开蓝牙并连接 HOMI，然后返回重试。',
           ),
         ),
-        actions: <Widget>[
-          TextButton(
-            key: const Key('conversation-open-bluetooth-settings-cancel'),
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(context.tr('Hủy', '取消')),
-          ),
-          FilledButton(
-            key: const Key('conversation-open-bluetooth-settings-confirm'),
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(context.tr('Mở Cài đặt Bluetooth', '打开蓝牙设置')),
-          ),
-        ],
+        actions: isIOS
+            ? <Widget>[
+                FilledButton(
+                  key: const Key('conversation-open-bluetooth-settings-confirm'),
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: Text(context.tr('Xác nhận', '确认')),
+                ),
+              ]
+            : <Widget>[
+                TextButton(
+                  key: const Key('conversation-open-bluetooth-settings-cancel'),
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: Text(context.tr('Hủy', '取消')),
+                ),
+                FilledButton(
+                  key: const Key('conversation-open-bluetooth-settings-confirm'),
+                  onPressed: () => Navigator.of(dialogContext).pop(true),
+                  child: Text(context.tr('Mở Cài đặt Bluetooth', '打开蓝牙设置')),
+                ),
+              ],
       ),
     );
     if (confirmed == true) {
