@@ -635,17 +635,14 @@ class _SettingsSheetState extends State<SettingsSheet> {
           ),
         ),
         if (widget.connectionCoordinator case final coordinator?)
-          // iOS has no public API to deep-link into Settings > Bluetooth;
-          // openBluetoothSettings() there only opens this app's own
-          // permission page, which would mislead a user expecting the
-          // Bluetooth screen. Let them navigate there themselves instead.
-          if (_isIos)
+          if (!DeviceConnectionCoordinator.canOpenBluetoothSettings)
             Padding(
+              key: const Key('settings-open-settings-guidance'),
               padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
               child: Text(
                 context.tr(
-                  'Hãy mở Cài đặt > Bluetooth trên iPhone để kết nối HOMI.',
-                  '请打开 iPhone 的“设置 > 蓝牙”来连接 HOMI。',
+                  'Hãy mở Cài đặt > Bluetooth để kết nối HOMI.',
+                  '请打开“设置 > 蓝牙”来连接 HOMI。',
                 ),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
