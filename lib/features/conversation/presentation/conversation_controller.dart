@@ -503,7 +503,6 @@ class ConversationController extends ChangeNotifier
   int vadSilenceMs = 700;
   double amplitude = 0;
   ConversationResult? result;
-  bool? qualityApproved;
   String? errorMessage;
   String? transientMessage;
   @override
@@ -2637,7 +2636,6 @@ class ConversationController extends ChangeNotifier
       if (await abandonCancelledRecordingStart()) return;
       errorMessage = null;
       transientMessage = null;
-      qualityApproved = null;
       _processingStageTimer?.cancel();
       processingStage = ConversationProcessingStage.recognizing;
       _speechDetected = false;
@@ -5008,32 +5006,6 @@ class ConversationController extends ChangeNotifier
     }
   }
 
-  Future<void> submitReview(bool approved) async {
-    final conversationId = result?.conversationId;
-    if (conversationId == null || conversationId.trim().isEmpty) {
-      return;
-    }
-
-    final previousValue = qualityApproved;
-    qualityApproved = approved;
-    notifyListeners();
-    try {
-      final learning = await _repository.review(
-        conversationId: conversationId,
-        approved: approved,
-      );
-      transientMessage = learning.message.isNotEmpty
-          ? learning.message
-          : approved
-          ? 'Đã ghi nhận: đúng ý.'
-          : 'Đã ghi nhận để cải thiện câu trả lời.';
-      notifyListeners();
-    } catch (error) {
-      qualityApproved = previousValue;
-      _setError(_friendlyError(error));
-    }
-  }
-
   @override
   Future<List<ConversationHistoryItem>> loadHistory() {
     return _repository.fetchHistory();
@@ -5042,11 +5014,23 @@ class ConversationController extends ChangeNotifier
   @override
   Future<void> playHistoryItem(ConversationHistoryItem item) async {
     final audioUri = item.audioUri;
-    if (audioUri == null) {
-      throw StateError('Lượt nói này chưa có âm thanh để phát lại.');
+    if (audioUri != null) {
+      _useTranslatedSpeechPlaybackRate();
+      await _playbackService.play(audioUri);
+      return;
     }
-    _useTranslatedSpeechPlaybackRate();
-    await _playbackService.play(audioUri);
+    // The backend stores no audio URL when its TTS failed for that turn; the
+    // live turn was spoken by the device voice, so replay it the same way.
+    final translation = item.displayedTranslation.trim();
+    if (translation.isEmpty) {
+      throw StateError('Lượt nói này chưa có bản dịch để đọc lại.');
+    }
+    await _speakOfflineTranslation(
+      translation,
+      turnGeneration: _conversationTurnGeneration,
+      propagateFailure: true,
+      locale: item.outputLanguage.speechLocale,
+    );
   }
 
   @override
@@ -5063,17 +5047,6 @@ class ConversationController extends ChangeNotifier
       item.conversationId,
     );
     await _playbackService.play(audioUri);
-  }
-
-  @override
-  Future<ConversationLearningOutcome> reviewHistoryItem(
-    ConversationHistoryItem item,
-    bool approved,
-  ) {
-    return _repository.review(
-      conversationId: item.conversationId,
-      approved: approved,
-    );
   }
 
   @override
@@ -5206,7 +5179,6 @@ class ConversationController extends ChangeNotifier
     sentenceProgress = null;
     if (result == null) return false;
     result = null;
-    qualityApproved = null;
     _previewGeneration += 1;
     _preview = null;
     _preferredPlaybackUri = null;

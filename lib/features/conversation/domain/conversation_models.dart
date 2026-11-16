@@ -374,50 +374,9 @@ class ConversationHistoryItem {
   final String inputMode;
   final ConversationLatency latency;
 
-  HistoryReviewStatus get reviewStatus => switch (qualityApproved) {
-    true => HistoryReviewStatus.approved,
-    false => HistoryReviewStatus.rejected,
-    null => HistoryReviewStatus.pending,
-  };
-
-  ConversationHistoryItem copyWithReview(
-    bool approved, {
-    ConversationLearningOutcome? learning,
-  }) {
-    return ConversationHistoryItem(
-      conversationId: conversationId,
-      vietnameseText: vietnameseText,
-      englishText: englishText,
-      outputLanguage: outputLanguage,
-      translatedText: translatedText,
-      createdAt: createdAt,
-      qualityApproved: approved,
-      promotedToRule: learning?.promoted ?? promotedToRule,
-      learningStatus:
-          learning?.status ?? (approved ? learningStatus : 'rejected'),
-      learningReason: learning == null
-          ? learningReason
-          : approved
-          ? 'positive_feedback'
-          : 'negative_feedback',
-      learningUseCount: learning?.useCount ?? learningUseCount,
-      audioUri: audioUri,
-      hasUserAudio: hasUserAudio,
-      context: context,
-      processingMode: processingMode,
-      textSource: textSource,
-      audioSource: audioSource,
-      asrMode: asrMode,
-      inputMode: inputMode,
-      latency: latency,
-    );
-  }
-
   static int? _readNullableInt(dynamic value) =>
       value is num ? value.round() : null;
 }
-
-enum HistoryReviewStatus { approved, rejected, pending }
 
 class ConversationBenchmark {
   const ConversationBenchmark({
