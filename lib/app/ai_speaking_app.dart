@@ -1820,14 +1820,22 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
           'Chưa tìm thấy micro HM-D001. Hãy kết nối thiết bị trong Cài đặt Bluetooth rồi quay lại HOMI.';
       if (mounted) setState(() => _startupPermissionError = message);
       if (interactive && showUnavailableGuidance) {
+        final canOpenSettings =
+            DeviceConnectionCoordinator.canOpenBluetoothSettings;
         final openSettings = await _showParentHomiGuidanceDialog(
           title: 'Chưa tìm thấy micro HOMI',
           message: message,
-          primaryLabel: 'Mở Cài đặt',
+          primaryLabel: canOpenSettings ? 'Mở Cài đặt' : 'Đã hiểu',
         );
         if (openSettings && isCurrent()) {
           _retryParentHomiSetupOnResume = true;
-          await _aiv0BleControl?.openBluetoothSettings();
+          // iOS has no public API to deep-link into Settings > Bluetooth;
+          // openBluetoothSettings() there only opens this app's own
+          // permission page, which would mislead the parent. Let them
+          // navigate there themselves instead.
+          if (canOpenSettings) {
+            await _aiv0BleControl?.openBluetoothSettings();
+          }
         }
       }
       return interactive
@@ -2052,6 +2060,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
         : 'Chưa kết nối được HM-D001. Hãy bật HM-D001, bật Bluetooth và kết nối thiết bị trong Cài đặt Bluetooth.';
     if (mounted) setState(() => _startupPermissionError = message);
     final shouldOpenSettings = !bleRequiredForSetup && !hfpReady;
+    final canOpenSettings =
+        DeviceConnectionCoordinator.canOpenBluetoothSettings;
     final accepted = await _showParentHomiGuidanceDialog(
       title: bleRequiredForSetup
           ? 'Chưa kết nối nút MAIN'
@@ -2060,15 +2070,21 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
           : 'Chưa kết nối HM-D001',
       message: message,
       primaryLabel: shouldOpenSettings
-          ? defaultTargetPlatform == TargetPlatform.android
+          ? canOpenSettings
                 ? 'Mở Cài đặt Bluetooth'
-                : 'Mở Cài đặt'
+                : 'Đã hiểu'
           : 'Thử lại',
     );
     if (!accepted) return;
     if (shouldOpenSettings) {
       _retryParentHomiSetupOnResume = true;
-      await _aiv0BleControl?.openBluetoothSettings();
+      // iOS has no public API to deep-link into Settings > Bluetooth;
+      // openBluetoothSettings() there only opens this app's own permission
+      // page, which would mislead the parent. Let them navigate there
+      // themselves instead.
+      if (canOpenSettings) {
+        await _aiv0BleControl?.openBluetoothSettings();
+      }
       return;
     }
     _lastAiv0AutoConnectAttempt = null;
