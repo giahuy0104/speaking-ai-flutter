@@ -247,19 +247,41 @@ class DeviceHfpPickerFlow {
               ),
               if (connectionCoordinator case final coordinator?) ...<Widget>[
                 const SizedBox(height: 4),
-                TextButton.icon(
-                  onPressed: () {
-                    Navigator.of(sheetContext).pop();
-                    unawaited(coordinator.openBluetoothSettings());
-                  },
-                  icon: const Icon(Icons.bluetooth_rounded),
-                  label: Text(
-                    context.tr(
-                      'Không thấy HOMI? Mở Cài đặt Bluetooth',
-                      '没看到 HOMI？打开蓝牙设置',
+                // iOS has no public API to deep-link into Settings >
+                // Bluetooth; openBluetoothSettings() there only opens this
+                // app's own permission page, which would mislead a user
+                // expecting the Bluetooth screen. Let them navigate there
+                // themselves instead.
+                if (isIOS)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      context.tr(
+                        'Không thấy HOMI? Hãy mở Cài đặt > Bluetooth trên iPhone để kết nối.',
+                        '没看到 HOMI？请打开 iPhone 的“设置 > 蓝牙”进行连接。',
+                      ),
+                      style: Theme.of(sheetContext).textTheme.bodySmall
+                          ?.copyWith(
+                            color: Theme.of(
+                              sheetContext,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                  )
+                else
+                  TextButton.icon(
+                    onPressed: () {
+                      Navigator.of(sheetContext).pop();
+                      unawaited(coordinator.openBluetoothSettings());
+                    },
+                    icon: const Icon(Icons.bluetooth_rounded),
+                    label: Text(
+                      context.tr(
+                        'Không thấy HOMI? Mở Cài đặt Bluetooth',
+                        '没看到 HOMI？打开蓝牙设置',
+                      ),
                     ),
                   ),
-                ),
               ],
             ],
           ),
