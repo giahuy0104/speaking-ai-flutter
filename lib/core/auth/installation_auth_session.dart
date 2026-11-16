@@ -37,8 +37,14 @@ class InstallationAuthSession {
   final InstallationCredentialStore _store;
   final http.Client _transport;
 
+  /// Access tokens are short-lived (about 15 minutes). A token this close to
+  /// expiry is still used, while a new one is fetched in the background, so an
+  /// API call never waits for a refresh while its token is still valid.
+  static const Duration refreshAheadWindow = Duration(minutes: 3);
+
   InstallationCredentials? _credentials;
   Future<InstallationCredentials>? _authenticationInFlight;
+  Future<void>? _backgroundRefresh;
 
   void attachClientIdResetter(Future<void> Function()? resetter) {
     if (resetter != null) {
@@ -48,7 +54,34 @@ class InstallationAuthSession {
 
   Future<String> accessToken() async {
     final credentials = await _ensureAuthenticated();
+    _refreshAheadIfExpiringSoon(credentials);
     return credentials.accessToken!;
+  }
+
+  /// Completes when a background refresh started by [accessToken] finishes.
+  @visibleForTesting
+  Future<void> get backgroundRefreshDone =>
+      _backgroundRefresh ?? Future<void>.value();
+
+  void _refreshAheadIfExpiringSoon(InstallationCredentials credentials) {
+    if (_backgroundRefresh != null ||
+        _authenticationInFlight != null ||
+        !credentials.accessTokenExpiresWithin(refreshAheadWindow) ||
+        !credentials.hasUsableRefreshToken) {
+      return;
+    }
+    late final Future<void> refresh;
+    refresh = _refresh(credentials)
+        .then<void>((_) {})
+        .catchError((Object error) {
+          // The current token is still valid; a later call retries the refresh,
+          // in the foreground once the token is no longer usable.
+          debugPrint('Installation background refresh failed: $error');
+        })
+        .whenComplete(() {
+          if (identical(_backgroundRefresh, refresh)) _backgroundRefresh = null;
+        });
+    _backgroundRefresh = refresh;
   }
 
   Future<void> invalidateAccessToken() async {
@@ -96,14 +129,15 @@ class InstallationAuthSession {
 
   Future<InstallationCredentials> _authenticate() async {
     final clientId = await _clientIdProvider();
-    var current = _credentials ?? await _store.read();
-    if (current != null && current.clientId != clientId) {
-      await _store.clear();
-      current = null;
-    }
-    if (current?.hasUsableAccessToken == true) {
-      _credentials = current;
-      return current!;
+    var current = await _currentCredentials(clientId);
+    if (current?.hasUsableAccessToken == true) return current!;
+    // The token is no longer usable. Never spend the single-use refresh token
+    // twice: let a running background refresh finish and use what it stored.
+    final pendingRefresh = _backgroundRefresh;
+    if (pendingRefresh != null) {
+      await pendingRefresh;
+      current = await _currentCredentials(clientId);
+      if (current?.hasUsableAccessToken == true) return current!;
     }
     if (current?.hasUsableRefreshToken == true) {
       try {
@@ -133,6 +167,17 @@ class InstallationAuthSession {
       final rotatedClientId = await _clientIdProvider();
       return _register(rotatedClientId, _createSecret());
     }
+  }
+
+  Future<InstallationCredentials?> _currentCredentials(String clientId) async {
+    final current = _credentials ?? await _store.read();
+    if (current != null && current.clientId != clientId) {
+      await _store.clear();
+      _credentials = null;
+      return null;
+    }
+    _credentials = current;
+    return current;
   }
 
   Future<InstallationCredentials> _register(

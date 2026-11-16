@@ -26,6 +26,14 @@ class InstallationCredentials {
         );
   }
 
+  /// True when there is no access token or it expires within [window].
+  bool accessTokenExpiresWithin(Duration window) {
+    final expiresAt = accessTokenExpiresAt;
+    return accessToken == null ||
+        expiresAt == null ||
+        !expiresAt.isAfter(DateTime.now().toUtc().add(window));
+  }
+
   bool get hasUsableRefreshToken {
     final token = refreshToken?.trim();
     final expiresAt = refreshTokenExpiresAt;

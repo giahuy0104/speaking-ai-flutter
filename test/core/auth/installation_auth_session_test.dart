@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:ai_speaking_flutter_app/config/app_config.dart';
@@ -122,7 +123,162 @@ void main() {
       expect(attempts, 3);
     },
   );
+
+  test(
+    'uses a token close to expiry at once and refreshes it in the background',
+    () async {
+      final store = _MemoryCredentialStore()
+        ..value = _storedCredentials(
+          accessToken: 'access-old',
+          accessExpiresIn: const Duration(minutes: 2),
+        );
+      final refreshCompleter = Completer<http.Response>();
+      var refreshCount = 0;
+      final session = InstallationAuthSession(
+        config: config,
+        clientIdProvider: () async => 'android_test-installation',
+        store: store,
+        transport: MockClient((request) {
+          expect(request.url.path, '/api/installations/refresh');
+          expect(jsonDecode(request.body)['refreshToken'], 'refresh-old');
+          refreshCount += 1;
+          return refreshCompleter.future;
+        }),
+      );
+
+      // The request does not wait for the refresh it started.
+      expect(await session.accessToken(), 'access-old');
+      expect(await session.accessToken(), 'access-old');
+      refreshCompleter.complete(
+        http.Response(
+          jsonEncode(_sessionResponse('access-new', 'refresh-new')),
+          200,
+        ),
+      );
+      await session.backgroundRefreshDone;
+
+      expect(await session.accessToken(), 'access-new');
+      expect(refreshCount, 1);
+      expect(store.value?.refreshToken, 'refresh-new');
+    },
+  );
+
+  test('does not refresh a token far from expiry', () async {
+    final session = InstallationAuthSession(
+      config: config,
+      clientIdProvider: () async => 'android_test-installation',
+      store: _MemoryCredentialStore()
+        ..value = _storedCredentials(
+          accessToken: 'access-fresh',
+          accessExpiresIn: const Duration(minutes: 10),
+        ),
+      transport: MockClient((_) async => fail('no refresh expected')),
+    );
+
+    expect(await session.accessToken(), 'access-fresh');
+    await session.backgroundRefreshDone;
+  });
+
+  test(
+    'resends a multipart upload once with a new token after a 401',
+    () async {
+      final session = InstallationAuthSession(
+        config: config,
+        clientIdProvider: () async => 'android_test-installation',
+        store: _MemoryCredentialStore()
+          ..value = _storedCredentials(
+            accessToken: 'access-revoked',
+            accessExpiresIn: const Duration(minutes: 10),
+          ),
+        transport: MockClient((request) async {
+          expect(request.url.path, '/api/installations/refresh');
+          return http.Response(
+            jsonEncode(_sessionResponse('access-new', 'refresh-new')),
+            200,
+          );
+        }),
+      );
+      final authorizations = <String?>[];
+      final bodies = <String>[];
+      final client = InstallationAuthenticatedClient(
+        config: config,
+        clientIdProvider: () async => 'android_test-installation',
+        session: session,
+        inner: MockClient((request) async {
+          authorizations.add(request.headers['authorization']);
+          bodies.add(request.body);
+          return request.headers['authorization'] == 'Bearer access-new'
+              ? http.Response('{"ok":true}', 200)
+              : http.Response('{}', 401);
+        }),
+      );
+      final upload =
+          http.MultipartRequest('POST', config.resolve('/api/audio/translate'))
+            ..fields['sourceLanguage'] = 'vi'
+            ..files.add(
+              http.MultipartFile.fromBytes('audio', [
+                1,
+                2,
+                3,
+              ], filename: 'a.m4a'),
+            );
+
+      final response = await http.Response.fromStream(
+        await client.send(upload),
+      );
+
+      expect(response.statusCode, 200);
+      expect(authorizations, ['Bearer access-revoked', 'Bearer access-new']);
+      expect(bodies[1], bodies[0]);
+      expect(bodies[0], contains('name="sourceLanguage"'));
+    },
+  );
+
+  test('returns the 401 when the resend is still unauthorized', () async {
+    final session = InstallationAuthSession(
+      config: config,
+      clientIdProvider: () async => 'android_test-installation',
+      store: _MemoryCredentialStore()
+        ..value = _storedCredentials(
+          accessToken: 'access-old',
+          accessExpiresIn: const Duration(minutes: 10),
+        ),
+      transport: MockClient(
+        (_) async => http.Response(
+          jsonEncode(_sessionResponse('access-new', 'refresh-new')),
+          200,
+        ),
+      ),
+    );
+    var calls = 0;
+    final client = InstallationAuthenticatedClient(
+      config: config,
+      clientIdProvider: () async => 'android_test-installation',
+      session: session,
+      inner: MockClient((_) async {
+        calls += 1;
+        return http.Response('{}', 401);
+      }),
+    );
+
+    final response = await client.get(config.resolve('/api/history'));
+
+    expect(response.statusCode, 401);
+    expect(calls, 2);
+  });
 }
+
+InstallationCredentials _storedCredentials({
+  required String accessToken,
+  required Duration accessExpiresIn,
+}) => InstallationCredentials(
+  clientId: 'android_test-installation',
+  installationSecret: 'a' * 48,
+  accessToken: accessToken,
+  accessTokenExpiresAt: DateTime.now().toUtc().add(accessExpiresIn),
+  refreshToken: 'refresh-old',
+  refreshTokenExpiresAt: DateTime.now().toUtc().add(const Duration(days: 30)),
+);
 
 Map<String, Object> _sessionResponse(String access, String refresh) =>
     <String, Object>{
