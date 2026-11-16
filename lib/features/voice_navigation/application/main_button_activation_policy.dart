@@ -57,9 +57,9 @@ abstract final class MainButtonActivationPolicy {
   /// A module's follow-up question (the vocabulary menu, for example)
   /// continues with the selected microphone even when BLE MAIN is recovering.
   /// The handset route is retained only for a session without a selected HFP
-  /// device. An unavailable selected headset requires reconnection.
+  /// device, on Android and iOS alike. An unavailable selected headset
+  /// requires reconnection.
   static MainButtonAudioRoute followUpAudioRoute({
-    required bool isAndroid,
     required bool isHomiReady,
     bool? isHomiAudioReady,
     bool hasSelectedHfpInput = false,
@@ -68,8 +68,6 @@ abstract final class MainButtonActivationPolicy {
       return MainButtonAudioRoute.selectedHfp;
     }
     if (hasSelectedHfpInput) return MainButtonAudioRoute.unavailable;
-    return isAndroid
-        ? MainButtonAudioRoute.phoneMicrophone
-        : MainButtonAudioRoute.selectedHfp;
+    return MainButtonAudioRoute.phoneMicrophone;
   }
 }

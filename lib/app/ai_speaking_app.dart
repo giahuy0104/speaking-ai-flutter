@@ -157,7 +157,8 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       GlobalKey<ScaffoldMessengerState>();
   final HomiBatteryNotifications _homiBatteryNotifications =
       HomiBatteryNotifications();
-  final HomiBatteryAlertPolicy _homiBatteryAlertPolicy = HomiBatteryAlertPolicy();
+  final HomiBatteryAlertPolicy _homiBatteryAlertPolicy =
+      HomiBatteryAlertPolicy();
   late final ListeningAudioPrefetcher _listeningAudioPrefetcher;
   late final _MainOverlayNavigatorObserver _mainOverlayNavigatorObserver;
   final ActiveLearningModuleRegistry _activeLearningModules =
@@ -2168,7 +2169,10 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
             critical: action == HomiBatteryAction.chargeCritical,
           );
           unawaited(
-            _homiBatteryNotifications.show(percent: percent, language: language),
+            _homiBatteryNotifications.show(
+              percent: percent,
+              language: language,
+            ),
           );
         case HomiBatteryAction.disconnectDepleted:
           _showHomiBatteryNotice(
@@ -2387,7 +2391,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
           ble.status.deviceName ?? controller.aiv0BleStatus.deviceName,
     );
     if (selected) {
-      debugPrint('Connected iOS HM-D001 HFP microphone selected automatically.');
+      debugPrint(
+        'Connected iOS HM-D001 HFP microphone selected automatically.',
+      );
     }
     return selected;
   }
@@ -3071,7 +3077,6 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
   /// gets no microphone.
   Future<bool> _prepareAndroidMainPromptRoute() {
     final route = MainButtonActivationPolicy.followUpAudioRoute(
-      isAndroid: !kIsWeb && defaultTargetPlatform == TargetPlatform.android,
       isHomiReady: _controller?.isHomiReady == true,
       isHomiAudioReady: _controller?.isHomiAudioReady == true,
       hasSelectedHfpInput:
@@ -3150,7 +3155,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     } catch (error) {
       _androidMainHfpRouteHeld = false;
       await route.stopAudioRoute().catchError((Object _) {});
-      debugPrint('MAIN did not start because HM-D001 HFP was unavailable: $error');
+      debugPrint(
+        'MAIN did not start because HM-D001 HFP was unavailable: $error',
+      );
       return false;
     }
   }
@@ -3713,7 +3720,6 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     // cleared its handset fallback. Choose the route again for this follow-up
     // question so a phone without a ready HM-D001 still opens a microphone.
     final route = MainButtonActivationPolicy.followUpAudioRoute(
-      isAndroid: !kIsWeb && defaultTargetPlatform == TargetPlatform.android,
       isHomiReady: _controller?.isHomiReady == true,
       isHomiAudioReady: _controller?.isHomiAudioReady == true,
       hasSelectedHfpInput:
@@ -3723,6 +3729,13 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (route == MainButtonAudioRoute.unavailable) return;
     final usesPhone = route == MainButtonAudioRoute.phoneMicrophone;
     _virtualMainPhoneFallback = usesPhone;
+    // Pin the follow-up source on iOS exactly as a MAIN turn does, so the
+    // question cannot silently pick a different input than its prompt.
+    _mainSpeechAudioSourceOverride = _usesIosHfpLifecycle
+        ? usesPhone
+              ? NativeSpeechAudioSource.builtInMic
+              : NativeSpeechAudioSource.hfp
+        : null;
     final activated = await _activateMainAssistant(
       promptAlreadySpoken: promptAlreadySpoken,
       otherLearning: otherLearning,
@@ -3730,8 +3743,9 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       noSpeechRetryPrompt: noSpeechRetryPrompt,
       noSpeechExitPrompt: noSpeechExitPrompt,
     );
-    if (!activated && usesPhone) {
+    if (!activated) {
       _virtualMainPhoneFallback = false;
+      _mainSpeechAudioSourceOverride = null;
     }
   }
 
@@ -4194,8 +4208,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
                 fit: StackFit.expand,
                 children: <Widget>[
                   child ?? const SizedBox.shrink(),
-                  if (!_usesIosHfpLifecycle &&
-                      voiceController != null &&
+                  if (voiceController != null &&
                       !_isGlobalModalOpen &&
                       !_deviceActionDialogOpen &&
                       _startupReady &&

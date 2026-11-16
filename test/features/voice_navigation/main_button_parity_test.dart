@@ -127,26 +127,15 @@ void main() {
     },
   );
 
-  test('an Android follow-up question without HM-D001 keeps the handset route', () {
+  test('a follow-up question without HM-D001 keeps the handset route', () {
+    // The same policy serves Android and iOS: the floating HOMI bubble opens
+    // the phone microphone on both when no HM-D001 is selected.
     expect(
-      MainButtonActivationPolicy.followUpAudioRoute(
-        isAndroid: true,
-        isHomiReady: false,
-      ),
+      MainButtonActivationPolicy.followUpAudioRoute(isHomiReady: false),
       MainButtonAudioRoute.phoneMicrophone,
     );
     expect(
-      MainButtonActivationPolicy.followUpAudioRoute(
-        isAndroid: true,
-        isHomiReady: true,
-      ),
-      MainButtonAudioRoute.selectedHfp,
-    );
-    expect(
-      MainButtonActivationPolicy.followUpAudioRoute(
-        isAndroid: false,
-        isHomiReady: false,
-      ),
+      MainButtonActivationPolicy.followUpAudioRoute(isHomiReady: true),
       MainButtonAudioRoute.selectedHfp,
     );
   });
@@ -168,7 +157,6 @@ void main() {
       }
       expect(
         MainButtonActivationPolicy.followUpAudioRoute(
-          isAndroid: !isIos,
           isHomiReady: false,
           isHomiAudioReady: true,
           hasSelectedHfpInput: true,
@@ -193,7 +181,6 @@ void main() {
       }
       expect(
         MainButtonActivationPolicy.followUpAudioRoute(
-          isAndroid: !isIos,
           isHomiReady: false,
           isHomiAudioReady: false,
           hasSelectedHfpInput: true,
