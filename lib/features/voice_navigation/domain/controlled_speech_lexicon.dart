@@ -344,6 +344,7 @@ class ControlledSpeechLexicon {
       priority: 1,
       phrases: _mergePhrases('INT-014', <String>[
         'Luyện lại',
+        'Ôn lại',
         'Học lại phần chưa thuộc',
         'Luyện từ khó',
         'Nói lại',

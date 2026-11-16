@@ -618,7 +618,7 @@ void main() {
     final moduleSwitchAudio = await mainRegistry.resolver.resolve(
       AudioPromptRequest(
         key: AudioPromptKey('assistant.main.choose_translation.vi'),
-        fallbackText: 'Bạn muốn Dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?',
+        fallbackText: 'Bạn muốn Dịch, học Chủ đề hay Bộ từ vựng?',
         locale: 'vi-VN',
         allowTtsFallback: false,
       ),

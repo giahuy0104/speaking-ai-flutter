@@ -660,7 +660,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
           if (!await _prepareReviewFromVoice()) {
             return const ActiveLearningCommandResult.busy(
-              spokenReply: 'Chưa mở được Luyện lại. Bạn hãy thử lại.',
+              spokenReply: 'Chưa mở được Ôn lại. Bạn hãy thử lại.',
             );
           }
           final reviewStarted = Completer<bool>();
@@ -681,7 +681,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
           return await reviewStarted.future
               ? const ActiveLearningCommandResult.handled()
               : const ActiveLearningCommandResult.busy(
-                  spokenReply: 'Chưa mở được Luyện lại. Bạn hãy thử lại.',
+                  spokenReply: 'Chưa mở được Ôn lại. Bạn hãy thử lại.',
                 );
         }
         if (_awaitingPlaybackEndChoice && _selectedJourney != null) {
@@ -966,7 +966,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                         Expanded(
                           flex: 6,
                           child: _JourneyCopy(
-                            title: context.tr('Luyện lại', '复习'),
+                            title: context.tr('Ôn lại', '复习'),
                             count: context.tr(
                               '$reviewCount nội dung cần ôn',
                               '$reviewCount 项待复习内容',
@@ -1109,7 +1109,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
         'HOMI 陪你听喜爱的内容',
       ),
       _VocabularyJourney.review => context.tr(
-        'HOMI sẵn sàng luyện lại cùng bạn',
+        'HOMI sẵn sàng ôn lại cùng bạn',
         'HOMI 准备陪你复习',
       ),
     };
@@ -1546,7 +1546,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                           '还没有收藏内容。',
                         )
                       : context.tr(
-                          'Hiện chưa có nội dung cần luyện lại.',
+                          'Hiện chưa có nội dung cần ôn lại.',
                           '目前没有需要复习的内容。',
                         ),
                   textAlign: TextAlign.center,
@@ -1640,7 +1640,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     return switch (journey) {
       _VocabularyJourney.family => context.tr('Ba mẹ đã thêm', '家长添加'),
       _VocabularyJourney.stars => context.tr('Ngôi sao của bạn', '我的星星'),
-      _VocabularyJourney.review => context.tr('Luyện lại', '复习'),
+      _VocabularyJourney.review => context.tr('Ôn lại', '复习'),
     };
   }
 

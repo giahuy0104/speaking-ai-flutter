@@ -1145,7 +1145,7 @@ class MainVoiceAssistantFlow {
   ) async {
     if (_looksLikePromptEcho(normalized)) {
       return const MainVoiceAssistantTurn(
-        promptText: 'Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Luyện lại?',
+        promptText: 'Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Ôn lại?',
         promptAudioKey: MainAssistantAudioKeys.chooseVocabulary,
         continueListening: true,
       );
@@ -1160,7 +1160,7 @@ class MainVoiceAssistantFlow {
         : null;
     if (collection == null) {
       return const MainVoiceAssistantTurn(
-        promptText: 'Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Luyện lại?',
+        promptText: 'Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Ôn lại?',
         promptAudioKey: MainAssistantAudioKeys.chooseVocabulary,
         continueListening: true,
       );
@@ -1187,12 +1187,12 @@ class MainVoiceAssistantFlow {
     final title = parentChoice
         ? 'Phần Ba mẹ đã thêm.'
         : collection == VocabularyCollection.review
-        ? 'Phần luyện lại.'
+        ? 'Phần ôn lại.'
         : 'Ngôi sao của bạn.';
     final emptyPrompt = parentChoice
         ? 'Chưa có nội dung đã học tốt trong phần Ba mẹ đã thêm.'
         : collection == VocabularyCollection.review
-        ? 'Phần luyện lại chưa có từ nào.'
+        ? 'Phần ôn lại chưa có từ nào.'
         : 'Bạn chưa có Ngôi sao nào.';
     final utterances = <MainVoiceAssistantUtterance>[];
     _appendVocabularyCollection(
@@ -2260,7 +2260,7 @@ class MainVoiceAssistantFlow {
       MainVoiceAssistantStage.chooseAlternativeAfterLearning =>
         alternativeAfterLearningPrompt,
       MainVoiceAssistantStage.chooseVocabularyCollection =>
-        'Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Luyện lại?',
+        'Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Ôn lại?',
       MainVoiceAssistantStage.activeLearning =>
         _activeVoicePrompt ?? activeLearningPrompt,
       MainVoiceAssistantStage.askAge => 'Bạn mấy tuổi? Ví dụ bạn nói: 6 tuổi.',

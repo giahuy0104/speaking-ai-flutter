@@ -474,7 +474,11 @@ void main() {
       );
       expect(
         title.data,
-        entry.key == 'Ngôi sao' ? 'Ngôi sao của bạn' : entry.key,
+        switch (entry.key) {
+          'Ngôi sao' => 'Ngôi sao của bạn',
+          'Luyện lại' => 'Ôn lại',
+          _ => entry.key,
+        },
       );
       expect(
         find.byKey(const ValueKey<String>('vocabulary-journey-landing')),

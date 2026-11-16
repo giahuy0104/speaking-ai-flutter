@@ -6,17 +6,15 @@ import 'homi_fallback_catalog.dart';
 abstract final class MasterNavigationContract {
   static const version = '2026-09-22';
   static const mainPrompt =
-      'HOMI đây. Bạn muốn Dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?';
-  static const mainRetry =
-      'Bạn muốn Dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?';
+      'HOMI đây. Bạn muốn Dịch, học Chủ đề hay Bộ từ vựng?';
+  static const mainRetry = 'Bạn muốn Dịch, học Chủ đề hay Bộ từ vựng?';
   static const translationIntro =
       'Bạn cứ nói từng câu. Muốn dừng thì nói “Dừng lại”.';
   static const afterTranslationStop =
       'Bạn muốn tiếp tục dịch, học Chủ đề hay Bộ từ vựng?';
   static const translationStopped = 'Đã dừng.';
   static const translationContinue = 'Mình tiếp tục nhé.';
-  static const translationSwitch =
-      'Bạn muốn Dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?';
+  static const translationSwitch = 'Bạn muốn Dịch, học Chủ đề hay Bộ từ vựng?';
   static const keepCurrentContent = 'Mình giữ nội dung hiện tại nhé.';
   static const switchedToSubject = 'Mình đã chuyển sang Chủ đề.';
   static const switchedToVocabulary = 'Mình đã chuyển sang Bộ từ vựng.';
@@ -280,13 +278,18 @@ abstract final class MasterNavigationContract {
     ],
     'OPEN_REVIEW': [
       'Luyện lại',
+      'Ôn lại',
       'Học phần Luyện lại',
+      'Học phần Ôn lại',
       'Mở Luyện lại',
+      'Mở Ôn lại',
       'Mình muốn luyện lại',
       'Cho mình ôn lại',
       'Luyện các câu chưa đạt',
       'Vào học Luyện lại',
+      'Vào học Ôn lại',
       'Học luyện lại',
+      'Học ôn lại',
     ],
     'OTHER_CONTENT': [
       'Khác',

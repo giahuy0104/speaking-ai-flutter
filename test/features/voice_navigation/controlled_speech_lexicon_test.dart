@@ -13,8 +13,8 @@ void main() {
       );
 
       expect(ControlledSpeechLexicon.version, 'V0.2-homi-fallback');
-      // 393 existing phrases plus 30 exact vocabulary section aliases.
-      expect(phraseCount, 423);
+      // 393 existing, 30 vocabulary section and 6 “Ôn lại” aliases.
+      expect(phraseCount, 429);
     },
   );
 

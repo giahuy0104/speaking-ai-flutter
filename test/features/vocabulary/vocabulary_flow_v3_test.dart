@@ -6,7 +6,7 @@ void main() {
   test('locks the exact V3 child-facing menu and completion copy', () {
     expect(
       VocabularyFlowV3.todayEmptyMenu,
-      'Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Luyện lại?',
+      'Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Ôn lại?',
     );
     expect(
       VocabularyFlowV3.todayCompletion,
