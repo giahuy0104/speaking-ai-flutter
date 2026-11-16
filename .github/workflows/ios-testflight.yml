@@ -15,6 +15,13 @@ on:
         description: Upload the IPA to TestFlight (group HOMI Test)
         type: boolean
         default: false
+      backend:
+        description: Backend the app talks to
+        type: choice
+        options:
+          - production
+          - api-dev
+        default: production
 
 concurrency:
   group: ios-testflight-${{ github.ref }}
@@ -41,16 +48,26 @@ jobs:
           xcode-project use-profiles --project ios/Runner.xcodeproj --export-options-plist "$RUNNER_TEMP/export_options.plist"
       - name: Build the signed IPA
         # Same dart-defines as the Codemagic ios-app-store workflow; the build number is one past
-        # the latest TestFlight build, like the manual TestFlight recipe.
+        # the latest TestFlight build, like the manual TestFlight recipe. The api-dev choice only
+        # overrides BACKEND_BASE_URL: a later --dart-define wins over the defines file.
+        env:
+          BACKEND_CHOICE: ${{ inputs.backend || 'production' }}
         run: |
           source ~/.appstoreconnect/homi/env.sh
+          case "$BACKEND_CHOICE" in
+            production) BACKEND_BASE_URL=https://api.hoamytech.com ;;
+            api-dev) BACKEND_BASE_URL=https://api-dev.hoamytech.com ;;
+            *) echo "Unknown backend: $BACKEND_CHOICE" >&2; exit 1 ;;
+          esac
+          echo "Backend: $BACKEND_CHOICE ($BACKEND_BASE_URL)"
           python3 tool/prepare_ios_translation_pods.py device
           BUILD_NUMBER=$(( $(app-store-connect get-latest-testflight-build-number 6804089228) + 1 ))
           echo "BUILD_NUMBER=$BUILD_NUMBER" >> "$GITHUB_ENV"
-          echo "ARTIFACT_NAME=homi-ios-$BUILD_NUMBER-${GITHUB_REF_NAME//\//-}-${GITHUB_SHA::8}" >> "$GITHUB_ENV"
+          echo "ARTIFACT_NAME=homi-ios-$BUILD_NUMBER-$BACKEND_CHOICE-${GITHUB_REF_NAME//\//-}-${GITHUB_SHA::8}" >> "$GITHUB_ENV"
           flutter build ipa --release --build-number="$BUILD_NUMBER" \
             --export-options-plist="$RUNNER_TEMP/export_options.plist" \
             --dart-define-from-file=dart_defines.production.json \
+            --dart-define=BACKEND_BASE_URL="$BACKEND_BASE_URL" \
             --dart-define=CHILD_AGE=6 \
             --dart-define=PREFER_BLE_STREAMING=false \
             --dart-define=REALTIME_BATCH_FALLBACK=true \
