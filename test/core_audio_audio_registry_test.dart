@@ -618,12 +618,22 @@ void main() {
     final moduleSwitchAudio = await mainRegistry.resolver.resolve(
       AudioPromptRequest(
         key: AudioPromptKey('assistant.main.choose_translation.vi'),
-        fallbackText: 'Bạn muốn Dịch, học Chủ đề hay Bộ từ vựng?',
+        fallbackText: 'Bạn muốn Dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?',
         locale: 'vi-VN',
         allowTtsFallback: false,
       ),
     );
     expect(moduleSwitchAudio.source, AudioPromptSource.bundledAsset);
+    // The clip still says the old wording, so the reworded prompt must use
+    // device TTS until ElevenLabs audio is re-recorded.
+    final rewordedModuleSwitch = await mainRegistry.resolver.resolve(
+      AudioPromptRequest(
+        key: AudioPromptKey('assistant.main.choose_translation.vi'),
+        fallbackText: 'Bạn muốn Dịch, học Chủ đề hay Bộ từ vựng?',
+        locale: 'vi-VN',
+      ),
+    );
+    expect(rewordedModuleSwitch.source, AudioPromptSource.tts);
 
     const suppliedTopicPrompts = <String, String>{
       'assistant.topic.choose_10.vi':
