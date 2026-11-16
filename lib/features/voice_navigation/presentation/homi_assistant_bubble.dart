@@ -301,98 +301,104 @@ class _HomiAssistantBubbleState extends State<HomiAssistantBubble>
     final onPressed = widget.onPressed;
     const size = HomiAssistantBubble.size;
 
-    return SizedBox.square(
-      dimension: HomiAssistantBubble.touchSize,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onPressed,
-        onTapDown: onPressed == null ? null : (_) => _setPressed(true),
-        onTapUp: onPressed == null ? null : (_) => _setPressed(false),
-        onTapCancel: onPressed == null ? null : () => _setPressed(false),
-        child: Center(
-          child: SizedBox.square(
-            dimension: size,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: <Widget>[
-                Positioned(
-                  left: 6,
-                  right: 6,
-                  bottom: -9,
-                  height: 12,
-                  child: AnimatedOpacity(
-                    duration: const Duration(milliseconds: 200),
-                    opacity: lifted ? 0.45 : 1,
-                    child: AnimatedScale(
+    // The bubble floats in MaterialApp.builder, outside any route Scaffold.
+    // Without a Material ancestor its labels inherit Flutter's yellow
+    // double-underline fallback text style.
+    return Material(
+      type: MaterialType.transparency,
+      child: SizedBox.square(
+        dimension: HomiAssistantBubble.touchSize,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onPressed,
+          onTapDown: onPressed == null ? null : (_) => _setPressed(true),
+          onTapUp: onPressed == null ? null : (_) => _setPressed(false),
+          onTapCancel: onPressed == null ? null : () => _setPressed(false),
+          child: Center(
+            child: SizedBox.square(
+              dimension: size,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: <Widget>[
+                  Positioned(
+                    left: 6,
+                    right: 6,
+                    bottom: -9,
+                    height: 12,
+                    child: AnimatedOpacity(
                       duration: const Duration(milliseconds: 200),
-                      scale: lifted ? 0.7 : 1,
-                      child: const DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: RadialGradient(
-                            colors: <Color>[
-                              Color(0x520F2A63),
-                              Color(0x000F2A63),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.all(
-                            Radius.elliptical(30, 6),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: size + 10,
-                  right: onRight ? 0 : null,
-                  left: onRight ? null : 0,
-                  child: IgnorePointer(
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 260),
-                      switchInCurve: Curves.easeOutBack,
-                      transitionBuilder: (child, animation) => FadeTransition(
-                        opacity: animation,
-                        child: ScaleTransition(
-                          scale: Tween<double>(
-                            begin: 0.88,
-                            end: 1,
-                          ).animate(animation),
-                          alignment: onRight
-                              ? Alignment.bottomRight
-                              : Alignment.bottomLeft,
-                          child: child,
-                        ),
-                      ),
-                      child: label == null
-                          ? const SizedBox.shrink()
-                          : _LabelBubble(
-                              key: ValueKey<String>(label),
-                              label: label,
-                              error: spec.error,
-                              bars: spec.talk,
-                              color: spec.color,
-                              onRight: onRight,
-                              loop: _loop,
+                      opacity: lifted ? 0.45 : 1,
+                      child: AnimatedScale(
+                        duration: const Duration(milliseconds: 200),
+                        scale: lifted ? 0.7 : 1,
+                        child: const DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: RadialGradient(
+                              colors: <Color>[
+                                Color(0x520F2A63),
+                                Color(0x000F2A63),
+                              ],
                             ),
+                            borderRadius: BorderRadius.all(
+                              Radius.elliptical(30, 6),
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-                Positioned.fill(
-                  child: AnimatedScale(
-                    duration: const Duration(milliseconds: 140),
-                    curve: Curves.easeOutBack,
-                    scale: _pressed ? 0.9 : 1,
-                    child: AnimatedBuilder(
-                      animation: Listenable.merge(<Listenable>[
-                        _loop,
-                        _shake,
-                        _hello,
-                      ]),
-                      builder: (context, _) => _buildOrb(spec, onRight),
+                  Positioned(
+                    bottom: size + 10,
+                    right: onRight ? 0 : null,
+                    left: onRight ? null : 0,
+                    child: IgnorePointer(
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 260),
+                        switchInCurve: Curves.easeOutBack,
+                        transitionBuilder: (child, animation) => FadeTransition(
+                          opacity: animation,
+                          child: ScaleTransition(
+                            scale: Tween<double>(
+                              begin: 0.88,
+                              end: 1,
+                            ).animate(animation),
+                            alignment: onRight
+                                ? Alignment.bottomRight
+                                : Alignment.bottomLeft,
+                            child: child,
+                          ),
+                        ),
+                        child: label == null
+                            ? const SizedBox.shrink()
+                            : _LabelBubble(
+                                key: ValueKey<String>(label),
+                                label: label,
+                                error: spec.error,
+                                bars: spec.talk,
+                                color: spec.color,
+                                onRight: onRight,
+                                loop: _loop,
+                              ),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                  Positioned.fill(
+                    child: AnimatedScale(
+                      duration: const Duration(milliseconds: 140),
+                      curve: Curves.easeOutBack,
+                      scale: _pressed ? 0.9 : 1,
+                      child: AnimatedBuilder(
+                        animation: Listenable.merge(<Listenable>[
+                          _loop,
+                          _shake,
+                          _hello,
+                        ]),
+                        builder: (context, _) => _buildOrb(spec, onRight),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

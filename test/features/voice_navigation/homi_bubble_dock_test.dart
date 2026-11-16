@@ -143,4 +143,37 @@ void main() {
     }
     await tester.pumpWidget(const SizedBox.shrink());
   });
+
+  testWidgets('label and chip text are not underlined outside a Scaffold', (
+    tester,
+  ) async {
+    useScreen(tester);
+    // Mirrors the app: the bubble lives in MaterialApp.builder, beside the
+    // Navigator, where only Flutter's underlined fallback text style exists.
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (context, child) => const Center(
+          child: HomiAssistantBubble(
+            visual: HomiBubbleVisual.commandError,
+            label: 'Lệnh chưa xong',
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 400));
+
+    for (final text in <String>['Lệnh chưa xong', '?']) {
+      final paragraph = tester.widget<RichText>(
+        find.byWidgetPredicate(
+          (widget) => widget is RichText && widget.text.toPlainText() == text,
+        ),
+      );
+      expect(
+        paragraph.text.style?.decoration,
+        TextDecoration.none,
+        reason: text,
+      );
+    }
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
 }
