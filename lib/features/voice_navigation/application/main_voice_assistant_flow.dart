@@ -181,8 +181,12 @@ class MainVoiceAssistantFlow {
   };
 
   String? get _activeLearningPromptAudioKey => switch (_activeVoiceNode) {
-    // The stopped-lesson question has no authored recording yet.
-    _ when _activeLessonStopped => null,
+    // Mirrors the stopped-lesson question chosen in beginActiveLearning.
+    ActiveLearningVoiceNode.core when _activeLessonStopped =>
+      MainAssistantAudioKeys.stoppedCore,
+    ActiveLearningVoiceNode.song when _activeLessonStopped =>
+      MainAssistantAudioKeys.stoppedSong,
+    _ when _activeLessonStopped => MainAssistantAudioKeys.stoppedIntro,
     ActiveLearningVoiceNode.challenge =>
       MainAssistantAudioKeys.challengeControls,
     ActiveLearningVoiceNode.song => MainAssistantAudioKeys.songControls,

@@ -21,12 +21,12 @@ $speedByLanguage = @{
 }
 
 $prompts = @(
-  @{ key = 'assistant.main.open_menu.vi'; language = 'vi'; locale = 'vi-VN'; text = 'HOMI đây. Bạn muốn Dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?' },
-  @{ key = 'assistant.main.choose_translation.vi'; language = 'vi'; locale = 'vi-VN'; text = 'Bạn muốn Dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?' },
+  @{ key = 'assistant.main.open_menu.vi'; language = 'vi'; locale = 'vi-VN'; text = 'HOMI đây. Bạn muốn Dịch, học Chủ đề hay Bộ từ vựng?' },
+  @{ key = 'assistant.main.choose_translation.vi'; language = 'vi'; locale = 'vi-VN'; text = 'Bạn muốn Dịch, học Chủ đề hay Bộ từ vựng?' },
   @{ key = 'assistant.main.choose_listening.vi'; language = 'vi'; locale = 'vi-VN'; text = 'Bạn chọn Chủ đề số mấy?' },
-  @{ key = 'assistant.main.choose_vocabulary.vi'; language = 'vi'; locale = 'vi-VN'; text = 'Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Luyện lại?' },
-  @{ key = 'assistant.main.invalid_choice.vi'; language = 'vi'; locale = 'vi-VN'; text = 'Bạn muốn Dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?' },
-  @{ key = 'assistant.main.no_speech.vi'; language = 'vi'; locale = 'vi-VN'; text = 'Bạn muốn Dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?' },
+  @{ key = 'assistant.main.choose_vocabulary.vi'; language = 'vi'; locale = 'vi-VN'; text = 'Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Ôn lại?' },
+  @{ key = 'assistant.main.invalid_choice.vi'; language = 'vi'; locale = 'vi-VN'; text = 'Bạn muốn Dịch, học Chủ đề hay Bộ từ vựng?' },
+  @{ key = 'assistant.main.no_speech.vi'; language = 'vi'; locale = 'vi-VN'; text = 'Bạn muốn Dịch, học Chủ đề hay Bộ từ vựng?' },
   @{ key = 'assistant.main.cancelled.vi'; language = 'vi'; locale = 'vi-VN'; text = 'Mình tạm dừng nhé.' },
   @{ key = 'assistant.main.switched_to_listening.vi'; language = 'vi'; locale = 'vi-VN'; text = 'Mình đã chuyển sang Chủ đề.' },
   @{ key = 'assistant.main.switched_to_vocabulary.vi'; language = 'vi'; locale = 'vi-VN'; text = 'Mình đã chuyển sang Bộ từ vựng.' },

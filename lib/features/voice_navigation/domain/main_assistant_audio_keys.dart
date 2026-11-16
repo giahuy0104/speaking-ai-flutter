@@ -23,6 +23,9 @@ abstract final class MainAssistantAudioKeys {
       'assistant.main.active_learning_controls.vi';
   static const challengeControls = 'assistant.learning.challenge_controls.vi';
   static const songControls = 'assistant.learning.song_controls.vi';
+  static const stoppedCore = 'assistant.learning.stopped_core.vi';
+  static const stoppedIntro = 'assistant.learning.stopped_intro.vi';
+  static const stoppedSong = 'assistant.learning.stopped_song.vi';
   static const resumeLearning = 'assistant.learning.resume.vi';
   static const continueSubject = 'assistant.learning.continue_subject.vi';
   static const nextItem = 'assistant.learning.next_item.vi';

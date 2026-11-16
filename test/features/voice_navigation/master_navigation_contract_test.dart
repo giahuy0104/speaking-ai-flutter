@@ -809,26 +809,31 @@ void main() {
         );
 
     test('each lesson part asks its own stopped question', () {
-      for (final (node, prompt) in [
+      for (final (node, prompt, audioKey) in [
         (
           ActiveLearningVoiceNode.core,
           'Bạn muốn học tiếp, nghe lại, sang câu sau hay học chủ đề khác?',
+          MainAssistantAudioKeys.stoppedCore,
         ),
         (
           ActiveLearningVoiceNode.intro,
           'Bạn muốn học tiếp, nghe lại, hay học chủ đề khác?',
+          MainAssistantAudioKeys.stoppedIntro,
         ),
         (
           ActiveLearningVoiceNode.challenge,
           'Bạn muốn học tiếp, nghe lại, hay học chủ đề khác?',
+          MainAssistantAudioKeys.stoppedIntro,
         ),
         (
           ActiveLearningVoiceNode.review,
           'Bạn muốn học tiếp, nghe lại, hay học chủ đề khác?',
+          MainAssistantAudioKeys.stoppedIntro,
         ),
         (
           ActiveLearningVoiceNode.song,
           'Bạn muốn học tiếp, nghe lại bài hát, bỏ qua hay học chủ đề khác?',
+          MainAssistantAudioKeys.stoppedSong,
         ),
       ]) {
         final flow = MainVoiceAssistantFlow(childAge: 6);
@@ -841,8 +846,8 @@ void main() {
           prompt,
           reason: node.name,
         );
-        // The old authored control recording must not play over it.
-        expect(flow.currentPromptAudioKey, isNull, reason: node.name);
+        // Its own recording plays, never the part's control recording.
+        expect(flow.currentPromptAudioKey, audioKey, reason: node.name);
       }
     });
 

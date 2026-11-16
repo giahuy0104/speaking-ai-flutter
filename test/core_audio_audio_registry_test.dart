@@ -10,6 +10,8 @@ import 'package:ai_speaking_flutter_app/core/audio/catalog/audio_prompt_service.
 import 'package:ai_speaking_flutter_app/core/audio/catalog/voice_prompt_audio_registry_adapter.dart';
 import 'package:ai_speaking_flutter_app/core/audio/hfp_audio_control.dart';
 import 'package:ai_speaking_flutter_app/core/audio/voice_prompt_service.dart';
+import 'package:ai_speaking_flutter_app/features/vocabulary/domain/vocabulary_flow_v3.dart';
+import 'package:ai_speaking_flutter_app/features/voice_navigation/domain/master_navigation_contract.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_loudness_manifest.dart';
@@ -618,22 +620,67 @@ void main() {
     final moduleSwitchAudio = await mainRegistry.resolver.resolve(
       AudioPromptRequest(
         key: AudioPromptKey('assistant.main.choose_translation.vi'),
-        fallbackText: 'Bạn muốn Dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?',
+        fallbackText: 'Bạn muốn Dịch, học Chủ đề hay Bộ từ vựng?',
         locale: 'vi-VN',
         allowTtsFallback: false,
       ),
     );
     expect(moduleSwitchAudio.source, AudioPromptSource.bundledAsset);
-    // The clip still says the old wording, so the reworded prompt must use
-    // device TTS until ElevenLabs audio is re-recorded.
-    final rewordedModuleSwitch = await mainRegistry.resolver.resolve(
+    // The re-recorded clip says the new wording, so the old one must not
+    // reuse it.
+    final oldModuleSwitch = await mainRegistry.resolver.resolve(
       AudioPromptRequest(
         key: AudioPromptKey('assistant.main.choose_translation.vi'),
-        fallbackText: 'Bạn muốn Dịch, học Chủ đề hay Bộ từ vựng?',
+        fallbackText: 'Bạn muốn Dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?',
         locale: 'vi-VN',
       ),
     );
-    expect(rewordedModuleSwitch.source, AudioPromptSource.tts);
+    expect(oldModuleSwitch.source, AudioPromptSource.tts);
+
+    // Re-recorded after the "Dịch" / "Ôn lại" rewording.
+    const rerecordedMainPrompts = <String, String>{
+      'assistant.main.open_menu.vi': MasterNavigationContract.mainPrompt,
+      'assistant.main.choose_translation.vi':
+          MasterNavigationContract.translationSwitch,
+      'assistant.main.invalid_choice.vi': MasterNavigationContract.mainRetry,
+      'assistant.main.no_speech.vi': MasterNavigationContract.mainRetry,
+      'assistant.main.choose_vocabulary.vi': VocabularyFlowV3.menu,
+      'assistant.learning.stopped_core.vi':
+          MasterNavigationContract.coreStoppedPrompt,
+      'assistant.learning.stopped_intro.vi':
+          MasterNavigationContract.introStoppedPrompt,
+      'assistant.learning.stopped_song.vi':
+          MasterNavigationContract.songStoppedPrompt,
+    };
+    const rerecordedVocabularyPrompts = <String, String>{
+      'vocabulary.flow.menu.vi': VocabularyFlowV3.menu,
+      'vocabulary.flow.parent_other_menu.vi': VocabularyFlowV3.parentOtherMenu,
+      'vocabulary.flow.parent_empty.vi': VocabularyFlowV3.parentEmpty,
+      'vocabulary.flow.star_empty.vi': VocabularyFlowV3.starEmpty,
+      'vocabulary.flow.star_other_menu.vi': VocabularyFlowV3.starOtherMenu,
+      'vocabulary.flow.review_listen.vi': VocabularyFlowV3.reviewIntro,
+      'vocabulary.flow.review_empty.vi': VocabularyFlowV3.reviewEmpty,
+    };
+    for (final (registry, prompts) in [
+      (mainRegistry, rerecordedMainPrompts),
+      (vocabularyRegistry, rerecordedVocabularyPrompts),
+    ]) {
+      for (final prompt in prompts.entries) {
+        final resolution = await registry.resolver.resolve(
+          AudioPromptRequest(
+            key: AudioPromptKey(prompt.key),
+            fallbackText: prompt.value,
+            locale: 'vi-VN',
+            allowTtsFallback: false,
+          ),
+        );
+        expect(
+          resolution.source,
+          AudioPromptSource.bundledAsset,
+          reason: prompt.key,
+        );
+      }
+    }
 
     const suppliedTopicPrompts = <String, String>{
       'assistant.topic.choose_10.vi':

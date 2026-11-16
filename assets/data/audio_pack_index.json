@@ -8,9 +8,9 @@
       "version": "v5-cloudinary",
       "minimumAppVersion": "1.0.8",
       "manifest": "assets/data/assistant_core_audio.json",
-      "manifestSha256": "4a5f62311d4e20d1274326a4184e0c7414b9a08d32bcdae3ede7e50c9502fbac",
-      "audioCount": 82,
-      "sizeBytes": 2961390,
+      "manifestSha256": "04770fb681e45896c2f08200d25725eb45f5c810e14ec6296b0538f9abeff73a",
+      "audioCount": 85,
+      "sizeBytes": 3185728,
       "preloadGroup": "shared"
     },
     {
@@ -128,9 +128,9 @@
       "version": "v5-cloudinary",
       "minimumAppVersion": "1.0.8",
       "manifest": "assets/data/vocabulary_common_audio.json",
-      "manifestSha256": "500113314f26d77f77a6d95168bdfcf4e9a8107ed33cef5502318a8e3e945c76",
+      "manifestSha256": "fbc5bd6d34ef5956ae7a798a24fe39e04e17993afce8f1ed9507324f91b86a78",
       "audioCount": 31,
-      "sizeBytes": 1338513,
+      "sizeBytes": 1399125,
       "preloadGroup": "shared"
     },
     {
