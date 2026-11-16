@@ -8,6 +8,7 @@ import '../../../app/app_theme.dart';
 import '../../../app/bluetooth_power_panel.dart';
 import '../../../core/device/bluetooth_power_controller.dart';
 import '../../../core/device/aiv0_ble_control.dart';
+import '../../../core/device/device_connection_coordinator.dart';
 import '../../../l10n/display_language.dart';
 import '../../../app/homi_bluetooth_icon.dart';
 import '../../../app/learning_scenery.dart';
@@ -871,7 +872,14 @@ class _StartupSetupScreenState extends State<StartupSetupScreen>
     switch (action) {
       case HomiGuideAction.openSettings:
         _awaitingPairingReturn = true;
-        await widget.onOpenBluetoothSettings!();
+        // iOS has no public API to deep-link into Settings > Bluetooth;
+        // onOpenBluetoothSettings there only opens this app's own
+        // permission page, which would mislead the parent. Let them
+        // navigate there themselves instead; _awaitingPairingReturn still
+        // rechecks the connection once they come back.
+        if (DeviceConnectionCoordinator.canOpenBluetoothSettings) {
+          await widget.onOpenBluetoothSettings!();
+        }
       case HomiGuideAction.checkAgain:
         await _connectHomi();
       case null:
