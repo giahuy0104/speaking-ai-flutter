@@ -2,6 +2,9 @@ import 'package:ai_speaking_flutter_app/app/app_theme.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_input.dart';
 import 'package:ai_speaking_flutter_app/core/audio/audio_playback_service.dart';
 import 'package:ai_speaking_flutter_app/core/audio/streaming_speech_input.dart';
+import 'package:ai_speaking_flutter_app/core/device/aiv0_ble_control.dart';
+import 'package:ai_speaking_flutter_app/core/device/bluetooth_power_controller.dart';
+import 'package:ai_speaking_flutter_app/core/device/device_connection_coordinator.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_models.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/domain/conversation_repository.dart';
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
@@ -13,7 +16,139 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+const _openBtSettingsDialog = Key(
+  'conversation-open-bluetooth-settings-dialog',
+);
+const _openBtSettingsConfirm = Key(
+  'conversation-open-bluetooth-settings-confirm',
+);
+const _openBtSettingsDismiss = Key(
+  'conversation-open-bluetooth-settings-dismiss',
+);
+
 void main() {
+  testWidgets(
+    'iOS Bluetooth-off prompt only offers a dismiss button and never opens settings',
+    (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final controller = ConversationController(
+        audioInput: const _PreviewAudioInput(),
+        playbackService: const _PreviewPlaybackService(),
+        repository: const _PreviewRepository(),
+        childAge: 6,
+      );
+      addTearDown(controller.dispose);
+      var openSettingsCalls = 0;
+      final bluetoothPower = BluetoothPowerController(
+        readState: () async => Aiv0BluetoothAdapterState.poweredOff,
+        requestEnable: () async => false,
+        requestPermission: () async => false,
+        canRequestEnable: false,
+      );
+      await bluetoothPower.refresh();
+      final coordinator = DeviceConnectionCoordinator(
+        onConnect: () async => false,
+        onCancel: () async {},
+        onOpenBluetoothSettings: () async {
+          openSettingsCalls += 1;
+        },
+        bluetoothPower: bluetoothPower,
+      );
+      addTearDown(coordinator.dispose);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: ConversationScreen(
+            controller: controller,
+            connectionCoordinator: coordinator,
+            onOpenHistory: _noopCallback,
+            onOpenSettings: _noopCallback,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byKey(const Key('speak-action-bar-ink-well')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.byKey(_openBtSettingsDialog), findsOneWidget);
+      expect(find.byKey(_openBtSettingsConfirm), findsNothing);
+      expect(find.byKey(_openBtSettingsDismiss), findsOneWidget);
+
+      await tester.tap(find.byKey(_openBtSettingsDismiss));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(_openBtSettingsDialog), findsNothing);
+      expect(openSettingsCalls, 0);
+      debugDefaultTargetPlatformOverride = null;
+    },
+  );
+
+  testWidgets(
+    'Android Bluetooth-off prompt still offers to open Bluetooth settings',
+    (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final controller = ConversationController(
+        audioInput: const _PreviewAudioInput(),
+        playbackService: const _PreviewPlaybackService(),
+        repository: const _PreviewRepository(),
+        childAge: 6,
+      );
+      addTearDown(controller.dispose);
+      var openSettingsCalls = 0;
+      // canRequestEnable: false forces the "already off, cannot auto-enable"
+      // prompt that _promptOpenBluetoothSettings shows, the same path a
+      // stubborn Android OEM radio can hit.
+      final bluetoothPower = BluetoothPowerController(
+        readState: () async => Aiv0BluetoothAdapterState.poweredOff,
+        requestEnable: () async => false,
+        requestPermission: () async => false,
+        canRequestEnable: false,
+      );
+      await bluetoothPower.refresh();
+      final coordinator = DeviceConnectionCoordinator(
+        onConnect: () async => false,
+        onCancel: () async {},
+        onOpenBluetoothSettings: () async {
+          openSettingsCalls += 1;
+        },
+        bluetoothPower: bluetoothPower,
+      );
+      addTearDown(coordinator.dispose);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildAppTheme(),
+          home: ConversationScreen(
+            controller: controller,
+            connectionCoordinator: coordinator,
+            onOpenHistory: _noopCallback,
+            onOpenSettings: _noopCallback,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byKey(const Key('speak-action-bar-ink-well')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.byKey(_openBtSettingsDialog), findsOneWidget);
+      expect(find.byKey(_openBtSettingsDismiss), findsNothing);
+      expect(find.byKey(_openBtSettingsConfirm), findsOneWidget);
+
+      await tester.tap(find.byKey(_openBtSettingsConfirm));
+      await tester.pumpAndSettle();
+
+      expect(openSettingsCalls, 1);
+      debugDefaultTargetPlatformOverride = null;
+    },
+  );
+
   testWidgets('iOS offline notice matches available language data', (
     tester,
   ) async {
