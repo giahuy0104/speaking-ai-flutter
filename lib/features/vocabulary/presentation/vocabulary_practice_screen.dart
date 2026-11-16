@@ -495,7 +495,7 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
           lessonTitle: _isToday
               ? 'Danh sách hôm nay'
               : _isReview
-              ? 'Luyện lại'
+              ? 'Ôn lại'
               : 'Nói lại',
           sentenceId: entry.id,
           english: entry.word,
@@ -1501,7 +1501,7 @@ class VocabularyPracticeScreenState extends State<VocabularyPracticeScreen>
             _isToday
                 ? 'Danh sách hôm nay'
                 : _isReview
-                ? 'Luyện lại'
+                ? 'Ôn lại'
                 : 'Nói lại',
             textAlign: TextAlign.center,
             maxLines: 1,

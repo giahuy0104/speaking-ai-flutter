@@ -30,9 +30,9 @@ abstract final class VocabularyFlowV3 {
       'Đã có nội dung mới cho bạn. Bắt đầu học thôi!';
   static const String todayResume = 'Mình học tiếp Danh sách hôm nay nhé.';
   static const String menu =
-      'Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Luyện lại?';
+      'Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Ôn lại?';
   static const String todayEmptyMenu =
-      'Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Luyện lại?';
+      'Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Ôn lại?';
   static const String finishActiveGroupFirst =
       'Mình học xong lượt này trước nhé.';
   static const String pauseAfterNoResponse = 'Mình tạm dừng nhé.';
@@ -40,20 +40,20 @@ abstract final class VocabularyFlowV3 {
   static const String todayCompletion =
       'Bạn muốn học nội dung khác hay học lại?';
   static const String todayQueueEmpty =
-      'Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Luyện lại?';
+      'Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Ôn lại?';
 
   static const String parentSmallIntro = 'Mình cùng nghe nhé.';
   static const String parentEmpty =
-      'Chưa có nội dung ở phần này. Bạn muốn học Ngôi sao hay Luyện lại?';
+      'Chưa có nội dung ở phần này. Bạn muốn học Ngôi sao hay Ôn lại?';
   static const String startPlayback = 'Bắt đầu nào.';
   static const String parentGroupCompletion =
       'Bạn muốn học nội dung khác hay học tiếp?';
-  static const String parentOtherMenu = 'Bạn muốn học Ngôi sao hay Luyện lại?';
+  static const String parentOtherMenu = 'Bạn muốn học Ngôi sao hay Ôn lại?';
   static const String parentFinished =
       'Bạn đã nghe hết rồi. Bạn muốn học nội dung khác hay học lại?';
   static const String parentResume = 'Mình nghe tiếp nhé.';
 
-  static const String reviewIntro = 'Mình cùng luyện lại nhé. Bắt đầu thôi!';
+  static const String reviewIntro = 'Mình cùng ôn lại nhé. Bắt đầu thôi!';
   static const String reviewGroupCompletion =
       'Bạn muốn học nội dung khác hay học tiếp?';
   static const String reviewOtherMenu =
@@ -61,18 +61,18 @@ abstract final class VocabularyFlowV3 {
   static const String reviewCycleFinished =
       'Mình đã luyện xong rồi. Bạn muốn học phần Ba mẹ đã thêm hay Ngôi sao?';
   static const String reviewEmpty =
-      'Không có nội dung cần luyện lại. Bạn muốn học phần Ba mẹ đã thêm hay Ngôi sao?';
+      'Không có nội dung cần ôn lại. Bạn muốn học phần Ba mẹ đã thêm hay Ngôi sao?';
   static const String reviewResume = 'Mình luyện tiếp nhé.';
 
   static const String starIntro = 'Mình cùng nghe Ngôi sao nhé.';
   static String starSmallIntro(int total) => starIntro;
 
   static const String starEmpty =
-      'Bạn chưa có Ngôi sao nào. Bạn muốn học phần Ba mẹ đã thêm hay Luyện lại?';
+      'Bạn chưa có Ngôi sao nào. Bạn muốn học phần Ba mẹ đã thêm hay Ôn lại?';
   static const String starGroupCompletion =
       'Bạn muốn học nội dung khác hay học tiếp?';
   static const String starOtherMenu =
-      'Bạn muốn học phần Ba mẹ đã thêm hay Luyện lại?';
+      'Bạn muốn học phần Ba mẹ đã thêm hay Ôn lại?';
   static const String starFinished =
       'Bạn đã nghe hết Ngôi sao rồi. Bạn muốn học nội dung khác hay học lại?';
   static const String resumeStars = 'Mình nghe tiếp nhé.';

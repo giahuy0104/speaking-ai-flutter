@@ -27,6 +27,7 @@
       "modelId": "eleven_v3",
       "speed": 0.9,
       "sizeBytes": 82685,
+      "text": "HOMI đây. Bạn muốn Dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?",
       "textHash": "6e04f5bb404cf9b16e7bc5d4cfa36b5b32a8d9b48548e1b2196486283f5cb606",
       "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792423528/homi/audio/assistant-core/assistant.main.open_menu.vi-12f207c7609d0d534c22938eeecac56177e4a56cd4432b1f41cedbf000df0024.mp3"
     },
@@ -41,6 +42,7 @@
       "modelId": "eleven_v3",
       "speed": 0.9,
       "sizeBytes": 54796,
+      "text": "Bạn muốn Dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?",
       "textHash": "123af964fe9c60f089b721267acbf639be5cdf9e179faa923779697b9c92360c",
       "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792423531/homi/audio/assistant-core/assistant.main.choose_translation.vi-86ccb1d0cadd4766c86c0aebff81b6b66384a3e501d67fc145fd04f1bfa7f213.mp3"
     },
@@ -69,6 +71,7 @@
       "modelId": "eleven_v3",
       "speed": 0.9,
       "sizeBytes": 77252,
+      "text": "Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Luyện lại?",
       "textHash": "5381403c126b87963cd86016cc1b2abc4b7f4a4f5b5dc608cd330cc282ddc96e",
       "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792423535/homi/audio/assistant-core/assistant.main.choose_vocabulary.vi-85ca6789db78cddb8ef45c2891d3bfc171f1a590b74dd45c2e44db8ec6ab6dd2.mp3"
     },
@@ -83,6 +86,7 @@
       "modelId": "eleven_v3",
       "speed": 0.9,
       "sizeBytes": 73490,
+      "text": "Bạn muốn Dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?",
       "textHash": "123af964fe9c60f089b721267acbf639be5cdf9e179faa923779697b9c92360c",
       "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792423538/homi/audio/assistant-core/assistant.main.invalid_choice.vi-cea10eb6241b3de0ee3c9bdec15e9fb0f4b68c9950a3887ff08c5ca5e998f683.mp3"
     },
@@ -97,6 +101,7 @@
       "modelId": "eleven_v3",
       "speed": 0.9,
       "sizeBytes": 73490,
+      "text": "Bạn muốn Dịch tiếng Anh, học Chủ đề hay Bộ từ vựng?",
       "textHash": "123af964fe9c60f089b721267acbf639be5cdf9e179faa923779697b9c92360c",
       "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792423541/homi/audio/assistant-core/assistant.main.no_speech.vi-cea10eb6241b3de0ee3c9bdec15e9fb0f4b68c9950a3887ff08c5ca5e998f683.mp3"
     },

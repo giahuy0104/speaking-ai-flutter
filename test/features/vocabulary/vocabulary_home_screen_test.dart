@@ -1008,7 +1008,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('vocabulary-review-card')));
       await tester.pumpAndSettle();
-      expect(find.text('Luyện lại'), findsOneWidget);
+      expect(find.text('Ôn lại'), findsOneWidget);
       expect(
         (tester
                     .widget<Container>(
@@ -1119,7 +1119,7 @@ void main() {
       await tester.tap(find.byKey(const Key('vocabulary-review-card')));
       await tester.pumpAndSettle();
 
-      expect(find.text('Luyện lại'), findsOneWidget);
+      expect(find.text('Ôn lại'), findsOneWidget);
       expect(find.byKey(const Key('search-vocabulary-button')), findsNothing);
       expect(find.byKey(const Key('add-vocabulary-button')), findsNothing);
       expect(find.byKey(const Key('vocabulary-search-field')), findsOneWidget);
@@ -2522,7 +2522,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(review.wasHandled, isTrue);
-    expect(find.text('Luyện lại'), findsOneWidget);
+    expect(find.text('Ôn lại'), findsOneWidget);
 
     final stars = await registry.execute(ActiveLearningCommand.vocabularyStars);
     await tester.pumpAndSettle();

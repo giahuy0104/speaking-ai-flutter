@@ -113,6 +113,7 @@
       "voiceId": "5CVDNcIPiOYgRUQuxXd7",
       "modelId": "eleven_v3",
       "speed": 0.9,
+      "text": "Bạn muốn học phần Ba mẹ đã thêm, Ngôi sao hay Luyện lại?",
       "textHash": "5381403c126b87963cd86016cc1b2abc4b7f4a4f5b5dc608cd330cc282ddc96e",
       "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792639352/homi/audio/vocabulary-common/5381403c126b87963cd86016.vi-80009a6d04a967c2af4b8b0fa8dbc478d47b2214796fd0293e61373177fab7dd.mp3"
     },
@@ -211,6 +212,7 @@
       "voiceId": "5CVDNcIPiOYgRUQuxXd7",
       "modelId": "eleven_v3",
       "speed": 0.9,
+      "text": "Bạn muốn học Ngôi sao hay Luyện lại?",
       "textHash": "6e221f344e78886014e4218bdb537a82256a59dcc3b4e80efc3c7cfa2c653c69",
       "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792639352/homi/audio/vocabulary-common/6e221f344e78886014e4218b.vi-a3149fa1a2513892f2c7d63373f9400c68d0f42740bd28b0d4a465ab1e7facc8.mp3"
     },
@@ -239,6 +241,7 @@
       "voiceId": "5CVDNcIPiOYgRUQuxXd7",
       "modelId": "eleven_v3",
       "speed": 0.9,
+      "text": "Chưa có nội dung ở phần này. Bạn muốn học Ngôi sao hay Luyện lại?",
       "textHash": "606a5cabafafb94f2adb52c610748c47d4f0070ed338ac6e0d0c40a28c204e95",
       "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792639352/homi/audio/vocabulary-common/606a5cabafafb94f2adb52c6.vi-36747da94acde1cf36360d6512bb6b1943bf1896cc33d7a01a49d59b50d38da3.mp3"
     },
@@ -267,6 +270,7 @@
       "voiceId": "5CVDNcIPiOYgRUQuxXd7",
       "modelId": "eleven_v3",
       "speed": 0.9,
+      "text": "Bạn chưa có Ngôi sao nào. Bạn muốn học phần Ba mẹ đã thêm hay Luyện lại?",
       "textHash": "45cc8f8e0b9def2f4c9131e6a751119ba2fb861ac10d6b9cb2caa776905a32d5",
       "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792639352/homi/audio/vocabulary-common/45cc8f8e0b9def2f4c9131e6.vi-db2b7d5c495ec9aaa2e9a477fb361f8d77acb1104ef4a4b4383ebbc26070cc02.mp3"
     },
@@ -323,6 +327,7 @@
       "voiceId": "5CVDNcIPiOYgRUQuxXd7",
       "modelId": "eleven_v3",
       "speed": 0.9,
+      "text": "Bạn muốn học phần Ba mẹ đã thêm hay Luyện lại?",
       "textHash": "54c8afacbd643b5105bb72d5927a0e8326bc66ed77a0cf2834dd085febc28dbc",
       "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792639352/homi/audio/vocabulary-common/54c8afacbd643b5105bb72d5.vi-fa2839019402cb3e0fd14a21ec4d0f0cc587a5a4250fba5b5068e0926206d69c.mp3"
     },
@@ -351,6 +356,7 @@
       "voiceId": "5CVDNcIPiOYgRUQuxXd7",
       "modelId": "eleven_v3",
       "speed": 0.9,
+      "text": "Mình cùng luyện lại nhé. Bắt đầu thôi!",
       "textHash": "af2b6aab24b92596b7864ac58657ac72d03fc3003dd7712da5d1a683aba7fb62",
       "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792639354/homi/audio/vocabulary-common/af2b6aab24b92596b7864ac5.vi-e36e78757d7696de3d605f3d095fbbf4cce1a5d73909200a9a2bbdc580ffad6b.mp3"
     },
@@ -421,6 +427,7 @@
       "voiceId": "5CVDNcIPiOYgRUQuxXd7",
       "modelId": "eleven_v3",
       "speed": 0.9,
+      "text": "Không có nội dung cần luyện lại. Bạn muốn học phần Ba mẹ đã thêm hay Ngôi sao?",
       "textHash": "f1efbb4a92fb8a3b577a7e1769c3dceb5e74fc9b85ad0ddab59781411887c6b9",
       "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792639356/homi/audio/vocabulary-common/f1efbb4a92fb8a3b577a7e17.vi-20324abe87d18cf5424d1ab1f622865b8bbae6b00e09cda3a37cda10a4f169ba.mp3"
     },
