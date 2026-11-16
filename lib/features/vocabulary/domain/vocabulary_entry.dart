@@ -43,6 +43,7 @@ class VocabularyEntry {
     this.originBatchId,
     this.todayDayKey,
     this.unlockedAt,
+    this.queueOrder,
   });
 
   static const Object _unset = Object();
@@ -71,6 +72,11 @@ class VocabularyEntry {
   final String? originBatchId;
   final String? todayDayKey;
   final DateTime? unlockedAt;
+  final int? queueOrder;
+
+  /// Stable sort key for the parent waiting queue. Entries saved before this
+  /// field existed fall back to their add time so ordering never breaks.
+  int get effectiveQueueOrder => queueOrder ?? addedAt.millisecondsSinceEpoch;
 
   bool get isParentAdded => source == VocabularySource.parent;
   ParentVocabularyState? get effectiveParentState => !isParentAdded
@@ -118,6 +124,7 @@ class VocabularyEntry {
     Object? originBatchId = _unset,
     Object? todayDayKey = _unset,
     Object? unlockedAt = _unset,
+    Object? queueOrder = _unset,
   }) => VocabularyEntry(
     id: id,
     word: word ?? this.word,
@@ -166,6 +173,9 @@ class VocabularyEntry {
     unlockedAt: identical(unlockedAt, _unset)
         ? this.unlockedAt
         : unlockedAt as DateTime?,
+    queueOrder: identical(queueOrder, _unset)
+        ? this.queueOrder
+        : queueOrder as int?,
   );
 
   Map<String, Object?> toJson() => <String, Object?>{
@@ -193,6 +203,7 @@ class VocabularyEntry {
     if (originBatchId != null) 'originBatchId': originBatchId,
     if (todayDayKey != null) 'todayDayKey': todayDayKey,
     if (unlockedAt != null) 'unlockedAt': unlockedAt!.toIso8601String(),
+    if (queueOrder != null) 'queueOrder': queueOrder,
   };
 
   factory VocabularyEntry.fromJson(Map<String, Object?> json) {
@@ -266,6 +277,7 @@ class VocabularyEntry {
       originBatchId: json['originBatchId'] as String?,
       todayDayKey: json['todayDayKey'] as String?,
       unlockedAt: _readDate(json['unlockedAt']),
+      queueOrder: json['queueOrder'] as int?,
     );
   }
 
