@@ -273,6 +273,11 @@ class VocabularyPracticeBindings {
   final Key? key;
 }
 
+/// No live dependencies beyond what VocabularyQueueArguments already carries.
+class VocabularyQueueBindings {
+  const VocabularyQueueBindings();
+}
+
 /// Existing live dependencies for SettingsSheet, supplied lazily by its owner.
 class SettingsBindings {
   const SettingsBindings({

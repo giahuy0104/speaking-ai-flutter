@@ -9,6 +9,7 @@ abstract final class AppRouteNames {
   static const lessonReview = '/listening/lesson-review';
   static const songStage = '/listening/song-stage';
   static const vocabularyPractice = '/vocabulary/practice';
+  static const vocabularyQueue = '/vocabulary/queue';
   static const songKaraoke = '/listening/song-karaoke';
   static const learningContinuation = '/listening/continuation';
   static const settings = '/settings';

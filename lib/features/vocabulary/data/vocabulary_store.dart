@@ -46,8 +46,12 @@ class VocabularyStore {
   static const _todayViewKey = 'innotrik.vocabulary-today-view.v4';
   static const _topicPatchVersionKey =
       'innotrik.vocabulary-topic-patch-version';
+
+  /// Default number of words moved from the waiting queue into "today" per
+  /// day. Overridable per call via `prepareTodayView`'s `dailyLimit` so a
+  /// parent-configured setting can replace this without changing callers
+  /// that still rely on the historical default (e.g. older tests).
   static const int parentDailyLimit = 5;
-  static const int parentWaitingLimit = 5;
   static const Set<String> _legacyStarterIds = <String>{
     'family',
     'school',
@@ -222,9 +226,12 @@ class VocabularyStore {
 
   /// Creates TODAY_VIEW once, keeps it fixed for the local day, and returns an
   /// unfinished view from an earlier day before considering new waiting work.
-  Future<VocabularyTodayView?> prepareTodayView({DateTime? now}) async {
+  Future<VocabularyTodayView?> prepareTodayView({
+    DateTime? now,
+    int dailyLimit = parentDailyLimit,
+  }) async {
     final currentTime = now ?? DateTime.now();
-    final today = _dayKey(currentTime);
+    final today = dayKey(currentTime);
     var entries = await read();
     final existing = await readTodayView();
     if (existing != null && existing.dayKey == today) {
@@ -268,8 +275,8 @@ class VocabularyStore {
       );
     }
     carry.sort((a, b) => a.addedAt.compareTo(b.addedAt));
-    if (carry.length > parentDailyLimit) {
-      carry.removeRange(parentDailyLimit, carry.length);
+    if (carry.length > dailyLimit) {
+      carry.removeRange(dailyLimit, carry.length);
     }
     final carryIds = carry.map((entry) => entry.id).toSet();
     final oldViewIds = existing?.entryIds.toSet() ?? const <String>{};
@@ -303,9 +310,11 @@ class VocabularyStore {
                   !carryIds.contains(entry.id),
             )
             .toList()
-          ..sort((a, b) => a.addedAt.compareTo(b.addedAt));
+          ..sort(
+            (a, b) => a.effectiveQueueOrder.compareTo(b.effectiveQueueOrder),
+          );
     final selected = candidates
-        .take(parentDailyLimit - carry.length)
+        .take(dailyLimit - carry.length)
         .toList(growable: false);
     if (carry.isEmpty && selected.isEmpty) {
       await _clearTodayView();
@@ -417,7 +426,7 @@ class VocabularyStore {
 
   Future<int> parentAddCountForDay(DateTime day) async {
     final preferences = await SharedPreferences.getInstance();
-    final key = '$_parentAddCountKeyPrefix${_dayKey(day)}';
+    final key = '$_parentAddCountKeyPrefix${dayKey(day)}';
     final count = (await read())
         .where(
           (entry) => entry.isParentAdded && _isSameLocalDay(entry.addedAt, day),
@@ -432,11 +441,48 @@ class VocabularyStore {
     return count;
   }
 
-  /// The add limit is the number of editable, not-yet-scheduled items in the
-  /// waiting queue. Deleting one immediately frees one slot, regardless of how
-  /// many add operations the parent performed earlier that day.
+  /// Count of editable, not-yet-scheduled items in the waiting queue. The
+  /// queue itself has no size limit; `parentDailyLimit`/the configured
+  /// words-per-day setting only caps how many move into "today" at once.
   Future<int> parentWaitingCount() async =>
       (await read()).where((entry) => entry.isWaitingParent).length;
+
+  /// Swaps the queue position of two waiting entries so neither loses its
+  /// place in line - used by the "Từ học hôm sau" swap picker.
+  Future<void> swapQueueOrder({
+    required String idA,
+    required String idB,
+  }) async {
+    final entries = await read();
+    final indexA = entries.indexWhere((entry) => entry.id == idA);
+    final indexB = entries.indexWhere((entry) => entry.id == idB);
+    if (indexA < 0 || indexB < 0) return;
+    final orderA = entries[indexA].effectiveQueueOrder;
+    final orderB = entries[indexB].effectiveQueueOrder;
+    final updated = List<VocabularyEntry>.of(entries);
+    updated[indexA] = entries[indexA].copyWith(queueOrder: orderB);
+    updated[indexB] = entries[indexB].copyWith(queueOrder: orderA);
+    await write(updated);
+  }
+
+  /// Re-numbers the waiting queue to match `orderedIds` (first id gets queue
+  /// order 0, next gets 1, ...) - used by the drag-to-reorder list in the
+  /// manage-queue screen. Ids not present in `orderedIds` are left untouched.
+  Future<void> reorderWaitingEntries(List<String> orderedIds) async {
+    final entries = await read();
+    final positionById = <String, int>{
+      for (var index = 0; index < orderedIds.length; index++)
+        orderedIds[index]: index,
+    };
+    final updated = entries
+        .map(
+          (entry) => positionById.containsKey(entry.id)
+              ? entry.copyWith(queueOrder: positionById[entry.id])
+              : entry,
+        )
+        .toList(growable: false);
+    await write(updated);
+  }
 
   Future<List<VocabularyEntry>> addParentEntries(
     List<VocabularyTranslation> selections, {
@@ -453,15 +499,6 @@ class VocabularyStore {
     }
     final createdAt = now ?? DateTime.now();
     final entries = await read();
-    final waitingCount = entries.where((entry) => entry.isWaitingParent).length;
-    if (waitingCount + selections.length > parentWaitingLimit) {
-      throw VocabularyDailyLimitException(
-        remaining: (parentWaitingLimit - waitingCount).clamp(
-          0,
-          parentWaitingLimit,
-        ),
-      );
-    }
 
     final batch = <VocabularyTranslation>[];
     for (final selection in selections) {
@@ -489,6 +526,10 @@ class VocabularyStore {
       batch.add(selection);
     }
 
+    final maxQueueOrder = entries
+        .where((entry) => entry.isWaitingParent)
+        .map((entry) => entry.effectiveQueueOrder)
+        .fold<int>(0, (max, value) => value > max ? value : max);
     final additions = <VocabularyEntry>[
       for (var index = 0; index < selections.length; index++)
         VocabularyEntry(
@@ -504,6 +545,7 @@ class VocabularyStore {
           parentState: ParentVocabularyState.waiting,
           todayStatus: null,
           originBatchId: null,
+          queueOrder: maxQueueOrder + 1 + index,
         ),
     ];
     final updated = <VocabularyEntry>[...additions.reversed, ...entries];
@@ -588,7 +630,10 @@ class VocabularyStore {
     }
   }
 
-  Future<void> deleteParentEntry(String entryId) async {
+  Future<void> deleteParentEntry(
+    String entryId, {
+    int dailyLimit = parentDailyLimit,
+  }) async {
     final entries = await read();
     final entry = entries.where((item) => item.id == entryId).firstOrNull;
     if (entry == null) {
@@ -613,8 +658,10 @@ class VocabularyStore {
                   !retainedIds.contains(item.id),
             )
             .toList()
-          ..sort((a, b) => a.addedAt.compareTo(b.addedAt));
-    if (replacement.isNotEmpty && retainedIds.length < parentDailyLimit) {
+          ..sort(
+            (a, b) => a.effectiveQueueOrder.compareTo(b.effectiveQueueOrder),
+          );
+    if (replacement.isNotEmpty && retainedIds.length < dailyLimit) {
       final next = replacement.first;
       final backfillBatchId =
           'parent-batch:${view.dayKey}:${DateTime.now().microsecondsSinceEpoch}';
@@ -1025,7 +1072,7 @@ class VocabularyStore {
   static bool _isSameLocalDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
 
-  static String _dayKey(DateTime value) =>
+  static String dayKey(DateTime value) =>
       '${value.year.toString().padLeft(4, '0')}-'
       '${value.month.toString().padLeft(2, '0')}-'
       '${value.day.toString().padLeft(2, '0')}';
@@ -1061,15 +1108,6 @@ class VocabularyTopicDuplicateException extends VocabularyValidationException {
     : super(
         'Nội dung này đã có trong phần Chủ đề. Bạn thêm nội dung khác nhé.',
       );
-}
-
-class VocabularyDailyLimitException extends VocabularyValidationException {
-  const VocabularyDailyLimitException({required this.remaining})
-    : super(
-        'Danh sách chờ đã đủ 5 nội dung. Ba mẹ có thể xóa bớt rồi thêm mới.',
-      );
-
-  final int remaining;
 }
 
 class VocabularyLockedException extends VocabularyValidationException {

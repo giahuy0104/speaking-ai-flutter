@@ -286,9 +286,14 @@ Future<void> _pumpJourney(
   await tester.pumpAndSettle();
   if (cardKey == 'vocabulary-family-card') {
     expect(find.byKey(const Key('vocabulary-today-view')), findsNothing);
-    expect(find.byKey(const Key('vocabulary-waiting-queue')), findsOneWidget);
     expect(
-      tester.getTopLeft(find.byKey(const Key('vocabulary-waiting-queue'))).dy,
+      find.byKey(const Key('vocabulary-upcoming-words')),
+      findsOneWidget,
+    );
+    expect(
+      tester
+          .getTopLeft(find.byKey(const Key('vocabulary-upcoming-words')))
+          .dy,
       lessThan(
         tester
             .getTopLeft(

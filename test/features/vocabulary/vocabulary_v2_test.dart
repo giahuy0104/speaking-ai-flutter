@@ -9,7 +9,7 @@ void main() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
   });
 
-  test('deleting waiting entries restores queue capacity', () async {
+  test('the waiting queue has no capacity limit', () async {
     const store = VocabularyStore();
     final now = DateTime(2026, 9, 10, 8);
 
@@ -18,7 +18,7 @@ void main() {
       VocabularyTranslation(englishText: 'Banana', vietnameseText: 'Quả chuối'),
       VocabularyTranslation(englishText: 'Orange', vietnameseText: 'Quả cam'),
     ], now: now);
-    final entries = await store.addParentEntries(const <VocabularyTranslation>[
+    await store.addParentEntries(const <VocabularyTranslation>[
       VocabularyTranslation(
         englishText: 'School',
         vietnameseText: 'Trường học',
@@ -29,41 +29,23 @@ void main() {
       ),
     ], now: now.add(const Duration(minutes: 1)));
 
-    expect(
-      () => store.addParentEntries(const <VocabularyTranslation>[
-        VocabularyTranslation(englishText: 'Friend', vietnameseText: 'Bạn bè'),
-      ], now: now.add(const Duration(minutes: 2))),
-      throwsA(isA<VocabularyDailyLimitException>()),
-    );
-
-    await store.deleteParentEntry(entries[0].id);
-    await store.deleteParentEntry(entries[1].id);
-
-    expect(await store.parentAddCountForDay(now), 3);
-
+    // A 6th and 7th word still succeed - the queue no longer caps the add.
     await store.addParentEntries(const <VocabularyTranslation>[
       VocabularyTranslation(englishText: 'Friend', vietnameseText: 'Bạn bè'),
-      VocabularyTranslation(englishText: 'Library', vietnameseText: 'Thư viện'),
+    ], now: now.add(const Duration(minutes: 2)));
+    await store.addParentEntries(const <VocabularyTranslation>[
+      VocabularyTranslation(englishText: 'Book', vietnameseText: 'Quyển sách'),
     ], now: now.add(const Duration(minutes: 3)));
 
-    expect(await store.parentAddCountForDay(now), 5);
-    expect(
-      () => store.addParentEntries(const <VocabularyTranslation>[
-        VocabularyTranslation(
-          englishText: 'Book',
-          vietnameseText: 'Quyển sách',
-        ),
-      ], now: now.add(const Duration(minutes: 4))),
-      throwsA(isA<VocabularyDailyLimitException>()),
-    );
+    expect(await store.parentWaitingCount(), 7);
   });
 
-  test('waiting queue capacity is enforced across calendar days', () async {
+  test('the waiting queue has no capacity limit across calendar days', () async {
     const store = VocabularyStore();
     final firstDay = DateTime(2026, 9, 10, 8);
     final secondDay = DateTime(2026, 9, 11, 8);
 
-    final entries = await store.addParentEntries(const <VocabularyTranslation>[
+    await store.addParentEntries(const <VocabularyTranslation>[
       VocabularyTranslation(englishText: 'Apple', vietnameseText: 'Quả táo'),
       VocabularyTranslation(englishText: 'Banana', vietnameseText: 'Quả chuối'),
       VocabularyTranslation(englishText: 'Orange', vietnameseText: 'Quả cam'),
@@ -80,18 +62,10 @@ void main() {
     ], now: firstDay.add(const Duration(minutes: 1)));
 
     expect(await store.parentWaitingCount(), 5);
-    expect(
-      () => store.addParentEntries(const <VocabularyTranslation>[
-        VocabularyTranslation(englishText: 'Friend', vietnameseText: 'Bạn bè'),
-      ], now: secondDay),
-      throwsA(isA<VocabularyDailyLimitException>()),
-    );
-
-    await store.deleteParentEntry(entries.first.id);
     await store.addParentEntries(const <VocabularyTranslation>[
       VocabularyTranslation(englishText: 'Friend', vietnameseText: 'Bạn bè'),
     ], now: secondDay);
-    expect(await store.parentWaitingCount(), 5);
+    expect(await store.parentWaitingCount(), 6);
   });
 
   test('a parent entry locks as soon as learning starts', () async {

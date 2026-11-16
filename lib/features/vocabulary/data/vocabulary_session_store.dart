@@ -241,16 +241,19 @@ class VocabularySessionStore {
     VocabularyStore vocabularyStore, {
     DateTime? now,
     bool forceNextGroup = false,
+    int dailyLimit = VocabularyStore.parentDailyLimit,
   }) async => (await prepareTodayEntry(
     vocabularyStore,
     now: now,
     forceNextGroup: forceNextGroup,
+    dailyLimit: dailyLimit,
   ))?.session;
 
   Future<({VocabularyPracticeSession session, bool resumed})?> prepareTodayEntry(
     VocabularyStore vocabularyStore, {
     DateTime? now,
     bool forceNextGroup = false,
+    int dailyLimit = VocabularyStore.parentDailyLimit,
   }) async {
     final currentTime = now ?? DateTime.now();
     final active = await readActive();
@@ -280,7 +283,10 @@ class VocabularySessionStore {
     if (!forceNextGroup && await isTodaySuppressed(currentTime)) {
       return null;
     }
-    final view = await vocabularyStore.prepareTodayView(now: currentTime);
+    final view = await vocabularyStore.prepareTodayView(
+      now: currentTime,
+      dailyLimit: dailyLimit,
+    );
     if (view == null) {
       if (active?.mode != VocabularyPracticeMode.review) await clearActive();
       return null;

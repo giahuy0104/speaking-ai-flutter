@@ -9,6 +9,7 @@ import 'package:ai_speaking_flutter_app/presentation/navigation/view_arguments/s
 import 'package:ai_speaking_flutter_app/presentation/navigation/view_arguments/topic_lessons_arguments.dart';
 import 'package:ai_speaking_flutter_app/presentation/navigation/view_arguments/topic_listening_arguments.dart';
 import 'package:ai_speaking_flutter_app/presentation/navigation/view_arguments/vocabulary_practice_arguments.dart';
+import 'package:ai_speaking_flutter_app/presentation/navigation/view_arguments/vocabulary_queue_arguments.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_challenge_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_intro_screen.dart';
 import 'package:ai_speaking_flutter_app/features/listening/presentation/lesson_practice_screen.dart';
@@ -20,6 +21,7 @@ import 'package:ai_speaking_flutter_app/features/listening/presentation/v4_song_
 import 'package:ai_speaking_flutter_app/features/settings/presentation/history_sheet.dart';
 import 'package:ai_speaking_flutter_app/features/settings/presentation/settings_sheet.dart';
 import 'package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabulary_practice_screen.dart';
+import 'package:ai_speaking_flutter_app/features/vocabulary/presentation/vocabulary_queue_screen.dart';
 
 import '../../core/navigation/app_router.dart';
 import '../../core/navigation/app_route_names.dart';
@@ -213,6 +215,19 @@ AppRouter createAppRouter() => AppRouter({
           onRequestVoiceChoice: bindings.onRequestVoiceChoice,
           onPrepareContinue: bindings.onPrepareContinue,
           key: bindings.key,
+        ),
+      ),
+  AppRouteNames.vocabularyQueue:
+      AppRouteEntry<VocabularyQueueArguments, VocabularyQueueBindings>(
+        presentation: AppRoutePresentation.page,
+        builder: (context, arguments, bindings) => VocabularyQueueScreen(
+          store: arguments.store,
+          settingsStore: arguments.settingsStore,
+          childAge: arguments.childAge,
+          translator: arguments.translator,
+          suggestionProvider: arguments.suggestionProvider,
+          dictionaryProvider: arguments.dictionaryProvider,
+          curriculumDuplicateChecker: arguments.curriculumDuplicateChecker,
         ),
       ),
   AppRouteNames.settings: AppRouteEntry<Null, SettingsBindings>(

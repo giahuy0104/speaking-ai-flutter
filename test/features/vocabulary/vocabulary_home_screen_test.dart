@@ -973,16 +973,6 @@ void main() {
         (familyHeader.decoration! as BoxDecoration).color,
         AppColors.primaryNavy,
       );
-      final waitingQueue = tester.widget<Container>(
-        find.byKey(const Key('vocabulary-waiting-queue')),
-      );
-      final waitingDecoration = waitingQueue.decoration! as BoxDecoration;
-      expect(waitingDecoration.color, AppColors.mintSoft);
-      expect(waitingDecoration.border, isNotNull);
-      expect(
-        find.byKey(const Key('vocabulary-waiting-count-chip')),
-        findsOneWidget,
-      );
       final familyTitle = tester.widget<Text>(
         find.byKey(const Key('vocabulary-journey-title')),
       );
@@ -1152,8 +1142,11 @@ void main() {
       expect(find.byKey(const Key('vocabulary-search-field')), findsOneWidget);
       expect(find.byKey(const Key('toggle-delete-vocabulary')), findsNothing);
       expect(find.byKey(const Key('add-vocabulary-action')), findsNothing);
-      expect(find.text('Danh sách chờ'), findsOneWidget);
-      expect(find.text('(0)'), findsOneWidget);
+      expect(find.textContaining('Từ học hôm nay'), findsOneWidget);
+      expect(
+        find.byKey(const Key('vocabulary-manage-queue-button')),
+        findsOneWidget,
+      );
       expect(
         find.byKey(const ValueKey<String>('vocabulary-family-homi')),
         findsOneWidget,
@@ -1748,7 +1741,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final editButton = find.byKey(
-      const ValueKey<String>('edit-waiting-waiting-edit'),
+      const ValueKey<String>('upcoming-edit-waiting-edit'),
     );
     await tester.ensureVisible(editButton);
     await tester.tap(editButton);
@@ -2163,7 +2156,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.drag(
       find.byType(SingleChildScrollView).last,
-      const Offset(0, -650),
+      const Offset(0, -900),
     );
     await tester.pumpAndSettle();
     final first = find.byKey(
@@ -2231,7 +2224,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('vocabulary-family-card')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('vocabulary-family-action')));
+    final resumeAction = find.byKey(const Key('vocabulary-family-action'));
+    await tester.ensureVisible(resumeAction);
+    await tester.tap(resumeAction);
     await tester.pump();
     expect(
       audio.spoken.where((text) => text == 'en-US:Resume word'),
@@ -2302,7 +2297,9 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('vocabulary-family-card')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('vocabulary-family-action')));
+      final resumeAction = find.byKey(const Key('vocabulary-family-action'));
+      await tester.ensureVisible(resumeAction);
+      await tester.tap(resumeAction);
       await tester.pump();
       expect(audio.spoken, <String>['en-US:Apple']);
 
@@ -2456,19 +2453,21 @@ void main() {
       expect(find.text('Con mèo'), findsOneWidget);
 
       expect(find.byKey(const Key('vocabulary-today-view')), findsNothing);
-      expect(find.byKey(const Key('vocabulary-waiting-queue')), findsOneWidget);
-      expect(find.text('Danh sách chờ'), findsOneWidget);
-      expect(find.text('(1)'), findsOneWidget);
+      expect(
+        find.byKey(const Key('vocabulary-upcoming-words')),
+        findsOneWidget,
+      );
+      expect(find.textContaining('Từ học hôm nay'), findsOneWidget);
       expect(
         find.byKey(
-          ValueKey<String>(
-            'vocabulary-waiting-order-${store.entries.single.id}',
-          ),
+          ValueKey<String>('upcoming-${store.entries.single.id}'),
         ),
         findsOneWidget,
       );
       expect(
-        tester.getTopLeft(find.byKey(const Key('vocabulary-waiting-queue'))).dy,
+        tester
+            .getTopLeft(find.byKey(const Key('vocabulary-upcoming-words')))
+            .dy,
         lessThan(
           tester
               .getTopLeft(
@@ -2482,6 +2481,166 @@ void main() {
       expect(find.byIcon(Icons.volume_up_rounded), findsNothing);
       expect(voice.spokenTexts, isEmpty);
       expect(voice.locales, isEmpty);
+    },
+  );
+
+  testWidgets(
+    'upcoming card says "hôm sau" once a today batch already exists',
+    (tester) async {
+      final today = VocabularyStore.dayKey(DateTime.now());
+      final store = _MemoryVocabularyStore(<VocabularyEntry>[
+        VocabularyEntry(
+          id: 'today-finished',
+          word: 'Apple',
+          meaning: 'Quả táo',
+          addedAt: DateTime.now().subtract(const Duration(days: 1)),
+          source: VocabularySource.parent,
+          parentState: ParentVocabularyState.unlocked,
+          status: VocabularyLearningStatus.learnedWell,
+          todayDayKey: today,
+        ),
+        VocabularyEntry(
+          id: 'next-batch',
+          word: 'Dog',
+          meaning: 'Con chó',
+          addedAt: DateTime.now(),
+          source: VocabularySource.parent,
+          parentState: ParentVocabularyState.waiting,
+        ),
+      ]);
+      await tester.pumpWidget(
+        MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
+          theme: buildAppTheme(),
+          home: DisplayLanguageScope(
+            language: DisplayLanguage.vietnamese,
+            child: VocabularyHomeScreen(
+              isReady: true,
+              store: store,
+              voicePromptService: const _FakeVoicePromptService(),
+              onReturnToConversation: () {},
+              onHistory: () {},
+              onSettings: () {},
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-family-card')));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Từ học hôm sau'), findsOneWidget);
+      expect(find.textContaining('Từ học hôm nay'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'shows a read-only today-words section while today is unfinished',
+    (tester) async {
+      final today = VocabularyStore.dayKey(DateTime.now());
+      final store = _MemoryVocabularyStore(<VocabularyEntry>[
+        VocabularyEntry(
+          id: 'today-heard',
+          word: 'Apple',
+          meaning: 'Quả táo',
+          addedAt: DateTime.now(),
+          source: VocabularySource.parent,
+          parentState: ParentVocabularyState.today,
+          todayStatus: TodayVocabularyStatus.heard,
+          todayDayKey: today,
+        ),
+        VocabularyEntry(
+          id: 'today-pending',
+          word: 'Dog',
+          meaning: 'Con chó',
+          addedAt: DateTime.now(),
+          source: VocabularySource.parent,
+          parentState: ParentVocabularyState.today,
+          todayStatus: TodayVocabularyStatus.notHeard,
+          todayDayKey: today,
+        ),
+      ]);
+      await tester.pumpWidget(
+        MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
+          theme: buildAppTheme(),
+          home: DisplayLanguageScope(
+            language: DisplayLanguage.vietnamese,
+            child: VocabularyHomeScreen(
+              isReady: true,
+              store: store,
+              voicePromptService: const _FakeVoicePromptService(),
+              onReturnToConversation: () {},
+              onHistory: () {},
+              onSettings: () {},
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-family-card')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('vocabulary-today-words')),
+        findsOneWidget,
+      );
+      expect(find.textContaining('Từ vựng hôm nay'), findsOneWidget);
+      expect(find.text('Apple'), findsOneWidget);
+      expect(find.text('Dog'), findsOneWidget);
+      // Read-only: no edit/delete controls for today's in-progress words.
+      expect(
+        find.byKey(const ValueKey<String>('queue-edit-today-heard')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const ValueKey<String>('queue-delete-today-heard')),
+        findsNothing,
+      );
+    },
+  );
+
+  testWidgets(
+    'hides the today-words section once today is fully unlocked',
+    (tester) async {
+      final today = VocabularyStore.dayKey(DateTime.now());
+      final store = _MemoryVocabularyStore(<VocabularyEntry>[
+        VocabularyEntry(
+          id: 'today-done',
+          word: 'Apple',
+          meaning: 'Quả táo',
+          addedAt: DateTime.now(),
+          source: VocabularySource.parent,
+          parentState: ParentVocabularyState.unlocked,
+          status: VocabularyLearningStatus.learnedWell,
+          todayDayKey: today,
+        ),
+      ]);
+      await tester.pumpWidget(
+        MaterialApp(
+          onGenerateRoute: createAppRouter().onGenerateRoute,
+          theme: buildAppTheme(),
+          home: DisplayLanguageScope(
+            language: DisplayLanguage.vietnamese,
+            child: VocabularyHomeScreen(
+              isReady: true,
+              store: store,
+              voicePromptService: const _FakeVoicePromptService(),
+              onReturnToConversation: () {},
+              onHistory: () {},
+              onSettings: () {},
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('vocabulary-family-card')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('vocabulary-today-words')),
+        findsNothing,
+      );
     },
   );
 

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app/app_theme.dart';
 import '../../../app/homi_connection_presentation.dart';
@@ -17,14 +16,15 @@ import '../../../core/device/homi_connection_state.dart';
 import '../../../core/navigation/app_navigator.dart';
 import '../../../presentation/navigation/view_bindings.dart';
 import '../../../presentation/navigation/view_arguments/vocabulary_practice_arguments.dart';
+import '../../../presentation/navigation/view_arguments/vocabulary_queue_arguments.dart';
 import '../../../l10n/display_language.dart';
 import '../../listening/application/lesson_media_service.dart';
 import '../../listening/domain/lesson_guide_flow.dart';
 import '../../voice_navigation/application/voice_navigation_intent_resolver.dart';
 import '../../voice_navigation/domain/master_navigation_contract.dart';
 import '../application/vocabulary_audio_service.dart';
-import '../application/local_vocabulary_suggestion_provider.dart';
 import '../application/vocabulary_fixed_prompt_audio_service.dart';
+import '../application/vocabulary_queue_settings.dart';
 import '../data/vocabulary_session_store.dart';
 import '../data/vocabulary_store.dart';
 import '../domain/vocabulary_dictionary.dart';
@@ -32,6 +32,7 @@ import '../domain/vocabulary_audio_keys.dart';
 import '../domain/vocabulary_entry.dart';
 import '../domain/vocabulary_flow_v3.dart';
 import '../domain/vocabulary_journey_index.dart';
+import 'vocabulary_add_flow.dart';
 import 'vocabulary_practice_screen.dart';
 import 'vocabulary_auto_follow.dart';
 
@@ -158,6 +159,8 @@ class VocabularyHomeScreen extends StatefulWidget {
     this.isActive = true,
     this.store = const VocabularyStore(),
     this.sessionStore = const VocabularySessionStore(),
+    this.queueSettingsStore =
+        const SharedPreferencesVocabularyQueueSettingsStore(),
     this.voicePromptService,
     this.mediaService,
     this.audioDependencies,
@@ -186,6 +189,7 @@ class VocabularyHomeScreen extends StatefulWidget {
   final bool isActive;
   final VocabularyStore store;
   final VocabularySessionStore sessionStore;
+  final VocabularyQueueSettingsStore queueSettingsStore;
   final VoicePromptService? voicePromptService;
   final LessonMediaService? mediaService;
   final LearningAudioDependencies? audioDependencies;
@@ -259,6 +263,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
   ActiveLearningModuleRegistry? _activeLearningRegistry;
   Object? _activeLearningRegistration;
   late bool _wasEffectivelyActive;
+  int _wordsPerDay = defaultVocabularyWordsPerDay;
 
   bool get _isEffectivelyActive =>
       widget.activationController?.isActive ?? widget.isActive;
@@ -326,6 +331,13 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     widget.activationController?.addListener(_handleActivationChanged);
     _attachNavigationController();
     unawaited(_load());
+    unawaited(_loadWordsPerDay());
+  }
+
+  Future<void> _loadWordsPerDay() async {
+    final value = await widget.queueSettingsStore.readWordsPerDay();
+    if (!mounted) return;
+    setState(() => _wordsPerDay = value);
   }
 
   @override
@@ -775,6 +787,9 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                 showAddAction:
                     _selectedJourney == null ||
                     _selectedJourney == _VocabularyJourney.family,
+                onHelpPressed: _selectedJourney == null
+                    ? _showJourneyHelpDialog
+                    : null,
               ),
               HomiConnectionNotice(
                 status: HomiConnectionPresentation.from(
@@ -1053,7 +1068,11 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                   const SizedBox(height: 18),
                 ],
                 if (isFamilyJourney) ...<Widget>[
-                  _buildParentWaitingQueue(context),
+                  if (_todayWords.isNotEmpty) ...<Widget>[
+                    _buildTodayWordsCard(context),
+                    const SizedBox(height: 16),
+                  ],
+                  _buildUpcomingWordsCard(context),
                   const SizedBox(height: 16),
                   _buildSearchField(context),
                   const SizedBox(height: 22),
@@ -1210,14 +1229,177 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     );
   }
 
-  Widget _buildParentWaitingQueue(BuildContext context) {
+  List<VocabularyEntry> get _upcomingWords {
     final waiting = _entries.where((entry) => entry.isWaitingParent).toList()
-      ..sort((a, b) => a.addedAt.compareTo(b.addedAt));
+      ..sort((a, b) => a.effectiveQueueOrder.compareTo(b.effectiveQueueOrder));
+    return waiting.take(_wordsPerDay).toList(growable: false);
+  }
+
+  /// Words already assigned to today's batch. Non-empty only while today's
+  /// lesson is still in progress - once every word is heard, each entry
+  /// moves to `unlocked` and this list empties on its own.
+  List<VocabularyEntry> get _todayWords {
+    final today = _entries.where((entry) => entry.isTodayParent).toList()
+      ..sort((a, b) => a.effectiveQueueOrder.compareTo(b.effectiveQueueOrder));
+    return today;
+  }
+
+  /// True once today's batch has been assigned at least once today (whether
+  /// still in progress or already finished/unlocked). False only before the
+  /// child's first batch of the day exists yet - in that window the waiting
+  /// queue's head is effectively "today's" words, not "tomorrow's".
+  bool get _hasAssignedTodayBatch {
+    final today = VocabularyStore.dayKey(DateTime.now());
+    return _entries.any(
+      (entry) => entry.isParentAdded && entry.todayDayKey == today,
+    );
+  }
+
+  Widget _buildUpcomingWordsCard(BuildContext context) {
+    final upcoming = _upcomingWords;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-
+    final titlePrefix = _hasAssignedTodayBatch
+        ? context.tr('Từ học hôm sau', '明天要学')
+        : context.tr('Từ học hôm nay', '今天要学');
     return Container(
-      key: const Key('vocabulary-waiting-queue'),
+      key: const Key('vocabulary-upcoming-words'),
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppColors.darkSurfaceRaised
+            : AppColors.primaryNavy.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: isDark
+              ? AppColors.darkPrimary.withValues(alpha: 0.48)
+              : AppColors.primaryNavy.withValues(alpha: 0.24),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Icon(
+                Icons.calendar_month_rounded,
+                size: 20,
+                color: isDark ? AppColors.darkPrimary : AppColors.primaryNavy,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  context.tr(
+                    '$titlePrefix · ${upcoming.length} từ',
+                    '$titlePrefix · ${upcoming.length} 个',
+                  ),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              IconButton(
+                key: const Key('vocabulary-manage-queue-button'),
+                tooltip: context.tr('Quản lý hàng chờ', '管理等待列表'),
+                onPressed: _openQueueManagementScreen,
+                icon: const Icon(Icons.settings_rounded, size: 20),
+              ),
+            ],
+          ),
+          if (upcoming.isEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 8, 4, 4),
+              child: Text(
+                context.tr('Chưa có từ nào trong hàng chờ.', '等待列表为空。'),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: isDark ? AppColors.darkMuted : AppColors.muted,
+                ),
+              ),
+            )
+          else
+            ReorderableListView.builder(
+              key: const Key('vocabulary-upcoming-reorder-list'),
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              buildDefaultDragHandles: false,
+              itemCount: upcoming.length,
+              onReorder: (oldIndex, newIndex) =>
+                  unawaited(_reorderUpcoming(oldIndex, newIndex)),
+              itemBuilder: (itemContext, index) {
+                final entry = upcoming[index];
+                return Padding(
+                  key: ValueKey<String>('upcoming-${entry.id}'),
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: <Widget>[
+                      ReorderableDragStartListener(
+                        index: index,
+                        child: const Padding(
+                          padding: EdgeInsets.only(right: 6),
+                          child: Icon(Icons.drag_indicator_rounded, size: 20),
+                        ),
+                      ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              entry.word,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                            ),
+                            Text(
+                              entry.meaning,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: isDark
+                                        ? AppColors.darkMuted
+                                        : AppColors.muted,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        key: ValueKey<String>('upcoming-edit-${entry.id}'),
+                        tooltip: context.tr('Sửa', '编辑'),
+                        onPressed: () => unawaited(_editParentEntry(entry)),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                        ),
+                        icon: const Icon(Icons.edit_rounded, size: 18),
+                      ),
+                      IconButton(
+                        key: ValueKey<String>('upcoming-swap-${entry.id}'),
+                        tooltip: context.tr('Hoán đổi', '交换'),
+                        onPressed: () => unawaited(_openSwapPicker(entry)),
+                        icon: const Icon(Icons.swap_horiz_rounded, size: 18),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTodayWordsCard(BuildContext context) {
+    final today = _todayWords;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    return Container(
+      key: const Key('vocabulary-today-words'),
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -1229,216 +1411,201 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
               : AppColors.success.withValues(alpha: 0.34),
           width: 1.5,
         ),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.18)
-                : AppColors.deepNavy.withValues(alpha: 0.07),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Row(
             children: <Widget>[
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkPrimary : AppColors.primaryNavy,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.schedule_rounded,
-                  color: isDark ? AppColors.darkCanvas : Colors.white,
-                  size: 22,
-                ),
+              Icon(
+                Icons.menu_book_rounded,
+                size: 20,
+                color: isDark ? AppColors.darkMint : AppColors.success,
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  context.tr('Danh sách chờ', '等待列表'),
+                  context.tr(
+                    'Từ vựng hôm nay · ${today.length} từ',
+                    '今天要学 · ${today.length} 个',
+                  ),
                   style: theme.textTheme.titleSmall?.copyWith(
-                    color: isDark ? AppColors.darkText : AppColors.deepNavy,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-              Container(
-                key: const Key('vocabulary-waiting-count-chip'),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.darkPink.withValues(alpha: 0.18)
-                      : AppColors.accentPinkSoft,
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(
-                    color: isDark
-                        ? AppColors.darkPink.withValues(alpha: 0.32)
-                        : AppColors.accentPink.withValues(alpha: 0.16),
-                  ),
-                ),
-                child: Text(
-                  '(${waiting.length})',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: isDark ? AppColors.darkPink : AppColors.accentPink,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
             ],
           ),
-          if (waiting.isEmpty)
+          const SizedBox(height: 10),
+          for (final entry in today)
             Padding(
-              padding: const EdgeInsets.fromLTRB(48, 8, 8, 4),
-              child: Text(
-                context.tr('Chưa có nội dung đang chờ.', '暂无等待内容。'),
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: isDark ? AppColors.darkMuted : AppColors.muted,
-                ),
-              ),
-            )
-          else ...<Widget>[
-            const SizedBox(height: 12),
-            for (var index = 0; index < waiting.length; index++)
-              Container(
-                key: ValueKey<String>(
-                  'vocabulary-waiting-item-${waiting[index].id}',
-                ),
-                margin: EdgeInsets.only(
-                  bottom: index == waiting.length - 1 ? 0 : 9,
-                ),
-                padding: const EdgeInsets.fromLTRB(10, 10, 6, 10),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.darkSurfaceStrong.withValues(alpha: 0.82)
-                      : Colors.white.withValues(alpha: 0.84),
-                  borderRadius: BorderRadius.circular(17),
-                  border: Border.all(
-                    color: isDark
-                        ? AppColors.darkOutline
-                        : AppColors.mintBorder,
+              key: ValueKey<String>('today-word-${entry.id}'),
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Icon(
+                    entry.todayStatus == TodayVocabularyStatus.heard
+                        ? Icons.check_circle_rounded
+                        : Icons.radio_button_unchecked_rounded,
+                    size: 18,
+                    color: entry.todayStatus == TodayVocabularyStatus.heard
+                        ? (isDark ? AppColors.darkMint : AppColors.success)
+                        : (isDark ? AppColors.darkMuted : AppColors.muted),
                   ),
-                  boxShadow: <BoxShadow>[
-                    BoxShadow(
-                      color: isDark
-                          ? Colors.black.withValues(alpha: 0.12)
-                          : AppColors.primaryNavy.withValues(alpha: 0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    Container(
-                      key: ValueKey<String>(
-                        'vocabulary-waiting-order-${waiting[index].id}',
-                      ),
-                      width: 34,
-                      height: 34,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? AppColors.darkPrimary
-                            : AppColors.primaryNavy,
-                        shape: BoxShape.circle,
-                        boxShadow: <BoxShadow>[
-                          BoxShadow(
-                            color:
-                                (isDark
-                                        ? AppColors.darkPrimary
-                                        : AppColors.primaryNavy)
-                                    .withValues(alpha: 0.2),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          entry.word,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
                           ),
-                        ],
-                      ),
-                      child: Text(
-                        '${index + 1}',
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          color: isDark ? AppColors.darkCanvas : Colors.white,
-                          fontWeight: FontWeight.w900,
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(
-                            waiting[index].word,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              color: isDark
-                                  ? AppColors.darkText
-                                  : AppColors.deepNavy,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w800,
-                            ),
+                        Text(
+                          entry.meaning,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: isDark
+                                ? AppColors.darkMuted
+                                : AppColors.muted,
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            waiting[index].meaning,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: isDark
-                                  ? AppColors.darkMuted
-                                  : AppColors.muted,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 4),
-                    if (waiting[index].canParentEdit)
-                      IconButton.filledTonal(
-                        key: ValueKey<String>(
-                          'edit-waiting-${waiting[index].id}',
-                        ),
-                        onPressed: () =>
-                            unawaited(_editParentEntry(waiting[index])),
-                        icon: const Icon(Icons.edit_rounded, size: 20),
-                        tooltip: context.tr('Sửa', '编辑'),
-                      ),
-                    if (waiting[index].canParentDelete)
-                      IconButton.filledTonal(
-                        key: ValueKey<String>(
-                          'delete-queued-${waiting[index].id}',
-                        ),
-                        onPressed: () => unawaited(_delete(waiting[index])),
-                        style: IconButton.styleFrom(
-                          foregroundColor: isDark
-                              ? AppColors.darkPink
-                              : AppColors.accentPink,
-                          backgroundColor: isDark
-                              ? AppColors.darkPink.withValues(alpha: 0.14)
-                              : AppColors.accentPinkSoft,
-                        ),
-                        icon: const Icon(
-                          Icons.delete_outline_rounded,
-                          size: 20,
-                        ),
-                        tooltip: context.tr('Xóa', '删除'),
-                      ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-          ],
+            ),
         ],
       ),
     );
+  }
+
+  Future<void> _reorderUpcoming(int oldIndex, int newIndex) async {
+    final upcoming = List<VocabularyEntry>.of(_upcomingWords);
+    if (newIndex > oldIndex) newIndex -= 1;
+    final moved = upcoming.removeAt(oldIndex);
+    upcoming.insert(newIndex, moved);
+    await widget.store.reorderWaitingEntries(
+      upcoming.map((entry) => entry.id).toList(growable: false),
+    );
+  }
+
+  Future<void> _openSwapPicker(VocabularyEntry current) async {
+    final upcomingIds = _upcomingWords.map((entry) => entry.id).toSet();
+    final rest =
+        _entries
+            .where(
+              (entry) =>
+                  entry.isWaitingParent &&
+                  entry.id != current.id &&
+                  !upcomingIds.contains(entry.id),
+            )
+            .toList()
+          ..sort(
+            (a, b) => a.effectiveQueueOrder.compareTo(b.effectiveQueueOrder),
+          );
+    final searchController = TextEditingController();
+    final selected = await showModalBottomSheet<VocabularyEntry>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) {
+          final query = searchController.text.trim().toLowerCase();
+          final filtered = query.isEmpty
+              ? rest
+              : rest
+                    .where(
+                      (entry) =>
+                          entry.word.toLowerCase().contains(query) ||
+                          entry.meaning.toLowerCase().contains(query),
+                    )
+                    .toList(growable: false);
+          return SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    sheetContext.tr('Đổi chỗ với từ nào?', '要和哪个词交换？'),
+                    style: Theme.of(sheetContext).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: searchController,
+                    decoration: InputDecoration(
+                      hintText: sheetContext.tr('Tìm từ...', '搜索...'),
+                      prefixIcon: const Icon(Icons.search_rounded),
+                    ),
+                    onChanged: (_) => setSheetState(() {}),
+                  ),
+                  const SizedBox(height: 8),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 320),
+                    child: filtered.isEmpty
+                        ? Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Text(
+                              sheetContext.tr(
+                                'Không còn từ nào trong hàng chờ.',
+                                '等待列表中没有其他词了。',
+                              ),
+                            ),
+                          )
+                        : ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: filtered.length,
+                            itemBuilder: (listContext, index) {
+                              final entry = filtered[index];
+                              return ListTile(
+                                title: Text(entry.word),
+                                subtitle: Text(entry.meaning),
+                                onTap: () =>
+                                    Navigator.of(sheetContext).pop(entry),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+    if (selected != null) {
+      await widget.store.swapQueueOrder(idA: current.id, idB: selected.id);
+    }
+  }
+
+  Future<void> _openQueueManagementScreen() async {
+    await AppNavigator.of(context).pushPage<void>(
+      context,
+      AppRoute<VocabularyQueueArguments>(
+        name: AppRouteNames.vocabularyQueue,
+        arguments: VocabularyQueueArguments(
+          store: widget.store,
+          settingsStore: widget.queueSettingsStore,
+          childAge: widget.childAge,
+          translator: widget.translator,
+          suggestionProvider: widget.suggestionProvider,
+          dictionaryProvider: widget.dictionaryProvider,
+          curriculumDuplicateChecker: widget.curriculumDuplicateChecker,
+        ),
+        bindings: () => const VocabularyQueueBindings(),
+      ),
+    );
+    await _loadWordsPerDay();
   }
 
   Widget _buildVocabularyCard(
@@ -1691,20 +1858,6 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     }
   }
 
-  Future<void> _delete(VocabularyEntry entry) async {
-    try {
-      await widget.store.deleteParentEntry(entry.id);
-      await _releaseParentAudio(entry);
-      await _load();
-    } on VocabularyValidationException catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.message)));
-      }
-    }
-  }
-
   Future<void> _editParentEntry(VocabularyEntry entry) async {
     final input = await showDialog<VocabularyTranslation>(
       context: context,
@@ -1727,53 +1880,96 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
 
   void _refreshSearch() => setState(() {});
 
-  Future<void> _showAddDialog() async {
-    final input = await showDialog<String>(
+  Future<void> _showJourneyHelpDialog() async {
+    await showDialog<void>(
       context: context,
-      builder: (_) => const _AddVocabularyDialog(),
+      builder: (dialogContext) {
+        final screenWidth = MediaQuery.sizeOf(dialogContext).width;
+        return AlertDialog(
+          insetPadding: EdgeInsets.symmetric(
+            horizontal: screenWidth * 0.05,
+            vertical: 24,
+          ),
+          title: Text(context.tr('Hướng dẫn sử dụng', '使用说明')),
+          content: SizedBox(
+            width: screenWidth * 0.9,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  _HelpSection(
+                    icon: Icons.auto_stories_rounded,
+                    color: AppColors.primaryNavy,
+                    title: context.tr('Ba mẹ đã thêm', '家长添加'),
+                    description: context.tr(
+                      'Ba mẹ thêm từ, cụm từ hoặc câu mà bé cần học. '
+                          'Mỗi ngày bé sẽ được học một số lượng từ nhất định, '
+                          'các từ còn lại sẽ chờ đến ngày tiếp theo.',
+                      '家长添加孩子需要学习的单词、短语或句子。'
+                          '孩子每天学习一定数量的词，其余的会排队等到下一天。',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _HelpSection(
+                    icon: Icons.star_rounded,
+                    color: AppColors.sunshine,
+                    title: context.tr('Ngôi sao', '星星'),
+                    description: context.tr(
+                      'Những từ bé đã học thuộc và được ghi âm giọng đọc của '
+                          'chính bé. Bé có thể nghe lại giọng của mình bất cứ '
+                          'lúc nào.',
+                      '孩子已经学会并录下自己朗读声音的词。'
+                          '孩子可以随时回听自己的录音。',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _HelpSection(
+                    icon: Icons.refresh_rounded,
+                    color: AppColors.accentPink,
+                    title: context.tr('Luyện lại', '复习'),
+                    description: context.tr(
+                      'Những từ hoặc câu bé cần ôn luyện thêm để nhớ lâu hơn, '
+                          'được lấy từ các bài học bé đã gặp khó khăn.',
+                      '孩子需要多加练习以记得更牢的词或句子，'
+                          '来自孩子学习时遇到困难的内容。',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              key: const Key('close-vocabulary-help'),
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(context.tr('Đã hiểu', '知道了')),
+            ),
+          ],
+        );
+      },
     );
-    final normalized = input?.trim();
-    if (normalized == null || normalized.isEmpty) {
-      return;
-    }
-
-    await _addVocabulary(normalized);
   }
 
-  Future<void> _addVocabulary(String normalized) async {
-    setState(() => _translating = true);
+  Future<void> _showAddDialog() async {
     try {
-      final waitingCount = await widget.store.parentWaitingCount();
-      final remaining = VocabularyStore.parentWaitingLimit - waitingCount;
-      if (remaining <= 0) {
-        throw const VocabularyDailyLimitException(remaining: 0);
-      }
-      final resolution = await _translateVocabulary(normalized);
-      final selections = await _prepareParentChoices(
-        input: normalized,
-        translated: resolution.primary,
-        initialSuggestions: resolution.alternatives,
-        partOfSpeech: resolution.partOfSpeech,
-        maxSelections: remaining.clamp(1, 3),
-      );
-      if (selections == null || selections.isEmpty) return;
-      final curriculumDuplicateChecker = widget.curriculumDuplicateChecker;
-      if (curriculumDuplicateChecker != null) {
-        for (final selection in selections) {
-          if (await curriculumDuplicateChecker(selection)) {
-            throw const VocabularyTopicDuplicateException();
-          }
-        }
-      }
-      final entries = await widget.store.addParentEntries(
-        selections,
+      final controller = VocabularyAddFlowController(
+        store: widget.store,
         childAge: widget.childAge,
+        translator: widget.translator,
+        suggestionProvider: widget.suggestionProvider,
+        dictionaryProvider: widget.dictionaryProvider,
+        curriculumDuplicateChecker: widget.curriculumDuplicateChecker,
       );
+      final entries = await controller.promptAndAdd(
+        context,
+        onInputConfirmed: () {
+          if (mounted) setState(() => _translating = true);
+        },
+        onPrefetchAudio: _prefetchParentAudio,
+      );
+      if (entries == null || !mounted) return;
       final journeyIndex = VocabularyJourneyIndex.fromEntries(entries);
-      _prefetchParentAudio(selections);
-      if (!mounted) {
-        return;
-      }
       setState(() {
         _entries = entries;
         _journeyIndex = journeyIndex;
@@ -1844,7 +2040,10 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       final firstEntryToday = await widget.sessionStore
           .markAndCheckFirstEntryToday(DateTime.now());
       if (!isCurrent()) return;
-      final entry = await widget.sessionStore.prepareTodayEntry(widget.store);
+      final entry = await widget.sessionStore.prepareTodayEntry(
+        widget.store,
+        dailyLimit: _wordsPerDay,
+      );
       // A direct destination owns its audio, including when a queued load or
       // an earlier automatic entry completes after that destination is chosen.
       if (!isCurrent()) return;
@@ -2850,206 +3049,6 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
     );
   }
 
-  Future<List<VocabularyTranslation>?> _prepareParentChoices({
-    required String input,
-    required VocabularyTranslation translated,
-    List<VocabularyTranslation> initialSuggestions =
-        const <VocabularyTranslation>[],
-    String? partOfSpeech,
-    required int maxSelections,
-  }) async {
-    VocabularyValidationException? originalError;
-    var originalAccepted = true;
-    try {
-      await widget.store.validateParentCandidate(
-        translated,
-        childAge: widget.childAge,
-      );
-      final curriculumDuplicateChecker = widget.curriculumDuplicateChecker;
-      if (curriculumDuplicateChecker != null &&
-          await curriculumDuplicateChecker(translated)) {
-        throw const VocabularyTopicDuplicateException();
-      }
-    } on VocabularyDuplicateException {
-      rethrow;
-    } on VocabularyTopicDuplicateException {
-      rethrow;
-    } on VocabularyValidationException catch (error) {
-      originalAccepted = false;
-      originalError = error;
-    }
-
-    final candidates = <VocabularyTranslation>[
-      if (originalAccepted) translated,
-      ...initialSuggestions,
-      ..._approvedSuggestionsFor(translated),
-    ];
-    const targetOptionCount = 3;
-    var options = await _filterParentSuggestions(
-      candidates,
-      limit: targetOptionCount,
-      childAge: widget.childAge,
-    );
-    final provider = widget.suggestionProvider;
-    if (provider != null && options.length < targetOptionCount) {
-      try {
-        final authoredSuggestions = await provider(input, widget.childAge);
-        options = await _filterParentSuggestions(
-          <VocabularyTranslation>[...options, ...authoredSuggestions],
-          limit: targetOptionCount,
-          childAge: widget.childAge,
-        );
-      } catch (error) {
-        debugPrint('VOCABULARY_SUGGESTION_FALLBACK_FAILED error=$error');
-      }
-    }
-    if (options.length < targetOptionCount) {
-      const localProvider = LocalVocabularySuggestionProvider();
-      final localSuggestions = <VocabularyTranslation>[
-        ...localProvider.suggest(base: translated, partOfSpeech: partOfSpeech),
-        if (partOfSpeech?.trim().isNotEmpty ?? false)
-          ...localProvider.suggest(base: translated),
-      ];
-      options = await _filterParentSuggestions(
-        <VocabularyTranslation>[...options, ...localSuggestions],
-        limit: targetOptionCount,
-        childAge: widget.childAge,
-      );
-    }
-    if (options.length < targetOptionCount) {
-      if (originalError != null) throw originalError;
-      throw const VocabularyValidationException(
-        'Chưa tạo đủ 3 phương án phù hợp. Ba mẹ thử nội dung khác nhé.',
-      );
-    }
-    if (!mounted) return null;
-    return showDialog<List<VocabularyTranslation>>(
-      context: context,
-      builder: (_) => _VocabularySuggestionDialog(
-        options: options,
-        maxSelections: maxSelections,
-      ),
-    );
-  }
-
-  Future<List<VocabularyTranslation>> _filterParentSuggestions(
-    Iterable<VocabularyTranslation> candidates, {
-    required int limit,
-    required int childAge,
-  }) async {
-    final candidateList = candidates.toList(growable: false);
-    final locallyValid = await widget.store.filterParentSuggestions(
-      candidateList,
-      limit: candidateList.length,
-      childAge: childAge,
-    );
-    final curriculumDuplicateChecker = widget.curriculumDuplicateChecker;
-    if (curriculumDuplicateChecker == null) {
-      return locallyValid.take(limit).toList(growable: false);
-    }
-    final result = <VocabularyTranslation>[];
-    for (final candidate in locallyValid) {
-      if (!await curriculumDuplicateChecker(candidate)) {
-        result.add(candidate);
-        if (result.length >= limit) break;
-      }
-    }
-    return result;
-  }
-
-  List<VocabularyTranslation> _approvedSuggestionsFor(
-    VocabularyTranslation translated,
-  ) {
-    const catalog = <String, List<VocabularyTranslation>>{
-      'apple': <VocabularyTranslation>[
-        VocabularyTranslation(
-          englishText: 'Red apple',
-          vietnameseText: 'Quả táo đỏ',
-        ),
-        VocabularyTranslation(
-          englishText: 'Green apple',
-          vietnameseText: 'Quả táo xanh',
-        ),
-        VocabularyTranslation(
-          englishText: 'I like apples',
-          vietnameseText: 'Con thích táo',
-        ),
-      ],
-      'family': <VocabularyTranslation>[
-        VocabularyTranslation(
-          englishText: 'My family',
-          vietnameseText: 'Gia đình của con',
-        ),
-        VocabularyTranslation(
-          englishText: 'This is my mother',
-          vietnameseText: 'Đây là mẹ của con',
-        ),
-        VocabularyTranslation(
-          englishText: 'This is my father',
-          vietnameseText: 'Đây là bố của con',
-        ),
-      ],
-      'school': <VocabularyTranslation>[
-        VocabularyTranslation(
-          englishText: 'My school',
-          vietnameseText: 'Trường của con',
-        ),
-        VocabularyTranslation(
-          englishText: 'I go to school',
-          vietnameseText: 'Con đi học',
-        ),
-        VocabularyTranslation(
-          englishText: 'This is my classroom',
-          vietnameseText: 'Đây là lớp học của con',
-        ),
-      ],
-      'happy': <VocabularyTranslation>[
-        VocabularyTranslation(
-          englishText: 'I am happy',
-          vietnameseText: 'Con vui',
-        ),
-        VocabularyTranslation(
-          englishText: 'A happy day',
-          vietnameseText: 'Một ngày vui',
-        ),
-        VocabularyTranslation(
-          englishText: 'You make me happy',
-          vietnameseText: 'Bạn làm con vui',
-        ),
-      ],
-      'hello': <VocabularyTranslation>[
-        VocabularyTranslation(
-          englishText: 'Hello, Mom',
-          vietnameseText: 'Con chào mẹ',
-        ),
-        VocabularyTranslation(
-          englishText: 'Hello, Dad',
-          vietnameseText: 'Con chào bố',
-        ),
-        VocabularyTranslation(
-          englishText: 'Hello, my friend',
-          vietnameseText: 'Chào bạn của mình',
-        ),
-      ],
-      'thank you': <VocabularyTranslation>[
-        VocabularyTranslation(
-          englishText: 'Thank you, Mom',
-          vietnameseText: 'Con cảm ơn mẹ',
-        ),
-        VocabularyTranslation(
-          englishText: 'Thank you, Dad',
-          vietnameseText: 'Con cảm ơn bố',
-        ),
-        VocabularyTranslation(
-          englishText: 'Thank you for helping me',
-          vietnameseText: 'Cảm ơn bạn đã giúp con',
-        ),
-      ],
-    };
-    return catalog[_normalizedVocabularyText(translated.englishText)] ??
-        const <VocabularyTranslation>[];
-  }
-
   void _showMessage(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(
@@ -3157,152 +3156,65 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
       ].map((operation) => operation.catchError((Object _) {})),
     );
   }
-
-  Future<_VocabularyTranslationResolution> _translateVocabulary(
-    String input,
-  ) async {
-    const pairs = <String, VocabularyTranslation>{
-      'apple': VocabularyTranslation(
-        englishText: 'Apple',
-        vietnameseText: 'Quả táo',
-      ),
-      'quả táo': VocabularyTranslation(
-        englishText: 'Apple',
-        vietnameseText: 'Quả táo',
-      ),
-      'family': VocabularyTranslation(
-        englishText: 'Family',
-        vietnameseText: 'Gia đình',
-      ),
-      'gia đình': VocabularyTranslation(
-        englishText: 'Family',
-        vietnameseText: 'Gia đình',
-      ),
-      'school': VocabularyTranslation(
-        englishText: 'School',
-        vietnameseText: 'Trường học',
-      ),
-      'trường học': VocabularyTranslation(
-        englishText: 'School',
-        vietnameseText: 'Trường học',
-      ),
-      'happy': VocabularyTranslation(
-        englishText: 'Happy',
-        vietnameseText: 'Vui vẻ',
-      ),
-      'vui vẻ': VocabularyTranslation(
-        englishText: 'Happy',
-        vietnameseText: 'Vui vẻ',
-      ),
-      'hello': VocabularyTranslation(
-        englishText: 'Hello',
-        vietnameseText: 'Xin chào',
-      ),
-      'xin chào': VocabularyTranslation(
-        englishText: 'Hello',
-        vietnameseText: 'Xin chào',
-      ),
-      'thank you': VocabularyTranslation(
-        englishText: 'Thank you',
-        vietnameseText: 'Cảm ơn',
-      ),
-      'cảm ơn': VocabularyTranslation(
-        englishText: 'Thank you',
-        vietnameseText: 'Cảm ơn',
-      ),
-    };
-    final normalized = input.toLowerCase();
-    final known = pairs[normalized];
-    if (known != null) {
-      return _VocabularyTranslationResolution(primary: known);
-    }
-
-    if (!_containsVietnameseCharacters(input)) {
-      final dictionary = widget.dictionaryProvider;
-      if (dictionary != null) {
-        try {
-          final result = await dictionary.lookupEnglish(input);
-          if (result != null && result.definitions.isNotEmpty) {
-            final seenMeanings = <String>{};
-            final meanings = result.definitions
-                .map(
-                  (definition) => VocabularyTranslation(
-                    englishText: _capitalize(result.english),
-                    vietnameseText: _capitalize(definition.vietnamese),
-                  ),
-                )
-                .where(
-                  (translation) => seenMeanings.add(
-                    _normalizedVocabularyText(translation.vietnameseText),
-                  ),
-                )
-                .take(2)
-                .toList(growable: false);
-            if (meanings.isNotEmpty) {
-              return _VocabularyTranslationResolution(
-                primary: meanings.first,
-                alternatives: meanings.skip(1).toList(growable: false),
-                partOfSpeech: result.definitions.first.partOfSpeech,
-              );
-            }
-          }
-        } catch (error) {
-          debugPrint('VOCABULARY_DICTIONARY_LOOKUP_FAILED error=$error');
-        }
-      }
-    }
-
-    final translator = widget.translator;
-    if (translator == null) {
-      throw StateError('Không có dịch vụ dịch từ vựng.');
-    }
-    final translated = await translator(input);
-    final englishText = _capitalize(translated.englishText.trim());
-    final vietnameseText = _capitalize(
-      translated.vietnameseText.trim().isEmpty
-          ? input
-          : translated.vietnameseText.trim(),
-    );
-    if (englishText.isEmpty || _containsVietnameseCharacters(englishText)) {
-      throw StateError('Bản dịch tiếng Anh không hợp lệ.');
-    }
-    return _VocabularyTranslationResolution(
-      primary: VocabularyTranslation(
-        englishText: englishText,
-        vietnameseText: vietnameseText,
-      ),
-    );
-  }
-
-  String _capitalize(String value) =>
-      value.isEmpty ? value : '${value[0].toUpperCase()}${value.substring(1)}';
-
-  bool _containsVietnameseCharacters(String value) => RegExp(
-    r'[ăâđêôơưáàảãạấầẩẫậắằẳẵặéèẻẽẹếềểễệíìỉĩịóòỏõọốồổỗộớờởỡợúùủũụứừửữựýỳỷỹỵ]',
-    caseSensitive: false,
-  ).hasMatch(value);
-
-  String _normalizedVocabularyText(String value) => value
-      .trim()
-      .toLowerCase()
-      .replaceAll('’', "'")
-      .replaceAll(RegExp(r"[\s.,!?;:…_-]+"), ' ')
-      .trim();
-}
-
-class _VocabularyTranslationResolution {
-  const _VocabularyTranslationResolution({
-    required this.primary,
-    this.alternatives = const <VocabularyTranslation>[],
-    this.partOfSpeech,
-  });
-
-  final VocabularyTranslation primary;
-  final List<VocabularyTranslation> alternatives;
-  final String? partOfSpeech;
 }
 
 enum _VocabularyJourney { family, stars, review }
+
+class _HelpSection extends StatelessWidget {
+  const _HelpSection({
+    required this.icon,
+    required this.color,
+    required this.title,
+    required this.description,
+  });
+
+  final IconData icon;
+  final Color color;
+  final String title;
+  final String description;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Container(
+          width: 36,
+          height: 36,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: isDark ? 0.24 : 0.14),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: color, size: 20),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                title,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                description,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: isDark ? AppColors.darkMuted : AppColors.muted,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
 
 class _JourneyDetailHeader extends StatelessWidget {
   const _JourneyDetailHeader({required this.title, required this.countLabel});
@@ -3411,6 +3323,7 @@ class _VocabularyHeader extends StatelessWidget {
     required this.onAddPressed,
     required this.adding,
     required this.showAddAction,
+    this.onHelpPressed,
   });
 
   final bool isReady;
@@ -3420,6 +3333,7 @@ class _VocabularyHeader extends StatelessWidget {
   final VoidCallback? onAddPressed;
   final bool adding;
   final bool showAddAction;
+  final VoidCallback? onHelpPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -3574,6 +3488,15 @@ class _VocabularyHeader extends StatelessWidget {
                   tooltip: context.tr('Thêm nội dung', '添加内容'),
                   onPressed: onAddPressed,
                   loading: adding,
+                ),
+              ],
+              if (onHelpPressed != null) ...<Widget>[
+                const SizedBox(width: 8),
+                _VocabularyHeaderButton(
+                  key: const Key('vocabulary-help-button'),
+                  icon: Icons.question_mark_rounded,
+                  tooltip: context.tr('Hướng dẫn', '使用说明'),
+                  onPressed: onHelpPressed,
                 ),
               ],
             ],
@@ -3919,554 +3842,6 @@ class _VocabularyRow extends StatelessWidget {
     }
     return context.tr('Đã lưu $days ngày trước', '$days 天前保存');
   }
-}
-
-class _VocabularySuggestionDialog extends StatefulWidget {
-  const _VocabularySuggestionDialog({
-    required this.options,
-    required this.maxSelections,
-  });
-
-  final List<VocabularyTranslation> options;
-  final int maxSelections;
-
-  @override
-  State<_VocabularySuggestionDialog> createState() =>
-      _VocabularySuggestionDialogState();
-}
-
-class _VocabularySuggestionDialogState
-    extends State<_VocabularySuggestionDialog> {
-  final Set<int> _selectedIndexes = <int>{0};
-  late final List<TextEditingController> _englishControllers;
-  late final List<TextEditingController> _vietnameseControllers;
-  late final List<FocusNode> _englishFocusNodes;
-  late final List<FocusNode> _vietnameseFocusNodes;
-  int? _editingIndex;
-
-  @override
-  void initState() {
-    super.initState();
-    _englishControllers = <TextEditingController>[
-      for (final option in widget.options)
-        TextEditingController(text: option.englishText),
-    ];
-    _vietnameseControllers = <TextEditingController>[
-      for (final option in widget.options)
-        TextEditingController(text: option.vietnameseText),
-    ];
-    _englishFocusNodes = <FocusNode>[
-      for (var index = 0; index < widget.options.length; index++) FocusNode(),
-    ];
-    _vietnameseFocusNodes = <FocusNode>[
-      for (var index = 0; index < widget.options.length; index++) FocusNode(),
-    ];
-    for (final controller in <TextEditingController>[
-      ..._englishControllers,
-      ..._vietnameseControllers,
-    ]) {
-      controller.addListener(_refresh);
-    }
-  }
-
-  @override
-  void dispose() {
-    for (final controller in <TextEditingController>[
-      ..._englishControllers,
-      ..._vietnameseControllers,
-    ]) {
-      controller
-        ..removeListener(_refresh)
-        ..dispose();
-    }
-    for (final focusNode in <FocusNode>[
-      ..._englishFocusNodes,
-      ..._vietnameseFocusNodes,
-    ]) {
-      focusNode.dispose();
-    }
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final mediaQuery = MediaQuery.of(context);
-    final maxSelections = widget.maxSelections.clamp(1, 3);
-    final availableHeight =
-        mediaQuery.size.height - mediaQuery.viewInsets.vertical - 48;
-    final maxDialogHeight = availableHeight.clamp(320.0, 720.0).toDouble();
-
-    return Dialog(
-      key: const Key('vocabulary-suggestion-dialog'),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-      clipBehavior: Clip.antiAlias,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: 520, maxHeight: maxDialogHeight),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 18, 12, 14),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: colorScheme.secondaryContainer,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.playlist_add_check_circle_rounded,
-                      color: colorScheme.onSecondaryContainer,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          context.tr('Chọn nội dung phù hợp', '选择合适的内容'),
-                          style: theme.textTheme.titleLarge,
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    key: const Key('close-vocabulary-suggestions'),
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close_rounded),
-                    tooltip: context.tr('Đóng', '关闭'),
-                  ),
-                ],
-              ),
-            ),
-            Divider(color: colorScheme.outlineVariant),
-            Flexible(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    for (var index = 0; index < widget.options.length; index++)
-                      if (_editingIndex == null || _editingIndex == index)
-                        _buildSuggestionCard(context, index),
-                    if (_editingIndex == null)
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: TextButton.icon(
-                          key: const Key('vocabulary-minhqnd-attribution'),
-                          onPressed: () => unawaited(
-                            launchUrl(
-                              Uri.parse('https://dict.minhqnd.com/'),
-                              mode: LaunchMode.externalApplication,
-                            ),
-                          ),
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 10,
-                            ),
-                            alignment: Alignment.centerLeft,
-                          ),
-                          icon: const Icon(
-                            Icons.info_outline_rounded,
-                            size: 18,
-                          ),
-                          label: Text(
-                            context.tr(
-                              'Nguồn từ điển và phát âm: @minhqnd '
-                                  '(CC BY-SA 4.0)',
-                              '词典及发音来源：@minhqnd (CC BY-SA 4.0)',
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-            Divider(color: colorScheme.outlineVariant),
-            SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                child: Row(
-                  children: <Widget>[
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 7,
-                      ),
-                      decoration: BoxDecoration(
-                        color: colorScheme.secondaryContainer,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        context.tr(
-                          '${_selectedIndexes.length}/$maxSelections đã chọn',
-                          '已选 ${_selectedIndexes.length}/$maxSelections',
-                        ),
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: colorScheme.onSecondaryContainer,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                    const Spacer(),
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text(context.tr('Hủy', '取消')),
-                    ),
-                    const SizedBox(width: 8),
-                    FilledButton.icon(
-                      key: const Key('confirm-vocabulary-suggestions'),
-                      onPressed: !_canSubmit || _editingIndex != null
-                          ? null
-                          : () => Navigator.of(context)
-                                .pop(<VocabularyTranslation>[
-                                  for (final index
-                                      in _selectedIndexes.toList()..sort())
-                                    VocabularyTranslation(
-                                      englishText: _englishControllers[index]
-                                          .text
-                                          .trim(),
-                                      vietnameseText:
-                                          _vietnameseControllers[index].text
-                                              .trim(),
-                                    ),
-                                ]),
-                      icon: const Icon(Icons.add_task_rounded, size: 20),
-                      label: Text(context.tr('Thêm', '添加')),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSuggestionCard(BuildContext context, int index) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final selected = _selectedIndexes.contains(index);
-    final isEditing = _editingIndex == index;
-    return Container(
-      key: ValueKey<String>('vocabulary-suggestion-$index'),
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 14),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: selected ? colorScheme.primary : colorScheme.outlineVariant,
-          width: selected ? 1.5 : 1,
-        ),
-      ),
-      child: Column(
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              Checkbox(
-                key: ValueKey<String>('select-vocabulary-suggestion-$index'),
-                value: selected,
-                onChanged: isEditing
-                    ? null
-                    : (value) => _toggleSelection(index, value),
-              ),
-              Expanded(
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(10),
-                  onTap: isEditing
-                      ? null
-                      : () => _toggleSelection(index, !selected),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    child: Text(
-                      context.tr('Gợi ý ${index + 1}', '建议 ${index + 1}'),
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: colorScheme.onSurface,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              if (!isEditing)
-                IconButton.filledTonal(
-                  key: ValueKey<String>('edit-vocabulary-suggestion-$index'),
-                  onPressed: () => _editSuggestion(index),
-                  icon: const Icon(Icons.edit_rounded, size: 21),
-                  tooltip: context.tr(
-                    'Chỉnh sửa gợi ý ${index + 1}',
-                    '编辑建议 ${index + 1}',
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          TextField(
-            key: ValueKey<String>('vocabulary-suggestion-english-$index'),
-            controller: _englishControllers[index],
-            focusNode: _englishFocusNodes[index],
-            readOnly: !isEditing,
-            showCursor: isEditing,
-            textCapitalization: TextCapitalization.sentences,
-            textInputAction: TextInputAction.next,
-            maxLines: 2,
-            onSubmitted: isEditing
-                ? (_) => _vietnameseFocusNodes[index].requestFocus()
-                : null,
-            onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-            decoration: InputDecoration(
-              labelText: context.tr('Tiếng Anh', '英语'),
-              prefixIcon: const Icon(Icons.translate_rounded, size: 21),
-            ),
-          ),
-          const SizedBox(height: 10),
-          TextField(
-            key: ValueKey<String>('vocabulary-suggestion-vietnamese-$index'),
-            controller: _vietnameseControllers[index],
-            focusNode: _vietnameseFocusNodes[index],
-            readOnly: !isEditing,
-            showCursor: isEditing,
-            textCapitalization: TextCapitalization.sentences,
-            textInputAction: TextInputAction.done,
-            maxLines: 2,
-            onSubmitted: isEditing ? (_) => _saveSuggestion(index) : null,
-            onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-            decoration: InputDecoration(
-              labelText: context.tr('Tiếng Việt', '越南语'),
-              prefixIcon: const Icon(
-                Icons.chat_bubble_outline_rounded,
-                size: 21,
-              ),
-            ),
-          ),
-          if (isEditing) ...<Widget>[
-            const SizedBox(height: 14),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                key: ValueKey<String>('save-vocabulary-suggestion-$index'),
-                onPressed: _canSave(index)
-                    ? () => _saveSuggestion(index)
-                    : null,
-                icon: const Icon(Icons.check_rounded, size: 21),
-                label: Text(context.tr('Lưu chỉnh sửa', '保存修改')),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  bool get _canSubmit =>
-      _selectedIndexes.isNotEmpty &&
-      _selectedIndexes.every(
-        (index) =>
-            _englishControllers[index].text.trim().isNotEmpty &&
-            _vietnameseControllers[index].text.trim().isNotEmpty,
-      );
-
-  void _toggleSelection(int index, bool? selected) {
-    if (selected == true &&
-        !_selectedIndexes.contains(index) &&
-        _selectedIndexes.length >= widget.maxSelections.clamp(1, 3)) {
-      return;
-    }
-    setState(() {
-      if (selected == true) {
-        _selectedIndexes.add(index);
-      } else {
-        _selectedIndexes.remove(index);
-      }
-    });
-  }
-
-  void _editSuggestion(int index) {
-    setState(() => _editingIndex = index);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _englishFocusNodes[index].requestFocus();
-    });
-  }
-
-  bool _canSave(int index) =>
-      _englishControllers[index].text.trim().isNotEmpty &&
-      _vietnameseControllers[index].text.trim().isNotEmpty;
-
-  void _saveSuggestion(int index) {
-    if (!_canSave(index)) return;
-    FocusManager.instance.primaryFocus?.unfocus();
-    setState(() {
-      final maxSelections = widget.maxSelections.clamp(1, 3);
-      if (!_selectedIndexes.contains(index) &&
-          _selectedIndexes.length >= maxSelections) {
-        _selectedIndexes.remove(_selectedIndexes.first);
-      }
-      _selectedIndexes.add(index);
-      _editingIndex = null;
-    });
-  }
-
-  void _refresh() => setState(() {});
-}
-
-class _AddVocabularyDialog extends StatefulWidget {
-  const _AddVocabularyDialog();
-
-  @override
-  State<_AddVocabularyDialog> createState() => _AddVocabularyDialogState();
-}
-
-class _AddVocabularyDialogState extends State<_AddVocabularyDialog> {
-  late final TextEditingController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController();
-    _controller.addListener(_refresh);
-  }
-
-  @override
-  void dispose() {
-    _controller
-      ..removeListener(_refresh)
-      ..dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final enabled = _controller.text.trim().isNotEmpty;
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    return Dialog(
-      insetPadding: const EdgeInsets.symmetric(horizontal: 48, vertical: 24),
-      backgroundColor: theme.colorScheme.surface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 520),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Center(
-                child: Text(
-                  context.tr('Thêm nội dung học', '添加学习内容'),
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    color: theme.colorScheme.onSurface,
-                    fontSize: 23,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                key: const Key('add-vocabulary-field'),
-                controller: _controller,
-                autofocus: true,
-                minLines: 3,
-                maxLines: 5,
-                textInputAction: TextInputAction.done,
-                style: TextStyle(
-                  color: theme.colorScheme.onSurface,
-                  fontSize: 16,
-                ),
-                decoration: InputDecoration(
-                  hintText: context.tr(
-                    'Nhập từ, cụm từ hoặc câu ngắn',
-                    '输入单词、短语或短句',
-                  ),
-                  filled: true,
-                  fillColor: isDark
-                      ? theme.colorScheme.surfaceContainer
-                      : AppColors.lavenderSoft,
-                  hintStyle: const TextStyle(fontSize: 15),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(18),
-                    borderSide: BorderSide(
-                      color: isDark
-                          ? theme.colorScheme.outline
-                          : AppColors.indigo,
-                      width: 1.5,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(18),
-                    borderSide: BorderSide(
-                      color: isDark
-                          ? theme.colorScheme.secondary
-                          : AppColors.indigo,
-                      width: 2,
-                    ),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 18,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                context.tr(
-                  'Có thể nhập bằng tiếng Anh hoặc tiếng Việt.',
-                  '可以输入英文或越南文。',
-                ),
-                maxLines: 2,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontSize: 12.5,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: <Widget>[
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text(context.tr('Hủy', '取消')),
-                  ),
-                  const SizedBox(width: 8),
-                  FilledButton.icon(
-                    key: const Key('confirm-add-vocabulary'),
-                    onPressed: enabled
-                        ? () => Navigator.of(context).pop(_controller.text)
-                        : null,
-                    icon: const Icon(Icons.add_rounded),
-                    label: Text(context.tr('Thêm', '添加')),
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size(104, 46),
-                      backgroundColor: isDark
-                          ? theme.colorScheme.primary
-                          : AppColors.indigo,
-                      foregroundColor: isDark
-                          ? theme.colorScheme.onPrimary
-                          : Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _refresh() => setState(() {});
 }
 
 class _EditVocabularyDialog extends StatefulWidget {
