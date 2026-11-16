@@ -651,6 +651,18 @@ void main() {
         } else {
           await tester.tap(find.byIcon(Icons.arrow_back_rounded));
         }
+        // The practice screen may keep an ongoing animation while paused, so
+        // pumpAndSettle cannot be used until the confirmation dialog is
+        // resolved; bounded pumps surface it instead.
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 500));
+        expect(
+          find.byKey(const Key('vocabulary-exit-confirm-dialog')),
+          findsOneWidget,
+        );
+        await tester.tap(
+          find.byKey(const Key('vocabulary-exit-confirm-exit')),
+        );
         await tester.pumpAndSettle();
         expect(find.byType(VocabularyPracticeScreen), findsNothing);
         expect(voice.stopCalls, greaterThan(0));
@@ -1828,6 +1840,13 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.binding.handlePopRoute();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(
+      find.byKey(const Key('vocabulary-exit-confirm-dialog')),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const Key('vocabulary-exit-confirm-exit')));
     await tester.pumpAndSettle();
 
     expect(find.byType(VocabularyPracticeScreen), findsNothing);

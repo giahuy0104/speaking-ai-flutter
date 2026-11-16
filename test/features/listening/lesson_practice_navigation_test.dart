@@ -782,6 +782,16 @@ void main() {
         } else {
           await tester.tap(find.byTooltip('Quay lại'));
         }
+        // The lesson screen's waveform animates continuously while paused, so
+        // pumpAndSettle cannot be used while it remains mounted under the
+        // confirmation dialog; bounded pumps surface the dialog instead.
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 500));
+        expect(
+          find.byKey(const Key('lesson-exit-confirm-dialog')),
+          findsOneWidget,
+        );
+        await tester.tap(find.byKey(const Key('lesson-exit-confirm-exit')));
         await tester.pumpAndSettle();
         expect(find.byType(LessonPracticeScreen), findsNothing);
         expect(progress.currentSentence, 1);

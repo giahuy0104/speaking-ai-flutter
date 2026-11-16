@@ -926,8 +926,13 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
     return DisplayLanguageScope(
       language: widget.language,
       child: PopScope<Object?>(
+        canPop: false,
         onPopInvokedWithResult: (didPop, _) {
-          if (didPop) _commitNavigationExit();
+          if (didPop) {
+            _commitNavigationExit();
+            return;
+          }
+          unawaited(_exitLesson());
         },
         child: Scaffold(
           key: const Key('lesson-practice-screen'),
@@ -2609,8 +2614,40 @@ class _LessonPracticeScreenState extends State<LessonPracticeScreen>
 
   Future<void> _exitLesson() async {
     if (_exiting) return;
+    final shouldExit = await _confirmExitLesson();
+    if (!shouldExit || !mounted || _exiting) return;
     _commitNavigationExit();
     if (mounted) Navigator.of(context).pop();
+  }
+
+  Future<bool> _confirmExitLesson() async {
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        key: const Key('lesson-exit-confirm-dialog'),
+        title: Text(context.tr('Thoát bài học?', '退出课程？')),
+        content: Text(
+          context.tr(
+            'Quá trình học đang diễn ra, bạn có chắc muốn thoát không?',
+            '学习正在进行中，确定要退出吗？',
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            key: const Key('lesson-exit-confirm-cancel'),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(context.tr('Tiếp tục học', '继续学习')),
+          ),
+          FilledButton(
+            key: const Key('lesson-exit-confirm-exit'),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(context.tr('Thoát', '退出')),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
   }
 
   void _commitNavigationExit() {
