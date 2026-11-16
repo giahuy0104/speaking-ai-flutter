@@ -54,12 +54,14 @@ class AppFlowCoordinator {
         activeKind: null,
       );
     }
-    _activeModulePausedForMain = paused;
-    final stableActiveModule =
-        _activeModulePausedForMain && _registry.hasActiveModule;
+    // A lesson the child stopped stays stopped when MAIN ends without a
+    // command (silence, failed activation); only "Học tiếp" resumes it.
+    _activeModulePausedForMain =
+        paused && !_registry.isActiveModuleStoppedForChoice;
+    final stableActiveModule = paused && _registry.hasActiveModule;
     kind = stableActiveModule ? _registry.activeKind : null;
     return MainLearningPause(
-      paused: _activeModulePausedForMain,
+      paused: paused,
       hasActiveModule: stableActiveModule,
       activeKind: kind,
     );

@@ -285,6 +285,7 @@ class VoiceNavigationController extends ChangeNotifier {
     bool activeLearning = false,
     ActiveLearningModuleKind? activeLearningKind,
     ActiveLearningVoiceContext? activeVoiceContext,
+    bool activeLessonStopped = false,
     String? inputLabelOverride,
     bool promptAlreadySpoken = false,
     String? noSpeechRetryPrompt,
@@ -303,6 +304,7 @@ class VoiceNavigationController extends ChangeNotifier {
           return _mainAssistantFlow.beginActiveLearning(
             kind: activeLearningKind,
             voiceContext: activeVoiceContext,
+            lessonStopped: activeLessonStopped,
           );
         }
         return afterTranslationStop

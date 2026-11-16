@@ -136,6 +136,7 @@ class MainVoiceAssistantFlow {
   ActiveLearningVoiceNode? _activeVoiceNode;
   String? _activeVoicePrompt;
   ActiveLearningVoiceSelectionContext? _activeVoiceSelection;
+  bool _activeLessonStopped = false;
   bool _pausedChoice = false;
   bool _otherLearningFromVocabulary = false;
   int _flowGeneration = 0;
@@ -180,6 +181,8 @@ class MainVoiceAssistantFlow {
   };
 
   String? get _activeLearningPromptAudioKey => switch (_activeVoiceNode) {
+    // The stopped-lesson question has no authored recording yet.
+    _ when _activeLessonStopped => null,
     ActiveLearningVoiceNode.challenge =>
       MainAssistantAudioKeys.challengeControls,
     ActiveLearningVoiceNode.song => MainAssistantAudioKeys.songControls,
@@ -313,6 +316,7 @@ class MainVoiceAssistantFlow {
   String beginActiveLearning({
     ActiveLearningModuleKind? kind,
     ActiveLearningVoiceContext? voiceContext,
+    bool lessonStopped = false,
   }) {
     reset();
     _activeLearningKind = kind;
@@ -321,6 +325,20 @@ class MainVoiceAssistantFlow {
     _activeVoiceSelection = voiceContext is ActiveLearningVoiceSelectionContext
         ? voiceContext as ActiveLearningVoiceSelectionContext
         : null;
+    // A completion choice keeps its own on-screen question.
+    _activeLessonStopped =
+        lessonStopped &&
+        !(_activeVoiceNode?.isWaitingForChoice ?? false) &&
+        !(_activeVoiceSelection?.isMainVoiceChoice ?? false);
+    if (_activeLessonStopped) {
+      _activeVoicePrompt = switch (_activeVoiceNode) {
+        ActiveLearningVoiceNode.core =>
+          MasterNavigationContract.coreStoppedPrompt,
+        ActiveLearningVoiceNode.song =>
+          MasterNavigationContract.songStoppedPrompt,
+        _ => MasterNavigationContract.introStoppedPrompt,
+      };
+    }
     _stage = MainVoiceAssistantStage.activeLearning;
     return _activeVoicePrompt ?? activeLearningPrompt;
   }
@@ -398,6 +416,7 @@ class MainVoiceAssistantFlow {
     _activeVoiceNode = null;
     _activeVoicePrompt = null;
     _activeVoiceSelection = null;
+    _activeLessonStopped = false;
     _fallbackAttempts.clear();
   }
 
@@ -421,6 +440,7 @@ class MainVoiceAssistantFlow {
     final activeVoiceNode = _activeVoiceNode;
     final activeVoicePrompt = _activeVoicePrompt;
     final activeVoiceSelection = _activeVoiceSelection;
+    final activeLessonStopped = _activeLessonStopped;
     final pausedChoice = _pausedChoice;
     final otherLearningFromVocabulary = _otherLearningFromVocabulary;
     final fallbackAttempts = Map<MainVoiceAssistantStage, int>.of(
@@ -442,6 +462,7 @@ class MainVoiceAssistantFlow {
       _activeVoiceNode = activeVoiceNode;
       _activeVoicePrompt = activeVoicePrompt;
       _activeVoiceSelection = activeVoiceSelection;
+      _activeLessonStopped = activeLessonStopped;
       _pausedChoice = pausedChoice;
       _otherLearningFromVocabulary = otherLearningFromVocabulary;
       _fallbackAttempts
@@ -2284,6 +2305,11 @@ class MainVoiceAssistantFlow {
         destination: VoiceNavigationDestination.conversation,
         promptText: MasterNavigationContract.keepCurrentContent,
       );
+    }
+    // A stopped lesson stays stopped, exactly like a second silence.
+    if (_stage == MainVoiceAssistantStage.activeLearning &&
+        _activeLessonStopped) {
+      return handleSilenceExit();
     }
     if (_stage == MainVoiceAssistantStage.chooseModuleSwitch ||
         _stage == MainVoiceAssistantStage.activeLearning) {
