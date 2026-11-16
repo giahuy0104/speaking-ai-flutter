@@ -557,6 +557,21 @@
       "sha256": "3595f7e965a8db7c6a49116c5856102994d63fefd506aeb3a924d42aabec0235",
       "sizeBytes": 62205
     },
+    "assets/audio/assistant-core/assistant.learning.stopped_core.vi.mp3": {
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1794821290/homi/audio/assistant-core/assistant.learning.stopped_core.vi-58cb4fd3040d9e218b3d8a777181dc40838d6d250c063b2247d390cb3ed5d7cc.mp3",
+      "sha256": "58cb4fd3040d9e218b3d8a777181dc40838d6d250c063b2247d390cb3ed5d7cc",
+      "sizeBytes": 81720
+    },
+    "assets/audio/assistant-core/assistant.learning.stopped_intro.vi.mp3": {
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1794821290/homi/audio/assistant-core/assistant.learning.stopped_intro.vi-8109309926117da1360678a9d6007ff571c80fe4bcf3c649ca8d350c4ae76549.mp3",
+      "sha256": "8109309926117da1360678a9d6007ff571c80fe4bcf3c649ca8d350c4ae76549",
+      "sizeBytes": 65002
+    },
+    "assets/audio/assistant-core/assistant.learning.stopped_song.vi.mp3": {
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1794821290/homi/audio/assistant-core/assistant.learning.stopped_song.vi-49558361f74ba052733ed119bd03175bc8d3d403a8c8da8cb560ae2e87337531.mp3",
+      "sha256": "49558361f74ba052733ed119bd03175bc8d3d403a8c8da8cb560ae2e87337531",
+      "sizeBytes": 82974
+    },
     "assets/audio/assistant-core/assistant.level.choose_course_relearn.vi.mp3": {
       "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792423668/homi/audio/assistant-core/assistant.level.choose_course_relearn.vi-ec98dd2fca31a3709b40be018b67565389ef37eb7f455c9a6afcd4f4ac224937.mp3",
       "sha256": "ec98dd2fca31a3709b40be018b67565389ef37eb7f455c9a6afcd4f4ac224937",
@@ -593,19 +608,19 @@
       "sizeBytes": 25539
     },
     "assets/audio/assistant-core/assistant.main.choose_translation.vi.mp3": {
-      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792423531/homi/audio/assistant-core/assistant.main.choose_translation.vi-86ccb1d0cadd4766c86c0aebff81b6b66384a3e501d67fc145fd04f1bfa7f213.mp3",
-      "sha256": "86ccb1d0cadd4766c86c0aebff81b6b66384a3e501d67fc145fd04f1bfa7f213",
-      "sizeBytes": 54796
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1794821291/homi/audio/assistant-core/assistant.main.choose_translation.vi-66946115ffff0588d254a89d5ac370e6cbe565469d8cb53b4e32ad57538d6e40.mp3",
+      "sha256": "66946115ffff0588d254a89d5ac370e6cbe565469d8cb53b4e32ad57538d6e40",
+      "sizeBytes": 68763
     },
     "assets/audio/assistant-core/assistant.main.choose_vocabulary.vi.mp3": {
-      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792423535/homi/audio/assistant-core/assistant.main.choose_vocabulary.vi-85ca6789db78cddb8ef45c2891d3bfc171f1a590b74dd45c2e44db8ec6ab6dd2.mp3",
-      "sha256": "85ca6789db78cddb8ef45c2891d3bfc171f1a590b74dd45c2e44db8ec6ab6dd2",
-      "sizeBytes": 77252
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1794821291/homi/audio/assistant-core/assistant.main.choose_vocabulary.vi-eca2b7c48873abe2313bb84bbda180241f80fe80a32cb023092da03453c0e3dd.mp3",
+      "sha256": "eca2b7c48873abe2313bb84bbda180241f80fe80a32cb023092da03453c0e3dd",
+      "sizeBytes": 77541
     },
     "assets/audio/assistant-core/assistant.main.invalid_choice.vi.mp3": {
-      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792423538/homi/audio/assistant-core/assistant.main.invalid_choice.vi-cea10eb6241b3de0ee3c9bdec15e9fb0f4b68c9950a3887ff08c5ca5e998f683.mp3",
-      "sha256": "cea10eb6241b3de0ee3c9bdec15e9fb0f4b68c9950a3887ff08c5ca5e998f683",
-      "sizeBytes": 73490
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1794821291/homi/audio/assistant-core/assistant.main.invalid_choice.vi-66946115ffff0588d254a89d5ac370e6cbe565469d8cb53b4e32ad57538d6e40.mp3",
+      "sha256": "66946115ffff0588d254a89d5ac370e6cbe565469d8cb53b4e32ad57538d6e40",
+      "sizeBytes": 68763
     },
     "assets/audio/assistant-core/assistant.main.keep_current_content.vi.mp3": {
       "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792423556/homi/audio/assistant-core/assistant.main.keep_current_content.vi-8e60bd934200d02016b25b0aa0bcf106b08768d5cb5442f85fde1e0cd82ce0db.mp3",
@@ -618,14 +633,14 @@
       "sizeBytes": 52288
     },
     "assets/audio/assistant-core/assistant.main.no_speech.vi.mp3": {
-      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792423541/homi/audio/assistant-core/assistant.main.no_speech.vi-cea10eb6241b3de0ee3c9bdec15e9fb0f4b68c9950a3887ff08c5ca5e998f683.mp3",
-      "sha256": "cea10eb6241b3de0ee3c9bdec15e9fb0f4b68c9950a3887ff08c5ca5e998f683",
-      "sizeBytes": 73490
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1794821292/homi/audio/assistant-core/assistant.main.no_speech.vi-66946115ffff0588d254a89d5ac370e6cbe565469d8cb53b4e32ad57538d6e40.mp3",
+      "sha256": "66946115ffff0588d254a89d5ac370e6cbe565469d8cb53b4e32ad57538d6e40",
+      "sizeBytes": 68763
     },
     "assets/audio/assistant-core/assistant.main.open_menu.vi.mp3": {
-      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792423528/homi/audio/assistant-core/assistant.main.open_menu.vi-12f207c7609d0d534c22938eeecac56177e4a56cd4432b1f41cedbf000df0024.mp3",
-      "sha256": "12f207c7609d0d534c22938eeecac56177e4a56cd4432b1f41cedbf000df0024",
-      "sizeBytes": 82685
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1794821292/homi/audio/assistant-core/assistant.main.open_menu.vi-f1d64c04fc8caeb4dedfd486714675993c23cecdf63ce81b2a3e9e5aa2bbf95d.mp3",
+      "sha256": "f1d64c04fc8caeb4dedfd486714675993c23cecdf63ce81b2a3e9e5aa2bbf95d",
+      "sizeBytes": 72525
     },
     "assets/audio/assistant-core/assistant.main.song_replay.vi.mp3": {
       "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792423564/homi/audio/assistant-core/assistant.main.song_replay.vi-80d0f3e15f466573989772cf76a583afab1ba42fa439e4ec60522c6cd5819963.mp3",
@@ -14362,6 +14377,16 @@
       "sha256": "a26388ecacb820163d5007c26eafb444ed201f97b6ebcfadffdd4fd239339168",
       "sizeBytes": 36292
     },
+    "assets/audio/vocabulary-common/24576113220162d862cf73a6.vi.mp3": {
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1794821416/homi/audio/vocabulary-common/24576113220162d862cf73a6.vi-9976147a26850cf99a8e44bf6471735cf39679b437961736a7772f38c76258a5.mp3",
+      "sha256": "9976147a26850cf99a8e44bf6471735cf39679b437961736a7772f38c76258a5",
+      "sizeBytes": 99274
+    },
+    "assets/audio/vocabulary-common/27dd6e9b7a26db7668b1b27d.vi.mp3": {
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1794821416/homi/audio/vocabulary-common/27dd6e9b7a26db7668b1b27d.vi-e77d9d5329d923fc50f16cb114daa180d5fa14f73c9c6f5f93dfa467bbbdebc1.mp3",
+      "sha256": "e77d9d5329d923fc50f16cb114daa180d5fa14f73c9c6f5f93dfa467bbbdebc1",
+      "sizeBytes": 55807
+    },
     "assets/audio/vocabulary-common/2c232e824a6f24bc4289a0ae.vi.mp3": {
       "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792639351/homi/audio/vocabulary-common/2c232e824a6f24bc4289a0ae.vi-af3fb58fffc75c5894bb5688087dd1533f9539ee5a1edd0764dc6cd4a82416bc.mp3",
       "sha256": "af3fb58fffc75c5894bb5688087dd1533f9539ee5a1edd0764dc6cd4a82416bc",
@@ -14372,30 +14397,10 @@
       "sha256": "22879491060b13d59f9b139429e12cf4be81fde620c7dd4964f5c34f6bf511cd",
       "sizeBytes": 32530
     },
-    "assets/audio/vocabulary-common/45cc8f8e0b9def2f4c9131e6.vi.mp3": {
-      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792639352/homi/audio/vocabulary-common/45cc8f8e0b9def2f4c9131e6.vi-db2b7d5c495ec9aaa2e9a477fb361f8d77acb1104ef4a4b4383ebbc26070cc02.mp3",
-      "sha256": "db2b7d5c495ec9aaa2e9a477fb361f8d77acb1104ef4a4b4383ebbc26070cc02",
-      "sizeBytes": 88233
-    },
-    "assets/audio/vocabulary-common/5381403c126b87963cd86016.vi.mp3": {
-      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792639352/homi/audio/vocabulary-common/5381403c126b87963cd86016.vi-80009a6d04a967c2af4b8b0fa8dbc478d47b2214796fd0293e61373177fab7dd.mp3",
-      "sha256": "80009a6d04a967c2af4b8b0fa8dbc478d47b2214796fd0293e61373177fab7dd",
-      "sizeBytes": 77252
-    },
-    "assets/audio/vocabulary-common/54c8afacbd643b5105bb72d5.vi.mp3": {
-      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792639352/homi/audio/vocabulary-common/54c8afacbd643b5105bb72d5.vi-fa2839019402cb3e0fd14a21ec4d0f0cc587a5a4250fba5b5068e0926206d69c.mp3",
-      "sha256": "fa2839019402cb3e0fd14a21ec4d0f0cc587a5a4250fba5b5068e0926206d69c",
-      "sizeBytes": 65967
-    },
     "assets/audio/vocabulary-common/5f53e68ab79042d1e9e8bc85.vi.mp3": {
       "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792639352/homi/audio/vocabulary-common/5f53e68ab79042d1e9e8bc85.vi-1cfaae5557c649636649ffa5bd1ce55676f2de2a4b503601ef9fd3645bb6015c.mp3",
       "sha256": "1cfaae5557c649636649ffa5bd1ce55676f2de2a4b503601ef9fd3645bb6015c",
       "sizeBytes": 56772
-    },
-    "assets/audio/vocabulary-common/606a5cabafafb94f2adb52c6.vi.mp3": {
-      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792639352/homi/audio/vocabulary-common/606a5cabafafb94f2adb52c6.vi-36747da94acde1cf36360d6512bb6b1943bf1896cc33d7a01a49d59b50d38da3.mp3",
-      "sha256": "36747da94acde1cf36360d6512bb6b1943bf1896cc33d7a01a49d59b50d38da3",
-      "sizeBytes": 69007
     },
     "assets/audio/vocabulary-common/68102e4929331cdd7634da1b.vi.mp3": {
       "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792639352/homi/audio/vocabulary-common/68102e4929331cdd7634da1b.vi-0ab9eaa6a2eef7ef62e982e7f080e217fa61c5b51fe1b7cf22aeb1b9ca67c24e.mp3",
@@ -14406,11 +14411,6 @@
       "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792639352/homi/audio/vocabulary-common/6b6994e13882a4043761b632.vi-bc7aace74adebbf77a808d7e211f1a50fd1139eff8d7efa2d2acd61a20dfd2cc.mp3",
       "sha256": "bc7aace74adebbf77a808d7e211f1a50fd1139eff8d7efa2d2acd61a20dfd2cc",
       "sizeBytes": 75998
-    },
-    "assets/audio/vocabulary-common/6e221f344e78886014e4218b.vi.mp3": {
-      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792639352/homi/audio/vocabulary-common/6e221f344e78886014e4218b.vi-a3149fa1a2513892f2c7d63373f9400c68d0f42740bd28b0d4a465ab1e7facc8.mp3",
-      "sha256": "a3149fa1a2513892f2c7d63373f9400c68d0f42740bd28b0d4a465ab1e7facc8",
-      "sizeBytes": 54264
     },
     "assets/audio/vocabulary-common/79af2c71b6d5099d0560d26a.vi.mp3": {
       "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792639353/homi/audio/vocabulary-common/79af2c71b6d5099d0560d26a.vi-62d03334f49882fb011dc15e876bb1de12b4fe57073ec5fc03a58b652ee314f8.mp3",
@@ -14432,15 +14432,25 @@
       "sha256": "7b2d675372c7660427de7246d3bc9e11d254b9317df24bdff94d2b595b5ebd4e",
       "sizeBytes": 15090
     },
+    "assets/audio/vocabulary-common/98fd89452960312c024ae336.vi.mp3": {
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1794821416/homi/audio/vocabulary-common/98fd89452960312c024ae336.vi-ee0b23cc3fee25e667e3622f9713f03524511ad2decc00084bf28c18ea6bea59.mp3",
+      "sha256": "ee0b23cc3fee25e667e3622f9713f03524511ad2decc00084bf28c18ea6bea59",
+      "sizeBytes": 65002
+    },
     "assets/audio/vocabulary-common/a1e4871970a8b4c760fa40e8.vi.mp3": {
       "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792639354/homi/audio/vocabulary-common/a1e4871970a8b4c760fa40e8.vi-bb838dd06f09d61a94d42d049ed58829deedf05f7a0cc5a32b47dda8c62d9336.mp3",
       "sha256": "bb838dd06f09d61a94d42d049ed58829deedf05f7a0cc5a32b47dda8c62d9336",
       "sizeBytes": 23031
     },
-    "assets/audio/vocabulary-common/af2b6aab24b92596b7864ac5.vi.mp3": {
-      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792639354/homi/audio/vocabulary-common/af2b6aab24b92596b7864ac5.vi-e36e78757d7696de3d605f3d095fbbf4cce1a5d73909200a9a2bbdc580ffad6b.mp3",
-      "sha256": "e36e78757d7696de3d605f3d095fbbf4cce1a5d73909200a9a2bbdc580ffad6b",
-      "sizeBytes": 34316
+    "assets/audio/vocabulary-common/af330cf9e4a77695ea76aec6.vi.mp3": {
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1794821416/homi/audio/vocabulary-common/af330cf9e4a77695ea76aec6.vi-cb8e1f2b9600abec7acc4e2dada8028e4aa578d11e0c5c52155ac06cdc1ae814.mp3",
+      "sha256": "cb8e1f2b9600abec7acc4e2dada8028e4aa578d11e0c5c52155ac06cdc1ae814",
+      "sizeBytes": 81720
+    },
+    "assets/audio/vocabulary-common/b195ebe56f9e75755ea4694d.vi.mp3": {
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1794821416/homi/audio/vocabulary-common/b195ebe56f9e75755ea4694d.vi-eca2b7c48873abe2313bb84bbda180241f80fe80a32cb023092da03453c0e3dd.mp3",
+      "sha256": "eca2b7c48873abe2313bb84bbda180241f80fe80a32cb023092da03453c0e3dd",
+      "sizeBytes": 77541
     },
     "assets/audio/vocabulary-common/bacf3528ecdc4f3dd8e54679.vi.mp3": {
       "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792639354/homi/audio/vocabulary-common/bacf3528ecdc4f3dd8e54679.vi-4cfd4dcc7428745d66ae09f9a0124344c0a153f906132ecd9aa244add458edda.mp3",
@@ -14462,6 +14472,11 @@
       "sha256": "74c030c378a3868b5664ce765a95d40dd206233c5bb31ae1caf0002d67b291bb",
       "sizeBytes": 24285
     },
+    "assets/audio/vocabulary-common/c5df136e4a57001f015dcda6.vi.mp3": {
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1794821417/homi/audio/vocabulary-common/c5df136e4a57001f015dcda6.vi-a0bb43ead650da1a9acb0733a523e04c67a9eadb8447fdba3aa6d090761a2cd7.mp3",
+      "sha256": "a0bb43ead650da1a9acb0733a523e04c67a9eadb8447fdba3aa6d090761a2cd7",
+      "sizeBytes": 57061
+    },
     "assets/audio/vocabulary-common/cd4846103036e55d3fcb36be.vi.mp3": {
       "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792639355/homi/audio/vocabulary-common/cd4846103036e55d3fcb36be.vi-c62fbecdc42842dbd0eb04a1d03bd86a264eb16f88a0aa8943ea5e43b1e43de1.mp3",
       "sha256": "c62fbecdc42842dbd0eb04a1d03bd86a264eb16f88a0aa8943ea5e43b1e43de1",
@@ -14472,15 +14487,15 @@
       "sha256": "8de0e913473bb9118b6f10b9dd01dfdd48d7e3d8f8d938f33946f1b3b12089ce",
       "sizeBytes": 71515
     },
+    "assets/audio/vocabulary-common/da2fa777f914819abce79ebb.vi.mp3": {
+      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1794821417/homi/audio/vocabulary-common/da2fa777f914819abce79ebb.vi-83a03228164f9154affa7514eebd302e40e5e572fddb3fd569ed21b23cb2649b.mp3",
+      "sha256": "83a03228164f9154affa7514eebd302e40e5e572fddb3fd569ed21b23cb2649b",
+      "sizeBytes": 108470
+    },
     "assets/audio/vocabulary-common/e7ba67bccc2457aad603bad7.vi.mp3": {
       "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792639356/homi/audio/vocabulary-common/e7ba67bccc2457aad603bad7.vi-7a5e6c4750a86e06ff29cbe87c1c850cd3dc42b05f95a81f9039b90b30141ae9.mp3",
       "sha256": "7a5e6c4750a86e06ff29cbe87c1c850cd3dc42b05f95a81f9039b90b30141ae9",
       "sizeBytes": 20106
-    },
-    "assets/audio/vocabulary-common/f1efbb4a92fb8a3b577a7e17.vi.mp3": {
-      "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792639356/homi/audio/vocabulary-common/f1efbb4a92fb8a3b577a7e17.vi-20324abe87d18cf5424d1ab1f622865b8bbae6b00e09cda3a37cda10a4f169ba.mp3",
-      "sha256": "20324abe87d18cf5424d1ab1f622865b8bbae6b00e09cda3a37cda10a4f169ba",
-      "sizeBytes": 95224
     },
     "assets/audio/vocabulary-common/vocabulary.flow.finish_active_group_first.vi.mp3": {
       "url": "https://res.cloudinary.com/ysc2jlrt/video/upload/v1792639357/homi/audio/vocabulary-common/vocabulary.flow.finish_active_group_first.vi-d8276b6e52ebc1ba30b6ee27f8b7c530e118bfcc81507e4f2b4313b918688d5c.mp3",
