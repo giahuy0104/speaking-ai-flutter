@@ -96,10 +96,6 @@ const Map<String, String> _simplifiedChinese = <String, String>{
   'Mic HFP Web': '网页 HFP 麦克风',
   'Mic điện thoại': '手机麦克风',
   'Mic INNOTRIK': 'INNOTRIK 麦克风',
-  'Tất cả': '全部',
-  'Đúng ý': '符合原意',
-  'Sai ý': '不符合原意',
-  'Chưa đánh giá': '未评价',
   'Hôm nay': '今天',
   'Hôm qua': '昨天',
   'Rule': '规则',
@@ -112,11 +108,6 @@ const Map<String, String> _simplifiedChinese = <String, String>{
   'Batch ASR': '批量识别',
   'BLE ASR': 'BLE 识别',
   'ASR cũ': '旧版识别',
-  'Đã tối ưu': '已优化',
-  'Đang học': '学习中',
-  'Không học': '不学习',
-  'Cần kiểm tra': '需要检查',
-  'Chưa tối ưu': '未优化',
   'Nguồn âm thanh hiện chưa sẵn sàng.': '当前音频输入尚未就绪。',
   'Android streaming chưa sẵn sàng; đã chuyển sang OpenAI Realtime.':
       'Android 流式识别不可用，已切换到 OpenAI 实时识别。',
@@ -157,11 +148,6 @@ const Map<String, String> _simplifiedChinese = <String, String>{
       '这句话与已有意图相同，但译文不同，因此不会自动覆盖规则。',
   'Ứng dụng đã học câu này để phản hồi nhanh hơn lần sau.':
       '应用已学习这句话，以便下次更快响应。',
-  'Đã ghi nhận Sai ý. Đây là rule có sẵn nên cần quản trị viên kiểm tra lại.':
-      '已记录“不符合原意”。这是现有规则，需要管理员复核。',
-  'Đã ghi nhận Sai ý và bỏ câu này khỏi phần học tự động.':
-      '已记录“不符合原意”，并将这句话从自动学习中移除。',
-  'Đã ghi nhận Sai ý; câu này sẽ không được tự học.': '已记录“不符合原意”；这句话不会被自动学习。',
   'Câu này được lặp lại nhiều lần và đang chờ admin xác nhận trước khi học thành rule.':
       '这句话已重复多次，正在等待管理员确认后再学习为规则。',
   'Kết nối backend quá chậm. Vui lòng thử lại.': '服务连接过慢，请重试。',

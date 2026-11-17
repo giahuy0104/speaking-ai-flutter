@@ -2813,7 +2813,7 @@ void main() {
     final items = await repository.fetchHistory();
 
     expect(items, hasLength(1));
-    expect(items.single.reviewStatus, HistoryReviewStatus.rejected);
+    expect(items.single.qualityApproved, isFalse);
     expect(
       items.single.audioUri,
       Uri.parse('https://api.example.com/generated-audio/water.mp3'),

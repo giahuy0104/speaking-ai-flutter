@@ -9,8 +9,6 @@ import '../../../l10n/display_language.dart';
 import '../../conversation/application/conversation_settings_port.dart';
 import '../../conversation/domain/conversation_models.dart';
 
-enum _HistoryFilter { all, approved, rejected, pending }
-
 class HistorySheet extends StatefulWidget {
   const HistorySheet({required this.controller, super.key});
 
@@ -25,7 +23,6 @@ class _HistorySheetState extends State<HistorySheet> {
   final Set<String> _busyItems = <String>{};
 
   List<ConversationHistoryItem> _items = const <ConversationHistoryItem>[];
-  _HistoryFilter _filter = _HistoryFilter.all;
   bool _loading = true;
   String? _error;
 
@@ -78,23 +75,15 @@ class _HistorySheetState extends State<HistorySheet> {
 
   List<ConversationHistoryItem> get _visibleItems {
     final query = _searchController.text.trim().toLowerCase();
+    if (query.isEmpty) {
+      return _items;
+    }
     return _items
-        .where((item) {
-          final matchesFilter = switch (_filter) {
-            _HistoryFilter.all => true,
-            _HistoryFilter.approved =>
-              item.reviewStatus == HistoryReviewStatus.approved,
-            _HistoryFilter.rejected =>
-              item.reviewStatus == HistoryReviewStatus.rejected,
-            _HistoryFilter.pending =>
-              item.reviewStatus == HistoryReviewStatus.pending,
-          };
-          final matchesQuery =
-              query.isEmpty ||
+        .where(
+          (item) =>
               item.vietnameseText.toLowerCase().contains(query) ||
-              item.displayedTranslation.toLowerCase().contains(query);
-          return matchesFilter && matchesQuery;
-        })
+              item.displayedTranslation.toLowerCase().contains(query),
+        )
         .toList(growable: false);
   }
 
@@ -134,8 +123,8 @@ class _HistorySheetState extends State<HistorySheet> {
                     textInputAction: TextInputAction.search,
                     decoration: InputDecoration(
                       hintText: context.tr(
-                        'Tìm câu tiếng Việt hoặc tiếng Anh',
-                        '搜索越南语或英语句子',
+                        'Tìm câu tiếng Việt hoặc bản dịch',
+                        '搜索越南语句子或译文',
                       ),
                       prefixIcon: const Icon(Icons.search_rounded),
                       suffixIcon: _searchController.text.isEmpty
@@ -151,27 +140,6 @@ class _HistorySheetState extends State<HistorySheet> {
                                 '清除搜索内容',
                               ),
                             ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: _HistoryFilter.values
-                          .map(
-                            (filter) => Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: ChoiceChip(
-                                label: Text(
-                                  context.trKnown(_filterLabel(filter)),
-                                ),
-                                selected: _filter == filter,
-                                onSelected: (_) =>
-                                    setState(() => _filter = filter),
-                              ),
-                            ),
-                          )
-                          .toList(growable: false),
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -224,7 +192,6 @@ class _HistorySheetState extends State<HistorySheet> {
                       busyItems: _busyItems,
                       onRetry: () => _loadHistory(),
                       onPlay: _playItem,
-                      onReview: _reviewItem,
                       onDelete: _confirmDeleteItem,
                     ),
                   ),
@@ -261,57 +228,6 @@ class _HistorySheetState extends State<HistorySheet> {
     try {
       await widget.controller.playHistoryUserAudio(item);
     } catch (error) {
-      _showMessage(_friendlyError(error), isError: true);
-    } finally {
-      if (mounted) {
-        setState(() => _busyItems.remove(item.conversationId));
-      }
-    }
-  }
-
-  Future<void> _reviewItem(ConversationHistoryItem item, bool approved) async {
-    if (_busyItems.contains(item.conversationId)) {
-      return;
-    }
-    final index = _items.indexWhere(
-      (candidate) => candidate.conversationId == item.conversationId,
-    );
-    if (index < 0) {
-      return;
-    }
-
-    final previousItem = _items[index];
-    setState(() {
-      _busyItems.add(item.conversationId);
-      _items = List<ConversationHistoryItem>.of(_items)
-        ..[index] = item.copyWithReview(approved);
-    });
-
-    try {
-      final learning = await widget.controller.reviewHistoryItem(
-        item,
-        approved,
-      );
-      if (mounted) {
-        setState(() {
-          _items = List<ConversationHistoryItem>.of(_items)
-            ..[index] = item.copyWithReview(approved, learning: learning);
-        });
-      }
-      _showMessage(
-        learning.message.isNotEmpty
-            ? learning.message
-            : approved
-            ? _t('Đã đánh dấu Đúng ý.', '已标记为符合原意。')
-            : _t('Đã đánh dấu Sai ý.', '已标记为不符合原意。'),
-      );
-    } catch (error) {
-      if (mounted) {
-        setState(() {
-          _items = List<ConversationHistoryItem>.of(_items)
-            ..[index] = previousItem;
-        });
-      }
       _showMessage(_friendlyError(error), isError: true);
     } finally {
       if (mounted) {
@@ -521,7 +437,6 @@ class _HistoryBody extends StatelessWidget {
     required this.busyItems,
     required this.onRetry,
     required this.onPlay,
-    required this.onReview,
     required this.onDelete,
   });
 
@@ -532,7 +447,6 @@ class _HistoryBody extends StatelessWidget {
   final Set<String> busyItems;
   final VoidCallback onRetry;
   final ValueChanged<ConversationHistoryItem> onPlay;
-  final void Function(ConversationHistoryItem item, bool approved) onReview;
   final ValueChanged<ConversationHistoryItem> onDelete;
 
   @override
@@ -595,8 +509,6 @@ class _HistoryBody extends StatelessWidget {
           item: item,
           busy: busyItems.contains(item.conversationId),
           onPlay: () => onPlay(item),
-          onApprove: () => onReview(item, true),
-          onReject: () => onReview(item, false),
           onDelete: () => onDelete(item),
         ),
       );
@@ -610,29 +522,22 @@ class _HistoryRow extends StatelessWidget {
     required this.item,
     required this.busy,
     required this.onPlay,
-    required this.onApprove,
-    required this.onReject,
     required this.onDelete,
   });
 
   final ConversationHistoryItem item;
   final bool busy;
   final VoidCallback onPlay;
-  final VoidCallback onApprove;
-  final VoidCallback onReject;
   final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final status = _statusPresentation(item.reviewStatus);
-    final localizedStatus = context.trKnown(status.label);
 
     return Semantics(
       container: true,
       label:
-          '$localizedStatus. ${item.vietnameseText}. ${item.outputLanguage.label}: ${item.displayedTranslation}. '
+          '${item.vietnameseText}. ${item.outputLanguage.label}: ${item.displayedTranslation}. '
           '${_formatTime(item.createdAt)}.',
       child: HomiSurface(
         margin: const EdgeInsets.only(bottom: 10),
@@ -643,19 +548,6 @@ class _HistoryRow extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                HomiIconBadge(
-                  icon: status.icon,
-                  foregroundColor: status.color,
-                  backgroundColor: isDark
-                      ? Color.alphaBlend(
-                          status.color.withValues(alpha: 0.14),
-                          theme.colorScheme.surfaceContainerHighest,
-                        )
-                      : status.background,
-                  size: 40,
-                  iconSize: 22,
-                ),
-                const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     item.vietnameseText,
@@ -673,102 +565,45 @@ class _HistoryRow extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 7),
-            Padding(
-              padding: const EdgeInsets.only(left: 50),
-              child: Text(
-                item.displayedTranslation,
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.primary,
-                ),
+            Text(
+              item.displayedTranslation,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.primary,
               ),
             ),
             const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.only(left: 50),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: <Widget>[
+                _MetadataChip(label: context.trKnown(item.context.label)),
+                _MetadataChip(label: context.trKnown(_sourceLabel(item))),
+                _MetadataChip(label: context.trKnown(_asrLabel(item.asrMode))),
+                if (item.latency.timeToFirstAudioMs > 0)
+                  _MetadataChip(label: '${item.latency.timeToFirstAudioMs} ms'),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Align(
+              alignment: Alignment.centerRight,
               child: Wrap(
-                spacing: 6,
-                runSpacing: 6,
+                spacing: 8,
+                runSpacing: 8,
                 children: <Widget>[
-                  _MetadataChip(label: context.trKnown(item.context.label)),
-                  _MetadataChip(label: context.trKnown(_sourceLabel(item))),
-                  _LearningChip(item: item),
-                  _MetadataChip(
-                    label: context.trKnown(_asrLabel(item.asrMode)),
-                  ),
-                  if (item.latency.timeToFirstAudioMs > 0)
-                    _MetadataChip(
-                      label: '${item.latency.timeToFirstAudioMs} ms',
+                  if (item.audioUri != null ||
+                      item.displayedTranslation.trim().isNotEmpty)
+                    IconButton(
+                      onPressed: busy ? null : onPlay,
+                      icon: const Icon(Icons.play_arrow_rounded),
+                      tooltip: context.tr('Phát lại bản dịch', '重新播放译文'),
                     ),
+                  IconButton(
+                    onPressed: busy ? null : onDelete,
+                    icon: const Icon(Icons.delete_outline_rounded),
+                    tooltip: context.tr('Xóa lượt nói', '删除记录'),
+                  ),
                 ],
               ),
-            ),
-            const SizedBox(height: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: HomiStatusPill(
-                    label: localizedStatus,
-                    color: status.color,
-                    icon: status.icon,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  alignment: WrapAlignment.end,
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: <Widget>[
-                    if (item.audioUri != null)
-                      IconButton(
-                        onPressed: busy ? null : onPlay,
-                        icon: const Icon(Icons.play_arrow_rounded),
-                        tooltip: context.tr(
-                          'Phát lại câu tiếng Anh',
-                          '重新播放英语句子',
-                        ),
-                      ),
-                    IconButton(
-                      onPressed: busy ? null : onApprove,
-                      icon: const Icon(Icons.sentiment_satisfied_alt_rounded),
-                      tooltip: context.tr('Đánh dấu Đúng ý', '标记为符合原意'),
-                      style: IconButton.styleFrom(
-                        backgroundColor: isDark
-                            ? theme.colorScheme.surfaceContainerHighest
-                            : item.reviewStatus == HistoryReviewStatus.approved
-                            ? AppColors.successSoft
-                            : AppColors.lavender,
-                        foregroundColor:
-                            item.reviewStatus == HistoryReviewStatus.approved
-                            ? AppColors.success
-                            : theme.colorScheme.primary,
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: busy ? null : onReject,
-                      icon: const Icon(Icons.sentiment_dissatisfied_rounded),
-                      tooltip: context.tr('Đánh dấu Sai ý', '标记为不符合原意'),
-                      style: IconButton.styleFrom(
-                        backgroundColor: isDark
-                            ? theme.colorScheme.surfaceContainerHighest
-                            : item.reviewStatus == HistoryReviewStatus.rejected
-                            ? AppColors.coralSoft
-                            : AppColors.lavender,
-                        foregroundColor:
-                            item.reviewStatus == HistoryReviewStatus.rejected
-                            ? Theme.of(context).colorScheme.error
-                            : theme.colorScheme.primary,
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: busy ? null : onDelete,
-                      icon: const Icon(Icons.delete_outline_rounded),
-                      tooltip: context.tr('Xóa lượt nói', '删除记录'),
-                    ),
-                  ],
-                ),
-              ],
             ),
           ],
         ),
@@ -801,47 +636,6 @@ class _MetadataChip extends StatelessWidget {
           fontSize: 11,
           fontWeight: FontWeight.w600,
         ),
-      ),
-    );
-  }
-}
-
-class _LearningChip extends StatelessWidget {
-  const _LearningChip({required this.item});
-
-  final ConversationHistoryItem item;
-
-  @override
-  Widget build(BuildContext context) {
-    final presentation = _learningPresentation(item);
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Color.alphaBlend(
-                presentation.color.withValues(alpha: 0.12),
-                theme.colorScheme.surfaceContainerHighest,
-              )
-            : presentation.background,
-        borderRadius: BorderRadius.circular(99),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Icon(presentation.icon, size: 13, color: presentation.color),
-          const SizedBox(width: 4),
-          Text(
-            context.trKnown(presentation.label),
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: presentation.color,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -902,89 +696,6 @@ class _HistoryMessage extends StatelessWidget {
       ),
     );
   }
-}
-
-class _StatusPresentation {
-  const _StatusPresentation({
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.background,
-  });
-
-  final IconData icon;
-  final String label;
-  final Color color;
-  final Color background;
-}
-
-_StatusPresentation _learningPresentation(ConversationHistoryItem item) {
-  return switch (item.learningStatus) {
-    'promoted' || 'already_rule' => const _StatusPresentation(
-      icon: Icons.bolt_rounded,
-      label: 'Đã tối ưu',
-      color: AppColors.success,
-      background: AppColors.successSoft,
-    ),
-    'cached' || 'observing' => _StatusPresentation(
-      icon: Icons.psychology_alt_rounded,
-      label: item.learningUseCount == null
-          ? 'Đang học'
-          : 'Đang học ${item.learningUseCount}/3',
-      color: AppColors.indigo,
-      background: AppColors.lavender,
-    ),
-    'rejected' => const _StatusPresentation(
-      icon: Icons.do_not_disturb_alt_rounded,
-      label: 'Không học',
-      color: Color(0xFFD92D20),
-      background: AppColors.coralSoft,
-    ),
-    'conflict' => const _StatusPresentation(
-      icon: Icons.warning_amber_rounded,
-      label: 'Cần kiểm tra',
-      color: Color(0xFFB54708),
-      background: Color(0xFFFFF4E5),
-    ),
-    _ => const _StatusPresentation(
-      icon: Icons.info_outline_rounded,
-      label: 'Chưa tối ưu',
-      color: AppColors.muted,
-      background: AppColors.lavenderSoft,
-    ),
-  };
-}
-
-_StatusPresentation _statusPresentation(HistoryReviewStatus status) {
-  return switch (status) {
-    HistoryReviewStatus.approved => const _StatusPresentation(
-      icon: Icons.check_rounded,
-      label: 'Đúng ý',
-      color: AppColors.success,
-      background: AppColors.successSoft,
-    ),
-    HistoryReviewStatus.rejected => const _StatusPresentation(
-      icon: Icons.close_rounded,
-      label: 'Sai ý',
-      color: Color(0xFFD92D20),
-      background: AppColors.coralSoft,
-    ),
-    HistoryReviewStatus.pending => const _StatusPresentation(
-      icon: Icons.schedule_rounded,
-      label: 'Chưa đánh giá',
-      color: AppColors.indigo,
-      background: AppColors.lavender,
-    ),
-  };
-}
-
-String _filterLabel(_HistoryFilter filter) {
-  return switch (filter) {
-    _HistoryFilter.all => 'Tất cả',
-    _HistoryFilter.approved => 'Đúng ý',
-    _HistoryFilter.rejected => 'Sai ý',
-    _HistoryFilter.pending => 'Chưa đánh giá',
-  };
 }
 
 String _sourceLabel(ConversationHistoryItem item) {

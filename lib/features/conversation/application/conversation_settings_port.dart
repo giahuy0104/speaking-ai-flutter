@@ -76,11 +76,6 @@ abstract interface class ConversationHistoryPort {
 
   Future<void> playHistoryUserAudio(ConversationHistoryItem item);
 
-  Future<ConversationLearningOutcome> reviewHistoryItem(
-    ConversationHistoryItem item,
-    bool approved,
-  );
-
   Future<void> deleteHistoryItem(ConversationHistoryItem item);
 
   Future<void> clearHistory();

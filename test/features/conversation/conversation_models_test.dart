@@ -45,7 +45,6 @@ void main() {
     expect(item.outputLanguage, TranslationOutputLanguage.chinese);
     expect(item.displayedTranslation, '我想喝水。');
     expect(item.audioUri?.host, 'res.cloudinary.com');
-    expect(item.copyWithReview(true).displayedTranslation, '我想喝水。');
   });
 
   test(
@@ -134,7 +133,7 @@ void main() {
 
     expect(item.createdAt, sourceTime.toLocal());
     expect(item.createdAt.isUtc, isFalse);
-    expect(item.reviewStatus, HistoryReviewStatus.rejected);
+    expect(item.qualityApproved, isFalse);
     expect(item.context, PracticeContext.outside);
     expect(item.processingMode, 'ai');
     expect(item.asrMode, 'batch_chunks');
@@ -158,12 +157,8 @@ void main() {
       'qualityApproved': true,
     });
 
-    expect(pending.reviewStatus, HistoryReviewStatus.pending);
-    expect(approved.reviewStatus, HistoryReviewStatus.approved);
-    expect(
-      pending.copyWithReview(false).reviewStatus,
-      HistoryReviewStatus.rejected,
-    );
+    expect(pending.qualityApproved, isNull);
+    expect(approved.qualityApproved, isTrue);
   });
 
   test('parses an automatic learning outcome from a conversation', () {

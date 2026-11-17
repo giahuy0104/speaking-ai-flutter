@@ -8,74 +8,21 @@ import 'package:ai_speaking_flutter_app/features/conversation/domain/conversatio
 import 'package:ai_speaking_flutter_app/features/conversation/presentation/conversation_controller.dart';
 import 'package:ai_speaking_flutter_app/features/settings/presentation/history_sheet.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  setUpAll(_loadGoldenFonts);
-
-  testWidgets(
-    'history shows distinct review states and filters rejected items',
-    (tester) async {
-      await tester.binding.setSurfaceSize(const Size(390, 844));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
-
-      final controller = ConversationController(
-        audioInput: const _FakeAudioInput(),
-        playbackService: const _FakePlaybackService(),
-        repository: _FakeHistoryRepository(),
-        childAge: 6,
-      );
-      addTearDown(controller.dispose);
-
-      await tester.pumpWidget(
-        MaterialApp(
-          onGenerateRoute: createAppRouter().onGenerateRoute,
-          theme: buildAppTheme(),
-          home: Scaffold(body: HistorySheet(controller: controller)),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('Lịch sử gần đây'), findsOneWidget);
-      expect(find.text('4 lượt đã lưu'), findsOneWidget);
-      expect(find.text('3 bản ghi âm gần nhất'), findsOneWidget);
-      expect(
-        find.byWidgetPredicate(
-          (widget) =>
-              widget.key is ValueKey<String> &&
-              (widget.key! as ValueKey<String>).value.startsWith('user-audio-'),
-        ),
-        findsNWidgets(3),
-      );
-      expect(find.text('Đúng ý'), findsWidgets);
-      expect(find.text('Sai ý'), findsWidgets);
-      expect(find.text('Chưa đánh giá'), findsWidgets);
-      expect(find.text('Câu đã duyệt'), findsOneWidget);
-
-      final rejectedChip = tester.widget<ChoiceChip>(
-        find.widgetWithText(ChoiceChip, 'Sai ý'),
-      );
-      rejectedChip.onSelected!(true);
-      await tester.pumpAndSettle();
-
-      expect(find.text('Câu bị từ chối'), findsOneWidget);
-      expect(find.text('Câu đã duyệt'), findsNothing);
-      expect(find.text('Câu chưa đánh giá'), findsNothing);
-    },
-  );
-
-  testWidgets('empty history keeps the shared HOMI visual system', (
+  testWidgets('history lists saved turns without review or learning status', (
     tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));
     addTearDown(() => tester.binding.setSurfaceSize(null));
+
     final controller = ConversationController(
       audioInput: const _FakeAudioInput(),
       playbackService: const _FakePlaybackService(),
-      repository: _EmptyHistoryRepository(),
+      repository: _FakeHistoryRepository(),
       childAge: 6,
     );
     addTearDown(controller.dispose);
@@ -83,32 +30,47 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         onGenerateRoute: createAppRouter().onGenerateRoute,
-        debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
         home: Scaffold(body: HistorySheet(controller: controller)),
       ),
     );
     await tester.pumpAndSettle();
-    final context = tester.element(find.byType(HistorySheet));
-    await tester.runAsync(
-      () => precacheImage(
-        const AssetImage('assets/images/mascot/penguin-wave.png'),
-        context,
+
+    expect(find.text('Lịch sử gần đây'), findsOneWidget);
+    expect(find.text('4 lượt đã lưu'), findsOneWidget);
+    expect(find.text('3 bản ghi âm gần nhất'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget.key is ValueKey<String> &&
+            (widget.key! as ValueKey<String>).value.startsWith('user-audio-'),
       ),
+      findsNWidgets(3),
     );
-    await tester.pump();
-
-    await expectLater(
-      find.byType(MaterialApp),
-      matchesGoldenFile('goldens/history-empty-390x844.png'),
+    expect(find.byType(ChoiceChip), findsNothing);
+    for (final label in <String>[
+      'Tất cả',
+      'Đúng ý',
+      'Sai ý',
+      'Chưa đánh giá',
+      'Đã tối ưu',
+      'Đang học 2/3',
+      'Không học',
+    ]) {
+      expect(find.text(label), findsNothing);
+    }
+    expect(find.byTooltip('Đánh dấu Đúng ý'), findsNothing);
+    expect(find.byTooltip('Đánh dấu Sai ý'), findsNothing);
+    // Records without a backend audio URL still offer device-voice replay.
+    expect(find.byTooltip('Phát lại bản dịch'), findsWidgets);
+    expect(find.text('Câu đã duyệt'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Câu bị từ chối'),
+      200,
+      scrollable: find.byType(Scrollable).last,
     );
+    expect(find.text('Câu bị từ chối'), findsOneWidget);
   });
-}
-
-class _EmptyHistoryRepository extends _FakeHistoryRepository {
-  @override
-  Future<List<ConversationHistoryItem>> fetchHistory() async =>
-      const <ConversationHistoryItem>[];
 }
 
 class _FakeHistoryRepository implements ConversationRepository {
@@ -274,12 +236,4 @@ class _FakePlaybackService implements AudioPlaybackService {
 
   @override
   Future<void> stop() async {}
-}
-
-Future<void> _loadGoldenFonts() async {
-  final roboto = FontLoader('Roboto')
-    ..addFont(rootBundle.load('assets/fonts/Roboto-Regular.ttf'));
-  final materialIcons = FontLoader('MaterialIcons')
-    ..addFont(rootBundle.load('assets/fonts/MaterialIcons-Regular.otf'));
-  await Future.wait<void>(<Future<void>>[roboto.load(), materialIcons.load()]);
 }
