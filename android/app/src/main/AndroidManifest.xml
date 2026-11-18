@@ -44,7 +44,7 @@
 
     <application
         android:name=".HomiApplication"
-        android:label="HOMI App"
+        android:label="HOMI VOICE"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="false">
         <activity

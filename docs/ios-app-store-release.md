@@ -3,7 +3,7 @@
 ## What this branch prepares
 
 - Bundle ID: `com.innotrik.aispeaking`.
-- iOS display name: `HOMI App`.
+- iOS display name: `HOMI VOICE`.
 - Minimum iOS version: 15.5.
 - App-level privacy manifest and branded iOS icon.
 - Parent disclosure/consent before any microphone permission request.
