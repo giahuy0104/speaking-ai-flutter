@@ -4172,7 +4172,7 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
       navigatorKey: _navigatorKey,
       scaffoldMessengerKey: _scaffoldMessengerKey,
       navigatorObservers: <NavigatorObserver>[_mainOverlayNavigatorObserver],
-      title: 'HOMI App',
+      title: 'HOMI VOICE',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
       darkTheme: buildDarkAppTheme(),
