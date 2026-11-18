@@ -1927,7 +1927,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
                   _HelpSection(
                     icon: Icons.refresh_rounded,
                     color: AppColors.accentPink,
-                    title: context.tr('Luyện lại', '复习'),
+                    title: context.tr('Ôn lại', '复习'),
                     description: context.tr(
                       'Những từ hoặc câu bé cần ôn luyện thêm để nhớ lâu hơn, '
                           'được lấy từ các bài học bé đã gặp khó khăn.',
