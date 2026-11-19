@@ -14,7 +14,6 @@ import 'audio_turn_coordinator.dart';
 import 'browser_audio_playback.dart';
 import 'browser_audio_playback_factory.dart';
 import 'device_audio_cache.dart';
-import 'ios_streaming_audio_player.dart';
 import 'just_audio_asset_cache_directory.dart';
 import 'remote_audio_catalog.dart';
 
@@ -131,27 +130,6 @@ abstract interface class FixedPlaybackGainAwareAudioPlaybackService {
   Future<void> setFixedPlaybackGainDb(double gainDb);
 }
 
-/// Combines two broadcast streams into one, without pulling in a package
-/// dependency for a single use. Subscribes to both lazily (on first listen)
-/// and unsubscribes from both on cancel.
-@visibleForTesting
-Stream<T> mergeBroadcastStreams<T>(Stream<T> a, Stream<T> b) {
-  late final StreamController<T> controller;
-  StreamSubscription<T>? subscriptionA;
-  StreamSubscription<T>? subscriptionB;
-  controller = StreamController<T>.broadcast(
-    onListen: () {
-      subscriptionA = a.listen(controller.add, onError: controller.addError);
-      subscriptionB = b.listen(controller.add, onError: controller.addError);
-    },
-    onCancel: () {
-      unawaited(subscriptionA?.cancel());
-      unawaited(subscriptionB?.cancel());
-    },
-  );
-  return controller.stream;
-}
-
 class _DefaultAudioPlayer {
   const _DefaultAudioPlayer({
     required this.player,
@@ -187,18 +165,6 @@ class JustAudioPlaybackService
   static const MethodChannel _levelChannel = MethodChannel(
     'ailingo_voice_prompt',
   );
-  // Network playback on iOS (AVPlayer) rejects a response with no
-  // Content-Length (AVFoundationErrorDomain -11850): a TTS clip streamed to
-  // the client while still being synthesized. Those URIs are played through
-  // this native AVAssetResourceLoaderDelegate-backed bridge instead of
-  // just_audio's own HTTP loader. Every other source (asset/file, and all of
-  // Android/Web) is unaffected.
-  final IosStreamingAudioPlayer? _iosStreamingPlayer =
-      !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
-      ? IosStreamingAudioPlayer()
-      : null;
-  bool _activeViaNativeStream = false;
-  Uri? _pendingNativeStreamUri;
   // A modest boost makes speech clearer on small speakers and HFP headsets
   // without pushing typical voice recordings into heavy clipping.
   static const double androidPlaybackGainDb = androidSpeechBoostDb;
@@ -414,14 +380,11 @@ class JustAudioPlaybackService
         : null;
     _requireCurrentPlayback(request);
     final gain = fixedGain ?? manifestGain ?? measuredGain ?? _fallbackGainDb;
-    final linearGain = math.pow(10.0, math.min(gain, 0.0) / 20.0).toDouble();
     // Reset attenuation even if this source cannot be measured, including
     // injected players without an Android effect pipeline.
-    if (_activeViaNativeStream) {
-      await _iosStreamingPlayer!.setVolume(linearGain);
-    } else {
-      await _player.setVolume(linearGain);
-    }
+    await _player.setVolume(
+      math.pow(10.0, math.min(gain, 0.0) / 20.0).toDouble(),
+    );
     _requireCurrentPlayback(request);
     await _androidLoudnessEnhancer?.setTargetGain(math.max(gain, 0.0));
     _requireCurrentPlayback(request);
@@ -624,12 +587,7 @@ class JustAudioPlaybackService
       final recovering = _iosPauseFailed;
       if (forcePause || request?.playbackInvoked == true || recovering) {
         try {
-          if (_activeViaNativeStream) {
-            await _iosStreamingPlayer?.stop();
-            _activeViaNativeStream = false;
-          } else {
-            await _player.pause();
-          }
+          await _player.pause();
           _iosPauseFailed = false;
         } catch (_) {
           _iosPauseFailed = true;
@@ -707,10 +665,6 @@ class JustAudioPlaybackService
   }
 
   Future<void> _startPlayback(_PlaybackRequest request) async {
-    if (_activeViaNativeStream) {
-      await _startNativeStreamPlayback(request);
-      return;
-    }
     final started = Completer<void>();
     started.future.ignore();
     late final StreamSubscription<Duration> positionSubscription;
@@ -768,32 +722,7 @@ class JustAudioPlaybackService
     }
   }
 
-  /// Plays [_pendingNativeStreamUri] through the native
-  /// AVAssetResourceLoaderDelegate-backed bridge instead of just_audio (see
-  /// `_setSource`). Each call replaces the native player's current item, so
-  /// this always starts at position zero; there is no rewind-on-replay
-  /// equivalent to `_rewindCompletedPlayback` to perform first.
-  Future<void> _startNativeStreamPlayback(_PlaybackRequest request) async {
-    final player = _iosStreamingPlayer!;
-    final uri = _pendingNativeStreamUri;
-    if (uri == null) {
-      throw const PlaybackException('Không có nguồn âm thanh để phát.');
-    }
-    await request.wait(player.setRate(_playbackRate));
-    _requireCurrentPlayback(request);
-    request.playbackInvoked = true;
-    // Covers the whole lifetime of this request, not just the start-up
-    // awaited below: a mid-stream failure after playback has already begun
-    // must stop playback and release its lease the same way a just_audio
-    // error does (compare the errorSubscription wiring in play()).
-    request.nativeErrorSubscription = player.errorStream.listen((_) {
-      if (!request.isCancelled) _handleIosPlaybackFailure(request);
-    });
-    await request.wait(player.play(uri));
-  }
-
   Future<void> _rewindCompletedPlayback() async {
-    if (_activeViaNativeStream) return;
     final duration = _player.duration;
     final reachedEnd =
         duration != null &&
@@ -848,24 +777,15 @@ class JustAudioPlaybackService
   }
 
   @override
-  Stream<bool> get playingStream {
-    final browserPlayback = _browserPlayback;
-    if (browserPlayback != null) return browserPlayback.playingStream;
-    final justAudioPlaying = _player.playerStateStream
-        .map(
-          (state) =>
-              state.playing &&
-              state.processingState != ProcessingState.completed,
-        )
-        .distinct()
-        .where((_) => !_activeViaNativeStream);
-    final nativeStreamingPlayer = _iosStreamingPlayer;
-    if (nativeStreamingPlayer == null) return justAudioPlaying;
-    return mergeBroadcastStreams(
-      justAudioPlaying,
-      nativeStreamingPlayer.playingStream.where((_) => _activeViaNativeStream),
-    );
-  }
+  Stream<bool> get playingStream =>
+      _browserPlayback?.playingStream ??
+      _player.playerStateStream
+          .map(
+            (state) =>
+                state.playing &&
+                state.processingState != ProcessingState.completed,
+          )
+          .distinct();
 
   @override
   Stream<Duration> get positionStream =>
@@ -924,7 +844,7 @@ class JustAudioPlaybackService
       playing: _player.playing,
       duration: _player.duration,
     );
-    final justAudioCompletion = _player.playerStateStream
+    return _player.playerStateStream
         .where(
           (state) => tracker.observe(
             processingState: state.processingState,
@@ -933,16 +853,7 @@ class JustAudioPlaybackService
             duration: _player.duration,
           ),
         )
-        .map((_) {})
-        .where((_) => !_activeViaNativeStream);
-    final nativeStreamingPlayer = _iosStreamingPlayer;
-    if (nativeStreamingPlayer == null) return justAudioCompletion;
-    return mergeBroadcastStreams(
-      justAudioCompletion,
-      nativeStreamingPlayer.completionStream.where(
-        (_) => _activeViaNativeStream,
-      ),
-    );
+        .map((_) {});
   }
 
   @override
@@ -983,31 +894,39 @@ class JustAudioPlaybackService
 
   Future<void> _setSource(Uri uri) async {
     if (uri.isScheme('asset')) {
-      _activeViaNativeStream = false;
       await _refreshAssetCacheOnce();
       final assetPath = uri.path.startsWith('/')
           ? uri.path.substring(1)
           : uri.path;
       await _player.setAsset(assetPath).timeout(const Duration(seconds: 8));
     } else if (uri.isScheme('file')) {
-      _activeViaNativeStream = false;
       await _player
           .setFilePath(uri.toFilePath())
           .timeout(const Duration(seconds: 8));
-    } else if (_iosStreamingPlayer != null) {
-      // A network URI, i.e. a live TTS stream not yet downloaded to a local
-      // file (anything already verified/cached was resolved to a file: URI
-      // before _setSource was ever called). The native bridge loads and
-      // plays it directly in _startPlayback; nothing to load here yet, so a
-      // preload() call for a URI that lands here gives no head start (unlike
-      // asset/file, where setAsset/setFilePath already begin buffering). The
-      // one caller that matters for this fix, play(), is unaffected.
-      _activeViaNativeStream = true;
-      _pendingNativeStreamUri = uri;
     } else {
-      _activeViaNativeStream = false;
-      await _player.setUrl(uri.toString()).timeout(const Duration(seconds: 8));
+      await _player
+          .setUrl(_iosStreamingUri(uri).toString())
+          .timeout(const Duration(seconds: 8));
     }
+  }
+
+  /// A live TTS stream (no Content-Length, still being synthesized) makes
+  /// AVPlayer fail with AVFoundationErrorDomain -11850 ("Operation Stopped").
+  /// The backend re-wraps that same response as CAF instead, which has an
+  /// official "length not known yet" convention WAV lacks, when asked with
+  /// this unsigned query parameter (see rewrapWavStreamAsCaf server-side).
+  /// Android/ExoPlayer has no CAF support at all, so this must stay iOS-only;
+  /// a URI that already carries its own `format` (none do today) is left
+  /// alone rather than overridden.
+  static Uri _iosStreamingUri(Uri uri) {
+    if (kIsWeb ||
+        defaultTargetPlatform != TargetPlatform.iOS ||
+        uri.queryParameters.containsKey('format')) {
+      return uri;
+    }
+    return uri.replace(
+      queryParameters: {...uri.queryParameters, 'format': 'caf'},
+    );
   }
 
   Future<void> _queueSource(Future<void> Function() operation) {
@@ -1423,7 +1342,6 @@ class JustAudioPlaybackService
       await focusLease?.release();
     }
     await _browserPlayback?.dispose();
-    await _iosStreamingPlayer?.stop();
     // just_audio attaches session listeners asynchronously during construction.
     // Let that initialization settle before closing its derived event streams.
     await _audioSession;
@@ -1451,7 +1369,6 @@ class _PlaybackRequest {
   String? iosPlaybackToken;
   StreamSubscription<void>? completionSubscription;
   StreamSubscription<PlayerEvent>? errorSubscription;
-  StreamSubscription<IosStreamingAudioPlayerException>? nativeErrorSubscription;
 
   bool get isCancelled => _cancelled.isCompleted;
 
@@ -1461,8 +1378,6 @@ class _PlaybackRequest {
     completionSubscription = null;
     unawaited(errorSubscription?.cancel());
     errorSubscription = null;
-    unawaited(nativeErrorSubscription?.cancel());
-    nativeErrorSubscription = null;
     turnCancellation.cancel();
     _cancelled.complete();
   }

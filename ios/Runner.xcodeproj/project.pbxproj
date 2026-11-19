@@ -25,7 +25,6 @@
 		A11CE0172F00000100000001 /* IOSSpeechRecognizerBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0182F00000100000001 /* IOSSpeechRecognizerBridge.swift */; };
 		A11CE0192F00000100000001 /* IOSAudioSessionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE01A2F00000100000001 /* IOSAudioSessionCoordinator.swift */; };
 		A11CE01B2F00000100000001 /* BackgroundLearningBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE01C2F00000100000001 /* BackgroundLearningBridge.swift */; };
-		A11CE01D2F00000100000001 /* StreamingAudioBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE01E2F00000100000001 /* StreamingAudioBridge.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -81,7 +80,6 @@
 		A11CE0182F00000100000001 /* IOSSpeechRecognizerBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSSpeechRecognizerBridge.swift; sourceTree = "<group>"; };
 		A11CE01A2F00000100000001 /* IOSAudioSessionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSAudioSessionCoordinator.swift; sourceTree = "<group>"; };
 		A11CE01C2F00000100000001 /* BackgroundLearningBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundLearningBridge.swift; sourceTree = "<group>"; };
-		A11CE01E2F00000100000001 /* StreamingAudioBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamingAudioBridge.swift; sourceTree = "<group>"; };
 		CB7C9641D6630BF06DBED050 /* libPods-RunnerTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-RunnerTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CD82F803E900278EF5943D2C /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 		F839B998D2C7109BE5A382E7 /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -189,7 +187,6 @@
 				A11CE0182F00000100000001 /* IOSSpeechRecognizerBridge.swift */,
 				A11CE01A2F00000100000001 /* IOSAudioSessionCoordinator.swift */,
 				A11CE01C2F00000100000001 /* BackgroundLearningBridge.swift */,
-				A11CE01E2F00000100000001 /* StreamingAudioBridge.swift */,
 				7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 			);
@@ -422,7 +419,6 @@
 				A11CE0172F00000100000001 /* IOSSpeechRecognizerBridge.swift in Sources */,
 				A11CE0192F00000100000001 /* IOSAudioSessionCoordinator.swift in Sources */,
 				A11CE01B2F00000100000001 /* BackgroundLearningBridge.swift in Sources */,
-				A11CE01D2F00000100000001 /* StreamingAudioBridge.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */,
 			);
