@@ -13,6 +13,7 @@ import UserNotifications
   private var voicePromptBridge: VoicePromptBridge?
   private var speechRecognizerBridge: IOSSpeechRecognizerBridge?
   private var backgroundLearningBridge: BackgroundLearningBridge?
+  private var streamingAudioBridge: StreamingAudioBridge?
   private var audioSessionCoordinator: IOSAudioSessionCoordinator?
 
   override func application(
@@ -34,6 +35,7 @@ import UserNotifications
       voicePromptBridge?.dispose()
       speechRecognizerBridge?.dispose()
       backgroundLearningBridge?.dispose()
+      streamingAudioBridge?.dispose()
       audioSessionCoordinator?.dispose()
     }
     // Flutter channels are registered on the main thread. Nothing may run on
@@ -62,6 +64,7 @@ import UserNotifications
       messenger: messenger,
       audioSessionCoordinator: coordinator
     )
+    streamingAudioBridge = StreamingAudioBridge(messenger: messenger)
 
     let channel = FlutterMethodChannel(
       name: "ailingo_platform",
