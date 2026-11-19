@@ -21,9 +21,19 @@ func streamingAudioLog(_ message: String) {
 /// Standard technique: `AVURLAsset` is created with a fake scheme so
 /// `AVAssetResourceLoader` hands every load to this delegate instead of its
 /// built-in HTTP loader; the real `https` URL is recovered before the real
-/// network request is made. Every loading request is served strictly in
-/// order from a single growing buffer (range access is declared
-/// unsupported), matching how this backend actually serves the clip.
+/// network request is made.
+///
+/// Every `AVAssetResourceLoadingRequest` is held unanswered until the network
+/// response is fully downloaded, then answered all at once with the real,
+/// final byte count. AVFoundation has no documented placeholder for "length
+/// not known yet" (an estimated or -1 length both risk reproducing the same
+/// -11850 this bridge exists to avoid, or AVPlayer never recognizing the
+/// resource as finished once real data runs short of an estimate) — a true
+/// length removes that ambiguity entirely. This still starts the network
+/// request as soon as play() is called (synthesis and transfer overlap, same
+/// as true streaming), it just does not hand audio to AVPlayer until the
+/// whole clip has arrived; TTS clips this short download in well under a
+/// second once synthesis itself is done.
 final class StreamingResourceLoaderDelegate: NSObject, AVAssetResourceLoaderDelegate,
   URLSessionDataDelegate
 {
@@ -65,18 +75,14 @@ final class StreamingResourceLoaderDelegate: NSObject, AVAssetResourceLoaderDele
       loadingRequest.finishLoading(with: failure)
       return true
     }
-    if let contentType {
-      applyContentInformation(loadingRequest, contentType: contentType)
-      if loadingRequest.dataRequest == nil {
-        // A pure content-information probe needs nothing more once the real
-        // type is known; it never has bytes of its own to wait for.
-        lock.unlock()
-        loadingRequest.finishLoading()
-        return true
-      }
-    }
-    drain(loadingRequest)
     if finished {
+      // The real length is already known: answer immediately and fully,
+      // exactly like a loaded local file (see the resolved branch in
+      // didCompleteWithError below for the first time this becomes true).
+      if let contentType {
+        applyContentInformation(loadingRequest, contentType: contentType)
+      }
+      drain(loadingRequest)
       lock.unlock()
       loadingRequest.finishLoading()
       return true
@@ -131,6 +137,9 @@ final class StreamingResourceLoaderDelegate: NSObject, AVAssetResourceLoaderDele
     dataRequest.respond(with: chunk)
   }
 
+  /// Must be called with `lock` held, and only once `finished` is true: the
+  /// real, final `buffer.count` is what makes this unambiguous for
+  /// AVFoundation, unlike any estimated or unknown length.
   private func applyContentInformation(
     _ loadingRequest: AVAssetResourceLoadingRequest,
     contentType: String
@@ -138,8 +147,7 @@ final class StreamingResourceLoaderDelegate: NSObject, AVAssetResourceLoaderDele
     guard let info = loadingRequest.contentInformationRequest else { return }
     info.contentType = contentType
     info.isByteRangeAccessSupported = false
-    // contentLength is deliberately left unset: the real HTTP response never
-    // sends one for a clip still being synthesized.
+    info.contentLength = Int64(buffer.count)
   }
 
   // MARK: URLSessionDataDelegate
@@ -156,35 +164,18 @@ final class StreamingResourceLoaderDelegate: NSObject, AVAssetResourceLoaderDele
         + "contentType=\(response.mimeType ?? "nil") "
         + "contentLength=\(response.expectedContentLength)"
     )
-    let mimeType = response.mimeType ?? "audio/wav"
-    let uti = StreamingAudioBridge.utiForMimeType(mimeType)
+    // The content type is recorded now, but every loadingRequest (including
+    // a pure content-information probe) stays parked in pendingRequests
+    // until didCompleteWithError, when the real length is finally known.
     lock.lock()
-    contentType = uti
-    let requests = pendingRequests
-    let infoOnly = requests.filter { $0.dataRequest == nil }
-    pendingRequests = requests.filter { $0.dataRequest != nil }
-    for request in requests {
-      applyContentInformation(request, contentType: uti)
-    }
+    contentType = StreamingAudioBridge.utiForMimeType(response.mimeType ?? "audio/wav")
     lock.unlock()
-    for request in infoOnly {
-      // A pure content-information probe needs nothing more once the real
-      // type is known; it never has bytes of its own to wait for.
-      request.finishLoading()
-    }
     completionHandler(.allow)
   }
 
   func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
     lock.lock()
     buffer.append(data)
-    streamingAudioLog("received \(data.count) bytes, total=\(buffer.count)")
-    // drain() reads `buffer`, so it must run before unlocking, not after
-    // capturing `pendingRequests` and unlocking first (that would read
-    // `buffer` in `drain()` with no lock held, racing the next didReceive).
-    for request in pendingRequests {
-      drain(request)
-    }
     lock.unlock()
   }
 
@@ -195,15 +186,16 @@ final class StreamingResourceLoaderDelegate: NSObject, AVAssetResourceLoaderDele
     let requests = pendingRequests
     pendingRequests = []
     let totalBytes = buffer.count
-    if error == nil {
+    if error == nil, let contentType {
       for request in requests {
+        applyContentInformation(request, contentType: contentType)
         drain(request)
       }
     }
     lock.unlock()
     streamingAudioLog(
       error == nil
-        ? "network request finished, total=\(totalBytes) bytes"
+        ? "network request finished, total=\(totalBytes) bytes, answering \(requests.count) loading request(s)"
         : "network request failed: \(error!.localizedDescription)"
     )
     for request in requests {
