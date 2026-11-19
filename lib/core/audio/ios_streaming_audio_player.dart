@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 /// Event kinds reported by the native `StreamingAudioBridge` (iOS only).
@@ -84,6 +85,12 @@ class IosStreamingAudioPlayer {
   Stream<IosStreamingAudioEvent> get _rawEvents =>
       _events ??= _eventChannel
           .receiveBroadcastStream()
+          .map((raw) {
+            // Temporary: remove once the native streaming path has been
+            // confirmed working on a real device.
+            debugPrint('[StreamingAudio] raw event: $raw');
+            return raw;
+          })
           .map(IosStreamingAudioEvent.fromRaw)
           .asBroadcastStream();
 
@@ -109,14 +116,17 @@ class IosStreamingAudioPlayer {
   /// if it fails before that point. Does not itself impose a timeout; the
   /// caller already bounds this with its own playback-preparation timeout.
   Future<void> play(Uri uri) async {
+    debugPrint('[StreamingAudio] play() called with $uri');
     final startedOrFailed = Completer<void>();
     final playingSubscription = playingStream.listen((playing) {
       if (playing && !startedOrFailed.isCompleted) {
+        debugPrint('[StreamingAudio] native reported playback started');
         startedOrFailed.complete();
       }
     });
     final errorSubscription = errorStream.listen((error) {
       if (!startedOrFailed.isCompleted) {
+        debugPrint('[StreamingAudio] native reported error: $error');
         startedOrFailed.completeError(error);
       }
     });
@@ -124,6 +134,7 @@ class IosStreamingAudioPlayer {
       await _methodChannel.invokeMethod<void>('play', <String, Object>{
         'url': uri.toString(),
       });
+      debugPrint('[StreamingAudio] invokeMethod(play) returned, awaiting start');
       await startedOrFailed.future;
     } finally {
       await playingSubscription.cancel();

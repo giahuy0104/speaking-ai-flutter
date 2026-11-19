@@ -2,6 +2,13 @@ import AVFoundation
 import Flutter
 import Foundation
 
+/// Always visible in Console.app/Xcode's device log, unlike `print()` in a
+/// release-style archive build. Temporary: remove once the native streaming
+/// path has been confirmed working on a real device.
+func streamingAudioLog(_ message: String) {
+  NSLog("[StreamingAudio] %@", message)
+}
+
 /// Feeds `AVPlayer` a network audio response that has no `Content-Length` and
 /// does not support byte-range requests (a TTS clip streamed to the client
 /// while it is still being synthesized). AVPlayer's own HTTP loader rejects
@@ -47,6 +54,11 @@ final class StreamingResourceLoaderDelegate: NSObject, AVAssetResourceLoaderDele
     _ resourceLoader: AVAssetResourceLoader,
     shouldWaitForLoadingOfRequestedResource loadingRequest: AVAssetResourceLoadingRequest
   ) -> Bool {
+    streamingAudioLog(
+      "loading request: hasDataRequest=\(loadingRequest.dataRequest != nil) "
+        + "hasContentInfoRequest=\(loadingRequest.contentInformationRequest != nil) "
+        + "offset=\(loadingRequest.dataRequest.map { Int($0.currentOffset) } ?? -1)"
+    )
     lock.lock()
     if let failure {
       lock.unlock()
@@ -97,6 +109,7 @@ final class StreamingResourceLoaderDelegate: NSObject, AVAssetResourceLoaderDele
   }
 
   private func start() {
+    streamingAudioLog("starting network request: \(realUrl.absoluteString)")
     let configuration = URLSessionConfiguration.default
     configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
     let session = URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
@@ -137,6 +150,12 @@ final class StreamingResourceLoaderDelegate: NSObject, AVAssetResourceLoaderDele
     didReceive response: URLResponse,
     completionHandler: @escaping (URLSession.ResponseDisposition) -> Void
   ) {
+    let http = response as? HTTPURLResponse
+    streamingAudioLog(
+      "received response: status=\(http?.statusCode ?? -1) "
+        + "contentType=\(response.mimeType ?? "nil") "
+        + "contentLength=\(response.expectedContentLength)"
+    )
     let mimeType = response.mimeType ?? "audio/wav"
     let uti = StreamingAudioBridge.utiForMimeType(mimeType)
     lock.lock()
@@ -159,11 +178,14 @@ final class StreamingResourceLoaderDelegate: NSObject, AVAssetResourceLoaderDele
   func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
     lock.lock()
     buffer.append(data)
-    let requests = pendingRequests
-    lock.unlock()
-    for request in requests {
+    streamingAudioLog("received \(data.count) bytes, total=\(buffer.count)")
+    // drain() reads `buffer`, so it must run before unlocking, not after
+    // capturing `pendingRequests` and unlocking first (that would read
+    // `buffer` in `drain()` with no lock held, racing the next didReceive).
+    for request in pendingRequests {
       drain(request)
     }
+    lock.unlock()
   }
 
   func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
@@ -172,12 +194,22 @@ final class StreamingResourceLoaderDelegate: NSObject, AVAssetResourceLoaderDele
     failure = error
     let requests = pendingRequests
     pendingRequests = []
+    let totalBytes = buffer.count
+    if error == nil {
+      for request in requests {
+        drain(request)
+      }
+    }
     lock.unlock()
+    streamingAudioLog(
+      error == nil
+        ? "network request finished, total=\(totalBytes) bytes"
+        : "network request failed: \(error!.localizedDescription)"
+    )
     for request in requests {
       if let error {
         request.finishLoading(with: error)
       } else {
-        drain(request)
         request.finishLoading()
       }
     }
@@ -273,8 +305,10 @@ final class StreamingAudioBridge: NSObject, FlutterStreamHandler {
 
   /// Must run on the main thread: `AVPlayer`/KVO are not thread-safe.
   private func play(url: URL) {
+    streamingAudioLog("play requested: \(url.absoluteString)")
     stop()
     guard let fakeUrl = StreamingResourceLoaderDelegate.fakeUrl(for: url) else {
+      streamingAudioLog("could not build a fake-scheme URL, aborting")
       send(["type": "error", "code": -1, "message": "Invalid streaming URL"])
       return
     }
@@ -288,7 +322,9 @@ final class StreamingAudioBridge: NSObject, FlutterStreamHandler {
     self.player = player
 
     statusObservation = item.observe(\.status, options: [.new]) { [weak self] observedItem, _ in
-      guard let self, observedItem.status == .failed else { return }
+      guard let self else { return }
+      streamingAudioLog("AVPlayerItem.status -> \(observedItem.status.rawValue)")
+      guard observedItem.status == .failed else { return }
       let error = observedItem.error
       self.send([
         "type": "error",
@@ -297,6 +333,7 @@ final class StreamingAudioBridge: NSObject, FlutterStreamHandler {
       ])
     }
     rateObservation = player.observe(\.timeControlStatus, options: [.new]) { [weak self] observedPlayer, _ in
+      streamingAudioLog("AVPlayer.timeControlStatus -> \(observedPlayer.timeControlStatus.rawValue)")
       self?.send(["type": "playing", "value": observedPlayer.timeControlStatus == .playing])
     }
     endObserver = NotificationCenter.default.addObserver(
