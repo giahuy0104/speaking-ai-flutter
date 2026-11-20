@@ -625,7 +625,7 @@ class MainVoiceAssistantFlow {
       _isSpeakingChoice(normalized) ||
           _isTopicChoice(normalized) ||
           _isVocabularyChoice(normalized) ||
-          _isTranslationChoice(normalized) ||
+          _isMenuTranslationChoice(normalized) ||
           _wrappedFeatureChoice(normalized) != null,
     MainVoiceAssistantStage.chooseOtherLearning =>
       _isTopicChoice(normalized) ||
@@ -634,13 +634,13 @@ class MainVoiceAssistantFlow {
     MainVoiceAssistantStage.chooseModuleSwitch =>
       _isTopicChoice(normalized) ||
           _isVocabularyChoice(normalized) ||
-          _isTranslationChoice(normalized),
+          _isMenuTranslationChoice(normalized),
     MainVoiceAssistantStage.chooseAfterTranslationStop =>
       _isTopicChoice(normalized) ||
           _isVocabularyChoice(normalized) ||
           _isContinueTranslationChoice(normalized),
     MainVoiceAssistantStage.chooseAlternativeAfterLearning =>
-      _isVocabularyChoice(normalized) || _isTranslationChoice(normalized),
+      _isVocabularyChoice(normalized) || _isMenuTranslationChoice(normalized),
     MainVoiceAssistantStage.chooseVocabularyCollection =>
       _isParentVocabularyChoice(normalized) ||
           _isReviewVocabularyChoice(normalized) ||
@@ -915,7 +915,7 @@ class MainVoiceAssistantFlow {
         wrapped == VoiceNavigationDestination.topics) {
       return _beginConfiguredTopicSelection(recognizedText);
     }
-    if (_isTranslationChoice(normalized) ||
+    if (_isMenuTranslationChoice(normalized) ||
         wrapped == VoiceNavigationDestination.conversation) {
       return _beginContinuousTranslation(recognizedText);
     }
@@ -1111,7 +1111,7 @@ class MainVoiceAssistantFlow {
         matchedPhrase: 'hoc tu vung',
       );
     }
-    if (_isTranslationChoice(normalized)) {
+    if (_isMenuTranslationChoice(normalized)) {
       return _beginContinuousTranslation(recognizedText);
     }
     if (_isSpeakingChoice(normalized)) {
@@ -1380,7 +1380,7 @@ class MainVoiceAssistantFlow {
         destination: VoiceNavigationDestination.vocabulary,
       );
     }
-    if (_isTranslationChoice(normalized)) {
+    if (_isMenuTranslationChoice(normalized)) {
       return _switchFromActiveLearning(
         recognizedText: recognizedText,
         destination: VoiceNavigationDestination.conversation,
@@ -1962,7 +1962,7 @@ class MainVoiceAssistantFlow {
       _containsPhrase(normalized, 'hoc tinh huong') ||
       // Every approved Translate phrase opens the same translation mode, so
       // "Mình muốn dịch" is as final as "Dịch sang tiếng Anh".
-      _isTranslationChoice(normalized) ||
+      _isMenuTranslationChoice(normalized) ||
       _wrappedFeatureChoice(normalized) ==
           VoiceNavigationDestination.conversation ||
       _containsPhrase(normalized, 'luyen noi') ||
@@ -2181,7 +2181,51 @@ class MainVoiceAssistantFlow {
 
   static bool _isContinueTranslationChoice(String normalized) =>
       MasterNavigationContract.matches('CONTINUE_TRANSLATE', normalized) ||
-      _isTranslationChoice(normalized);
+      _isMenuTranslationChoice(normalized);
+
+  /// In a feature menu any sentence with the word "dịch" opens Translate, so
+  /// a child need not say an exact approved phrase. Active learning keeps the
+  /// exact list: lesson and vocabulary answers must never leave the module.
+  static bool _isMenuTranslationChoice(String normalized) =>
+      _isTranslationChoice(normalized) || _mentionsTranslation(normalized);
+
+  /// "dịch" anywhere, unless the sentence refuses it ("không dịch nữa",
+  /// "dừng dịch") or also names another feature ("dịch hay học chủ đề"),
+  /// which MAIN re-asks rather than guessing.
+  static bool _mentionsTranslation(String normalized) {
+    if (!_containsPhrase(normalized, 'dich')) return false;
+    final words = normalized.split(' ');
+    if (words.any(_translationRefusalWords.contains)) return false;
+    return !_otherFeatureWords.any(
+      (phrase) => _containsPhrase(normalized, phrase),
+    );
+  }
+
+  // Normalized: "dừng" and "đừng" are both "dung".
+  static const Set<String> _translationRefusalWords = {
+    'khong',
+    'ko',
+    'hong',
+    'chang',
+    'dung',
+    'ngung',
+    'thoi',
+    'thoat',
+    'nghi',
+    'tat',
+  };
+
+  static const List<String> _otherFeatureWords = [
+    'chu de',
+    'topic',
+    'tu vung',
+    'tu moi',
+    'bo tu',
+    'hoc tu',
+    'ngoi sao',
+    'ba me',
+    'on lai',
+  ];
 
   static bool _isNextSentenceChoice(String normalized) =>
       _containsPhrase(normalized, 'tiep theo') ||

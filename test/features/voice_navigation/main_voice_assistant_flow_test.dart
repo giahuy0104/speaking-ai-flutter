@@ -504,6 +504,64 @@ void main() {
   );
 
   test(
+    'every MAIN menu opens Translate from any sentence with "dịch"',
+    () async {
+      for (final begin in <void Function(MainVoiceAssistantFlow)>[
+        (flow) => flow.begin(),
+        (flow) => flow.beginAfterTranslationStop(),
+        (flow) => flow.beginOtherLearning(),
+      ]) {
+        for (final phrase in <String>[
+          'HOMI ơi mình muốn dịch một câu nè',
+          'Bạn dịch giùm tớ với',
+          'Dịch sang tiếng Trung',
+          'Dịch qua tiếng Nhật giúp mình nha',
+          'Tớ muốn chơi dịch',
+        ]) {
+          final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
+          begin(flow);
+          final stage = flow.stage;
+          expect(flow.canHandle(phrase), isTrue, reason: '$stage: $phrase');
+          expect(
+            flow.canHandlePartial(phrase),
+            isTrue,
+            reason: '$stage: $phrase',
+          );
+          final turn = await flow.handle(phrase);
+          expect(
+            turn.navigationAfterPrompt?.destination,
+            VoiceNavigationDestination.conversation,
+            reason: '$stage: $phrase',
+          );
+        }
+      }
+
+      // A refusal or a second feature still re-asks instead of guessing.
+      for (final phrase in <String>[
+        'Mình không muốn dịch',
+        'Đừng dịch nữa',
+        'Hổng dịch đâu',
+        'Dịch hay học chủ đề',
+        'Mình muốn dịch rồi học từ vựng',
+      ]) {
+        final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
+        flow.begin();
+        expect(flow.canHandlePartial(phrase), isFalse, reason: phrase);
+        final turn = await flow.handle(phrase);
+        expect(turn.navigationAfterPrompt, isNull, reason: phrase);
+        expect(turn.navigationBeforePrompt, isNull, reason: phrase);
+      }
+    },
+  );
+
+  test('active learning keeps the exact Translate phrase list', () {
+    final flow = MainVoiceAssistantFlow(contentLoader: _loadContent)
+      ..beginActiveLearning(kind: ActiveLearningModuleKind.listeningLesson);
+    expect(flow.canHandle('Bạn dịch giùm tớ với'), isFalse);
+    expect(flow.canHandle('Mình muốn dịch'), isTrue);
+  });
+
+  test(
     'Home accepts an approved feature phrase with lead-in or particle',
     () async {
       for (final entry in <String, VoiceNavigationDestination>{
@@ -1262,10 +1320,16 @@ void main() {
         flow.beginOtherLearning(fromVocabulary: true),
         MainVoiceAssistantFlow.vocabularyOtherLearningPrompt,
       );
-      expect(flow.currentPromptAudioKey, MainAssistantAudioKeys.chooseTranslation);
+      expect(
+        flow.currentPromptAudioKey,
+        MainAssistantAudioKeys.chooseTranslation,
+      );
       expect(flow.canHandle('Bộ từ vựng'), isTrue);
       final vocabulary = await flow.handle('Bộ từ vựng');
-      expect(vocabulary.promptAudioKey, MainAssistantAudioKeys.switchedToVocabulary);
+      expect(
+        vocabulary.promptAudioKey,
+        MainAssistantAudioKeys.switchedToVocabulary,
+      );
       expect(
         vocabulary.navigationAfterPrompt?.destination,
         VoiceNavigationDestination.vocabulary,
