@@ -35,11 +35,20 @@ jobs:
       - uses: actions/checkout@v7
       - run: flutter --version && xcodebuild -version
       - run: flutter pub get
-      - name: Apply the App Store profile to the Xcode project
-        # codemagic-cli-tools matches profiles against certificates in the default keychain only,
-        # and flutter build ipa's own signing check also looks at the default keychain, so the
-        # signing keychain stays the default across this step AND the build step; it's restored
-        # to the login keychain in a final `if: always()` step instead of on this step's exit.
+      - name: Apply the profile and build the signed IPA
+        # Keychain unlock / search-list state on this self-hosted runner does not reliably survive
+        # between separate `run:` steps (each is its own shell process, and the runner has no stable
+        # login-session keychain context), so signing setup and the build run in ONE step/process -
+        # that's what makes the identity still resolvable by `flutter build ipa`'s own signing check.
+        #
+        # codemagic-cli-tools matches profiles against certificates in the default keychain only, so
+        # the signing keychain is made the default here and restored in a final `if: always()` step.
+        #
+        # Same dart-defines as the Codemagic ios-app-store workflow; the build number is one past
+        # the latest TestFlight build, like the manual TestFlight recipe. The api-dev choice only
+        # overrides BACKEND_BASE_URL: a later --dart-define wins over the defines file.
+        env:
+          BACKEND_CHOICE: ${{ inputs.backend || 'production' }}
         run: |
           KC=~/Library/Keychains/homi-signing.keychain-db
           KC_PASS="$(cat ~/.appstoreconnect/homi/kc_pass)"
@@ -53,13 +62,6 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KC_PASS" "$KC"
           security default-keychain -s "$KC"
           xcode-project use-profiles --project ios/Runner.xcodeproj --export-options-plist "$RUNNER_TEMP/export_options.plist"
-      - name: Build the signed IPA
-        # Same dart-defines as the Codemagic ios-app-store workflow; the build number is one past
-        # the latest TestFlight build, like the manual TestFlight recipe. The api-dev choice only
-        # overrides BACKEND_BASE_URL: a later --dart-define wins over the defines file.
-        env:
-          BACKEND_CHOICE: ${{ inputs.backend || 'production' }}
-        run: |
           source ~/.appstoreconnect/homi/env.sh
           case "$BACKEND_CHOICE" in
             production) BACKEND_BASE_URL=https://api.hoamytech.com ;;
