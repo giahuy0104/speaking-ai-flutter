@@ -83,22 +83,6 @@ jobs:
           # project's own cert/profile matching had succeeded. Apply profiles AFTER pods, last.
           python3 tool/prepare_ios_translation_pods.py device
           xcode-project use-profiles --project ios/Runner.xcodeproj --export-options-plist "$RUNNER_TEMP/export_options.plist"
-          echo "::group::DEVELOPMENT_TEAM in project.pbxproj after use-profiles"
-          grep -n "DEVELOPMENT_TEAM" ios/Runner.xcodeproj/project.pbxproj || echo "(no DEVELOPMENT_TEAM key at all)"
-          echo "::endgroup::"
-          # xcode-project use-profiles writes DEVELOPMENT_TEAM = ""; directly into the pbxproj's build
-          # configurations when it sets up manual signing, which overrides (takes precedence over) the
-          # DEVELOPMENT_TEAM we set in Release.xcconfig - an xcconfig only supplies a default that an
-          # explicit pbxproj-level setting overrides. Force the real team id back in after use-profiles.
-          sed -i '' 's/DEVELOPMENT_TEAM = [^;]*;/DEVELOPMENT_TEAM = 9NKWT6X4PS;/' ios/Runner.xcodeproj/project.pbxproj
-          echo "::group::DEVELOPMENT_TEAM in project.pbxproj after the sed fix"
-          grep -n "DEVELOPMENT_TEAM" ios/Runner.xcodeproj/project.pbxproj || echo "(no DEVELOPMENT_TEAM key at all)"
-          echo "::endgroup::"
-          echo "::group::Actual resolved build settings xcodebuild/flutter would see"
-          xcodebuild -showBuildSettings -workspace ios/Runner.xcworkspace -scheme Runner -configuration Release \
-            -destination 'generic/platform=iOS' 2>&1 \
-            | grep -E "DEVELOPMENT_TEAM|CODE_SIGN_STYLE|PROVISIONING_PROFILE|CODE_SIGN_IDENTITY|error:" || true
-          echo "::endgroup::"
           BUILD_NUMBER=$(( $(app-store-connect get-latest-testflight-build-number 6804089228) + 1 ))
           echo "BUILD_NUMBER=$BUILD_NUMBER" >> "$GITHUB_ENV"
           echo "ARTIFACT_NAME=homi-ios-$BUILD_NUMBER-$BACKEND_CHOICE-${GITHUB_REF_NAME//\//-}-${GITHUB_SHA::8}" >> "$GITHUB_ENV"
