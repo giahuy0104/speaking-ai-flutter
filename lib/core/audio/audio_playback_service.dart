@@ -904,8 +904,29 @@ class JustAudioPlaybackService
           .setFilePath(uri.toFilePath())
           .timeout(const Duration(seconds: 8));
     } else {
-      await _player.setUrl(uri.toString()).timeout(const Duration(seconds: 8));
+      await _player
+          .setUrl(_iosStreamingUri(uri).toString())
+          .timeout(const Duration(seconds: 8));
     }
+  }
+
+  /// A live TTS stream (no Content-Length, still being synthesized) makes
+  /// AVPlayer fail with AVFoundationErrorDomain -11850 ("Operation Stopped").
+  /// The backend re-wraps that same response as CAF instead, which has an
+  /// official "length not known yet" convention WAV lacks, when asked with
+  /// this unsigned query parameter (see rewrapWavStreamAsCaf server-side).
+  /// Android/ExoPlayer has no CAF support at all, so this must stay iOS-only;
+  /// a URI that already carries its own `format` (none do today) is left
+  /// alone rather than overridden.
+  static Uri _iosStreamingUri(Uri uri) {
+    if (kIsWeb ||
+        defaultTargetPlatform != TargetPlatform.iOS ||
+        uri.queryParameters.containsKey('format')) {
+      return uri;
+    }
+    return uri.replace(
+      queryParameters: {...uri.queryParameters, 'format': 'caf'},
+    );
   }
 
   Future<void> _queueSource(Future<void> Function() operation) {
