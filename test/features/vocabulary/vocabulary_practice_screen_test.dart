@@ -1642,6 +1642,8 @@ void main() {
 
     await tester.tap(find.byIcon(Icons.arrow_back_rounded));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocabulary-exit-confirm-exit')));
+    await tester.pumpAndSettle();
     await tester.pump(PraiseFireworks.displayDuration);
 
     expect(find.byType(VocabularyPracticeScreen), findsNothing);
