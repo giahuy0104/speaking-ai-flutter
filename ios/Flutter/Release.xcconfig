@@ -1,2 +1,13 @@
 #include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
 #include "Generated.xcconfig"
+
+// flutter build ipa's own pre-archive signing check (getCodeSigningIdentityDevelopmentTeamBuildSetting
+// in flutter_tools/lib/src/ios/code_signing.dart) only skips its "find a development identity" search
+// when DEVELOPMENT_TEAM is already non-empty in the build settings; otherwise it falls through to
+// `security find-identity`, whose result it filters with a regex requiring "Develop(ment|er)" in the
+// certificate's CN - our "Apple Distribution" cert never matches that, so it always reports "No valid
+// code signing certificates were found" even though xcode-project use-profiles had already configured
+// manual signing correctly with that exact certificate. Setting DEVELOPMENT_TEAM here is enough to make
+// Flutter skip that broken check; xcode-project use-profiles still supplies the actual signing identity
+// and provisioning profile via PROVISIONING_PROFILE_SPECIFIER.
+DEVELOPMENT_TEAM = 9NKWT6X4PS
