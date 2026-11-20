@@ -77,6 +77,10 @@ jobs:
             echo "No valid Apple Distribution identity in the keychain search list" >&2
             exit 1
           fi
+          security find-identity -p codesigning -v
+          xcodebuild -showBuildSettings -workspace ios/Runner.xcworkspace -scheme Runner \
+            -configuration Release -sdk iphoneos 2>&1 \
+            | grep -E "error|DEVELOPMENT_TEAM|PROVISIONING_PROFILE|CODE_SIGN_(STYLE|IDENTITY)" || true
           flutter build ipa --release --build-number="$BUILD_NUMBER" \
             --export-options-plist="$RUNNER_TEMP/export_options.plist" \
             --dart-define-from-file=dart_defines.production.json \
