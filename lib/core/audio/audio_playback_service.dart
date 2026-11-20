@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:just_audio/just_audio.dart';
 
 import 'audio_diagnostics.dart';
@@ -16,6 +17,8 @@ import 'browser_audio_playback_factory.dart';
 import 'device_audio_cache.dart';
 import 'just_audio_asset_cache_directory.dart';
 import 'remote_audio_catalog.dart';
+import 'streamed_wav_playback.dart';
+import 'streamed_wav_source.dart';
 
 class PlaybackStartMetrics {
   const PlaybackStartMetrics({
@@ -175,6 +178,7 @@ class JustAudioPlaybackService
     AudioTurnCoordinator? audioTurnCoordinator,
     AudioTurnOwner audioTurnOwner = AudioTurnOwner.legacy,
     bool manageIosAudioSession = false,
+    @visibleForTesting http.Client Function()? streamedWavClient,
   }) {
     final defaults = player == null
         ? _createDefaultPlayer(manageIosAudioSession: manageIosAudioSession)
@@ -186,6 +190,7 @@ class JustAudioPlaybackService
       audioTurnCoordinator: audioTurnCoordinator,
       audioTurnOwner: audioTurnOwner,
       manageIosAudioSession: manageIosAudioSession,
+      streamedWavClient: streamedWavClient,
     );
   }
 
@@ -196,6 +201,7 @@ class JustAudioPlaybackService
     AudioTurnCoordinator? audioTurnCoordinator,
     required AudioTurnOwner audioTurnOwner,
     required bool manageIosAudioSession,
+    http.Client Function()? streamedWavClient,
   }) : _cache = cache ?? DeviceAudioCache(),
        _ownsCache = cache == null,
        _browserPlayback = createBrowserAudioPlayback(),
@@ -203,7 +209,8 @@ class JustAudioPlaybackService
        _androidLoudnessEnhancer = androidLoudnessEnhancer,
        _audioTurnCoordinator = audioTurnCoordinator,
        _audioTurnOwner = audioTurnOwner,
-       _manageIosAudioSession = manageIosAudioSession {
+       _manageIosAudioSession = manageIosAudioSession,
+       _streamedWavClient = streamedWavClient {
     _audioSession = AudioSession.instance;
     if (audioTurnCoordinator != null && kIsWeb) {
       _audioTurnCompletionSubscription = completionStream.listen((_) {
@@ -291,6 +298,16 @@ class JustAudioPlaybackService
   _PlaybackRequest? _playbackRequest;
   final Map<Uri, ({String sha256, int maximumBytes})> _integrity = {};
   bool _disposed = false;
+
+  /// Android only: the live backend speech currently loaded through the
+  /// loopback server (see [StreamedWavPlayback]), and the timer that pauses
+  /// the player once its real sound has played.
+  final http.Client Function()? _streamedWavClient;
+  StreamedWavPlayback? _streamedWav;
+  Timer? _streamedWavMonitor;
+  static const Duration _streamedWavMonitorInterval = Duration(
+    milliseconds: 100,
+  );
 
   @override
   Future<void> setPlaybackGainDb(double gainDb) async {
@@ -723,6 +740,15 @@ class JustAudioPlaybackService
   }
 
   Future<void> _rewindCompletedPlayback() async {
+    final streamed = _streamedWav;
+    if (streamed != null && streamed.ended) {
+      // Paused at its real end, far before the ~24.8 h the player believes:
+      // neither check below sees it as finished, so rewind it explicitly.
+      streamed.ended = false;
+      if (_player.playing) await _player.pause();
+      await _player.seek(Duration.zero);
+      return;
+    }
     final duration = _player.duration;
     final reachedEnd =
         duration != null &&
@@ -851,10 +877,15 @@ class JustAudioPlaybackService
             playing: state.playing,
             position: _player.position,
             duration: _player.duration,
+            streamedEnd: _streamedWavEnded,
           ),
         )
         .map((_) {});
   }
+
+  /// The loaded live speech stream was paused at its real end by
+  /// [_startStreamedWavMonitor]; that pause is the clip's completion.
+  bool get _streamedWavEnded => _streamedWav?.ended == true;
 
   @override
   Stream<void> completionStreamForNextPlay(Uri uri) {
@@ -887,12 +918,15 @@ class JustAudioPlaybackService
             playing: event.playing,
             position: event.playbackEvent.updatePosition,
             duration: event.playbackEvent.duration,
+            streamedEnd: _streamedWavEnded,
           );
         })
         .map((_) {});
   }
 
   Future<void> _setSource(Uri uri) async {
+    // Any new source replaces the live stream that was loaded before it.
+    _closeStreamedWav();
     if (uri.isScheme('asset')) {
       await _refreshAssetCacheOnce();
       final assetPath = uri.path.startsWith('/')
@@ -904,8 +938,135 @@ class JustAudioPlaybackService
           .setFilePath(uri.toFilePath())
           .timeout(const Duration(seconds: 8));
     } else {
-      await _player.setUrl(uri.toString()).timeout(const Duration(seconds: 8));
+      final streamed = await _openStreamedWav(uri);
+      if (streamed != null) {
+        _streamedWav = streamed;
+        try {
+          await _player
+              .setUrl(streamed.playerUri.toString())
+              .timeout(const Duration(seconds: 8));
+        } catch (_) {
+          _closeStreamedWav();
+          rethrow;
+        }
+        return;
+      }
+      await _player
+          .setUrl(_iosStreamingUri(uri).toString())
+          .timeout(const Duration(seconds: 8));
     }
+  }
+
+  /// Android plays the backend's live speech routes through the loopback
+  /// [StreamedWavPlayback] so a long sentence can still complete (see that
+  /// class). iOS asks for the finished file instead ([_iosStreamingUri]), and
+  /// the web plays through the browser, so neither ever takes this path.
+  static bool _usesStreamedWav(Uri uri) =>
+      !kIsWeb &&
+      defaultTargetPlatform == TargetPlatform.android &&
+      StreamedWavSource.handles(uri);
+
+  Future<StreamedWavPlayback?> _openStreamedWav(Uri uri) async {
+    if (!_usesStreamedWav(uri)) return null;
+    try {
+      return await StreamedWavPlayback.open(
+        uri,
+        client: _streamedWavClient?.call(),
+      );
+    } catch (error) {
+      // No loopback server: play the backend URL directly, as before.
+      AudioDiagnostics.event('media.streamed_wav.unavailable', {
+        'owner': _audioTurnOwner.name,
+        'error': error.toString(),
+      });
+      return null;
+    }
+  }
+
+  void _closeStreamedWav() {
+    _streamedWavMonitor?.cancel();
+    _streamedWavMonitor = null;
+    _streamedWav?.close();
+    _streamedWav = null;
+  }
+
+  /// Pauses [request]'s live speech once its real sound has played, and marks
+  /// it ended so the completion streams report that pause as its end. The
+  /// native player alone would wait for a ~24.8 hour duration.
+  void _startStreamedWavMonitor(_PlaybackRequest request) {
+    _streamedWavMonitor?.cancel();
+    _streamedWavMonitor = null;
+    final playback = _streamedWav;
+    if (playback == null) return;
+    final detector = StreamedWavEndDetector();
+    _streamedWavMonitor = Timer.periodic(_streamedWavMonitorInterval, (timer) {
+      final source = playback.source;
+      final finishedByPlayer =
+          _player.processingState == ProcessingState.completed;
+      final finishedMp3 =
+          !source.isWav && (source.isDownloaded || source.failed);
+      if (_disposed ||
+          request.isCancelled ||
+          !identical(_playbackRequest, request) ||
+          !identical(_streamedWav, playback) ||
+          finishedByPlayer ||
+          finishedMp3) {
+        // Replaced, stopped, or a clip the player completes by itself.
+        timer.cancel();
+        if (identical(_streamedWavMonitor, timer)) _streamedWavMonitor = null;
+        return;
+      }
+      final ended = detector.observe(
+        playableDuration: source.playableDuration,
+        position: _player.position,
+        playing: _player.playing,
+        now: DateTime.now(),
+      );
+      if (!ended) return;
+      timer.cancel();
+      if (identical(_streamedWavMonitor, timer)) _streamedWavMonitor = null;
+      unawaited(_finishStreamedWav(playback));
+    });
+  }
+
+  Future<void> _finishStreamedWav(StreamedWavPlayback playback) async {
+    final source = playback.source;
+    debugPrint(
+      '{"event":"streamed_wav_ended",'
+      '"playableMs":${source.playableDuration?.inMilliseconds},'
+      '"positionMs":${_player.position.inMilliseconds},'
+      '"bytes":${source.receivedBytes},'
+      '"downloaded":${source.isDownloaded}}',
+    );
+    // Set before pausing: the state that pause emits is the completion.
+    playback.ended = true;
+    try {
+      await _player.pause();
+    } catch (error) {
+      AudioDiagnostics.event('media.streamed_wav.pause_failed', {
+        'owner': _audioTurnOwner.name,
+        'error': error.toString(),
+      });
+    }
+  }
+
+  /// A live TTS stream (no Content-Length, still being synthesized) makes
+  /// AVPlayer fail with AVFoundationErrorDomain -11850 ("Operation Stopped").
+  /// The backend re-wraps that same response as CAF instead, which has an
+  /// official "length not known yet" convention WAV lacks, when asked with
+  /// this unsigned query parameter (see rewrapWavStreamAsCaf server-side).
+  /// Android/ExoPlayer has no CAF support at all, so this must stay iOS-only;
+  /// a URI that already carries its own `format` (none do today) is left
+  /// alone rather than overridden.
+  static Uri _iosStreamingUri(Uri uri) {
+    if (kIsWeb ||
+        defaultTargetPlatform != TargetPlatform.iOS ||
+        uri.queryParameters.containsKey('format')) {
+      return uri;
+    }
+    return uri.replace(
+      queryParameters: {...uri.queryParameters, 'format': 'caf'},
+    );
   }
 
   Future<void> _queueSource(Future<void> Function() operation) {
@@ -1237,6 +1398,7 @@ class JustAudioPlaybackService
             : 'Không thể bắt đầu phát câu tiếng Anh.',
       );
     }
+    _startStreamedWavMonitor(request);
 
     final startedAt = DateTime.now();
     if (!resolvedUri.isScheme('file') && remote == null) {
@@ -1325,6 +1487,7 @@ class JustAudioPlaybackService
     // Let that initialization settle before closing its derived event streams.
     await _audioSession;
     await _iosPlayerStop.catchError((_) {});
+    _closeStreamedWav();
     await _player.dispose();
     for (final token in _iosPlaybackTokens.toList()) {
       await _releaseIosPlaybackToken(token);
@@ -1416,11 +1579,15 @@ class PlaybackCompletionTracker {
   bool _currentPlaybackStarted;
   Duration? _activeDuration;
 
+  /// [streamedEnd]: the loaded live speech stream was paused at its real end
+  /// (Android, see [StreamedWavPlayback]); its player never reaches
+  /// [ProcessingState.completed], so that pause is the end signal instead.
   bool observe({
     required ProcessingState processingState,
     required bool playing,
     required Duration position,
     required Duration? duration,
+    bool streamedEnd = false,
   }) {
     if (processingState == ProcessingState.loading &&
         position == Duration.zero) {
@@ -1430,6 +1597,11 @@ class PlaybackCompletionTracker {
     }
     if (playing && processingState != ProcessingState.completed) {
       _currentPlaybackStarted = true;
+    }
+    // Like completed below, only for a playback this listener saw start: a
+    // listener armed for the next clip must not take the old clip's pause.
+    if (_currentPlaybackStarted && streamedEnd && !playing) {
+      return true;
     }
     if (_currentPlaybackStarted &&
         duration != null &&

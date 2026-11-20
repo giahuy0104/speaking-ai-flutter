@@ -3860,8 +3860,26 @@ class _AiSpeakingAppState extends State<AiSpeakingApp>
     if (_hasMainSpeakingTurnStarted &&
         (controller.phase == ConversationPhase.error ||
             turnEndReason == ConversationTurnEndReason.failed)) {
-      unawaited(_finishMainSpeakingMode(sayGoodbye: false));
-      return;
+      // A failed turn (backend could not hear the child, an offline fallback
+      // whose device voice failed, ...) must not silently end hands-free
+      // translation. Wait until the turn has finished its own prompt and
+      // released the microphone -- the controller notifies again after that
+      // cleanup -- then listen again, or exit audibly after repeated failures.
+      if (controller.isRecordingStartBlocked || controller.isPlaybackPlaying) {
+        return;
+      }
+      _hasMainSpeakingTurnStarted = false;
+      final action = _mainSpeakingSessionController.registerFailedTurn();
+      if (action == MainSpeakingFailedTurnAction.exit) {
+        unawaited(
+          _finishMainSpeakingMode(
+            sayGoodbye: true,
+            goodbyeText: 'Mình tạm dừng nhé.',
+          ),
+        );
+        return;
+      }
+      // Retry: the session is ready again, so the next turn opens below.
     }
     if (_mainSpeakingSessionController.isReady &&
         !_isStartingMainSpeakingTurn) {

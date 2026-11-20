@@ -622,6 +622,66 @@ void main() {
     },
     variant: TargetPlatformVariant({TargetPlatform.iOS}),
   );
+
+  testWidgets(
+    'a failed continuous turn listens again and ends the session only after '
+    'repeated failures',
+    (tester) async {
+      final app = await _pumpApp(tester, grantPrivacy: true);
+      await app.finishStartupScans();
+      await app.emitBle('connected');
+      expect((await app.controller.connectHfpDevice(mic)).succeeded, isTrue);
+      final shell = tester.widget<HomeLearningShell>(
+        find.byType(HomeLearningShell),
+      );
+      final session = shell.speakingSessionController!;
+      await app.drain(shell.onMainSpeakingModeStarted!());
+      expect(app.controller.isRecording, isTrue);
+
+      int speechStarts() =>
+          app.speechCalls.where((call) => call.method == 'speech.start').length;
+      Future<void> failCurrentTurn() async {
+        final turnId =
+            (app.speechCalls
+                        .lastWhere((call) => call.method == 'speech.start')
+                        .arguments
+                    as Map<Object?, Object?>)['turnId'];
+        await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+          'ailingo_speech/events',
+          const StandardMethodCodec().encodeSuccessEnvelope({
+            'type': 'speech.error',
+            'turnId': turnId,
+            'code': 'RECOGNIZER_FAILED',
+            'message': 'Recognizer failed.',
+          }),
+          (_) {},
+        );
+        for (var i = 0; i < 6; i += 1) {
+          await _pumpAsync(tester);
+          await tester.pump(const Duration(milliseconds: 300));
+        }
+      }
+
+      // Each of the first two failures re-opens the microphone in the same
+      // hands-free session instead of silently leaving translation.
+      for (var retry = 1; retry <= 2; retry += 1) {
+        final startsBefore = speechStarts();
+        await failCurrentTurn();
+        expect(session.isActive, isTrue, reason: 'retry $retry');
+        expect(app.controller.isRecording, isTrue, reason: 'retry $retry');
+        expect(speechStarts(), startsBefore + 1, reason: 'retry $retry');
+      }
+
+      // A third failure in a row ends the session.
+      final startsBefore = speechStarts();
+      await failCurrentTurn();
+      expect(session.isActive, isFalse);
+      expect(app.controller.isRecording, isFalse);
+      expect(speechStarts(), startsBefore);
+      await app.close();
+    },
+    variant: TargetPlatformVariant({TargetPlatform.iOS}),
+  );
 }
 
 Future<void> _pumpAsync(WidgetTester tester) async {
