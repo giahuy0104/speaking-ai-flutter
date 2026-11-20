@@ -62,7 +62,7 @@ workflows:
       xcode: 26.6
       vars:
         BUNDLE_ID: com.innotrik.aispeaking
-        BACKEND_BASE_URL: https://api.hoamytech.com
+        BACKEND_BASE_URL: https://api-dev.hoamytech.com
         REQUIRE_BACKEND_HEALTH: "true"
         USE_DEMO_BACKEND: "false"
         CHILD_AGE: "6"
