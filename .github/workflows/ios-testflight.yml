@@ -64,23 +64,17 @@ jobs:
           BUILD_NUMBER=$(( $(app-store-connect get-latest-testflight-build-number 6804089228) + 1 ))
           echo "BUILD_NUMBER=$BUILD_NUMBER" >> "$GITHUB_ENV"
           echo "ARTIFACT_NAME=homi-ios-$BUILD_NUMBER-$BACKEND_CHOICE-${GITHUB_REF_NAME//\//-}-${GITHUB_SHA::8}" >> "$GITHUB_ENV"
-          # flutter build runs `security find-identity -p codesigning -v` against the user search
-          # list, which can be reset or relocked on the runner between steps, so set it up again in
-          # this shell and keep the keychain unlocked for the whole archive and export.
-          KC=~/Library/Keychains/homi-signing.keychain-db
-          security list-keychains -d user -s ~/Library/Keychains/login.keychain-db "$KC"
-          security unlock-keychain -p "$(cat ~/.appstoreconnect/homi/kc_pass)" "$KC"
-          security set-keychain-settings -t 7200 "$KC"
-          if ! security find-identity -p codesigning -v | grep -q "Apple Distribution"; then
-            security list-keychains -d user
-            security find-identity -p codesigning -v "$KC"
-            echo "No valid Apple Distribution identity in the keychain search list" >&2
+          # flutter build reads DEVELOPMENT_TEAM via `xcodebuild -showBuildSettings`; when that fails
+          # (e.g. the iOS platform is missing from Xcode) it misreports the problem as missing
+          # development certificates, so surface the real xcodebuild error first.
+          SETTINGS=$(xcodebuild -showBuildSettings -workspace ios/Runner.xcworkspace -scheme Runner \
+            -configuration Release -sdk iphoneos 2>&1) || true
+          if ! grep -q "DEVELOPMENT_TEAM = 9NKWT6X4PS" <<< "$SETTINGS"; then
+            grep -E "error|DEVELOPMENT_TEAM" <<< "$SETTINGS" >&2 || true
+            echo "Xcode cannot read the Runner build settings. If it reports no destinations," >&2
+            echo "install the iOS platform on the runner Mac: xcodebuild -downloadPlatform iOS" >&2
             exit 1
           fi
-          security find-identity -p codesigning -v
-          xcodebuild -showBuildSettings -workspace ios/Runner.xcworkspace -scheme Runner \
-            -configuration Release -sdk iphoneos 2>&1 \
-            | grep -E "error|DEVELOPMENT_TEAM|PROVISIONING_PROFILE|CODE_SIGN_(STYLE|IDENTITY)" || true
           flutter build ipa --release --build-number="$BUILD_NUMBER" \
             --export-options-plist="$RUNNER_TEMP/export_options.plist" \
             --dart-define-from-file=dart_defines.production.json \
