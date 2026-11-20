@@ -81,6 +81,41 @@ void main() {
     expect(controller.registerNoSpeechTurn(), MainSpeakingNoSpeechAction.retry);
   });
 
+  test('re-opens the mic after two failed turns in a row, then exits', () {
+    final controller = MainSpeakingSessionController();
+    addTearDown(controller.dispose);
+
+    controller.enter();
+    expect(controller.registerFailedTurn(), MainSpeakingFailedTurnAction.retry);
+    expect(controller.registerFailedTurn(), MainSpeakingFailedTurnAction.retry);
+    expect(controller.registerFailedTurn(), MainSpeakingFailedTurnAction.exit);
+    expect(controller.consecutiveFailedTurns, 3);
+  });
+
+  test('a successful turn or a new session resets failed turns', () {
+    final controller = MainSpeakingSessionController();
+    addTearDown(controller.dispose);
+
+    controller.enter();
+    controller.registerFailedTurn();
+    controller.registerFailedTurn();
+    controller.markSpeechTurnCompleted();
+    expect(controller.consecutiveFailedTurns, 0);
+
+    controller.registerFailedTurn();
+    controller.exit();
+    controller.enter();
+    expect(controller.consecutiveFailedTurns, 0);
+    expect(controller.registerFailedTurn(), MainSpeakingFailedTurnAction.retry);
+  });
+
+  test('an inactive session never retries a failed turn', () {
+    final controller = MainSpeakingSessionController();
+    addTearDown(controller.dispose);
+
+    expect(controller.registerFailedTurn(), MainSpeakingFailedTurnAction.exit);
+  });
+
   test(
     'physical MAIN cancels translation before opening the assistant',
     () async {

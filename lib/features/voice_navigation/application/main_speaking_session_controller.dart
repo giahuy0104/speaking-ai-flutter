@@ -12,6 +12,8 @@ enum MainSpeakingSessionState {
 
 enum MainSpeakingNoSpeechAction { retry, exit }
 
+enum MainSpeakingFailedTurnAction { retry, exit }
+
 /// Tracks the context-sensitive Main button while the child practices speech.
 ///
 /// The ten-second timeout only runs while Main is waiting to start a new turn.
@@ -21,23 +23,32 @@ class MainSpeakingSessionController extends ChangeNotifier {
     this.idleTimeout = const Duration(seconds: 10),
   });
 
+  /// Failed turns in a row (backend unclear speech, an offline fallback whose
+  /// device voice failed, ...) that re-open the microphone before the session
+  /// gives up. Failures are usually transient, so they get more room than a
+  /// silent child, but a broken route or model must not loop forever.
+  static const maxFailedTurnRetries = 2;
+
   final Duration idleTimeout;
 
   Timer? _idleTimer;
   MainSpeakingSessionState _state = MainSpeakingSessionState.inactive;
   int _consecutiveNoSpeechTurns = 0;
+  int _consecutiveFailedTurns = 0;
   bool _disposed = false;
 
   MainSpeakingSessionState get state => _state;
   bool get isActive => _state != MainSpeakingSessionState.inactive;
   bool get isReady => _state == MainSpeakingSessionState.ready;
   int get consecutiveNoSpeechTurns => _consecutiveNoSpeechTurns;
+  int get consecutiveFailedTurns => _consecutiveFailedTurns;
 
   void enter() {
     if (_disposed) {
       return;
     }
     _consecutiveNoSpeechTurns = 0;
+    _consecutiveFailedTurns = 0;
     _setState(MainSpeakingSessionState.ready, restartReadyTimeout: true);
   }
 
@@ -48,6 +59,7 @@ class MainSpeakingSessionController extends ChangeNotifier {
     _idleTimer?.cancel();
     _idleTimer = null;
     _consecutiveNoSpeechTurns = 0;
+    _consecutiveFailedTurns = 0;
     _setState(MainSpeakingSessionState.inactive);
   }
 
@@ -80,8 +92,21 @@ class MainSpeakingSessionController extends ChangeNotifier {
         : MainSpeakingNoSpeechAction.exit;
   }
 
+  /// A turn that ended in an error re-opens the microphone up to
+  /// [maxFailedTurnRetries] times in a row, then exits the session.
+  MainSpeakingFailedTurnAction registerFailedTurn() {
+    if (_disposed || !isActive) {
+      return MainSpeakingFailedTurnAction.exit;
+    }
+    _consecutiveFailedTurns += 1;
+    return _consecutiveFailedTurns <= maxFailedTurnRetries
+        ? MainSpeakingFailedTurnAction.retry
+        : MainSpeakingFailedTurnAction.exit;
+  }
+
   void markSpeechTurnCompleted() {
     _consecutiveNoSpeechTurns = 0;
+    _consecutiveFailedTurns = 0;
   }
 
   void synchronize({

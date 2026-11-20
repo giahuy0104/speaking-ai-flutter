@@ -1602,18 +1602,112 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 40));
       await controller.stopRecording(manual: true);
 
-      expect(repository.batchStarted, 1);
       expect(repository.batchSession.finalized, isTrue);
       expect(repository.batchSession.discarded, isTrue);
       expect(repository.fullFileUploads, 0);
-      expect(controller.phase, ConversationPhase.error);
-      expect(
-        controller.errorMessage,
-        'HOMI chưa nghe thấy bạn nói. Bạn nói lại nhé.',
-      );
       controller.dispose();
     },
   );
+
+  group('unclear speech (ASR_LOW_CONFIDENCE)', () {
+    const unclearMessage = 'HOMI chưa nghe thấy bạn nói. Bạn nói lại nhé.';
+
+    ({_FakeChunkedInput input, ConversationController controller})
+    createLowConfidenceController() {
+      final input = _FakeChunkedInput(
+        available: true,
+        bluetooth: false,
+        label: 'Phone',
+        emitOnStart: <int>[1, 2],
+      );
+      final repository = _FallbackRepository();
+      repository.batchSession.finalizeError = const _LowConfidenceFailure();
+      final controller = ConversationController(
+        audioInput: input,
+        playbackService: const _FakePlaybackService(),
+        repository: repository,
+        childAge: 6,
+        initialAsrMode: AsrMode.batchChunks,
+        webRuntimeOverride: true,
+        adaptiveWebUploadDelay: const Duration(milliseconds: 20),
+      );
+      return (input: input, controller: controller);
+    }
+
+    Future<void> speakAndStop(
+      _FakeChunkedInput input,
+      ConversationController controller,
+    ) async {
+      await _emitDetectedSpeech(input);
+      await Future<void>.delayed(const Duration(milliseconds: 40));
+      await controller.stopRecording(manual: true);
+    }
+
+    test('re-opens the microphone so the child can repeat', () async {
+      final (:input, :controller) = createLowConfidenceController();
+
+      await controller.startRecording();
+      await speakAndStop(input, controller);
+
+      expect(input.startCount, 2);
+      expect(controller.phase, ConversationPhase.recording);
+      expect(controller.errorMessage, isNull);
+      expect(controller.transientMessage, unclearMessage);
+      controller.dispose();
+    });
+
+    test('falls back to the Thử lại button after two re-opens in a row, '
+        'and a turn the child starts resets the limit', () async {
+      final (:input, :controller) = createLowConfidenceController();
+
+      await controller.startRecording();
+      await speakAndStop(input, controller); // re-open #1
+      await speakAndStop(input, controller); // re-open #2
+      await speakAndStop(input, controller); // limit reached
+
+      expect(input.startCount, 3);
+      expect(controller.phase, ConversationPhase.error);
+      expect(controller.errorMessage, unclearMessage);
+
+      await controller.startRecording();
+      await speakAndStop(input, controller);
+
+      expect(input.startCount, 5);
+      expect(controller.phase, ConversationPhase.recording);
+      controller.dispose();
+    });
+
+    test('a caller that owns retries (continuous translation) keeps the '
+        'microphone closed for it to decide', () async {
+      final (:input, :controller) = createLowConfidenceController();
+
+      await controller.startRecording(speakNoSpeechPrompt: false);
+      await speakAndStop(input, controller);
+
+      expect(input.startCount, 1);
+      expect(controller.phase, ConversationPhase.error);
+      expect(
+        controller.lastTurnEndReason,
+        ConversationTurnEndReason.failed,
+      );
+      expect(controller.isRecordingStartBlocked, isFalse);
+      controller.dispose();
+    });
+
+    test('push-to-talk keeps the microphone closed', () async {
+      final (:input, :controller) = createLowConfidenceController();
+
+      await controller.startPushToTalk();
+      await _emitDetectedSpeech(input);
+      await Future<void>.delayed(const Duration(milliseconds: 40));
+      await controller.stopPushToTalk();
+
+      expect(input.startCount, 1);
+      expect(controller.phase, ConversationPhase.error);
+      expect(controller.errorMessage, unclearMessage);
+      controller.dispose();
+    });
+  });
 
   test('Web technical Batch failure retains the WAV fallback', () async {
     final input = _FakeChunkedInput(

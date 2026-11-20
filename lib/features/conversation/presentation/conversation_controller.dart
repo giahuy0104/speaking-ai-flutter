@@ -424,6 +424,10 @@ class ConversationController extends ChangeNotifier
   bool _speechDetected = false;
   bool _stopOnSilence = true;
   bool _speakNoSpeechPrompt = true;
+  // Consecutive automatic microphone re-opens after the backend reported
+  // ASR_LOW_CONFIDENCE. Reset by any turn the child starts themself.
+  int _unclearSpeechAutoReopenCount = 0;
+  bool _autoReopeningMicrophone = false;
   ConversationTurnEndReason? _lastTurnEndReason;
   bool _noisyRecording = false;
   bool _usingStreamingSpeech = false;
@@ -2569,6 +2573,9 @@ class ConversationController extends ChangeNotifier
     bool speakNoSpeechPrompt = true,
     bool stopOnSilence = true,
   }) async {
+    if (!_autoReopeningMicrophone) {
+      _unclearSpeechAutoReopenCount = 0;
+    }
     if (!(_voiceDataProcessingAllowed?.call() ?? true)) {
       _setError(
         'Giọng nói đang tắt. Phụ huynh cần đồng ý xử lý dữ liệu và cấp quyền micro trong Cài đặt.',
@@ -3464,6 +3471,11 @@ class ConversationController extends ChangeNotifier
     final turnGeneration = _conversationTurnGeneration;
     final resultBeforeTurn = result;
     var publishedResultForTurn = false;
+    // Captured before cleanup: the turn's own listening mode decides whether
+    // an unclear-speech failure may re-open the microphone by itself.
+    final stopOnSilenceForTurn = _stopOnSilence;
+    final speakNoSpeechPromptForTurn = _speakNoSpeechPrompt;
+    var reopenMicrophoneAfterUnclearSpeech = false;
     _stopInProgress = true;
     _adaptiveWebUpload?.markStopRequested(manual: manual);
     _partialPreviewTimer?.cancel();
@@ -4076,7 +4088,9 @@ class ConversationController extends ChangeNotifier
         _clearPresentationResultState();
       }
       _lastTurnEndReason = ConversationTurnEndReason.failed;
-      await _handleConversationError(error);
+      reopenMicrophoneAfterUnclearSpeech = await _handleConversationError(
+        error,
+      );
     } finally {
       await _releaseConversationFocus(generation: turnGeneration);
       await stoppedAdaptiveWebUpload?.finishPreviewForwarding();
@@ -4108,6 +4122,15 @@ class ConversationController extends ChangeNotifier
           await _onRecognizedSpeechCommand?.call(command);
         }
       }
+    }
+    // Only after `finally` has released the old route and cleared
+    // `_stopInProgress`; otherwise the new turn would be blocked or torn down.
+    if (reopenMicrophoneAfterUnclearSpeech) {
+      await _reopenMicrophoneAfterUnclearSpeech(
+        failedTurnGeneration: turnGeneration,
+        stopOnSilence: stopOnSilenceForTurn,
+        speakNoSpeechPrompt: speakNoSpeechPromptForTurn,
+      );
     }
   }
 
@@ -5207,14 +5230,65 @@ class ConversationController extends ChangeNotifier
   static const _unclearSpeechMessage =
       'HOMI chưa nghe thấy bạn nói. Bạn nói lại nhé.';
 
-  Future<void> _handleConversationError(Object error) async {
+  /// Consecutive unclear-speech turns that re-open the microphone by
+  /// themselves. After this many the child gets the manual "Thử lại" button,
+  /// so a noisy room or a faulty microphone cannot keep the mic open forever.
+  static const _maxUnclearSpeechAutoReopens = 2;
+
+  /// Shows [error] to the child. Returns true when the backend could not hear
+  /// the speech (ASR_LOW_CONFIDENCE), i.e. the turn may re-open the microphone.
+  Future<bool> _handleConversationError(Object error) async {
     if (error is CodedConversationException &&
         error.errorCode == 'ASR_LOW_CONFIDENCE') {
       _setError(_unclearSpeechMessage);
       await _speakUnclearSpeechPrompt();
-      return;
+      return true;
     }
     _setError(_friendlyError(error));
+    return false;
+  }
+
+  /// After the "HOMI chưa nghe thấy bạn nói" prompt has played, listens again
+  /// so the child can simply repeat the sentence without pressing "Thử lại".
+  ///
+  /// Skipped for push-to-talk turns (the child controls the mic by holding the
+  /// button), for turns whose caller owns the retry prompts (continuous
+  /// translation starts turns with `speakNoSpeechPrompt: false` and re-opens
+  /// the mic itself), when the child or a cancellation already moved on, when
+  /// the microphone is not ready, or once the consecutive limit is reached.
+  Future<void> _reopenMicrophoneAfterUnclearSpeech({
+    required int failedTurnGeneration,
+    required bool stopOnSilence,
+    required bool speakNoSpeechPrompt,
+  }) async {
+    if (_disposed ||
+        !stopOnSilence ||
+        !speakNoSpeechPrompt ||
+        failedTurnGeneration != _conversationTurnGeneration ||
+        phase != ConversationPhase.error ||
+        !_audioInput.isAvailable ||
+        isRecordingStartBlocked ||
+        _unclearSpeechAutoReopenCount >= _maxUnclearSpeechAutoReopens) {
+      return;
+    }
+    _unclearSpeechAutoReopenCount += 1;
+    _autoReopeningMicrophone = true;
+    final Future<void> start;
+    try {
+      // The runtime enters `_startRecordingInternal` synchronously, so the
+      // flag is still set when it decides whether to reset the counter.
+      start = _continuousTranslationSession.startRecording(
+        speakNoSpeechPrompt: speakNoSpeechPrompt,
+      );
+    } finally {
+      _autoReopeningMicrophone = false;
+    }
+    await start;
+    if (_disposed || phase != ConversationPhase.recording) return;
+    // Starting a turn clears the banner; keep the reason visible (as a normal
+    // message, not an error) while HOMI listens again.
+    transientMessage = _unclearSpeechMessage;
+    notifyListeners();
   }
 
   Future<void> _stopAfterHfpRouteLoss() async {
