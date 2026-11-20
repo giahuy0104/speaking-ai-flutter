@@ -1325,7 +1325,7 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
               physics: const NeverScrollableScrollPhysics(),
               buildDefaultDragHandles: false,
               itemCount: upcoming.length,
-              onReorder: (oldIndex, newIndex) =>
+              onReorderItem: (oldIndex, newIndex) =>
                   unawaited(_reorderUpcoming(oldIndex, newIndex)),
               itemBuilder: (itemContext, index) {
                 final entry = upcoming[index];
@@ -1489,7 +1489,6 @@ class _VocabularyHomeScreenState extends State<VocabularyHomeScreen>
 
   Future<void> _reorderUpcoming(int oldIndex, int newIndex) async {
     final upcoming = List<VocabularyEntry>.of(_upcomingWords);
-    if (newIndex > oldIndex) newIndex -= 1;
     final moved = upcoming.removeAt(oldIndex);
     upcoming.insert(newIndex, moved);
     await widget.store.reorderWaitingEntries(

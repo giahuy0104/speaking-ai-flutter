@@ -91,7 +91,6 @@ class _VocabularyQueueScreenState extends State<VocabularyQueueScreen> {
 
   Future<void> _reorder(int oldIndex, int newIndex) async {
     final updated = List<VocabularyEntry>.of(_waiting);
-    if (newIndex > oldIndex) newIndex -= 1;
     final moved = updated.removeAt(oldIndex);
     updated.insert(newIndex, moved);
     setState(() => _waiting = updated);
@@ -268,7 +267,7 @@ class _VocabularyQueueScreenState extends State<VocabularyQueueScreen> {
                           physics: const NeverScrollableScrollPhysics(),
                           buildDefaultDragHandles: false,
                           itemCount: _waiting.length,
-                          onReorder: (oldIndex, newIndex) =>
+                          onReorderItem: (oldIndex, newIndex) =>
                               unawaited(_reorder(oldIndex, newIndex)),
                           itemBuilder: (itemContext, index) {
                             final entry = _waiting[index];
