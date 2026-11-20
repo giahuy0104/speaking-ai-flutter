@@ -85,6 +85,11 @@ jobs:
           echo "::group::DEVELOPMENT_TEAM in project.pbxproj after the sed fix"
           grep -n "DEVELOPMENT_TEAM" ios/Runner.xcodeproj/project.pbxproj || echo "(no DEVELOPMENT_TEAM key at all)"
           echo "::endgroup::"
+          echo "::group::Actual resolved build settings xcodebuild/flutter would see"
+          xcodebuild -showBuildSettings -workspace ios/Runner.xcworkspace -scheme Runner -configuration Release \
+            -destination 'generic/platform=iOS' 2>&1 \
+            | grep -E "DEVELOPMENT_TEAM|CODE_SIGN_STYLE|PROVISIONING_PROFILE|CODE_SIGN_IDENTITY|error:" || true
+          echo "::endgroup::"
           BUILD_NUMBER=$(( $(app-store-connect get-latest-testflight-build-number 6804089228) + 1 ))
           echo "BUILD_NUMBER=$BUILD_NUMBER" >> "$GITHUB_ENV"
           echo "ARTIFACT_NAME=homi-ios-$BUILD_NUMBER-$BACKEND_CHOICE-${GITHUB_REF_NAME//\//-}-${GITHUB_SHA::8}" >> "$GITHUB_ENV"
