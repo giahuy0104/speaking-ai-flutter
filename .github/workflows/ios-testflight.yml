@@ -37,13 +37,20 @@ jobs:
       - run: flutter pub get
       - name: Apply the App Store profile to the Xcode project
         # codemagic-cli-tools matches profiles against certificates in the default keychain only,
-        # so the signing keychain is the default for this step and the login keychain is restored
-        # afterwards; xcodebuild itself finds the identity through the keychain search list.
+        # and flutter build ipa's own signing check also looks at the default keychain, so the
+        # signing keychain stays the default across this step AND the build step; it's restored
+        # to the login keychain in a final `if: always()` step instead of on this step's exit.
         run: |
           KC=~/Library/Keychains/homi-signing.keychain-db
+          KC_PASS="$(cat ~/.appstoreconnect/homi/kc_pass)"
           security list-keychains -d user -s ~/Library/Keychains/login.keychain-db "$KC"
-          security unlock-keychain -p "$(cat ~/.appstoreconnect/homi/kc_pass)" "$KC"
-          trap 'security default-keychain -s ~/Library/Keychains/login.keychain-db' EXIT
+          security unlock-keychain -p "$KC_PASS" "$KC"
+          security set-keychain-settings "$KC"
+          # Without this, the private key's ACL has no non-interactive entry for codesign/security,
+          # so xcodebuild/codesign would need a GUI keychain prompt to use it - which never appears
+          # on a headless CI session, so signing silently fails ("No valid code signing certificates
+          # were found") even though `security find-identity` still lists the certificate.
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KC_PASS" "$KC"
           security default-keychain -s "$KC"
           xcode-project use-profiles --project ios/Runner.xcodeproj --export-options-plist "$RUNNER_TEMP/export_options.plist"
       - name: Build the signed IPA
@@ -85,3 +92,6 @@ jobs:
         run: |
           source ~/.appstoreconnect/homi/env.sh
           app-store-connect publish --path build/ios/ipa/*.ipa --testflight --beta-group "HOMI Test" --expire-build-submitted-for-review
+      - name: Restore the login keychain as default
+        if: always()
+        run: security default-keychain -s ~/Library/Keychains/login.keychain-db
