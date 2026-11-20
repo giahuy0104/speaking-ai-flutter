@@ -4,11 +4,10 @@ definitions:
       name: Build simulator and run iOS native unit tests
       script: |
         set -euo pipefail
-        EXPECTED_BACKEND_BASE_URL="https://api.hoamytech.com"
-        if [ "$BACKEND_BASE_URL" != "$EXPECTED_BACKEND_BASE_URL" ]; then
-          echo "Production builds must use $EXPECTED_BACKEND_BASE_URL"
-          exit 1
-        fi
+        case "$BACKEND_BASE_URL" in
+          https://api.hoamytech.com|https://api-dev.hoamytech.com) ;;
+          *) echo "BACKEND_BASE_URL must be https://api.hoamytech.com or https://api-dev.hoamytech.com"; exit 1 ;;
+        esac
         python3 -B -m unittest discover -s tool -p test_select_ios_test_simulator.py
         python3 -B -m unittest discover -s tool -p test_prepare_ios_translation_pods.py
         export HOMI_IOS_TRANSLATION_SIMULATOR_STUB=1
@@ -98,11 +97,12 @@ workflows:
             fi
           done
 
-          EXPECTED_BACKEND_BASE_URL="https://api.hoamytech.com"
-          if [ "$BACKEND_BASE_URL" != "$EXPECTED_BACKEND_BASE_URL" ]; then
-            echo "Production builds must use $EXPECTED_BACKEND_BASE_URL"
-            exit 1
-          fi
+          # Start the build with BACKEND_BASE_URL=https://api-dev.hoamytech.com to test against api-dev.
+          case "$BACKEND_BASE_URL" in
+            https://api.hoamytech.com|https://api-dev.hoamytech.com) ;;
+            *) echo "BACKEND_BASE_URL must be https://api.hoamytech.com or https://api-dev.hoamytech.com"; exit 1 ;;
+          esac
+          echo "Backend: $BACKEND_BASE_URL"
           if [[ "$AI_SUBPROCESSORS" != *"thuecloud.com"* ]] ||
              printf '%s' "$AI_SUBPROCESSORS" | grep -qi railway; then
             echo "AI_SUBPROCESSORS must name thuecloud.com and exclude the retired provider."
