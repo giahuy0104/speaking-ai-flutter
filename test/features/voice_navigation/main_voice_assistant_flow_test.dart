@@ -464,6 +464,46 @@ void main() {
   );
 
   test(
+    'Home opens Translate from a stable partial for every Translate phrase',
+    () async {
+      for (final phrase in <String>[
+        'Dịch',
+        'Phiên dịch',
+        'Dịch câu',
+        'Dịch đi',
+        'Mình muốn dịch',
+        'Cho mình dịch',
+        'Dịch giúp mình',
+        'Dịch cho mình',
+        'Mở phần dịch',
+        'Vào phần Dịch',
+        'Chuyển sang Dịch',
+        'Học dịch đi',
+        'Dịch tiếng Anh',
+        'Dịch sang tiếng Anh',
+        'Tiếng Anh',
+        'Nói tiếng Anh giúp mình',
+        'Dịch liên tục',
+        'Dịch nhiều câu',
+        'Dịch tiếp',
+        'Dịch liên tiếp',
+        'Mình muốn dịch nhiều câu',
+        'Mình muốn dịch nhé',
+      ]) {
+        final flow = MainVoiceAssistantFlow(contentLoader: _loadContent);
+        flow.begin();
+        expect(flow.canHandlePartial(phrase), isTrue, reason: phrase);
+        final turn = await flow.handle(phrase);
+        expect(
+          turn.navigationAfterPrompt?.destination,
+          VoiceNavigationDestination.conversation,
+          reason: phrase,
+        );
+      }
+    },
+  );
+
+  test(
     'Home accepts an approved feature phrase with lead-in or particle',
     () async {
       for (final entry in <String, VoiceNavigationDestination>{

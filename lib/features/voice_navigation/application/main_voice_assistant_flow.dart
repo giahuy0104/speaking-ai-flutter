@@ -1960,8 +1960,11 @@ class MainVoiceAssistantFlow {
       _containsPhrase(normalized, 'hoc theo chu de') ||
       _containsPhrase(normalized, 'hoc chu de') ||
       _containsPhrase(normalized, 'hoc tinh huong') ||
-      _containsPhrase(normalized, 'dich tieng anh') ||
-      _containsPhrase(normalized, 'dich sang tieng anh') ||
+      // Every approved Translate phrase opens the same translation mode, so
+      // "Mình muốn dịch" is as final as "Dịch sang tiếng Anh".
+      _isTranslationChoice(normalized) ||
+      _wrappedFeatureChoice(normalized) ==
+          VoiceNavigationDestination.conversation ||
       _containsPhrase(normalized, 'luyen noi') ||
       _containsPhrase(normalized, 'luyen giao tiep') ||
       _containsPhrase(normalized, 'noi chuyen');
