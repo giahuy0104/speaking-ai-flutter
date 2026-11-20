@@ -5252,8 +5252,10 @@ class ConversationController extends ChangeNotifier
   /// so the child can simply repeat the sentence without pressing "Thử lại".
   ///
   /// Skipped for push-to-talk turns (the child controls the mic by holding the
-  /// button), when the child or a cancellation already moved on, when the
-  /// microphone is not ready, or once the consecutive limit is reached.
+  /// button), for turns whose caller owns the retry prompts (continuous
+  /// translation starts turns with `speakNoSpeechPrompt: false` and re-opens
+  /// the mic itself), when the child or a cancellation already moved on, when
+  /// the microphone is not ready, or once the consecutive limit is reached.
   Future<void> _reopenMicrophoneAfterUnclearSpeech({
     required int failedTurnGeneration,
     required bool stopOnSilence,
@@ -5261,6 +5263,7 @@ class ConversationController extends ChangeNotifier
   }) async {
     if (_disposed ||
         !stopOnSilence ||
+        !speakNoSpeechPrompt ||
         failedTurnGeneration != _conversationTurnGeneration ||
         phase != ConversationPhase.error ||
         !_audioInput.isAvailable ||

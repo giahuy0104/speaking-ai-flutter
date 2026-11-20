@@ -1677,6 +1677,23 @@ void main() {
       controller.dispose();
     });
 
+    test('a caller that owns retries (continuous translation) keeps the '
+        'microphone closed for it to decide', () async {
+      final (:input, :controller) = createLowConfidenceController();
+
+      await controller.startRecording(speakNoSpeechPrompt: false);
+      await speakAndStop(input, controller);
+
+      expect(input.startCount, 1);
+      expect(controller.phase, ConversationPhase.error);
+      expect(
+        controller.lastTurnEndReason,
+        ConversationTurnEndReason.failed,
+      );
+      expect(controller.isRecordingStartBlocked, isFalse);
+      controller.dispose();
+    });
+
     test('push-to-talk keeps the microphone closed', () async {
       final (:input, :controller) = createLowConfidenceController();
 
