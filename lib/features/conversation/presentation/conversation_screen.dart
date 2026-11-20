@@ -622,6 +622,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
   Future<void> _promptOpenBluetoothSettings(BuildContext context) async {
     final coordinator = widget.connectionCoordinator;
     if (coordinator == null || !context.mounted) return;
+    final canOpenSettings =
+        DeviceConnectionCoordinator.canOpenBluetoothSettings;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -634,18 +636,30 @@ class _ConversationScreenState extends State<ConversationScreen> {
             '请在手机的蓝牙设置中打开蓝牙并连接 HOMI，然后返回重试。',
           ),
         ),
-        actions: <Widget>[
-          TextButton(
-            key: const Key('conversation-open-bluetooth-settings-cancel'),
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(context.tr('Hủy', '取消')),
-          ),
-          FilledButton(
-            key: const Key('conversation-open-bluetooth-settings-confirm'),
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(context.tr('Mở Cài đặt Bluetooth', '打开蓝牙设置')),
-          ),
-        ],
+        actions: !canOpenSettings
+            ? <Widget>[
+                FilledButton(
+                  key: const Key(
+                    'conversation-open-bluetooth-settings-dismiss',
+                  ),
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: Text(context.tr('Đã hiểu', '知道了')),
+                ),
+              ]
+            : <Widget>[
+                TextButton(
+                  key: const Key('conversation-open-bluetooth-settings-cancel'),
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: Text(context.tr('Hủy', '取消')),
+                ),
+                FilledButton(
+                  key: const Key(
+                    'conversation-open-bluetooth-settings-confirm',
+                  ),
+                  onPressed: () => Navigator.of(dialogContext).pop(true),
+                  child: Text(context.tr('Mở Cài đặt Bluetooth', '打开蓝牙设置')),
+                ),
+              ],
       ),
     );
     if (confirmed == true) {

@@ -152,6 +152,15 @@ class DeviceConnectionCoordinator extends ChangeNotifier {
 
   Future<void> openBluetoothSettings() => _onOpenBluetoothSettings();
 
+  /// iOS has no public API to deep-link into Settings > Bluetooth;
+  /// [openBluetoothSettings] there only opens this app's own permission
+  /// page, which would mislead a user expecting the Bluetooth screen. Every
+  /// other supported platform opens the real Bluetooth settings screen.
+  /// Callers should gate any "open settings" action and its label on this
+  /// flag instead of repeating the platform check at each call site.
+  static bool get canOpenBluetoothSettings =>
+      kIsWeb || defaultTargetPlatform != TargetPlatform.iOS;
+
   @override
   void dispose() {
     _disposed = true;

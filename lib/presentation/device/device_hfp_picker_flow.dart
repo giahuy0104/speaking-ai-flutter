@@ -247,19 +247,38 @@ class DeviceHfpPickerFlow {
               ),
               if (connectionCoordinator case final coordinator?) ...<Widget>[
                 const SizedBox(height: 4),
-                TextButton.icon(
-                  onPressed: () {
-                    Navigator.of(sheetContext).pop();
-                    unawaited(coordinator.openBluetoothSettings());
-                  },
-                  icon: const Icon(Icons.bluetooth_rounded),
-                  label: Text(
-                    context.tr(
-                      'Không thấy HOMI? Mở Cài đặt Bluetooth',
-                      '没看到 HOMI？打开蓝牙设置',
+                if (!DeviceConnectionCoordinator.canOpenBluetoothSettings)
+                  Padding(
+                    key: const Key('hfp-picker-open-settings-guidance'),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      context.tr(
+                        'Không thấy HOMI? Hãy mở Cài đặt > Bluetooth để kết nối.',
+                        '没看到 HOMI？请打开“设置 > 蓝牙”进行连接。',
+                      ),
+                      style: Theme.of(sheetContext).textTheme.bodySmall
+                          ?.copyWith(
+                            color: Theme.of(
+                              sheetContext,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                  )
+                else
+                  TextButton.icon(
+                    key: const Key('hfp-picker-open-bluetooth-settings'),
+                    onPressed: () {
+                      Navigator.of(sheetContext).pop();
+                      unawaited(coordinator.openBluetoothSettings());
+                    },
+                    icon: const Icon(Icons.bluetooth_rounded),
+                    label: Text(
+                      context.tr(
+                        'Không thấy HOMI? Mở Cài đặt Bluetooth',
+                        '没看到 HOMI？打开蓝牙设置',
+                      ),
                     ),
                   ),
-                ),
               ],
             ],
           ),

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
+import '../../../core/device/device_connection_coordinator.dart';
 import '../../../l10n/display_language.dart';
 
 /// Which system Bluetooth step the parent must do in settings.
@@ -42,6 +43,8 @@ class HomiAudioGuideSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final ios = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+    final canOpenSettings =
+        DeviceConnectionCoordinator.canOpenBluetoothSettings;
     final pause = guide == HomiAudioGuide.pauseAudio;
     final title = pause
         ? context.tr('Tạm tắt âm thanh HOMI', '暂时关闭 HOMI 音频')
@@ -171,24 +174,11 @@ class HomiAudioGuideSheet extends StatelessWidget {
                 Navigator.of(context).pop(HomiGuideAction.openSettings),
             icon: const Icon(Icons.settings_bluetooth_rounded),
             label: Text(
-              ios
-                  ? context.tr('Mở Cài đặt', '打开设置')
-                  : context.tr('Mở Cài đặt Bluetooth', '打开蓝牙设置'),
+              canOpenSettings
+                  ? context.tr('Mở Cài đặt Bluetooth', '打开蓝牙设置')
+                  : context.tr('Đã hiểu', '知道了'),
             ),
           ),
-          if (ios) ...<Widget>[
-            const SizedBox(height: 6),
-            Text(
-              context.tr(
-                'Nếu Cài đặt mở trang của HOMI, bấm "‹ Cài đặt" ở góc trên để về trang chính rồi chọn Bluetooth.',
-                '如果打开的是 HOMI 的设置页，请点击左上角“‹ 设置”返回，再选择“蓝牙”。',
-              ),
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
           const SizedBox(height: 4),
           TextButton(
             key: const Key('homi-guide-check-again'),
