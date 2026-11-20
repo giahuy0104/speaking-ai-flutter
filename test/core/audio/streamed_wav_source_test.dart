@@ -54,12 +54,28 @@ void main() {
     'https://api-dev.example/api/audio/target?lang=zh&sig=x&text=y',
   );
 
-  test('handles only the deferred target-language speech route', () {
+  test('handles the backend routes that stream live speech', () {
     expect(StreamedWavSource.handles(uri), isTrue);
     expect(
       StreamedWavSource.handles(
         Uri.parse('https://api-dev.example/api/audio/stream?text=hi'),
       ),
+      isTrue,
+    );
+    expect(
+      StreamedWavSource.handles(
+        Uri.parse('https://api-dev.example/api/audio/segments?job=j'),
+      ),
+      isTrue,
+    );
+    expect(
+      StreamedWavSource.handles(
+        Uri.parse('https://api-dev.example/api/audio/cache?key=k'),
+      ),
+      isFalse,
+    );
+    expect(
+      StreamedWavSource.handles(Uri.parse('https://cdn.example/clip.mp3')),
       isFalse,
     );
     expect(

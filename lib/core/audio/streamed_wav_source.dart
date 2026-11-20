@@ -245,10 +245,20 @@ class StreamedWavSource {
     return out;
   }
 
-  /// `true` for the backend's deferred target-language speech URL.
+  /// Backend routes that stream speech while it is being synthesized: English
+  /// (`/api/audio/stream`), the other target languages (`/api/audio/target`)
+  /// and the dev-only segmented speech (`/api/audio/segments`). Each one can
+  /// also answer with a finished MP3 or a redirect to the cache; those play
+  /// through this source too and complete on their own.
   static bool handles(Uri uri) =>
       (uri.isScheme('https') || uri.isScheme('http')) &&
-      uri.path.endsWith('/api/audio/target');
+      _streamingRoutes.any(uri.path.endsWith);
+
+  static const _streamingRoutes = <String>[
+    '/api/audio/stream',
+    '/api/audio/target',
+    '/api/audio/segments',
+  ];
 
   /// Duration of a PCM WAV with a 44-byte header, from its byte rate and the
   /// number of bytes actually received; null when the header is not PCM WAV.

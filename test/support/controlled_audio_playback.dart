@@ -116,6 +116,18 @@ class ControlledPlayer implements AudioPlayer {
   }
 
   @override
+  Future<Duration?> setUrl(
+    String url, {
+    Map<String, String>? headers,
+    Duration? initialPosition,
+    bool preload = true,
+    dynamic tag,
+  }) async {
+    loadedPath = url;
+    return duration;
+  }
+
+  @override
   Future<Duration?> setAsset(
     String assetPath, {
     bool preload = true,
