@@ -34,6 +34,15 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - run: flutter --version && xcodebuild -version
+      - name: Ensure the iOS device platform is installed
+        # One-time (per Xcode version) fix for this self-hosted runner: Xcode had the iOS 26.2 SDK
+        # for building but not the device platform support files, so resolving the "Any iOS Device"
+        # destination for an archive failed with "iOS 26.2 is not installed" - which made flutter
+        # build ipa's own build-settings query come back empty and fall through to a signing-identity
+        # check that always fails for "Apple Distribution" certs, surfacing as the misleading "No
+        # valid code signing certificates were found" error. This persists on the runner once done,
+        # so it's a no-op on future runs once the platform is actually installed.
+        run: xcodebuild -downloadPlatform iOS
       - run: flutter pub get
       - name: Apply the profile and build the signed IPA
         # Keychain unlock / search-list state on this self-hosted runner does not reliably survive
