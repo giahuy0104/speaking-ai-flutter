@@ -34,6 +34,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - run: flutter --version && xcodebuild -version
+      - run: xcode-select -p && xcodebuild -showsdks && xcrun --sdk iphoneos --show-sdk-path
       - run: flutter pub get
       - name: Apply the profile and build the signed IPA
         # Keychain unlock / search-list state on this self-hosted runner does not reliably survive
