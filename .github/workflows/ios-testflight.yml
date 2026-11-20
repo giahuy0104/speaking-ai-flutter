@@ -62,6 +62,14 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KC_PASS" "$KC"
           security default-keychain -s "$KC"
           xcode-project use-profiles --project ios/Runner.xcodeproj --export-options-plist "$RUNNER_TEMP/export_options.plist"
+          echo "::group::Signing identity diagnostics"
+          echo "--- security find-identity -v -p codesigning (default search list) ---"
+          security find-identity -v -p codesigning || true
+          echo "--- security find-identity -v -p codesigning \"\$KC\" (explicit keychain) ---"
+          security find-identity -v -p codesigning "$KC" || true
+          echo "--- certificate dates/issuer ---"
+          security find-certificate -c "Apple Distribution" -p "$KC" | openssl x509 -noout -subject -issuer -dates || true
+          echo "::endgroup::"
           source ~/.appstoreconnect/homi/env.sh
           case "$BACKEND_CHOICE" in
             production) BACKEND_BASE_URL=https://api.hoamytech.com ;;
