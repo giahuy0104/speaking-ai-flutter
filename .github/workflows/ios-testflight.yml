@@ -34,25 +34,42 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - run: flutter --version && xcodebuild -version
+      - name: Ensure the iOS device platform is installed
+        # One-time (per Xcode version) fix for this self-hosted runner: Xcode had the iOS 26.2 SDK
+        # for building but not the device platform support files, so resolving the "Any iOS Device"
+        # destination for an archive failed with "iOS 26.2 is not installed" - which made flutter
+        # build ipa's own build-settings query come back empty and fall through to a signing-identity
+        # check that always fails for "Apple Distribution" certs, surfacing as the misleading "No
+        # valid code signing certificates were found" error. This persists on the runner once done,
+        # so it's a no-op on future runs once the platform is actually installed.
+        run: xcodebuild -downloadPlatform iOS
       - run: flutter pub get
-      - name: Apply the App Store profile to the Xcode project
-        # codemagic-cli-tools matches profiles against certificates in the default keychain only,
-        # so the signing keychain is the default for this step and the login keychain is restored
-        # afterwards; xcodebuild itself finds the identity through the keychain search list.
-        run: |
-          KC=~/Library/Keychains/homi-signing.keychain-db
-          security list-keychains -d user -s ~/Library/Keychains/login.keychain-db "$KC"
-          security unlock-keychain -p "$(cat ~/.appstoreconnect/homi/kc_pass)" "$KC"
-          trap 'security default-keychain -s ~/Library/Keychains/login.keychain-db' EXIT
-          security default-keychain -s "$KC"
-          xcode-project use-profiles --project ios/Runner.xcodeproj --export-options-plist "$RUNNER_TEMP/export_options.plist"
-      - name: Build the signed IPA
+      - name: Apply the profile and build the signed IPA
+        # Keychain unlock / search-list state on this self-hosted runner does not reliably survive
+        # between separate `run:` steps (each is its own shell process, and the runner has no stable
+        # login-session keychain context), so signing setup and the build run in ONE step/process -
+        # that's what makes the identity still resolvable by `flutter build ipa`'s own signing check.
+        #
+        # codemagic-cli-tools matches profiles against certificates in the default keychain only, so
+        # the signing keychain is made the default here and restored in a final `if: always()` step.
+        #
         # Same dart-defines as the Codemagic ios-app-store workflow; the build number is one past
         # the latest TestFlight build, like the manual TestFlight recipe. The api-dev choice only
         # overrides BACKEND_BASE_URL: a later --dart-define wins over the defines file.
         env:
           BACKEND_CHOICE: ${{ inputs.backend || 'production' }}
         run: |
+          KC=~/Library/Keychains/homi-signing.keychain-db
+          KC_PASS="$(cat ~/.appstoreconnect/homi/kc_pass)"
+          security list-keychains -d user -s ~/Library/Keychains/login.keychain-db "$KC"
+          security unlock-keychain -p "$KC_PASS" "$KC"
+          security set-keychain-settings "$KC"
+          # Without this, the private key's ACL has no non-interactive entry for codesign/security,
+          # so xcodebuild/codesign would need a GUI keychain prompt to use it - which never appears
+          # on a headless CI session, so signing silently fails ("No valid code signing certificates
+          # were found") even though `security find-identity` still lists the certificate.
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KC_PASS" "$KC"
+          security default-keychain -s "$KC"
           source ~/.appstoreconnect/homi/env.sh
           case "$BACKEND_CHOICE" in
             production) BACKEND_BASE_URL=https://api.hoamytech.com ;;
@@ -60,7 +77,12 @@ jobs:
             *) echo "Unknown backend: $BACKEND_CHOICE" >&2; exit 1 ;;
           esac
           echo "Backend: $BACKEND_CHOICE ($BACKEND_BASE_URL)"
+          # pod install's "Integrating client project" step rewrites Runner.xcodeproj, which was
+          # wiping out the manual signing settings xcode-project use-profiles had just applied -
+          # that's why flutter build ipa kept reporting no valid certificates right after this
+          # project's own cert/profile matching had succeeded. Apply profiles AFTER pods, last.
           python3 tool/prepare_ios_translation_pods.py device
+          xcode-project use-profiles --project ios/Runner.xcodeproj --export-options-plist "$RUNNER_TEMP/export_options.plist"
           BUILD_NUMBER=$(( $(app-store-connect get-latest-testflight-build-number 6804089228) + 1 ))
           echo "BUILD_NUMBER=$BUILD_NUMBER" >> "$GITHUB_ENV"
           echo "ARTIFACT_NAME=homi-ios-$BUILD_NUMBER-$BACKEND_CHOICE-${GITHUB_REF_NAME//\//-}-${GITHUB_SHA::8}" >> "$GITHUB_ENV"
@@ -85,3 +107,6 @@ jobs:
         run: |
           source ~/.appstoreconnect/homi/env.sh
           app-store-connect publish --path build/ios/ipa/*.ipa --testflight --beta-group "HOMI Test" --expire-build-submitted-for-review
+      - name: Restore the login keychain as default
+        if: always()
+        run: security default-keychain -s ~/Library/Keychains/login.keychain-db
